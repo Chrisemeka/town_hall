@@ -13,19 +13,31 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 
 // @ts-ignore
 const formSchema = z.object({
+  first_name: z.string().min(1, { message: "First name is required." }),
+  last_name: z.string().min(1, { message: "Last name is required." }),
+  role: z.string().min(1, { message: "Role is required." }),
   email: z.string()
     .min(1, { message: "Email address is required." })
     .email({ message: "Please enter a valid email address." }),
   password: z.string()
     .min(8, { message: "Password must be at least 8 characters long." })
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message: "Password must contain at least one uppercase letter, one lowercase letter, and one number."
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/, {
+      message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."
     }),
   confirmPassword: z.string().min(1, {
     message: "Please confirm your password.",
@@ -42,7 +54,10 @@ export function SignUpForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      first_name: "",
+      last_name: "",
       email: "",
+      role: '',
       password: "",
       confirmPassword: "",
     },
@@ -57,6 +72,32 @@ export function SignUpForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
+          name="first_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm text-blue-100 font-montserrat font-semibold">First Name</FormLabel>
+              <FormControl>
+                <Input placeholder="E.g John" {...field}  className="input"/>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="last_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm text-blue-100 font-montserrat font-semibold">Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder="E.g Snow" {...field}  className="input"/>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
@@ -68,6 +109,35 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Role</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger className="input">
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Roles</SelectLabel>
+                      <SelectItem value="developer">DEVELOPER</SelectItem>
+                      <SelectItem value="tester">TESTER</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="password"
