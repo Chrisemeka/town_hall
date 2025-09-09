@@ -63,12 +63,13 @@ passport.use(new GoogleStrategy({
 }, async (accessToken, refreshToken, profile, done) => {
     try {
         const email = profile.emails![0].value;
+        const profileId = profile.id;
         
         const existingUser = await prisma.user.findUnique({ 
             where: { email: email } 
         });
-        
-        if (existingUser) {
+
+        if(existingUser){
             const existingGoogleAccount = await prisma.oauthAccount.findFirst({
                 where: {
                     userId: existingUser.id,
@@ -100,32 +101,22 @@ passport.use(new GoogleStrategy({
                     }
                 });
             }
-            
+
             return done(null, existingUser);
         }
 
-        const newUser = await prisma.user.create({
-            data: {
-                email: email,
-                firstName: profile.name!.givenName,
-                lastName: profile.name!.familyName,
-                role: 'TESTER',
-                isVerified: true,
-                authProvider: 'GOOGLE',
-                profilePictureUrl: profile.photos![0].value
-            }
-        });
-
-        await prisma.oauthAccount.create({
-            data: {
-                userId: newUser.id,
-                provider: 'GOOGLE',
-                providerUserId: profile.id,
-                providerEmail: email,
-            }
-        });
-
-        return done(null, newUser);
+        const tempUser = {
+            email: email,
+            profileId: profileId,
+            firstName: profile.name!.givenName,
+            lastName: profile.name!.familyName,
+            isVerified: true,
+            authProvider: 'GOOGLE',
+            profilePictureUrl: profile.photos![0].value,
+            isNewUser: true
+        }
+        
+        return done(null, tempUser);
     } catch (error) {
         return done(error);
     }
@@ -188,28 +179,17 @@ passport.use(new GitHubStrategy({
         const displayName = profile.displayName || profile.username || '';
         const nameParts = displayName.split(' ');
         
-        const newUser = await prisma.user.create({
-            data: {
-                email: email,
-                firstName: nameParts[0] || profile.username || 'GitHub',
-                lastName: nameParts[1] || 'User',
-                role: 'TESTER',
-                isVerified: true,
-                authProvider: 'GITHUB',
-                profilePictureUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : null
-            }
-        });
+        const tempUser = {
+            email: email,            
+            firstName: nameParts[0] || profile.username || 'GitHub',
+            lastName: nameParts[1] || 'User',
+            isVerified: true,
+            authProvider: 'GITHUB',
+            profilePictureUrl: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
+            isNewUser: true
+        }
 
-        await prisma.oauthAccount.create({
-            data: {
-                userId: newUser.id,
-                provider: 'GITHUB',
-                providerUserId: profile.id,
-                providerEmail: email,
-            }
-        });
-
-        return done(null, newUser);
+        return done(null, tempUser);
     } catch (error) {
         return done(error);
     }
@@ -226,7 +206,7 @@ export class AuthController {
 
             const existingUser = await prisma.user.findUnique({ where: { email } });
             if (existingUser) {
-                return res.status(400).json({ message: 'User already exists' });
+                return res.status(400).json({ message: 'Account already exists' });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
@@ -256,7 +236,7 @@ export class AuthController {
             return res.status(200).json({ message: 'User registered successfully' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error. Cannot register the account', error: error });
         }
     }
 
@@ -266,7 +246,7 @@ export class AuthController {
             
             const user = await prisma.user.findUnique({ where: { email } });
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Account not found' });
             }
 
             const otpRecord = await prisma.otp.findFirst({
@@ -293,10 +273,10 @@ export class AuthController {
                 prisma.otp.delete({ where: { id: otpRecord.id } })
             ]);
             
-            return res.status(200).json({ message: 'User verified successfully' });
+            return res.status(200).json({ message: 'Account verified successfully' });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error. Cannot verify the account', error: error });
         }
     }
 
@@ -306,7 +286,7 @@ export class AuthController {
             
             const user = await prisma.user.findUnique({ where: { email } });
             if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Account not found' });
             }
 
             if (user.authProvider === 'LOCAL' && !user.isVerified) {
@@ -340,16 +320,44 @@ export class AuthController {
             });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ message: 'Internal server error' });
+            return res.status(500).json({ message: 'Internal server error. Cannot login account', error: error });
         }
     }
 
     static googleCallback = async (req: Request, res: Response) => {
         try {
             const user = req.user as any;
+            const selectedRole = req.query.role as string;
+            const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
             
             if (!user) {
                 return res.status(401).json({ message: 'Google authentication failed' });
+            }
+
+            if (user.isNewUser) {
+                await prisma.user.create({
+                    data: {
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        isVerified: true,
+                        authProvider: 'GOOGLE',
+                        profilePictureUrl: user.profilePictureUrl
+                    }
+                })
+                await prisma.oauthAccount.create({
+                    data: {
+                        userId: user.id,
+                        provider: 'GOOGLE',
+                        providerUserId: user.profileId,
+                        providerEmail: user.email,
+                    }
+                });
+            } else{
+                if (user.role != selectedRole) {
+                    return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
+              `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
+                }
             }
 
             await cleanExpiredTokens(user.id);
@@ -359,11 +367,9 @@ export class AuthController {
             
             await storeRefreshToken(user.id, refreshToken);
 
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-            // no dedicated route yet
             return res.redirect(`${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
         } catch (error) {
-            console.error(error);
+            console.error('OAuth callback error: ', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }
@@ -371,9 +377,37 @@ export class AuthController {
     static githubCallback = async (req: Request, res: Response) => {
         try {
             const user = req.user as any;
+            const selectedRole = req.query.role as string;
+            const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
             
             if (!user) {
                 return res.status(401).json({ message: 'GitHub authentication failed' }); 
+            }
+
+            if (user.isNewUser) {
+                await prisma.user.create({
+                    data: {
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        isVerified: true,
+                        authProvider: 'GITHUB',
+                        profilePictureUrl: user.profilePictureUrl
+                    }
+                })
+                await prisma.oauthAccount.create({
+                    data: {
+                        userId: user.id,
+                        provider: 'GITHUB',
+                        providerUserId: user.profileId,
+                        providerEmail: user.email,
+                    }
+                })
+            } else {
+                if (user.role != selectedRole) {
+                    return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
+              `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
+                }
             }
 
             await cleanExpiredTokens(user.id);
@@ -383,11 +417,9 @@ export class AuthController {
             
             await storeRefreshToken(user.id, refreshToken);
 
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-            // no dedicated route yet
             return res.redirect(`${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
         } catch (error) {
-            console.error(error);
+            console.error('OAuth callback error: ', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
     }

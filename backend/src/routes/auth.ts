@@ -9,6 +9,8 @@ const router = Router();
 router.post('/register', validateData(registerUserSchema), AuthController.register);
 router.post('/verify', AuthController.verify);
 router.post('/login', validateData(loginUserSchema), AuthController.login);
+router.post('/logout', AuthController.logout);
+router.post('/refresh-token', AuthController.refreshToken);
 
 router.get('/google', passport.authenticate('google', { 
     scope: ['profile', 'email'] 
@@ -16,7 +18,7 @@ router.get('/google', passport.authenticate('google', {
 router.get('/google/callback', 
     passport.authenticate('google', { 
         session: false,
-        failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/login?error=auth_failed`
+        failureRedirect: `${process.env.FRONTEND_URL_DEVELOPEMENT}/login?error=auth_failed`
     }),
     AuthController.googleCallback
 );
