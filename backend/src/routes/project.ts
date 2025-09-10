@@ -7,8 +7,8 @@ import { ProjectController } from '../controllers/ProjectController';
 const router = Router();
 
 router.post('/create-project', validateAuth, validateData(projectSchema), ProjectController.createProject); // Only developers can create projects
-router.get('/projects', validateAuth, validateData(projectSchema), ProjectController.getAllProjects); // Only testers can get all projects
-router.get('/:id', validateAuth, validateData(projectSchema), ProjectController.getProjectDetails);// Only testers can get all project details, developer can only get there own project details
+router.get('/projects', validateAuth, ProjectController.getAllProjects); // Only testers can get all projects
+router.get('/:id', validateAuth, ProjectController.getProjectDetails);// Only testers can get all project details, developer can only get there own project details
 
 
 export default router;
