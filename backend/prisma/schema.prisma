@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  email              String   @unique
+  password       String?  
+  role               Role     
+  firstName          String
+  lastName           String
+  isVerified         Boolean  @default(false)
+  authProvider       AuthProvider @default(LOCAL)
+  providerId         String?  // Nullable
+  profilePictureUrl  String?  // Nullable
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  projects           Project[]
+  testSessions       TestSession[]
+  otp                Otp[]
+  oauthAccounts      OauthAccount[]
+  RefreshToken       RefreshToken[]
+
+  @@map("users")
+}
+
+model Otp {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  otpHash  String
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+
+  // Relations
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otp")
+}
+
+model OauthAccount {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String    @db.ObjectId
+  provider         OauthProvider
+  providerUserId   String
+  providerEmail    String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Relations
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@map("oauth_accounts")
+}
+
+model Project {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  developerId      String        @db.ObjectId
+  projectName      String
+  description      String
+  websiteUrl       String
+  targetAudience   String
+  objectives       String
+  status           ProjectStatus @default(DRAFT)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relations
+  developer        User          @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  components       Component[]
+  testSessions     TestSession[]
+
+  @@map("projects")
+}
+
+model Component {
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String      @db.ObjectId
+  componentName  String
+  description    String
+  priority       Priority    @default(MEDIUM)
+  focusAreas     String      // Text field for focus areas
+  createdAt      DateTime    @default(now())
+
+  // Relations
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  seqTests       SeqTest[]
+
+  @@map("components")
+}
+
+model SeqTest {
+  id                    String        @id @default(auto()) @map("_id") @db.ObjectId
+  componentId           String        @db.ObjectId
+  questionText          String
+  questionContext       String
+  aiGenerated           Boolean       @default(true)
+  approvedByDeveloper   Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+
+  // Relations
+  component             Component     @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  seqResponses          SeqResponse[]
+
+  @@map("seq_tests")
+}
+
+model TestSession {
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  projectId    String           @db.ObjectId
+  testerId     String           @db.ObjectId
+  status       SessionStatus    @default(ACTIVE)
+  startedAt    DateTime         @default(now())
+  completedAt  DateTime?        // Nullable
+
+  // Relations
+  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tester       User             @relation(fields: [testerId], references: [id], onDelete: Cascade)
+  seqResponses SeqResponse[]
+
+  @@map("test_sessions")
+}
+
+model SeqResponse {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId          String      @db.ObjectId
+  seqTestId          String      @db.ObjectId
+  easeRating         Int         // 1-7 scale
+  additionalFeedback String?     // Nullable
+  submittedAt        DateTime    @default(now())
+
+  // Relations
+  session            TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seqTest            SeqTest     @relation(fields: [seqTestId], references: [id], onDelete: Cascade)
+
+  @@map("seq_responses")
+}
+
+model RefreshToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String
+  tokenHash  String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastUsed   DateTime @default(now())
+  revoked    Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enums
+enum Role {
+  DEVELOPER
+  TESTER
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+enum TokenType {
+  ACCESS
+  REFRESH
+}
+
+enum OauthProvider {
+  GOOGLE 
+  GITHUB
+}
+
+enum ProjectStatus {
+  DRAFT
+  REVIEW
+  ACTIVE
+  COMPLETED
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
