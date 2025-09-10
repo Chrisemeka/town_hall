@@ -56,23 +56,11 @@ const cleanExpiredTokens = async (userId: string) => {
     });
 };
 
-console.log('=== PASSPORT GOOGLE STRATEGY CONFIG ===');
-console.log('Client ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
-console.log('Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
-console.log('Callback URL:', 'https://town-hall-backend.onrender.com/auth/google/callback');
-console.log('Frontend URL:', process.env.FRONTEND_URL_DEVELOPEMENT);
-console.log('=======================================');
-
-
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: 'https://town-hall-backend.onrender.com/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
-     console.log('=== GOOGLE STRATEGY CALLBACK EXECUTED ===');
-    console.log('Profile ID:', profile.id);
-    console.log('Email:', profile.emails?.[0]?.value);
-    console.log('=========================================');
     try {
         const email = profile.emails![0].value;
         const profileId = profile.id;
