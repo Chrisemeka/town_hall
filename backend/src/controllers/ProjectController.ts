@@ -132,6 +132,12 @@ export class ProjectController {
                         firstName: true,
                         lastName: true,
                         }
+                    },
+                    _count: {
+                        select: {
+                            components: true,
+                            testSessions: true
+                        }
                     }
                 }
             });

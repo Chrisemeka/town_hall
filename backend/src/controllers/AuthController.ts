@@ -334,6 +334,14 @@ export class AuthController {
                 return res.status(401).json({ message: 'Google authentication failed' });
             }
 
+            const validRoles = ['TESTER', 'DEVELOPER'] as const;
+            if (!selectedRole || !validRoles.includes(selectedRole as any)) {
+                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
+                    'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
+            }
+
+            const role = selectedRole as 'TESTER' | 'DEVELOPER';
+
             if (user.isNewUser) {
                 await prisma.user.create({
                     data: {
@@ -341,6 +349,7 @@ export class AuthController {
                         firstName: user.firstName,
                         lastName: user.lastName,
                         isVerified: true,
+                        role: role,
                         authProvider: 'GOOGLE',
                         profilePictureUrl: user.profilePictureUrl
                     }
@@ -384,6 +393,14 @@ export class AuthController {
                 return res.status(401).json({ message: 'GitHub authentication failed' }); 
             }
 
+            const validRoles = ['TESTER', 'DEVELOPER'] as const;
+            if (!selectedRole || !validRoles.includes(selectedRole as any)) {
+                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
+                    'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
+            }
+
+            const role = selectedRole as 'TESTER' | 'DEVELOPER';
+
             if (user.isNewUser) {
                 await prisma.user.create({
                     data: {
@@ -391,6 +408,7 @@ export class AuthController {
                         firstName: user.firstName,
                         lastName: user.lastName,
                         isVerified: true,
+                        role: role,
                         authProvider: 'GITHUB',
                         profilePictureUrl: user.profilePictureUrl
                     }
