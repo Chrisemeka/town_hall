@@ -356,7 +356,7 @@ export class AuthController {
                 })
                 await prisma.oauthAccount.create({
                     data: {
-                        userId: user.id,
+                        userId: newUser.id,
                         provider: 'GOOGLE',
                         providerUserId: user.profileId,
                         providerEmail: user.email,
@@ -364,6 +364,7 @@ export class AuthController {
                 });
 
                 user.id = newUser.id;
+                user.role = role;
             } else{
                 if (user.role != selectedRole) {
                     return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
@@ -417,7 +418,7 @@ export class AuthController {
                 })
                 await prisma.oauthAccount.create({
                     data: {
-                        userId: user.id,
+                        userId: newUser.id,
                         provider: 'GITHUB',
                         providerUserId: user.profileId,
                         providerEmail: user.email,
@@ -425,6 +426,7 @@ export class AuthController {
                 })
 
                 user.id = newUser.id;
+                user.role = role;
             } else {
                 if (user.role != selectedRole) {
                     return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
