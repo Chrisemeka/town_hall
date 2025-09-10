@@ -44,11 +44,11 @@ router.get('/github', (req, res, next) => {
         state: role 
     })(req, res, next);
 });
-router.get('/github/callback', 
+router.get('/github/callback', (req, res,next) => {
     passport.authenticate('github', { 
         session: false,
-        failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5000'}/login?error=auth_failed`
-    }),
+        failureRedirect: `${process.env.FRONTEND_URL_DEVELOPEMENT}/login?error=auth_failed`
+    })(req, res, next);},
     AuthController.githubCallback
 );
 
