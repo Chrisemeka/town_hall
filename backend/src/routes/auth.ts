@@ -12,9 +12,17 @@ router.post('/login', validateData(loginUserSchema), AuthController.login);
 router.post('/logout', AuthController.logout);
 router.post('/refresh-token', AuthController.refreshToken);
 
-router.get('/google', passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
-}));
+router.get('/google', (req, res, next) => {
+    const role = req.query.role as string;
+    if (!role || !['DEVELOPER', 'TESTER'].includes(role)) {
+        return res.redirect(`${process.env.FRONTEND_URL_DEVELOPEMENT}/login?error=invalid_role`);
+    }
+    
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        state: role 
+    })(req, res, next);
+});
 router.get('/google/callback', 
     passport.authenticate('google', { 
         session: false,
@@ -23,9 +31,17 @@ router.get('/google/callback',
     AuthController.googleCallback
 );
 
-router.get('/github', passport.authenticate('github', { 
-    scope: ['user:email'] 
-}));
+router.get('/github', (req, res, next) => {
+    const role = req.query.role as string;
+    if (!role || !['DEVELOPER', 'TESTER'].includes(role)) {
+        return res.redirect(`${process.env.FRONTEND_URL_DEVELOPEMENT}/login?error=invalid_role`);
+    }
+    
+    passport.authenticate('github', {
+        scope: ['user:email'],
+        state: role 
+    })(req, res, next);
+});
 router.get('/github/callback', 
     passport.authenticate('github', { 
         session: false,

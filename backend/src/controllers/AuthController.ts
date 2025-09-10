@@ -327,7 +327,7 @@ export class AuthController {
     static googleCallback = async (req: Request, res: Response) => {
         try {
             const user = req.user as any;
-            const selectedRole = req.query.role as string;
+            const selectedRole = req.query.state as string;
             const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
             
             if (!user) {
@@ -343,7 +343,7 @@ export class AuthController {
             const role = selectedRole as 'TESTER' | 'DEVELOPER';
 
             if (user.isNewUser) {
-                await prisma.user.create({
+                const newUser = await prisma.user.create({
                     data: {
                         email: user.email,
                         firstName: user.firstName,
@@ -362,6 +362,8 @@ export class AuthController {
                         providerEmail: user.email,
                     }
                 });
+
+                user.id = newUser.id;
             } else{
                 if (user.role != selectedRole) {
                     return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
@@ -386,7 +388,7 @@ export class AuthController {
     static githubCallback = async (req: Request, res: Response) => {
         try {
             const user = req.user as any;
-            const selectedRole = req.query.role as string;
+            const selectedRole = req.query.state as string;
             const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
             
             if (!user) {
@@ -402,7 +404,7 @@ export class AuthController {
             const role = selectedRole as 'TESTER' | 'DEVELOPER';
 
             if (user.isNewUser) {
-                await prisma.user.create({
+                const newUser = await prisma.user.create({
                     data: {
                         email: user.email,
                         firstName: user.firstName,
@@ -421,6 +423,8 @@ export class AuthController {
                         providerEmail: user.email,
                     }
                 })
+
+                user.id = newUser.id;
             } else {
                 if (user.role != selectedRole) {
                     return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
