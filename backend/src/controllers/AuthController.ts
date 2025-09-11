@@ -129,16 +129,13 @@ passport.use(new GitHubStrategy({
     scope: ['user:email']
 }, async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
     try {
-        console.log('GitHub Profile:', JSON.stringify(profile, null, 2));
         
         let email: string | null = null;
         
-        // Try to get email from profile first
         if (profile.emails && profile.emails.length > 0) {
             email = profile.emails[0].value;
         }
         
-        // If no email in profile, fetch from GitHub API
         if (!email && accessToken) {
             try {
                 const response = await fetch('https://api.github.com/user/emails', {
@@ -153,7 +150,6 @@ passport.use(new GitHubStrategy({
                     const emails = await response.json();
                     console.log('GitHub API Emails:', emails);
                     
-                    // Just take the first email from the API response
                     if (emails && emails.length > 0) {
                         email = emails[0].email;
                     }
@@ -167,7 +163,6 @@ passport.use(new GitHubStrategy({
             return done(new Error('Unable to retrieve email from GitHub. Please ensure you have at least one email address on your GitHub account and grant email permissions to this application.'));
         }
         
-        // Rest of your existing code remains the same...
         const existingUser = await prisma.user.findUnique({ 
             where: { email: email } 
         });
@@ -267,9 +262,10 @@ export class AuthController {
             });
 
             await sendOtpEmail({ email, otp, userName: `${firstName} ${lastName}` });
+            console.log('OTP sent successfully');
             return res.status(200).json({ message: 'User registered successfully' });
         } catch (error) {
-            console.error(error);
+            console.log(error);
             return res.status(500).json({ message: 'Internal server error. Cannot register the account', error: error });
         }
     }
@@ -425,10 +421,6 @@ export class AuthController {
         const user = req.user as any;
         const selectedRole = req.query.state as string;
         const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
-        
-        console.log('GitHub callback - user:', user);
-        console.log('GitHub callback - selectedRole:', selectedRole);
-        console.log('GitHub callback - query:', req.query);
         
         if (!user) {
             return res.status(401).json({ message: 'GitHub authentication failed' }); 
