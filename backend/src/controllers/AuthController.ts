@@ -126,16 +126,48 @@ passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID!,
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     callbackURL: 'https://town-hall-backend.onrender.com/auth/github/callback',
-    passReqToCallback: true  // Add this to access req.query.state
-}, async (req: any, accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
+    scope: ['user:email']
+}, async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
     try {
-        let email: string;
+        console.log('GitHub Profile:', JSON.stringify(profile, null, 2));
+        
+        let email: string | null = null;
+        
+        // Try to get email from profile first
         if (profile.emails && profile.emails.length > 0) {
             email = profile.emails[0].value;
-        } else {
-            return done(new Error('GitHub email is private. Please make your email public in GitHub settings or use a different authentication method.'));
         }
         
+        // If no email in profile, fetch from GitHub API
+        if (!email && accessToken) {
+            try {
+                const response = await fetch('https://api.github.com/user/emails', {
+                    headers: {
+                        'Authorization': `token ${accessToken}`,
+                        'User-Agent': 'TownHall-App',
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const emails = await response.json();
+                    console.log('GitHub API Emails:', emails);
+                    
+                    // Just take the first email from the API response
+                    if (emails && emails.length > 0) {
+                        email = emails[0].email;
+                    }
+                }
+            } catch (apiError) {
+                console.error('Error fetching emails from GitHub API:', apiError);
+            }
+        }
+        
+        if (!email) {
+            return done(new Error('Unable to retrieve email from GitHub. Please ensure you have at least one email address on your GitHub account and grant email permissions to this application.'));
+        }
+        
+        // Rest of your existing code remains the same...
         const existingUser = await prisma.user.findUnique({ 
             where: { email: email } 
         });

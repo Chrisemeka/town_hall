@@ -40,8 +40,8 @@ router.get('/github', (req, res, next) => {
     }
     
     passport.authenticate('github', {
-        scope: ['user:email'],
-        state: role  // Make sure state is passed
+        scope: ['user:email'], // Request email scope
+        state: role 
     })(req, res, next);
 });
 
