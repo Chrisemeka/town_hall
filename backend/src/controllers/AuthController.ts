@@ -125,10 +125,10 @@ passport.use(new GoogleStrategy({
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID!,
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    callbackURL: 'https://town-hall-backend.onrender.com/auth/github/callback'
-}, async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
+    callbackURL: 'https://town-hall-backend.onrender.com/auth/github/callback',
+    passReqToCallback: true  // Add this to access req.query.state
+}, async (req: any, accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
     try {
-        
         let email: string;
         if (profile.emails && profile.emails.length > 0) {
             email = profile.emails[0].value;
@@ -389,66 +389,77 @@ export class AuthController {
     }
 
     static githubCallback = async (req: Request, res: Response) => {
-        try {
-            const user = req.user as any;
-            const selectedRole = req.query.state as string;
-            const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
-            
-            if (!user) {
-                return res.status(401).json({ message: 'GitHub authentication failed' }); 
-            }
-
-            const validRoles = ['TESTER', 'DEVELOPER'] as const;
-            if (!selectedRole || !validRoles.includes(selectedRole as any)) {
-                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
-                    'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
-            }
-
-            const role = selectedRole as 'TESTER' | 'DEVELOPER';
-
-            if (user.isNewUser) {
-                const newUser = await prisma.user.create({
-                    data: {
-                        email: user.email,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                        isVerified: true,
-                        role: role,
-                        authProvider: 'GITHUB',
-                        profilePictureUrl: user.profilePictureUrl
-                    }
-                })
-                await prisma.oauthAccount.create({
-                    data: {
-                        userId: newUser.id,
-                        provider: 'GITHUB',
-                        providerUserId: user.profileId,
-                        providerEmail: user.email,
-                    }
-                })
-
-                user.id = newUser.id;
-                user.role = role;
-            } else {
-                if (user.role != selectedRole) {
-                    return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
-              `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
-                }
-            }
-
-            await cleanExpiredTokens(user.id);
-
-            const accessToken = generateAccessToken(user);
-            const refreshToken = generateRefreshToken();
-            
-            await storeRefreshToken(user.id, refreshToken);
-
-            return res.redirect(`${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
-        } catch (error) {
-            console.error('OAuth callback error: ', error);
-            return res.status(500).json({ message: 'Internal server error' });
+    try {
+        const user = req.user as any;
+        const selectedRole = req.query.state as string;
+        const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
+        
+        console.log('GitHub callback - user:', user);
+        console.log('GitHub callback - selectedRole:', selectedRole);
+        console.log('GitHub callback - query:', req.query);
+        
+        if (!user) {
+            return res.status(401).json({ message: 'GitHub authentication failed' }); 
         }
+
+        const validRoles = ['TESTER', 'DEVELOPER'] as const;
+        if (!selectedRole || !validRoles.includes(selectedRole as any)) {
+            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
+                'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
+        }
+
+        const role = selectedRole as 'TESTER' | 'DEVELOPER';
+
+        if (user.isNewUser) {
+            const newUser = await prisma.user.create({
+                data: {
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    isVerified: true,
+                    role: role,
+                    authProvider: 'GITHUB',
+                    profilePictureUrl: user.profilePictureUrl
+                }
+            })
+            await prisma.oauthAccount.create({
+                data: {
+                    userId: newUser.id,
+                    provider: 'GITHUB',
+                    providerUserId: user.profileId,
+                    providerEmail: user.email,
+                }
+            })
+
+            user.id = newUser.id;
+            user.role = role;
+        } else {
+            if (user.role != selectedRole) {
+                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
+                    `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
+            }
+        }
+
+        await cleanExpiredTokens(user.id);
+
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken();
+        
+        await storeRefreshToken(user.id, refreshToken);
+
+        return res.redirect(`${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}&user=${encodeURIComponent(JSON.stringify({
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            profilePictureUrl: user.profilePictureUrl
+        }))}&role=${role}`);
+    } catch (error) {
+        console.error('GitHub OAuth callback error: ', error);
+        return res.status(500).json({ message: 'Internal server error', error: error.message });
     }
+}
 
     static refreshToken = async (req: Request, res: Response) => {
         try {

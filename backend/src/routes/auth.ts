@@ -41,16 +41,16 @@ router.get('/github', (req, res, next) => {
     
     passport.authenticate('github', {
         scope: ['user:email'],
-        state: role 
+        state: role  // Make sure state is passed
     })(req, res, next);
 });
-router.get('/github/callback', (req, res,next) => {
+
+router.get('/github/callback', (req, res, next) => {
     passport.authenticate('github', { 
         session: false,
         failureRedirect: `${process.env.FRONTEND_URL_DEVELOPEMENT}/login?error=auth_failed`
-    })(req, res, next);},
-    AuthController.githubCallback
-);
+    })(req, res, next);
+}, AuthController.githubCallback);
 
 
 export default router;
