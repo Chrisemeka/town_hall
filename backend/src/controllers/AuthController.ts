@@ -128,9 +128,13 @@ passport.use(new GitHubStrategy({
     callbackURL: 'https://town-hall-backend.onrender.com/auth/github/callback'
 }, async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
     try {
-        const email = profile.emails && profile.emails.length > 0 
-            ? profile.emails[0].value 
-            : `${profile.username}@github.local`;
+        
+        let email: string;
+        if (profile.emails && profile.emails.length > 0) {
+            email = profile.emails[0].value;
+        } else {
+            return done(new Error('GitHub email is private. Please make your email public in GitHub settings or use a different authentication method.'));
+        }
         
         const existingUser = await prisma.user.findUnique({ 
             where: { email: email } 
@@ -172,15 +176,12 @@ passport.use(new GitHubStrategy({
             return done(null, existingUser);
         }
 
-        if (email.endsWith('@github.local')) {
-            return done(new Error('GitHub email is private. Please make your email public in GitHub settings.'));
-        }
-
         const displayName = profile.displayName || profile.username || '';
         const nameParts = displayName.split(' ');
         
         const tempUser = {
-            email: email,            
+            email: email,
+            profileId: profile.id,
             firstName: nameParts[0] || profile.username || 'GitHub',
             lastName: nameParts[1] || 'User',
             isVerified: true,
@@ -191,6 +192,7 @@ passport.use(new GitHubStrategy({
 
         return done(null, tempUser);
     } catch (error) {
+        console.error('GitHub OAuth Strategy Error:', error);
         return done(error);
     }
 }));
