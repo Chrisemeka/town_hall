@@ -128,18 +128,11 @@ passport.use(new GitHubStrategy({
     callbackURL: 'https://town-hall-backend.onrender.com/auth/github/callback'
 }, async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
     try {
-        console.log('GitHub Strategy - Profile received:', {
-            id: profile.id,
-            username: profile.username,
-            displayName: profile.displayName,
-            emails: profile.emails
-        });
         
         let email: string;
         if (profile.emails && profile.emails.length > 0) {
             email = profile.emails[0].value;
         } else {
-            console.error('GitHub Strategy - No email found in profile');
             return done(new Error('GitHub email is private. Please make your email public in GitHub settings or use a different authentication method.'));
         }
         
@@ -148,8 +141,6 @@ passport.use(new GitHubStrategy({
         });
         
         if (existingUser) {
-            console.log('GitHub Strategy - Existing user found:', existingUser.id);
-            
             const existingGitHubAccount = await prisma.oauthAccount.findFirst({
                 where: {
                     userId: existingUser.id,
@@ -158,7 +149,6 @@ passport.use(new GitHubStrategy({
             });
 
             if (!existingGitHubAccount) {
-                console.log('GitHub Strategy - Creating new OAuth account for existing user');
                 await prisma.oauthAccount.create({
                     data: {
                         userId: existingUser.id,
@@ -168,7 +158,6 @@ passport.use(new GitHubStrategy({
                     }
                 });
                 
-                // Update profile picture if not set
                 if (!existingUser.profilePictureUrl && profile.photos && profile.photos[0]) {
                     await prisma.user.update({
                         where: { id: existingUser.id },
@@ -176,7 +165,6 @@ passport.use(new GitHubStrategy({
                     });
                 }
             } else {
-                console.log('GitHub Strategy - Updating existing OAuth account');
                 await prisma.oauthAccount.update({
                     where: { id: existingGitHubAccount.id },
                     data: { 
@@ -188,13 +176,12 @@ passport.use(new GitHubStrategy({
             return done(null, existingUser);
         }
 
-        // New user - create temporary user object
         const displayName = profile.displayName || profile.username || '';
         const nameParts = displayName.split(' ');
         
         const tempUser = {
             email: email,
-            profileId: profile.id,
+            profileId: profile.id, 
             firstName: nameParts[0] || profile.username || 'GitHub',
             lastName: nameParts[1] || 'User',
             isVerified: true,
@@ -203,7 +190,6 @@ passport.use(new GitHubStrategy({
             isNewUser: true
         }
 
-        console.log('GitHub Strategy - New user created:', tempUser);
         return done(null, tempUser);
     } catch (error) {
         console.error('GitHub OAuth Strategy Error:', error);
@@ -403,33 +389,24 @@ export class AuthController {
     }
 
     static githubCallback = async (req: Request, res: Response) => {
-    try {
-        console.log('GitHub Callback - Starting processing');
-        console.log('GitHub Callback - Query params:', req.query);
-        console.log('GitHub Callback - User object:', req.user);
-        
-        const user = req.user as any;
-        const selectedRole = req.query.state as string;
-        const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
-        
-        if (!user) {
-            console.error('GitHub Callback - No user object received');
-            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('GitHub authentication failed')}`);
-        }
+        try {
+            const user = req.user as any;
+            const selectedRole = req.query.state as string;
+            const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
+            
+            if (!user) {
+                return res.status(401).json({ message: 'GitHub authentication failed' }); 
+            }
 
-        const validRoles = ['TESTER', 'DEVELOPER'] as const;
-        if (!selectedRole || !validRoles.includes(selectedRole as any)) {
-            console.error('GitHub Callback - Invalid role:', selectedRole);
-            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
-                'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
-        }
+            const validRoles = ['TESTER', 'DEVELOPER'] as const;
+            if (!selectedRole || !validRoles.includes(selectedRole as any)) {
+                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
+                    'Invalid role selected. Please choose either TESTER or DEVELOPER.')}`);
+            }
 
-        const role = selectedRole as 'TESTER' | 'DEVELOPER';
-        console.log('GitHub Callback - Selected role:', role);
+            const role = selectedRole as 'TESTER' | 'DEVELOPER';
 
-        if (user.isNewUser) {
-            console.log('GitHub Callback - Creating new user in database');
-            try {
+            if (user.isNewUser) {
                 const newUser = await prisma.user.create({
                     data: {
                         email: user.email,
@@ -440,10 +417,7 @@ export class AuthController {
                         authProvider: 'GITHUB',
                         profilePictureUrl: user.profilePictureUrl
                     }
-                });
-
-                console.log('GitHub Callback - New user created:', newUser.id);
-
+                })
                 await prisma.oauthAccount.create({
                     data: {
                         userId: newUser.id,
@@ -451,75 +425,30 @@ export class AuthController {
                         providerUserId: user.profileId,
                         providerEmail: user.email,
                     }
-                });
+                })
 
-                console.log('GitHub Callback - OAuth account created');
-
-                // Update user object with database values
                 user.id = newUser.id;
                 user.role = role;
-            } catch (dbError) {
-                console.error('GitHub Callback - Database error creating user:', dbError);
-                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Failed to create user account')}`);
+            } else {
+                if (user.role != selectedRole) {
+                    return res.redirect(401, `${frontendUrl}/login?error=${encodeURIComponent(
+              `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
+                }
             }
-        } else {
-            console.log('GitHub Callback - Existing user, checking role match');
-            if (user.role !== selectedRole) {
-                console.error('GitHub Callback - Role mismatch:', { userRole: user.role, selectedRole });
-                return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(
-                    `Account exists as ${user.role}. Please use the ${user.role} login.`)}`);
-            }
-        }
 
-        // Clean expired tokens
-        try {
             await cleanExpiredTokens(user.id);
-        } catch (cleanupError) {
-            console.error('GitHub Callback - Token cleanup error:', cleanupError);
-            // Continue anyway, this is not critical
-        }
 
-        // Generate tokens
-        let accessToken: string;
-        let refreshToken: string;
-        
-        try {
-            accessToken = generateAccessToken(user);
-            refreshToken = generateRefreshToken();
+            const accessToken = generateAccessToken(user);
+            const refreshToken = generateRefreshToken();
             
             await storeRefreshToken(user.id, refreshToken);
-            console.log('GitHub Callback - Tokens generated and stored');
-        } catch (tokenError) {
-            console.error('GitHub Callback - Token generation error:', tokenError);
-            return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Failed to generate authentication tokens')}`);
+
+            return res.redirect(`${frontendUrl}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+        } catch (error) {
+            console.error('OAuth callback error: ', error);
+            return res.status(500).json({ message: 'Internal server error' });
         }
-
-        // Construct redirect URL with tokens and user info
-        const redirectUrl = new URL(`${frontendUrl}/auth/callback`);
-        redirectUrl.searchParams.set('accessToken', accessToken);
-        redirectUrl.searchParams.set('refreshToken', refreshToken);
-        redirectUrl.searchParams.set('role', role);
-        
-        // Optionally include user data
-        const userData = JSON.stringify({
-            id: user.id,
-            email: user.email,
-            role: role,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            profilePictureUrl: user.profilePictureUrl
-        });
-        redirectUrl.searchParams.set('user', encodeURIComponent(userData));
-
-        console.log('GitHub Callback - Redirecting to:', redirectUrl.toString());
-        return res.redirect(redirectUrl.toString());
-        
-    } catch (error) {
-        console.error('GitHub OAuth callback error:', error);
-        const frontendUrl = process.env.FRONTEND_URL_DEVELOPEMENT;
-        return res.redirect(`${frontendUrl}/login?error=${encodeURIComponent('Authentication failed. Please try again.')}`);
     }
-}
 
     static refreshToken = async (req: Request, res: Response) => {
         try {
