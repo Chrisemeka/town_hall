@@ -79,29 +79,71 @@ export class ProjectController {
         }
     }
 
-    static getAllProjects = async (req: Request, res: Response) => {
+    static getDeveloperProjects = async (req: Request, res: Response) => {
         try {
-            if ((req as any).user?.role !== 'TESTER') {
+            if ((req as any).user?.role !== 'DEVELOPER') {
                 return res.status(403).json({
                     error: 'Insufficient Permissions',
-                    message: 'Only tester can view all projects'
+                    message: 'Only developers can view their projects'
                 });  
             }
 
+            const developerId = (req as any).user?.id;
+            const { status, limit = 20, offset = 0 } = req.query;
+
+            const whereClause: any = { developerId };
+            if (status && ['DRAFT', 'REVIEW', 'ACTIVE', 'COMPLETED'].includes(status as string)) {
+                whereClause.status = status;
+            }
+
             const projects = await prisma.project.findMany({
-                where: {
-                    status: 'ACTIVE',
+                where: whereClause,
+                include: {
+                    _count: {
+                        select: {
+                            components: true,
+                            testSessions: true
+                        }
+                    }
                 },
                 orderBy: {
-                    createdAt: 'desc'
-                }
+                    updatedAt: 'desc'
+                },
+                take: Number(limit),
+                skip: Number(offset)
             });
-            res.status(200).json({message: 'Sucessfully retrieved all active projects', projects: projects}); 
+
+            const totalCount = await prisma.project.count({
+                where: whereClause
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'Developer projects retrieved successfully',
+                data: {
+                    projects: projects.map(project => ({
+                        id: project.id,
+                        projectName: project.projectName,
+                        description: project.description,
+                        status: project.status,
+                        createdAt: project.createdAt,
+                        updatedAt: project.updatedAt,
+                        componentCount: project._count.components,
+                        testSessionCount: project._count.testSessions
+                    })),
+                    pagination: {
+                        total: totalCount,
+                        limit: Number(limit),
+                        offset: Number(offset),
+                        hasMore: Number(offset) + Number(limit) < totalCount
+                    }
+                }
+            }); 
         } catch (error) {
-            console.error('Retrieve project error: ', error);
+            console.error('Get developer projects error: ', error);
             res.status(500).json({
                 error: 'Internal server error',
-                message: 'Failed to create project. Please try again.'
+                message: 'Failed to retrieve projects. Please try again.'
             });
         };
     };
@@ -153,26 +195,13 @@ export class ProjectController {
             const userId = (req as any).user?.id;
             const isProjectOwner = project.developerId === userId;
 
-            if (userRole == 'DEVELOPER' && !isProjectOwner) {
+            if (userRole !== 'DEVELOPER' || !isProjectOwner) {
                 return res.status(403).json({
                     error: 'Forbidden',
-                    message: 'You can only view your own project'
+                    message: 'You can only view your own projects'
                 })
             }
 
-            if (userRole == 'TESTER' && project.status !== 'ACTIVE') {
-                return res.status(404).json({
-                    error: 'Not Found',
-                    message: 'Project not available for testing'
-                });
-            } 
-
-            if (userRole !== 'DEVELOPER' && userRole !== 'TESTER') {
-                return res.status(403).json({
-                    error: 'Forbidden',
-                    message: 'Insufficient Permissions'
-                })
-            }
             const responseData = {
                 project: {
                     id: project.id,
@@ -196,11 +225,12 @@ export class ProjectController {
                     isOwner: isProjectOwner,
                 }
             };
+            
             res.status(200).json({
-            success: true,
-            message: 'Project details retrieved successfully',
-            data: responseData
-        });
+                success: true,
+                message: 'Project details retrieved successfully',
+                data: responseData
+            });
         } catch (error) {
             console.error('Get project details error:', error);
             res.status(500).json({
@@ -209,4 +239,63 @@ export class ProjectController {
             });
         }
     };
-}    
+
+    static updateProjectStatus = async (req: Request, res: Response) => {
+        try {
+            if ((req as any).user?.role !== 'DEVELOPER') {
+                return res.status(403).json({
+                    error: 'Insufficient Permissions',
+                    message: 'Only developers can update project status'
+                });
+            }
+
+            const { id } = req.params;
+            const { status } = req.body;
+            const developerId = (req as any).user?.id;
+
+            if (!['ACTIVE', 'COMPLETED'].includes(status)) {
+                return res.status(400).json({
+                    error: 'Invalid Status',
+                    message: 'Status must be one of: ACTIVE, COMPLETED'
+                });
+            }
+
+            const project = await prisma.project.findFirst({
+                where: {
+                    id,
+                    developerId
+                }
+            });
+
+            if (!project) {
+                return res.status(404).json({
+                    error: 'Not Found',
+                    message: 'Project not found or you do not have access'
+                });
+            }
+
+            const updatedProject = await prisma.project.update({
+                where: { id },
+                data: { status }
+            });
+
+            res.status(200).json({
+                success: true,
+                message: `Project status updated to ${status}`,
+                data: {
+                    id: updatedProject.id,
+                    projectName: updatedProject.projectName,
+                    status: updatedProject.status,
+                    updatedAt: updatedProject.updatedAt
+                }
+            });
+
+        } catch (error) {
+            console.error('Update project status error:', error);
+            res.status(500).json({
+                error: 'Internal Server Error',
+                message: 'Failed to update project status. Please try again.'
+            });
+        }
+    };
+}

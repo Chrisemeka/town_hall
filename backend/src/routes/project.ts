@@ -6,9 +6,12 @@ import { ProjectController } from '../controllers/ProjectController';
 
 const router = Router();
 
-router.post('/create-project', validateAuth, validateData(projectSchema), ProjectController.createProject); // Only developers can create projects
-router.get('/projects', validateAuth, ProjectController.getAllProjects); // Only testers can get all projects
-router.get('/:id', validateAuth, ProjectController.getProjectDetails);// Only testers can get all project details, developer can only get there own project details
+// Developer-focused project routes
+router.post('/create', validateAuth, validateData(projectSchema), ProjectController.createProject);
+router.get('/my-projects', validateAuth, ProjectController.getDeveloperProjects); // Get developer's own projects with filtering
+router.get('/:id', validateAuth, ProjectController.getProjectDetails); // Developer can only view their own projects
+router.patch('/:id/status', validateAuth, ProjectController.updateProjectStatus); // Update project status (ACTIVE -> COMPLETED)
+
 
 
 export default router;

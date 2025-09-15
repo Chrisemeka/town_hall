@@ -68,7 +68,7 @@ model Project {
   websiteUrl       String
   targetAudience   String
   objectives       String
-  status           ProjectStatus @default(DRAFT)
+  status           ProjectStatus @default(ACTIVE)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -178,8 +178,6 @@ enum OauthProvider {
 }
 
 enum ProjectStatus {
-  DRAFT
-  REVIEW
   ACTIVE
   COMPLETED
 }
@@ -193,5 +191,4 @@ enum Priority {
 enum SessionStatus {
   ACTIVE
   COMPLETED
-  ABANDONED
 }
