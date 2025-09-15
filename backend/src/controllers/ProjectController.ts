@@ -28,7 +28,7 @@ export class ProjectController {
                         targetAudience,
                         objectives, 
                         developerId: (req as any).user?.id,
-                        status: 'DRAFT'
+                        status: 'ACTIVE'
                     }
                 });
 
