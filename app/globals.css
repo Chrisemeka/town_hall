@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* Font Families */
+  --font-sans: var(--font-inter);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Soft Dark Minimalist Palette (Zinc-based) */
+  --color-primary: #ffffff; /* pure white for stark contrast */
+  --color-on-primary: #09090b; /* zinc-950 */
+  --color-primary-container: #27272a; /* zinc-800 */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  --color-secondary: #a1a1aa; /* zinc-400 */
+  --color-secondary-container: #18181b; /* zinc-900 */
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Surface & Background */
+  --color-surface: #09090b; /* zinc-950, very deep void-like but soft */
+  --color-on-surface: #fafafa; /* zinc-50 */
+  --color-surface-container: #121214; /* slight elevation */
+  --color-surface-container-low: #09090b; /* flush to bg */
+  --color-surface-variant: #27272a; /* zinc-800 */
+
+  --color-outline: #52525b; /* zinc-600 */
+  --color-outline-variant: #27272a; /* zinc-800 - for subtle borders to define areas */
+  
+  --color-error: #fca5a5; /* red-300 */
+  --color-error-container: #7f1d1d; /* red-900 */
+
+  /* Border Radii Grid (Multiples of 4/8pt) */
+  --radius-m3-xs: 4px; /* base grid 4pt */
+  --radius-m3-s: 8px;  /* 8pt */
+  --radius-m3-m: 12px; /* 12pt */
+  --radius-m3-l: 16px; /* 16pt */
+  --radius-m3-xl: 24px; /* smoothed down from 28px for softer flow */
+
+  /* Soft Shadows to create subtle depth */
+  --shadow-m3-1: 0 4px 12px 0 rgba(0, 0, 0, 0.4), 0 0 1px 0 rgba(255, 255, 255, 0.05); /* Outer shadow + Inner light rim */
+  --shadow-m3-2: 0 8px 24px 0 rgba(0, 0, 0, 0.6), 0 0 1px 0 rgba(255, 255, 255, 0.1);
 }
