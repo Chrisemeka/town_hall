@@ -1,13 +1,10 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
-import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { generateText } from "ai"
+import { createClient, uploadToStorage, getPublicUrl } from "@/lib/supabase/server"
+import { generateAnalysis, parseSentiment } from "@/lib/ai"
 import { revalidatePath } from "next/cache"
+import { getOwnerId } from "@/lib/utils/project";
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY,
-});
 
 export async function submitTestResult(formData: FormData) {
   const supabase = await createClient()
@@ -34,52 +31,26 @@ export async function submitTestResult(formData: FormData) {
 
   const mission = missionData as any; 
 
-  const projectOwnerId = Array.isArray(mission?.projects) 
-    ? mission.projects[0]?.owner_id 
-    : mission?.projects?.owner_id;
+  const projectOwnerId = getOwnerId(mission?.projects);
 
   if (projectOwnerId === user.id) {
     return { success: false, error: "Developers cannot submit a test for your own project." };
   }
 
-  // 3. Upload to Supabase Storage
-  const fileName = `${user.id}/${Date.now()}-${file.name}`
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from("screenshots")
-    .upload(fileName, file)
+  const uploadData = await uploadToStorage(supabase, file, user.id);
 
-  if (uploadError) throw new Error("Upload failed")
-
-  // Get the Public URL for Gemini to "see"
-  const { data: { publicUrl } } = supabase.storage
-    .from("screenshots")
-    .getPublicUrl(fileName)
-
-  // 4. Call Gemini 1.5 Flash for Vision Analysis
-  const { text } = await generateText({
-    model: google("gemini-3-flash-preview"),
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: `You are an expert QA Engineer. Analyze this screenshot based on the user's comment: "${comment}". 
-          Provide a concise, jargon-free summary of 2-3 bullet points highlighting key observations: obvious bugs, UX friction, or positive aspects. Be direct and easy for a developer to read at a glance.
-          Also, categorize the user's sentiment as one word ONLY at the very end of your response: POSITIVE, NEUTRAL, or FRUSTRATED.` },
-          { type: "image", image: publicUrl },
-        ],
-      },
-    ],
-  })
-
-  // 5. Save to Database
-  const sentiment = text.includes("FRUSTRATED") ? "FRUSTRATED" : text.includes("POSITIVE") ? "POSITIVE" : "NEUTRAL"
+  const publicUrl = getPublicUrl(supabase, uploadData.path);
   
+  const { text } = await generateAnalysis(comment, publicUrl)
+
+  const sentiment = parseSentiment(text)
+
   const { error: dbError } = await supabase.from("test_results").insert({
     mission_id: missionId,
     tester_id: user.id,
     screenshot_url: publicUrl,
     tester_comment: comment,
-    ai_summary: text.replace(sentiment, "").replace(/[*#]/g, "").trim(), // Remove the sentiment word and markdown formatting from summary
+    ai_summary: text.replace(sentiment, "").replace(/[*#]/g, "").trim(), 
     ai_sentiment: sentiment,
   })
 

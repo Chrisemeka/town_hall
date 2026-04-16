@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import TesterSubmissionForm from "@/components/TesterSubmissionForm";
-import { CheckCircle2, Info, ShieldAlert } from "lucide-react";
+import { CheckCircle2, Info, ShieldAlert, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { getOwnerId } from "@/lib/utils/project";
 
 export default async function MissionDetailPage({ 
   params 
@@ -25,14 +27,20 @@ export default async function MissionDetailPage({
 
   // 3. Robust check for owner_id (handles Supabase object or array returns)
   const projectData = mission.projects as any;
-  const projectOwnerId = Array.isArray(projectData) 
-    ? projectData[0]?.owner_id 
-    : projectData?.owner_id;
-
+  const projectOwnerId = getOwnerId(mission?.projects);
   const isOwner = user?.id === projectOwnerId;
 
   return (
     <div className="max-w-4xl mx-auto p-6 lg:p-12">
+      <Link 
+        href="/explore" 
+        className="inline-flex items-center gap-2 text-secondary hover:text-on-surface transition-colors mb-8 group"
+      >
+        <div className="w-8 h-8 rounded bg-surface-variant flex items-center justify-center border border-outline-variant group-hover:bg-on-surface group-hover:text-surface transition-colors">
+          <ArrowLeft size={16} />
+        </div>
+        <span className="text-sm font-medium">Back to Explore</span>
+      </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         
         {/* Left Side: Instructions */}

@@ -25,3 +25,26 @@ export async function createClient() {
     }
   )
 }
+
+
+export const uploadToStorage = async (supabase: Awaited<ReturnType<typeof createClient>>, file: File, userId: string) => {
+  const fileName = `${userId}/${Date.now()}-${file.name}`
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from("screenshots")
+    .upload(fileName, file)
+
+  if (uploadError) {
+    console.error("Supabase Storage Error:", uploadError)
+    throw new Error(uploadError.message)
+  }
+
+  return uploadData
+}
+
+export const getPublicUrl = (supabase: Awaited<ReturnType<typeof createClient>>, filePath: string) => {
+  const { data: { publicUrl } } = supabase.storage
+    .from("screenshots")
+    .getPublicUrl(filePath)
+  
+  return publicUrl
+}

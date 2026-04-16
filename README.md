@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TownHall
+
+## What is TownHall?
+TownHall is a collaborative testing platform where developers can submit
+their web applications to be tested by other developers in exchange for 
+testing others in return. It bridges the gap for startups and solo 
+developers who need real-world QA feedback but don't have the budget 
+for a dedicated QA team.
+
+## The Problem it Solves
+Most early-stage developers and startups ship features without proper 
+real-world testing. Hiring a QA engineer is expensive and out of reach 
+for solo developers and small teams. TownHall creates a community-driven 
+alternative where testing is reciprocal — you test others to get tested.
+
+## How it Works
+1. **Submit a project** — A developer submits their web application and 
+   creates a mission: a specific test case describing exactly what part 
+   of the application they want tested.
+
+2. **Test other projects** — Developers pick up missions from other 
+   projects, test them, and submit their results in the form of a 
+   screenshot and a written summary of what they did and found.
+
+3. **AI-powered insights** — TownHall uses Gemini AI to analyse test 
+   results and generate a heuristic, user-friendly breakdown of the 
+   findings — making raw feedback actionable even for non-technical 
+   project owners.
+
+## Target Audience
+- Early-stage startups without a QA budget
+- Solo developers building personal projects
+- Developers who want real-world feedback before launch
+
+## Tech Stack
+- **Framework:** Next.js 16 (App Router)
+- **AI:** Vercel AI SDK with Google Gemini 3 Flash Preview
+- **Styling:** Tailwind CSS 4 & Framer Motion
+- **Database:** Supabase
+- **Auth:** Supabase Google Signin
+- **Storage:** Supabase Storage
+- **Schema Validation:** Zod 
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js v18+
+- Package Manager: npm, yarn or pnpm
+- Supabase CLI (Optional) for managing backend and database migrations 
 
+### Installation
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Chrisemeka/town_hall.git
+cd townhall
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
+Create a `.env.local` file in the root directory:
+NEXT_PUBLIC_SUPABASE_URL=your_key_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key_here
+GEMINI_API_KEY=your_key_here (gotten from [Google AI Studio](https://aistudio.google.com/))
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Running Locally
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+## Core User Journeys
+1. **Developer submits a project for testing**
+2. **Developer picks up and completes a testing mission**
+3. **Developer reviews AI-generated test result breakdown**
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
+(We will fill this in together as you analyse the codebase)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Known Technical Debt
+(We will fill this in together as you analyse the codebase)

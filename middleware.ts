@@ -1,3 +1,7 @@
+// This is the Next.js middleware entry point.
+// It refreshes the Supabase session on every request and handles
+// auth-based redirects (e.g. logged-in users hitting "/" go to /explore)
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
