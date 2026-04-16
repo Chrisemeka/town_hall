@@ -25,9 +25,11 @@ export default function TesterSubmissionForm({ missionId }: { missionId: string 
 
   return (
     <form
-      action={async (formData) => {
+      onSubmit={async (e) => {
+        e.preventDefault()
         setIsUploading(true)
         try {
+          const formData = new FormData(e.currentTarget)
           const result = await submitTestResult(formData)
           if (result?.success) setIsSuccess(true)
         } catch (error: any) {
@@ -94,11 +96,11 @@ export default function TesterSubmissionForm({ missionId }: { missionId: string 
       <button
         type="submit"
         disabled={isUploading}
-        className="w-full h-14 bg-on-surface text-surface rounded-full font-medium text-sm hover:bg-white/90 shadow-sm transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
+        className="w-full h-14 bg-on-surface text-surface rounded-full font-medium text-sm hover:bg-white/90 shadow-sm transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4 cursor-pointer"
       >
         {isUploading ? (
           <>
-            <div className="h-4 w-4 border-2 border-surface border-t-transparent animate-spin rounded-full" />
+            <div className="h-4 w-4 border-2 border-surface border-t-transparent animate-spin rounded-full cursor-not-allowed" />
             Parsing Submission...
           </>
         ) : (

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import TesterSubmissionForm from "@/components/TesterSubmissionForm";
-import { CheckCircle2, Info, ShieldAlert, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Info, ShieldAlert, ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { getOwnerId } from "@/lib/utils/project";
 
@@ -53,6 +53,14 @@ export default async function MissionDetailPage({
             <p className="text-title-medium text-secondary mt-2">
               for {Array.isArray(projectData) ? projectData[0]?.name : projectData?.name}
             </p>
+            <a 
+              href={Array.isArray(projectData) ? projectData[0]?.app_url : projectData?.app_url} 
+              target="_blank"
+              className="inline-flex items-center gap-2 bg-primary text-on-primary hover:bg-primary/90 px-4 py-2 rounded-lg font-medium transition-colors mt-4 w-fit"
+            >
+              Launch Application
+              <ExternalLink size={18} />
+            </a>
           </header>
 
           <div className="bg-surface-container-high p-6 rounded-m3-l border border-outline-variant">
@@ -62,6 +70,17 @@ export default async function MissionDetailPage({
             </h3>
             <p className="text-body-large text-on-surface-variant leading-relaxed whitespace-pre-wrap">
               {mission.task_description}
+            </p>
+          </div>
+
+          <div className="bg-surface-container-high p-6 rounded-m3-l border border-outline-variant mt-6">
+            <h3 className="flex items-center gap-2 text-title-medium text-on-surface mb-4">
+              <CheckCircle2 size={20} className="text-primary" />
+              Submission Guidelines
+            </h3>
+            <p className="text-body-large text-on-surface-variant leading-relaxed whitespace-pre-wrap">
+              - Provide clear screenshots (not more than <strong>1MB</strong>) that demonstrates the issue or task completion.<br />
+              - Ensure your evidence is relevant and directly related to the mission's task description.<br />
             </p>
           </div>
         </section>
