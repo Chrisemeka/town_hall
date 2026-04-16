@@ -74,7 +74,16 @@ Open [http://localhost:3000](http://localhost:3000)
 3. **Developer reviews AI-generated test result breakdown**
 
 ## Project Structure
-(We will fill this in together as you analyse the codebase)
-
-## Known Technical Debt
-(We will fill this in together as you analyse the codebase)
+```text
+townhall/
+├── actions/             # Server actions for mutations (auth, missions, projects, submissions)
+├── app/                 # Next.js App Router root
+│   ├── (developer)/     # Route group for developer-facing pages
+│   ├── (tester)/        # Route group for tester-facing pages
+│   ├── api/             # API routes
+│   └── globals.css      # Global styles
+├── components/          # Reusable React components (forms, UI cards, nav)
+├── lib/                 # Utility functions and shared libraries (AI, Supabase client)
+├── public/              # Static assets
+└── middleware.ts        # Next.js middleware
+```
