@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
 import { TestResultCard } from "@/components/test-card";
+import InlineEditMission from "@/components/InlineEditMission";
 import { ChevronLeft, Info, Activity, PowerOff, Power } from "lucide-react";
 
 export default async function DeveloperMissionDetailPage({ 
@@ -53,16 +54,7 @@ export default async function DeveloperMissionDetailPage({
               </span>
             </div>
 
-            <h1 className="text-3xl font-medium tracking-tight text-on-surface mb-6 leading-tight">{mission.title}</h1>
-            
-            <div className="mb-8 p-4 bg-surface-variant/50 rounded-xl border border-outline-variant/50">
-              <h3 className="flex items-center gap-2 text-sm font-semibold text-secondary uppercase tracking-wider mb-2">
-                <Info size={14} /> Execution Parameters
-              </h3>
-              <p className="text-sm text-secondary leading-relaxed whitespace-pre-wrap">
-                {mission.task_description}
-              </p>
-            </div>
+            <InlineEditMission mission={mission} />
 
             <div className="pt-8 border-t border-outline-variant/50">
               <form action={async () => {

@@ -47,3 +47,23 @@ export async function toggleMissionStatus(missionId: string, projectId: string, 
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
   revalidatePath(`/explore`)
 }
+
+export async function updateMission(missionId: string, projectId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const title = formData.get("title") as string
+  const task_description = formData.get("task_description") as string
+
+  const { error } = await supabase
+    .from("missions")
+    .update({ title, task_description })
+    .eq("id", missionId)
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath(`/dashboard/${projectId}`)
+  revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
+}

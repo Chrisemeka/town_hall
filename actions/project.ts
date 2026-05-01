@@ -33,3 +33,26 @@ export async function createProject(prevState: any, formData: FormData) {
   revalidatePath("/dashboard")
   redirect(`/dashboard/${data.id}`)
 }
+
+export async function updateProject(projectId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const name = formData.get("name") as string
+  const app_url = formData.get("app_url") as string
+  const description = formData.get("description") as string
+
+  const { error } = await supabase
+    .from("projects")
+    .update({ name, app_url, description })
+    .eq("id", projectId)
+
+  if (error) {
+    console.error("Error updating project:", error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/${projectId}`)
+}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import AddMissionForm from "@/components/AddMissionForm";
 import { TestResultCard } from "@/components/test-card";
+import InlineEditProject from "@/components/InlineEditProject";
 import { Beaker, Globe, ClipboardList, Package, PowerOff } from "lucide-react";
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -25,19 +26,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   return (
     <div className="max-w-7xl mx-auto p-8 lg:p-16">
       <header className="mb-16 border-b border-outline-variant/30 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-surface-variant rounded-xl flex items-center justify-center border border-outline-variant">
-              <Package className="text-secondary" size={24} />
-            </div>
-            <h1 className="text-4xl lg:text-5xl font-medium tracking-tight text-on-surface">{project.name}</h1>
-          </div>
-          {project.app_url && (
-            <a href={project.app_url} target="_blank" className="text-sm font-medium text-secondary hover:text-on-surface flex items-center gap-2 transition-colors">
-              <Globe size={16} /> {project.app_url}
-            </a>
-          )}
-        </div>
+        <InlineEditProject project={project} />
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
