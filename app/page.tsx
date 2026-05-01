@@ -2,251 +2,296 @@
 
 import { motion } from "framer-motion";
 import { signInWithGoogle } from "@/actions/auth";
-import { Telescope, Code2, Users, ArrowRight, ShieldCheck, Zap, BugPlay } from "lucide-react";
+import { BugPlay, FileText, CheckCircle, Users } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
+export default function LandingPage() {
   const fadeUp: any = {
     hidden: { opacity: 0, y: 16 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  const staggerContainer: any = {
+  const stagger: any = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col font-sans relative">
-      {/* Absolute strict 8pt grid background pattern to sell mathematical alignment */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      {/* Navbar */}
-      <motion.nav 
-        initial={{ y: -8, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.4 }}
-        className="w-full h-20 px-4 md:px-8 max-w-7xl mx-auto flex items-center justify-between z-50 relative border-b border-outline-variant/50"
-      >
-        <div className="flex items-center gap-3">
-          <BugPlay size={24} color="#ffff" className="text-surface" />
-          <span className="text-xl font-bold text-on-surface tracking-tight">Townhall</span>
-        </div>
-        
-        <form action={signInWithGoogle}>
-          <button 
-            type="submit"
-            className="h-10 px-5 bg-surface hover:bg-surface-container border border-outline-variant text-sm text-on-surface font-medium rounded-full flex items-center gap-2 transition-colors hover:shadow-m3-1"
-          >
-            Sign In
-          </button>
-        </form>
-      </motion.nav>
-
-      <main className="flex-1 w-full flex flex-col relative z-10">
-        {/* Soft Minimalist Hero Section */}
-        <section className="w-full max-w-7xl mx-auto px-4 md:px-8 pt-24 pb-32 flex flex-col lg:flex-row items-center gap-16">
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="flex-1 flex flex-col items-start"
-          >
-            <motion.div variants={fadeUp} className="px-3 py-1 mb-8 rounded-full border border-outline-variant bg-surface-container-low text-secondary text-xs font-medium uppercase tracking-widest flex items-center gap-2">
-              <Zap size={12} className="text-on-surface" />
-              The Missing Link in QA
-            </motion.div>
-            
-            {/* Stark Typography: Massive Headers */}
-            <motion.h1 variants={fadeUp} className="text-6xl md:text-8xl font-medium text-on-surface leading-[1.05] tracking-tighter mb-8">
-              Build better <br />
-              <span className="text-secondary italic font-light">
-                together.
-              </span>
-            </motion.h1>
-            
-            {/* Stark Typography: Modest Body text */}
-            <motion.p variants={fadeUp} className="text-sm md:text-base text-secondary max-w-xl mb-12 leading-relaxed">
-              Townhall perfectly connects passionate developers with real-world testers. Discover issues before your users do, and build software that truly lasts with precision and trust.
-            </motion.p>
-            
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <form action={signInWithGoogle} className="w-full sm:w-auto">
-                <button 
-                  type="submit"
-                  className="group h-12 px-6 w-full sm:w-auto bg-on-surface text-surface rounded-full flex items-center justify-center gap-3 hover:bg-white/90 transition-all font-medium text-sm shadow-m3-2"
-                >
-                  <svg className="w-4 h-4 bg-white rounded-full p-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
+    <div className="min-h-screen bg-bone text-midnight font-mono flex flex-col selection:bg-voltage selection:text-obsidian">
+      
+      {/* Sticky Nav */}
+      <nav className="w-full h-16 sticky top-0 bg-bone/85 backdrop-blur-md z-50 border-b border-transparent transition-all duration-200">
+        <div className="max-w-[1128px] mx-auto px-6 h-full flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BugPlay className="w-6 h-6 text-midnight" />
+            <span className="font-syne font-bold text-xl tracking-tight">Townhall</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="hidden md:flex items-center gap-6 text-sm text-midnight">
+              <Link href="#how-it-works" className="hover:text-ash transition-colors">How It Works</Link>
+              <Link href="#community" className="hover:text-ash transition-colors">Community</Link>
+            </div>
+            <div className="flex items-center gap-4">
+              <form action={signInWithGoogle}>
+                <button type="submit" className="text-sm font-medium text-midnight hover:text-ash transition-colors">
+                  Sign In
+                </button>
+              </form>
+              <form action={signInWithGoogle}>
+                <button type="submit" className="h-8 px-3 bg-voltage text-obsidian rounded-md text-xs font-medium hover:bg-voltage-dark transition-colors flex items-center justify-center border border-transparent">
                   Get Started
                 </button>
               </form>
-              <a href="#features" className="h-12 px-6 w-full sm:w-auto bg-transparent border border-outline-variant text-on-surface hover:bg-surface-container-low rounded-full flex items-center justify-center transition-all font-medium text-sm">
-                Learn More
-              </a>
-            </motion.div>
-          </motion.div>
-
-          {/* Hero Visual - Subdued, geometric, bordered areas */}
-          <motion.div 
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="flex-1 w-full relative"
-          >
-            <div className="w-full aspect-[4/3] bg-surface-container rounded-2xl shadow-m3-2 border border-outline-variant p-6 flex flex-col overflow-hidden relative">
-              {/* Fake UI Header purely greyscale */}
-              <div className="flex items-center gap-2 mb-8">
-                <div className="w-2.5 h-2.5 rounded-full bg-outline-variant" />
-                <div className="w-2.5 h-2.5 rounded-full bg-outline-variant" />
-                <div className="w-2.5 h-2.5 rounded-full bg-outline-variant" />
-              </div>
-              
-              {/* Fake UI Content */}
-              <div className="flex-1 flex gap-4">
-                <div className="w-1/3 h-full bg-surface rounded-xl border border-outline-variant flex flex-col gap-3 p-4">
-                  <div className="w-full h-8 bg-surface-variant rounded flex items-center px-3">
-                    <div className="w-16 h-2 bg-outline rounded-full opacity-50" />
-                  </div>
-                  <div className="w-3/4 h-8 bg-surface-variant rounded flex items-center px-3">
-                     <div className="w-12 h-2 bg-outline rounded-full opacity-50" />
-                  </div>
-                  <div className="w-full h-32 bg-surface-container-low rounded mt-auto border border-outline-variant border-dashed opacity-50 flex items-center justify-center">
-                    <Code2 className="text-outline w-6 h-6 opacity-30" />
-                  </div>
-                </div>
-                <div className="flex-1 h-full bg-surface rounded-xl border border-outline-variant p-6 flex flex-col gap-4 shadow-m3-1">
-                  <div className="w-1/3 h-4 bg-on-surface rounded-full mb-2" />
-                  <div className="w-full h-2 bg-surface-variant rounded-full" />
-                  <div className="w-5/6 h-2 bg-surface-variant rounded-full" />
-                  <div className="w-4/6 h-2 bg-surface-variant rounded-full" />
-                  
-                  <div className="mt-auto flex gap-4">
-                    <div className="flex-1 h-16 bg-surface-variant rounded-lg flex items-center justify-center border border-outline-variant">
-                      <Telescope size={20} className="text-secondary opacity-50" />
-                    </div>
-                    <div className="flex-1 h-16 bg-surface-variant rounded-lg flex items-center justify-center border border-outline-variant">
-                      <Users size={20} className="text-secondary opacity-50" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating badge */}
-              <motion.div 
-                animate={{ y: [0, -4, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute right-4 top-24 bg-surface px-4 py-3 rounded-xl shadow-m3-2 border border-outline-variant flex items-center gap-3"
-              >
-                <div className="w-6 h-6 rounded bg-on-surface text-surface flex items-center justify-center">
-                  <ShieldCheck size={14} />
-                </div>
-                <p className="text-xs font-semibold text-on-surface tracking-wide uppercase">Verified</p>
-              </motion.div>
             </div>
-          </motion.div>
-        </section>
+          </div>
+        </div>
+      </nav>
 
-        {/* Features Section - Defined by subtle borders */}
-        <section id="features" className="w-full bg-surface-container-low border-y border-outline-variant py-32">
-          <div className="max-w-7xl mx-auto px-4 md:px-8">
-            <motion.div 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={staggerContainer}
-              className="text-center max-w-2xl mx-auto mb-20"
-            >
-              <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-semibold text-on-surface mb-6 tracking-tight">Systematic Quality</motion.h2>
-              <motion.p variants={fadeUp} className="text-sm md:text-base text-secondary">Everything you need to orchestrate perfect testing loops. Mathematically aligned for your workflow.</motion.p>
+      <main className="flex-1 flex flex-col">
+        {/* Hero - Top to Bottom */}
+        <section className="w-full pt-24 pb-24 relative overflow-hidden">
+          <div className="max-w-[1128px] mx-auto px-6 flex flex-col items-center text-center">
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="flex flex-col items-center">
+              <motion.h1 variants={fadeUp} className="font-syne font-bold text-5xl md:text-[64px] leading-[1.05] tracking-[-1px] mb-6 max-w-4xl text-midnight">
+                Ship with confidence.<br />Test each other.
+              </motion.h1>
+              <motion.p variants={fadeUp} className="text-lg md:text-[18px] leading-7 text-midnight/70 max-w-2xl mb-8">
+                Townhall is a peer-driven testing platform. Submit your project, test what others have built, and get real, unscripted feedback from developers just like you.
+              </motion.p>
+              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-4">
+                <form action={signInWithGoogle}>
+                  <button type="submit" className="h-12 px-6 bg-voltage text-obsidian rounded-md font-medium text-sm hover:bg-voltage-dark transition-colors w-full sm:w-auto">
+                    Start Testing Free
+                  </button>
+                </form>
+                <Link href="#community" className="h-12 px-6 bg-transparent border border-midnight text-midnight rounded-md font-medium text-sm hover:bg-midnight/5 transition-colors flex items-center justify-center w-full sm:w-auto">
+                  Explore Community &rarr;
+                </Link>
+              </motion.div>
             </motion.div>
 
+            {/* Dashboard Mockup - Top to bottom composition */}
             <motion.div 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={staggerContainer}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="mt-16 w-full max-w-4xl aspect-[16/9] bg-obsidian rounded-2xl border border-iron shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-4 flex flex-col overflow-hidden relative"
             >
-              {[
-                {
-                  icon: <Code2 size={20} />,
-                  title: "For Developers",
-                  desc: "Create projects, define testing missions, and get actionable user feedback delivered straight to your dashboard."
-                },
-                {
-                  icon: <Telescope size={20} />,
-                  title: "For Testers",
-                  desc: "Explore exciting new products, complete meaningful missions, and earn reputation in the Townhall ecosystem."
-                },
-                {
-                  icon: <ShieldCheck size={20} />,
-                  title: "Quality Assurance",
-                  desc: "Bridge the gap between code completion and user satisfaction with real-world, unscripted edge-case testing."
-                }
-              ].map((feature, i) => (
-                <motion.div 
-                  key={i}
-                  variants={fadeUp}
-                  className="bg-surface rounded-2xl p-8 border border-outline-variant hover:border-outline hover:shadow-m3-1 transition-all group"
-                >
-                  <div className="w-12 h-12 bg-surface-variant text-on-surface rounded-xl flex items-center justify-center mb-8 transition-colors border border-outline-variant">
-                    {feature.icon}
+              {/* Top bar mockup */}
+              <div className="h-10 border-b border-iron flex items-center px-4 gap-4 w-full">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-iron" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-iron" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-iron" />
+                </div>
+                <div className="h-5 w-48 bg-graphite rounded-md ml-4" />
+              </div>
+              <div className="flex-1 flex gap-4 mt-4">
+                <div className="w-48 hidden md:flex flex-col gap-2">
+                  <div className="h-6 w-full bg-graphite rounded-md opacity-50" />
+                  <div className="h-6 w-3/4 bg-graphite rounded-md opacity-50" />
+                  <div className="h-6 w-5/6 bg-graphite rounded-md opacity-50" />
+                </div>
+                <div className="flex-1 flex flex-col gap-4">
+                  <div className="h-24 w-full bg-graphite rounded-xl border border-iron p-4 flex flex-col gap-2">
+                     <div className="h-4 w-1/4 bg-iron rounded-md" />
+                     <div className="h-3 w-1/2 bg-iron/50 rounded-md" />
                   </div>
-                  <h3 className="text-xl font-medium text-on-surface mb-4 tracking-tight">{feature.title}</h3>
-                  <p className="text-sm text-secondary leading-relaxed">{feature.desc}</p>
-                </motion.div>
-              ))}
+                  <div className="h-24 w-full bg-graphite rounded-xl border border-iron p-4 flex flex-col gap-2">
+                     <div className="h-4 w-1/3 bg-iron rounded-md" />
+                     <div className="h-3 w-2/3 bg-iron/50 rounded-md" />
+                  </div>
+                </div>
+              </div>
             </motion.div>
           </div>
         </section>
 
-        {/* About / CTA section */}
-        <section className="w-full py-40 relative flex items-center justify-center">
-          <div className="max-w-3xl px-4 text-center">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            >
-              <h2 className="text-5xl md:text-6xl font-medium text-on-surface mb-8 tracking-tighter">Enter the grid.</h2>
-              <p className="text-sm md:text-base text-secondary mx-auto mb-12 max-w-xl leading-relaxed">
-                Whether you're pushing your first app to production or you're a seasoned tester, Townhall provides the structure you need. Stop guessing what users want.
-              </p>
-              
-              <form action={signInWithGoogle} className="inline-block">
-                <button 
-                  type="submit"
-                  className="h-14 px-8 bg-on-surface text-surface rounded-full flex items-center justify-center gap-3 hover:bg-white/90 transition-all font-medium text-sm shadow-m3-2 group"
-                >
-                  Start Building
-                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-              </form>
+        {/* How The Loop Works (Light) */}
+        <section id="how-it-works" className="w-full bg-bone py-24 text-midnight border-b border-black/5">
+          <div className="max-w-[1128px] mx-auto px-6">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+              <div className="flex flex-col relative z-10">
+                <div className="text-[120px] font-syne font-bold leading-none text-midnight opacity-10 absolute -top-8 -left-4 pointer-events-none select-none">01</div>
+                <FileText className="w-6 h-6 text-midnight mb-4" />
+                <h4 className="font-syne font-bold text-2xl mb-2 text-midnight">Submit your project</h4>
+                <p className="text-sm text-midnight/70">Create a project and define specific testing missions for the community to focus on.</p>
+              </div>
+              <div className="flex flex-col relative z-10">
+                <div className="text-[120px] font-syne font-bold leading-none text-midnight opacity-10 absolute -top-8 -left-4 pointer-events-none select-none">02</div>
+                <Users className="w-6 h-6 text-midnight mb-4" />
+                <h4 className="font-syne font-bold text-2xl mb-2 text-midnight">Developers test it</h4>
+                <p className="text-sm text-midnight/70">Real developers browse the feed, pick up your missions, and provide written feedback + screenshots.</p>
+              </div>
+              <div className="flex flex-col relative z-10">
+                <div className="text-[120px] font-syne font-bold leading-none text-midnight opacity-10 absolute -top-8 -left-4 pointer-events-none select-none">03</div>
+                <CheckCircle className="w-6 h-6 text-midnight mb-4" />
+                <h4 className="font-syne font-bold text-2xl mb-2 text-midnight">Test theirs in return</h4>
+                <p className="text-sm text-midnight/70">Reciprocity drives the platform. You test others' work, and they test yours. Everyone improves.</p>
+              </div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* For Submitters (Light) */}
+        <section className="w-full bg-white py-24">
+          <div className="max-w-[1128px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-6 flex flex-col">
+              <h2 className="font-syne font-bold text-4xl mb-4 tracking-tight">Structured feedback, not guesses.</h2>
+              <p className="text-base text-midnight/70 mb-6 leading-relaxed">
+                As a submitter, you don't just drop a link and hope for the best. You create specific <strong>Missions</strong>—telling testers exactly what flow to check and what you're worried about.
+              </p>
+              <ul className="flex flex-col gap-3 text-sm text-midnight/80">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Define clear testing boundaries.
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Get verified feedback with mandatory screenshot proof.
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Manage all insights in one central dashboard.
+                </li>
+              </ul>
+            </div>
+            <div className="lg:col-span-6 bg-bone rounded-xl border border-black/5 p-8 shadow-sm flex items-center justify-center aspect-[4/3]">
+              <div className="w-full h-full border-2 border-dashed border-midnight/10 rounded-lg flex flex-col items-center justify-center text-midnight/30 gap-2">
+                 <FileText className="w-8 h-8" />
+                 <span className="text-sm font-medium">Mission Builder UI</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* For Testers (Light) */}
+        <section className="w-full bg-bone py-24 border-t border-black/5">
+          <div className="max-w-[1128px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-6 bg-white rounded-xl border border-black/5 p-8 shadow-sm flex items-center justify-center aspect-[4/3] order-2 lg:order-1">
+              <div className="w-full h-full border-2 border-dashed border-midnight/10 rounded-lg flex flex-col items-center justify-center text-midnight/30 gap-2">
+                 <Users className="w-8 h-8" />
+                 <span className="text-sm font-medium">Testing Workflow UI</span>
+              </div>
+            </div>
+            <div className="lg:col-span-6 flex flex-col order-1 lg:order-2">
+              <h2 className="font-syne font-bold text-4xl mb-4 tracking-tight">Frictionless testing.</h2>
+              <p className="text-base text-midnight/70 mb-6 leading-relaxed">
+                As a tester, you browse the community feed, pick a mission that interests you, and jump right in. The process is lightweight and entirely focused on the product.
+              </p>
+              <ul className="flex flex-col gap-3 text-sm text-midnight/80">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Discover new tools built by peers.
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Quickly submit feedback + proof without leaving the app.
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-voltage-dark mt-1.5 shrink-0" />
+                  Build reputation by helping the community.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Community Proof */}
+        <section id="community" className="w-full bg-white py-24 border-t border-black/5">
+          <div className="max-w-[1128px] mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="font-syne font-bold text-3xl md:text-4xl mb-4">Projects waiting for your feedback right now</h2>
+              <p className="text-sm text-midnight/60">Join hundreds of developers already testing each other's work.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Project Card Mockup 1 */}
+              <div className="bg-graphite text-chalk rounded-2xl p-6 border border-iron shadow-card flex flex-col">
+                 <div className="flex justify-between items-start mb-3">
+                   <h5 className="font-syne font-bold text-xl text-chalk truncate">DevSync CLI</h5>
+                   <span className="bg-voltage/10 text-voltage border border-voltage/20 px-2 py-0.5 rounded text-xs font-medium shrink-0">Needs Testers</span>
+                 </div>
+                 <p className="text-sm text-ash line-clamp-2 mb-4">A fast CLI tool for keeping local dev environments in perfect sync with staging.</p>
+                 <a href="#" className="text-[13px] text-sky hover:underline mb-6 truncate">devsync.cli.dev</a>
+                 <div className="mt-auto pt-4 border-t border-iron flex justify-between items-center">
+                   <span className="text-xs text-ash">2 Missions &middot; 0 Feedbacks</span>
+                   <button className="text-sm font-medium text-ash hover:text-chalk transition-colors">Test It &rarr;</button>
+                 </div>
+              </div>
+
+              {/* Project Card Mockup 2 */}
+              <div className="bg-graphite text-chalk rounded-2xl p-6 border border-iron shadow-card flex flex-col">
+                 <div className="flex justify-between items-start mb-3">
+                   <h5 className="font-syne font-bold text-xl text-chalk truncate">Palette Flow</h5>
+                   <span className="bg-mint/10 text-mint border border-mint/20 px-2 py-0.5 rounded text-xs font-medium shrink-0">Active</span>
+                 </div>
+                 <p className="text-sm text-ash line-clamp-2 mb-4">Generative AI color palettes for modern web applications based on HSL theory.</p>
+                 <a href="#" className="text-[13px] text-sky hover:underline mb-6 truncate">paletteflow.app</a>
+                 <div className="mt-auto pt-4 border-t border-iron flex justify-between items-center">
+                   <span className="text-xs text-ash">4 Missions &middot; 12 Feedbacks</span>
+                   <button className="text-sm font-medium text-ash hover:text-chalk transition-colors">Test It &rarr;</button>
+                 </div>
+              </div>
+
+              {/* Project Card Mockup 3 */}
+              <div className="bg-graphite text-chalk rounded-2xl p-6 border border-iron shadow-card flex flex-col">
+                 <div className="flex justify-between items-start mb-3">
+                   <h5 className="font-syne font-bold text-xl text-chalk truncate">QueryMaster</h5>
+                   <span className="bg-voltage/10 text-voltage border border-voltage/20 px-2 py-0.5 rounded text-xs font-medium shrink-0">Needs Testers</span>
+                 </div>
+                 <p className="text-sm text-ash line-clamp-2 mb-4">Visual SQL builder that connects directly to your Postgres database securely.</p>
+                 <a href="#" className="text-[13px] text-sky hover:underline mb-6 truncate">querymaster.io</a>
+                 <div className="mt-auto pt-4 border-t border-iron flex justify-between items-center">
+                   <span className="text-xs text-ash">1 Mission &middot; 1 Feedback</span>
+                   <button className="text-sm font-medium text-ash hover:text-chalk transition-colors">Test It &rarr;</button>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA Strip */}
+        <section className="w-full bg-obsidian py-24 border-t border-iron text-center">
+          <div className="max-w-[1128px] mx-auto px-6 flex flex-col items-center">
+            <h1 className="font-syne font-bold text-4xl md:text-5xl text-chalk mb-8 tracking-tight">Your next release deserves real feedback.</h1>
+            <form action={signInWithGoogle}>
+              <button type="submit" className="h-14 px-8 bg-voltage text-obsidian rounded-md font-medium text-base hover:bg-voltage-dark transition-colors">
+                Start Testing Free
+              </button>
+            </form>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-outline-variant bg-surface py-8">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-rounded text-on-surface text-sm">home_work</span>
-            <span className="text-sm font-semibold text-on-surface">Townhall</span>
+      <footer className="w-full bg-obsidian border-t border-iron text-ash text-sm py-16">
+        <div className="max-w-[1128px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 mb-2">
+              <BugPlay className="w-5 h-5 text-voltage" />
+              <span className="font-syne font-bold text-lg text-chalk">Townhall</span>
+            </div>
+            <p className="text-xs text-ash/80">Ship with confidence. Test each other.</p>
           </div>
-          <p className="text-xs text-secondary">
-            © {new Date().getFullYear()} Townhall Inc.
-          </p>
+          <div className="flex flex-col gap-3">
+            <h6 className="font-medium text-chalk mb-1">Product</h6>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">How it Works</Link>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">Explore Projects</Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h6 className="font-medium text-chalk mb-1">Community</h6>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">Guidelines</Link>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">Twitter</Link>
+          </div>
+          <div className="flex flex-col gap-3">
+            <h6 className="font-medium text-chalk mb-1">Legal</h6>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">Privacy</Link>
+            <Link href="#" className="hover:text-chalk transition-colors text-xs">Terms</Link>
+          </div>
+        </div>
+        <div className="max-w-[1128px] mx-auto px-6 mt-16 pt-8 border-t border-iron flex justify-between items-center text-xs text-ash/60">
+          <span>&copy; {new Date().getFullYear()} Townhall.</span>
         </div>
       </footer>
     </div>
