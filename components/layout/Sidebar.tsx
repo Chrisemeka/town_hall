@@ -2,82 +2,128 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Target, MessageSquare, Telescope, Compass, Activity } from "lucide-react"
+import {
+  LayoutDashboard, Target, MessageSquare,
+  Telescope, Compass, Settings,
+  User, LogOut,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
+import { signOutAction } from "@/actions/auth"
 
 const MY_WORK_LINKS = [
-  { name: "My Projects", href: "/dashboard", icon: LayoutDashboard },
-  { name: "My Missions", href: "/dashboard/missions", icon: Target },
-  { name: "Feedback Received", href: "/dashboard/feedback", icon: MessageSquare },
+  { name: "My Projects",       href: "/dashboard",           icon: LayoutDashboard },
+  { name: "My Missions",       href: "/dashboard/missions",  icon: Target },
+  { name: "Feedback Received", href: "/dashboard/feedback",  icon: MessageSquare },
 ]
 
 const COMMUNITY_LINKS = [
-  { name: "Explore Projects", href: "/explore", icon: Telescope },
-  { name: "Browse Missions", href: "/explore/missions", icon: Compass },
-  { name: "Recent Activity", href: "/explore/activity", icon: Activity },
+  { name: "Explore Projects",  href: "/explore",             icon: Telescope },
+  { name: "Browse Missions",   href: "/explore/missions",    icon: Compass },
 ]
 
-export function Sidebar() {
+function NavItem({
+  href,
+  name,
+  icon: Icon,
+  isActive,
+  onClick,
+}: {
+  href: string
+  name: string
+  icon: React.ElementType
+  isActive: boolean
+  onClick?: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 h-10 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
+        isActive ? "text-chalk" : "text-ash hover:text-chalk",
+      )}
+      style={
+        isActive
+          ? { background: "rgba(232,255,71,0.06)", borderLeft: "2px solid #E8FF47", paddingLeft: 10, paddingRight: 12 }
+          : { paddingLeft: 12, paddingRight: 12, background: "transparent" }
+      }
+    >
+      <Icon className="w-4 h-4 shrink-0" />
+      {name}
+    </Link>
+  )
+}
+
+export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname()
 
+  const EXACT_MATCH = new Set(["/dashboard", "/explore"])
+
+  const isActive = (href: string) =>
+    EXACT_MATCH.has(href)
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + "/")
+
   return (
-    <aside className="fixed inset-y-0 left-0 w-[240px] bg-obsidian border-r border-iron flex flex-col z-40 font-mono pt-[56px]">
-      {/* Spacer for Top Nav (if we want the logo in the sidebar, but design says logo is in top nav.
-          Wait, usually if sidebar is full height, logo is in sidebar. Design says Top Nav has "Left: Logo + Townhall wordmark".
-          So sidebar starts below top nav? Or sidebar is full height?
-          "Sidebar: Width: 240px, Background: #0E0E10, border-right: 1px solid #2C2C35"
-          Let's make Sidebar full height, but push its content down by 56px, or just put the logo in the sidebar.
-          If Top Nav is left-[240px], then logo is in top nav but starts at 240px? No, "Left: Logo".
-          If logo is in top nav, maybe sidebar starts below top nav (top-[56px]). Let's assume sidebar starts below Top Nav. */}
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 w-[240px] bg-obsidian border-r border-iron flex flex-col z-40 pt-[56px] transition-transform duration-200",
+        isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      )}
+    >
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-8">
-        
+
         {/* MY WORK */}
         <div>
-          <h3 className="text-xs font-semibold text-ash mb-4 px-2 tracking-wider">MY WORK</h3>
-          <div className="flex flex-col gap-1">
-            {MY_WORK_LINKS.map((link) => {
-              const isActive = pathname === link.href
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors",
-                    isActive
-                      ? "bg-iron text-chalk font-medium"
-                      : "text-ash hover:bg-iron/50 hover:text-chalk"
-                  )}
-                >
-                  <link.icon className="w-4 h-4" />
-                  {link.name}
-                </Link>
-              )
-            })}
+          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+            My Work
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {MY_WORK_LINKS.map((link) => (
+              <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
+            ))}
           </div>
         </div>
 
         {/* COMMUNITY */}
         <div>
-          <h3 className="text-xs font-semibold text-ash mb-4 px-2 tracking-wider">COMMUNITY</h3>
-          <div className="flex flex-col gap-1">
-            {COMMUNITY_LINKS.map((link) => {
-              const isActive = pathname === link.href
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "flex items-center gap-3 px-2 py-2 rounded-md text-sm transition-colors",
-                    isActive
-                      ? "bg-iron text-chalk font-medium"
-                      : "text-ash hover:bg-iron/50 hover:text-chalk"
-                  )}
+          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+            Community
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {COMMUNITY_LINKS.map((link) => (
+              <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
+            ))}
+          </div>
+        </div>
+
+        {/* ACCOUNT */}
+        <div className="mt-auto pt-6 border-t border-iron">
+          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+            Account
+          </p>
+          <div className="flex flex-col gap-0.5">
+
+            {/* Settings — desktop only */}
+            <div className="hidden md:block">
+              <NavItem href="/settings" name="Settings" icon={Settings} isActive={isActive("/settings")} />
+            </div>
+
+            {/* Profile + Sign Out — mobile only */}
+            <div className="md:hidden flex flex-col gap-0.5">
+              <NavItem href="/settings" name="Profile" icon={User} isActive={isActive("/settings")} onClick={onClose} />
+              <form action={signOutAction}>
+                <button
+                  type="submit"
+                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150"
+                  style={{ paddingLeft: 12, paddingRight: 12 }}
                 >
-                  <link.icon className="w-4 h-4" />
-                  {link.name}
-                </Link>
-              )
-            })}
+                  <LogOut className="w-4 h-4 shrink-0" />
+                  Sign Out
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
 

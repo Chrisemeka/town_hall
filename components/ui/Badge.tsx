@@ -2,24 +2,59 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "status-open" | "status-closed" | "role-tester" | "default"
+  variant?: "active" | "needs-testers" | "draft" | "complete" | "archived" | "role-tester" | "default"
 }
 
-function Badge({ className, variant = "default", ...props }: BadgeProps) {
+const DOT_COLOR: Record<string, string> = {
+  active:         "#3FFFA2",
+  "needs-testers":"#E8FF47",
+  draft:          "#8A8A99",
+  complete:       "#3FFFA2",
+  archived:       "#44444F",
+  "role-tester":  "#E8FF47",
+  default:        "#8A8A99",
+}
+
+const LABEL_COLOR: Record<string, string> = {
+  active:         "#3FFFA2",
+  "needs-testers":"#E8FF47",
+  draft:          "#8A8A99",
+  complete:       "#3FFFA2",
+  archived:       "#44444F",
+  "role-tester":  "#E8FF47",
+  default:        "#8A8A99",
+}
+
+const LABEL_TEXT: Record<string, string> = {
+  active:         "ACTIVE",
+  "needs-testers":"NEEDS TESTERS",
+  draft:          "DRAFT",
+  complete:       "COMPLETE",
+  archived:       "ARCHIVED",
+  "role-tester":  "TESTER",
+  default:        "",
+}
+
+function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
+  const dot  = DOT_COLOR[variant]
+  const color = LABEL_COLOR[variant]
+  const label = children ?? LABEL_TEXT[variant]
+
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-full px-2 h-6 font-mono text-xs uppercase font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-        {
-          "bg-[#1A2E1A] text-[#4ADE80] border border-[#166534]": variant === "status-open",
-          "bg-[#2A2A35] text-[#8A8A99] border border-transparent": variant === "status-closed",
-          "bg-voltage/10 text-voltage border border-voltage/20": variant === "role-tester",
-          "bg-iron text-chalk border border-transparent": variant === "default",
-        },
-        className
+        "inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-iron",
+        className,
       )}
+      style={{ color }}
       {...props}
-    />
+    >
+      <span
+        className="w-1.5 h-1.5 rounded-full shrink-0"
+        style={{ background: dot }}
+      />
+      {label}
+    </div>
   )
 }
 

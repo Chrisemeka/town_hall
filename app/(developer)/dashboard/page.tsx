@@ -1,87 +1,126 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Plus, Layout, ArrowRight } from "lucide-react";
+import { ArrowRight, FolderOpen } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
 
-export default async function ProjectGallery() {
+type ProjectStatus = "active" | "needs-testers" | "draft";
+
+function getStatus(missionCount: number, feedbackCount: number): ProjectStatus {
+  if (missionCount === 0) return "draft";
+  if (feedbackCount === 0) return "needs-testers";
+  return "active";
+}
+
+export default async function MyProjectsPage() {
   const supabase = await createClient();
-  
-  // 1. Get current user
+
   const { data: { user } } = await supabase.auth.getUser();
-  
-  // 2. Fetch projects owned by this user
-  const { data: projects } = await supabase
+
+  // Fetch projects with mission and feedback counts
+  const { data: raw } = await supabase
     .from("projects")
-    .select("*")
+    .select(`
+      id, name, description, app_url, created_at,
+      missions (
+        id,
+        test_results (count)
+      )
+    `)
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  return (
-    <div className="max-w-6xl mx-auto p-8 lg:p-16">
-      <header className="flex flex-col md:flex-row md:justify-between md:items-end mb-16 border-b border-iron/50 pb-8 gap-6">
-        <div>
-          <h1 className="text-5xl font-syne font-bold text-chalk tracking-tight mb-4">My Projects</h1>
-          <p className="font-mono text-sm text-ash max-w-xl leading-relaxed">Systematic quality assurance. Manage your active environments and create new testing missions.</p>
-        </div>
-        
-        {/* Create Project Button */}
-        <Button variant="primary" asChild>
-          <Link href="/dashboard/new" className="gap-2">
-            <Plus size={18} />
-            New Project
-          </Link>
-        </Button>
-      </header>
+  const projects = (raw ?? []).map((p: any) => {
+    const missions: any[] = p.missions ?? [];
+    const missionCount = missions.length;
+    const feedbackCount = missions.reduce(
+      (sum: number, m: any) => sum + (m.test_results?.[0]?.count ?? 0),
+      0,
+    );
+    return {
+      ...p,
+      missionCount,
+      feedbackCount,
+      status: getStatus(missionCount, feedbackCount) as ProjectStatus,
+    };
+  });
 
-      {/* 3. The Grid */}
-      {projects && projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+  return (
+    <div className="max-w-[1128px] mx-auto px-8 py-10">
+
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+            My Projects
+          </h1>
+          <p className="font-mono text-[14px] text-ash mt-1">
+            Manage your submissions and review incoming feedback.
+          </p>
+        </div>
+      </div>
+
+      {projects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {projects.map((project) => (
-            <Link 
-              key={project.id} 
+            <Link
+              key={project.id}
               href={`/dashboard/${project.id}`}
               className="group block"
             >
-              <Card interactive className="h-full flex flex-col justify-between p-6">
-                <div className="flex-1">
-                  <div className="w-12 h-12 bg-iron rounded-xl flex items-center justify-center mb-6 border border-iron">
-                    <Layout className="text-ash" size={20} />
-                  </div>
-                  <h3 className="font-syne text-xl font-bold text-chalk tracking-tight mb-3">{project.name}</h3>
-                  <p className="font-mono text-sm text-ash leading-relaxed line-clamp-2">
-                    {project.description || "No description provided."}
+              <div
+                className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-voltage/30"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+              >
+                {/* Card header row */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h5 className="font-syne font-bold text-[20px] leading-7 text-chalk group-hover:text-voltage transition-colors duration-150 truncate">
+                    {project.name}
+                  </h5>
+                  <Badge variant={project.status} />
+                </div>
+
+                {/* Description */}
+                <p className="font-mono text-[14px] leading-5 text-ash line-clamp-2 mb-4">
+                  {project.description || "No description provided."}
+                </p>
+
+                {/* URL */}
+                {project.app_url && (
+                  <p className="font-mono text-[13px] text-sky truncate mb-6">
+                    {project.app_url.replace(/^https?:\/\//, "")}
                   </p>
+                )}
+
+                {/* Footer row */}
+                <div className="mt-auto pt-4 border-t border-iron flex items-center justify-between">
+                  <span className="font-mono text-[12px] text-ash">
+                    {project.missionCount} Mission{project.missionCount !== 1 ? "s" : ""}
+                    {" · "}
+                    {project.feedbackCount} Feedback{project.feedbackCount !== 1 ? "s" : ""}
+                  </span>
+                  <span className="font-mono text-[13px] font-medium text-ash group-hover:text-chalk transition-colors duration-150 flex items-center gap-1">
+                    Open <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
-                
-                <div className="mt-8 pt-6 border-t border-iron flex items-center justify-between">
-                  <span className="font-mono text-sm font-semibold text-ash group-hover:text-chalk transition-colors">Access Environment</span>
-                  <div className="w-8 h-8 rounded bg-iron flex items-center justify-center border border-transparent group-hover:bg-chalk group-hover:text-obsidian transition-colors">
-                    <ArrowRight size={16} />
-                  </div>
-                </div>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>
       ) : (
-        /* Empty State */
-        <div className="bg-obsidian border border-dashed border-iron rounded-2xl p-16 py-32 text-center flex flex-col items-center justify-center shadow-sm">
-          <div className="w-16 h-16 bg-iron rounded-2xl flex items-center justify-center mb-8 border border-transparent">
-            <Layout className="text-ash w-8 h-8 opacity-60" />
-          </div>
-          <h2 className="font-syne text-3xl text-chalk font-bold mb-4 tracking-tight">No projects created</h2>
-          <p className="font-mono text-sm text-ash max-w-md mx-auto mb-8 leading-relaxed">
-            Start your first project container to begin the QA process.
+        /* Empty state */
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px] bg-graphite/30">
+          <FolderOpen className="w-12 h-12 text-ash mb-4" strokeWidth={1.5} />
+          <h4 className="font-syne font-bold text-[24px] text-chalk mb-2">Nothing here yet.</h4>
+          <p className="font-mono text-[14px] text-ash mb-6 text-center max-w-xs">
+            Submit your first project and let the community test it.
           </p>
           <Button variant="primary" asChild>
-            <Link href="/dashboard/new" className="gap-2">
-              <Plus size={18} />
-              New Project
-            </Link>
+            <Link href="/dashboard/new">New Project</Link>
           </Button>
         </div>
       )}
+
     </div>
   );
 }
