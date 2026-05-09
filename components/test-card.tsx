@@ -20,7 +20,7 @@ export function TestResultCard({ data }: { data: any }) {
         />
         
         <div className="absolute top-4 right-4">
-          <Badge variant={data.ai_sentiment === 'NEGATIVE' || data.ai_sentiment === 'FRUSTRATED' ? 'status-closed' : 'status-open'}>
+          <Badge variant={data.ai_sentiment === 'NEGATIVE' || data.ai_sentiment === 'FRUSTRATED' ? 'negative' : 'positive'}>
             {data.ai_sentiment}
           </Badge>
         </div>

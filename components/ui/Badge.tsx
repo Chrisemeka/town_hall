@@ -2,7 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "active" | "needs-testers" | "draft" | "complete" | "archived" | "role-tester" | "default"
+  variant?: "active" | "needs-testers" | "draft" | "complete" | "archived" | "role-tester" | "default" | "negative" | "positive"
 }
 
 const DOT_COLOR: Record<string, string> = {
@@ -13,6 +13,8 @@ const DOT_COLOR: Record<string, string> = {
   archived:       "#44444F",
   "role-tester":  "#E8FF47",
   default:        "#8A8A99",
+  negative:       "#FF4F4F",
+  positive:       "#3FFFA2",
 }
 
 const LABEL_COLOR: Record<string, string> = {
@@ -23,6 +25,8 @@ const LABEL_COLOR: Record<string, string> = {
   archived:       "#44444F",
   "role-tester":  "#E8FF47",
   default:        "#8A8A99",
+  negative:       "#FF4F4F",
+  positive:       "#3FFFA2",
 }
 
 const LABEL_TEXT: Record<string, string> = {
@@ -33,6 +37,8 @@ const LABEL_TEXT: Record<string, string> = {
   archived:       "ARCHIVED",
   "role-tester":  "TESTER",
   default:        "",
+  negative:       "NEGATIVE",
+  positive:       "POSITIVE",
 }
 
 function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
