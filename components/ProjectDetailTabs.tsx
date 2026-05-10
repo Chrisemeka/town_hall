@@ -11,6 +11,7 @@ type Mission = {
   title: string
   task_description: string
   created_at: string
+  is_active: boolean
   test_results: [{ count: number }] | []
 }
 
@@ -28,7 +29,8 @@ interface Props {
   results: TestResult[]
 }
 
-function getMissionStatus(feedbackCount: number) {
+function getMissionStatus(isActive: boolean, feedbackCount: number) {
+  if (!isActive) return "draft" as const
   if (feedbackCount === 0) return "needs-testers" as const
   return "active" as const
 }
@@ -113,7 +115,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
             missions.map((mission, i) => {
               const fbCount = mission.test_results?.[0]?.count ?? 0
               const missionNum = String(i + 1).padStart(2, "0")
-              const status = getMissionStatus(fbCount)
+              const status = getMissionStatus(mission.is_active, fbCount)
 
               return (
                 <div

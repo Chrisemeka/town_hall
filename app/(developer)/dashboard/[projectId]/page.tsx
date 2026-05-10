@@ -25,7 +25,7 @@ export default async function ProjectDetailPage({
     supabase.from("projects").select("*").eq("id", projectId).single(),
     supabase
       .from("missions")
-      .select("id, title, task_description, created_at, test_results(count)")
+      .select("id, title, task_description, created_at, is_active, test_results(count)")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true }),
     supabase
