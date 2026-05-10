@@ -45,7 +45,7 @@ export default function LandingPage() {
           <form action={signInWithGoogle} className="shrink-0">
             <button
               type="submit"
-              className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150"
+              className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer"
             >
               Start Testing Free
             </button>
@@ -91,7 +91,7 @@ export default function LandingPage() {
                   <form action={signInWithGoogle}>
                     <button
                       type="submit"
-                      className="w-full sm:w-auto h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-sm hover:bg-voltage-dark transition-colors duration-150"
+                      className="w-full sm:w-auto h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-sm hover:bg-voltage-dark transition-colors duration-150 cursor-pointer"
                     >
                       Start Testing Free
                     </button>
@@ -250,7 +250,7 @@ export default function LandingPage() {
                 variants={stagger}
                 className="col-span-12 lg:col-span-6 flex flex-col"
               >
-                <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+                <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-forest uppercase tracking-[1px] mb-4">
                   For Submitters
                 </motion.p>
                 <motion.h2 variants={fadeUp} className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-midnight mb-4">
@@ -266,8 +266,8 @@ export default function LandingPage() {
                     "Review all feedback in one central dashboard",
                   ].map((item, i) => (
                     <motion.li key={i} variants={fadeUp} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-voltage/10 border border-voltage/30 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-voltage" />
+                      <div className="w-5 h-5 rounded-full bg-forest/10 border border-forest/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-forest" />
                       </div>
                       <span className="font-mono text-[14px] leading-5 text-midnight/80">{item}</span>
                     </motion.li>
@@ -378,7 +378,7 @@ export default function LandingPage() {
                 variants={stagger}
                 className="col-span-12 lg:col-span-6 flex flex-col order-1 lg:order-2"
               >
-                <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+                <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-forest uppercase tracking-[1px] mb-4">
                   For Testers
                 </motion.p>
                 <motion.h2 variants={fadeUp} className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-midnight mb-4">
@@ -394,8 +394,8 @@ export default function LandingPage() {
                     "Submit feedback + screenshot as proof of visit",
                   ].map((item, i) => (
                     <motion.li key={i} variants={fadeUp} className="flex items-start gap-3">
-                      <div className="w-5 h-5 rounded-full bg-voltage/10 border border-voltage/30 flex items-center justify-center shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-voltage" />
+                      <div className="w-5 h-5 rounded-full bg-forest/10 border border-forest/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-forest" />
                       </div>
                       <span className="font-mono text-[14px] leading-5 text-midnight/80">{item}</span>
                     </motion.li>
@@ -479,7 +479,7 @@ export default function LandingPage() {
                     <span className="font-mono text-[12px] text-ash">
                       {project.missions} Missions · {project.feedback} Feedbacks
                     </span>
-                    <button className="font-mono text-[13px] font-medium text-ash hover:text-chalk transition-colors duration-150">
+                    <button className="font-mono text-[13px] font-medium text-voltage border border-voltage/30 hover:border-voltage hover:bg-voltage/10 px-3 py-1 rounded-[6px] transition-all duration-150 cursor-pointer">
                       Test It →
                     </button>
                   </div>
@@ -499,7 +499,7 @@ export default function LandingPage() {
             <form action={signInWithGoogle}>
               <button
                 type="submit"
-                className="h-14 px-8 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-base hover:bg-voltage-dark transition-colors duration-150"
+                className="h-14 px-8 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-base hover:bg-voltage-dark transition-colors duration-150 cursor-pointer"
               >
                 Start Testing Free
               </button>

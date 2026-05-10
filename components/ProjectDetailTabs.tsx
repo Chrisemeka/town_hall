@@ -58,41 +58,42 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
   return (
     <div>
       {/* Tab bar + action button */}
-      <div className="flex items-center justify-between border-b border-iron mb-8">
-        <div className="flex items-end gap-6">
-          {[
-            { key: "missions",  label: `Missions`,          count: missions.length },
-            { key: "feedback",  label: `Feedback Received`, count: feedbackCount  },
-          ].map(({ key, label, count }) => (
-            <button
-              key={key}
-              onClick={() => setTab(key as typeof tab)}
-              className={[
-                "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
-                tab === key ? "text-chalk" : "text-ash hover:text-chalk",
-              ].join(" ")}
-            >
-              {label}
-              {" "}
-              <span className={`font-mono text-[12px] ${tab === key ? "text-voltage" : "text-ash/60"}`}>
-                ({count})
-              </span>
-              {/* Underline indicator */}
-              {tab === key && (
-                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-voltage rounded-full" />
-              )}
-            </button>
-          ))}
-        </div>
+      <div className="border-b border-iron mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
+          <div className="flex items-end gap-4 sm:gap-6">
+            {[
+              { key: "missions",  label: `Missions`,          count: missions.length },
+              { key: "feedback",  label: `Feedback Received`, count: feedbackCount  },
+            ].map(({ key, label, count }) => (
+              <button
+                key={key}
+                onClick={() => setTab(key as typeof tab)}
+                className={[
+                  "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
+                  tab === key ? "text-chalk" : "text-ash hover:text-chalk",
+                ].join(" ")}
+              >
+                {label}
+                {" "}
+                <span className={`font-mono text-[12px] ${tab === key ? "text-voltage" : "text-ash/60"}`}>
+                  ({count})
+                </span>
+                {tab === key && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-voltage rounded-full" />
+                )}
+              </button>
+            ))}
+          </div>
 
-        {tab === "missions" && (
-          <Link
-            href={`/dashboard/${projectId}/mission/new`}
-            className="h-9 px-4 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150 flex items-center gap-1.5 mb-3"
-          >
-            + Add Mission
-          </Link>
-        )}
+          {tab === "missions" && (
+            <Link
+              href={`/dashboard/${projectId}/mission/new`}
+              className="self-end sm:self-auto h-9 px-4 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150 flex items-center gap-1.5 mb-3 w-fit"
+            >
+              + Add Mission
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* ── MISSIONS TAB ─────────────────────────────────────────────── */}
@@ -154,7 +155,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         {fbCount} Feedback{fbCount !== 1 ? "s" : ""}
                       </span>
                       <Link
-                        href={`/mission/${mission.id}`}
+                        href={`/dashboard/${projectId}/mission/${mission.id}`}
                         className="font-mono text-[13px] font-medium text-ash hover:text-chalk transition-colors duration-150 flex items-center gap-1"
                       >
                         Open <ArrowRight className="w-3.5 h-3.5" />

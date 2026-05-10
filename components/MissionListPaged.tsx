@@ -44,7 +44,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
                 </span>
                 <Badge variant={mission.status} />
                 <Link
-                  href={`/dashboard/${mission.project_id}`}
+                  href={`/dashboard/${mission.project_id}/mission/${mission.id}`}
                   className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150 flex items-center gap-1"
                   aria-label={`Open mission: ${mission.title}`}
                 >
