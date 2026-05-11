@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, Clock, X, ChevronDown, ChevronUp, Maximize2, Sparkles } from "lucide-react";
+import { MessageSquare, Clock, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -42,7 +42,6 @@ export function TestResultCard({ data }: { data: any }) {
               {new Date(data.created_at).toLocaleDateString()}
             </div>
           </div>
-        </div>
 
           <div className="flex gap-3 mb-4 bg-iron/50 p-4 rounded-xl border border-transparent">
             <MessageSquare size={16} className="text-ash shrink-0 mt-0.5" />
