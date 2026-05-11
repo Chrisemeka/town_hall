@@ -4,6 +4,7 @@ import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
 import { TestResultCard } from "@/components/test-card";
 import { ChevronLeft, Info, Activity, PowerOff, Power, Pencil } from "lucide-react";
+import InlineEditMission  from "@/components/InlineEditMission";
 
 export default async function DeveloperMissionDetailPage({ 
   params 

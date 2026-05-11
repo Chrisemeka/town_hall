@@ -10,6 +10,7 @@ interface InlineEditMissionProps {
     project_id: string
     title: string
     task_description: string
+    is_active: boolean
   }
 }
 
@@ -20,7 +21,7 @@ export default function InlineEditMission({ mission }: InlineEditMissionProps) {
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
     try {
-      await updateMission(mission.id, mission.project_id, formData)
+      await updateMission(null, formData)
       setIsEditing(false)
     } finally {
       setIsSubmitting(false)
@@ -30,6 +31,9 @@ export default function InlineEditMission({ mission }: InlineEditMissionProps) {
   if (isEditing) {
     return (
       <form action={handleSubmit} className="w-full">
+        <input type="hidden" name="missionId" value={mission.id} />
+        <input type="hidden" name="projectId" value={mission.project_id} />
+        <input type="hidden" name="intent" value={mission.is_active ? "publish" : "draft"} />
         <div className="mb-6">
           <input
             type="text"
