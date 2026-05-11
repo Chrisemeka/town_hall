@@ -1,64 +1,139 @@
 "use client"
 
-import { useActionState } from "react"
-import { createProject } from "@/actions/project"
+import { useState, useActionState } from "react"
 import { useFormStatus } from "react-dom"
+import { createProject } from "@/actions/project"
+import { Button } from "@/components/ui/Button"
+import Link from "next/link"
+
+const MAX_SUMMARY = 300
 
 export default function CreateProjectForm() {
   const [state, formAction] = useActionState(createProject, null)
+  const [summary, setSummary]   = useState("")
+  const [urlError, setUrlError] = useState("")
+
+  const validateUrl = (value: string) => {
+    if (!value) { setUrlError(""); return }
+    try {
+      new URL(value)
+      setUrlError("")
+    } catch {
+      setUrlError("Enter a valid URL — e.g. https://yourapp.com")
+    }
+  }
 
   return (
-    <div className="p-8 lg:p-12 bg-surface rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-on-surface opacity-[0.015] rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-      
-      <header className="mb-10 text-center relative z-10">
-        <h1 className="text-3xl font-medium tracking-tight text-on-surface mb-3">Initialize Project</h1>
-        <p className="text-sm text-secondary">
-          Register your application parameters to begin real-user validation.
-        </p>
-      </header>
+    <div className="bg-graphite border border-iron rounded-[16px] p-10">
 
-      <form action={formAction} className="space-y-8 relative z-10">
-        {state?.error && (
-            <div className="p-4 bg-error-container/20 border border-error/20 text-error rounded-xl text-sm font-medium">
-            {state.error}
-            </div>
-        )}
-        
+      {/* Header */}
+      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-1">
+        Submit a Project
+      </h2>
+      <p className="font-mono text-[16px] leading-6 text-ash mb-8">
+        Tell the community what you've built.
+      </p>
+
+      {/* Server error */}
+      {state?.error && (
+        <div className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
+          <p className="font-mono text-[14px] text-ember">{state.error}</p>
+        </div>
+      )}
+
+      <form action={formAction} className="flex flex-col gap-6">
+
+        {/* Project Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wider text-secondary ml-1">Project Name</label>
+          <label htmlFor="name" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            Project Name
+          </label>
           <input
             id="name"
             name="name"
             type="text"
-            placeholder="e.g., Flowchart App"
             required
-            className="h-14 px-4 rounded-xl bg-surface-variant border border-outline-variant focus:border-outline focus:ring-1 focus:ring-outline outline-none text-sm text-on-surface transition-all placeholder:text-secondary/50"
+            maxLength={80}
+            placeholder="e.g. DevSync CLI"
+            className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
           />
         </div>
 
+        {/* Project URL */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="app_url" className="text-xs font-semibold uppercase tracking-wider text-secondary ml-1">Application URL</label>
+          <label htmlFor="app_url" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            Project URL
+          </label>
           <input
             id="app_url"
             name="app_url"
             type="url"
-            placeholder="https://your-app.com"
-            className="h-14 px-4 rounded-xl bg-surface-variant border border-outline-variant focus:border-outline focus:ring-1 focus:ring-outline outline-none text-sm text-on-surface transition-all placeholder:text-secondary/50"
+            required
+            placeholder="https://yourapp.com"
+            onBlur={(e) => validateUrl(e.target.value)}
+            onChange={() => urlError && setUrlError("")}
+            className={[
+              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+              urlError ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
+          {urlError && (
+            <p className="font-mono text-[12px] text-ember">{urlError}</p>
+          )}
         </div>
 
+        {/* Brief Summary */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="description" className="text-xs font-semibold uppercase tracking-wider text-secondary ml-1">Project Summary</label>
+          <label htmlFor="description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            Brief Summary
+          </label>
           <textarea
             id="description"
             name="description"
-            placeholder="Briefly describe what your app does..."
-            className="min-h-32 p-4 rounded-xl bg-surface-variant border border-outline-variant focus:border-outline focus:ring-1 focus:ring-outline outline-none text-sm text-on-surface transition-all placeholder:text-secondary/50 resize-y"
+            required
+            maxLength={MAX_SUMMARY}
+            rows={5}
+            placeholder="Describe what your project does and who it's for..."
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            className="w-full bg-obsidian border border-iron rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none"
           />
+          <div className="flex justify-end">
+            <span className={`font-mono text-[12px] ${summary.length >= MAX_SUMMARY ? "text-ember" : "text-ash"}`}>
+              {summary.length} / {MAX_SUMMARY}
+            </span>
+          </div>
         </div>
 
-        <SubmitButton />
+        {/* What Happens Next info box */}
+        <div className="bg-obsidian border border-iron rounded-[12px] p-6">
+          <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+            What happens next?
+          </p>
+          <div className="flex flex-col gap-4">
+            {[
+              { num: "01", text: "Your project is published to the community feed." },
+              { num: "02", text: "Add missions to tell testers exactly what to check." },
+              { num: "03", text: "Developers test it and submit feedback + screenshots." },
+            ].map((step) => (
+              <div key={step.num} className="flex items-start gap-4">
+                <span className="font-mono text-[12px] font-medium text-voltage shrink-0 w-6">
+                  {step.num}
+                </span>
+                <p className="font-mono text-[13px] text-ash leading-5">{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div className="flex items-center gap-3 pt-2">
+          <SubmitButton />
+          <Button variant="ghost" size="lg" asChild>
+            <Link href="/dashboard">Cancel</Link>
+          </Button>
+        </div>
+
       </form>
     </div>
   )
@@ -66,18 +141,13 @@ export default function CreateProjectForm() {
 
 function SubmitButton() {
   const { pending } = useFormStatus()
-
   return (
     <button
       type="submit"
       disabled={pending}
-      className="w-full h-14 bg-on-surface text-surface rounded-full font-medium text-sm hover:bg-white/90 shadow-sm transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
+      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
     >
-      {pending ? (
-        <div className="h-4 w-4 border-2 border-surface border-t-transparent animate-spin rounded-full" />
-      ) : (
-        "Create Project"
-      )}
+      {pending ? "Creating…" : "Create Project"}
     </button>
   )
 }

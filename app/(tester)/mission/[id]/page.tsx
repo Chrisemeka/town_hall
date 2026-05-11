@@ -1,22 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import TesterSubmissionForm from "@/components/TesterSubmissionForm";
-import { CheckCircle2, Info, ShieldAlert, ArrowLeft, ExternalLink } from "lucide-react";
+import { ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getOwnerId } from "@/lib/utils/project";
+import TesterSubmissionForm from "@/components/TesterSubmissionForm";
 
-export default async function MissionDetailPage({ 
-  params 
-}: { 
-  params: Promise<{ id: string }> 
+export default async function MissionDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
 }) {
   const supabase = await createClient();
   const { id } = await params;
 
-  // 1. Get the current user
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 2. Fetch the mission and its project owner
   const { data: mission } = await supabase
     .from("missions")
     .select("*, projects(*)")
@@ -25,92 +23,98 @@ export default async function MissionDetailPage({
 
   if (!mission) return notFound();
 
-  // 3. Robust check for owner_id (handles Supabase object or array returns)
   const projectData = mission.projects as any;
-  const projectOwnerId = getOwnerId(mission?.projects);
-  const isOwner = user?.id === projectOwnerId;
+  const project = Array.isArray(projectData) ? projectData[0] : projectData;
+  const isOwner = user?.id === getOwnerId(mission.projects);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 lg:p-12">
-      <Link 
-        href="/explore" 
-        className="inline-flex items-center gap-2 text-secondary hover:text-on-surface transition-colors mb-8 group"
-      >
-        <div className="w-8 h-8 rounded bg-surface-variant flex items-center justify-center border border-outline-variant group-hover:bg-on-surface group-hover:text-surface transition-colors">
-          <ArrowLeft size={16} />
-        </div>
-        <span className="text-sm font-medium">Back to Explore</span>
-      </Link>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-        
-        {/* Left Side: Instructions */}
-        <section>
-          <header className="mb-8">
-            <span className="text-label-medium text-primary bg-primary-container px-3 py-1 rounded-full">
-              Mission Details
-            </span>
-            <h1 className="text-display-small text-on-surface mt-4">{mission.title}</h1>
-            <p className="text-title-medium text-secondary mt-2">
-              for {Array.isArray(projectData) ? projectData[0]?.name : projectData?.name}
-            </p>
-            <a 
-              href={Array.isArray(projectData) ? projectData[0]?.app_url : projectData?.app_url} 
-              target="_blank"
-              className="inline-flex items-center gap-2 bg-primary text-on-primary hover:bg-primary/90 px-4 py-2 rounded-lg font-medium transition-colors mt-4 w-fit"
-            >
-              Launch Application
-              <ExternalLink size={18} />
-            </a>
-          </header>
+    <div className="max-w-[800px] mx-auto px-6 py-10">
 
-          <div className="bg-surface-container-high p-6 rounded-m3-l border border-outline-variant">
-            <h3 className="flex items-center gap-2 text-title-medium text-on-surface mb-4">
-              <Info size={20} className="text-primary" />
-              Your Task
-            </h3>
-            <p className="text-body-large text-on-surface-variant leading-relaxed whitespace-pre-wrap">
-              {mission.task_description}
-            </p>
-          </div>
-
-          <div className="bg-surface-container-high p-6 rounded-m3-l border border-outline-variant mt-6">
-            <h3 className="flex items-center gap-2 text-title-medium text-on-surface mb-4">
-              <CheckCircle2 size={20} className="text-primary" />
-              Submission Guidelines
-            </h3>
-            <p className="text-body-large text-on-surface-variant leading-relaxed whitespace-pre-wrap">
-              - Provide clear screenshots (not more than <strong>1MB</strong>) that demonstrates the issue or task completion.<br />
-              - Ensure your evidence is relevant and directly related to the mission's task description.<br />
-            </p>
-          </div>
-        </section>
-
-        {/* Right Side: Conditional Submission Form */}
-        <section className="bg-surface-container rounded-m3-xl p-8 shadow-m3-1">
-          {isOwner ? (
-            <div className="flex flex-col items-center text-center p-6 bg-secondary-container rounded-m3-m text-on-secondary-container">
-              <ShieldAlert size={48} className="mb-4 text-secondary" />
-              <h2 className="text-title-large">Project Owner View</h2>
-              <p className="text-body-medium mt-3 opacity-90">
-                You created this project. To ensure high-quality, unbiased feedback, 
-                developers cannot submit test results for their own missions.
-              </p>
-              <a 
-                href="/dashboard" 
-                className="mt-6 text-label-large underline hover:text-primary transition-colors"
-              >
-                Go to Dashboard to view results
-              </a>
-            </div>
-          ) : (
-            <>
-              <h2 className="text-title-large text-on-surface mb-6">Submit Evidence</h2>
-              <TesterSubmissionForm missionId={mission.id} />
-            </>
-          )}
-        </section>
-
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8 flex-wrap">
+        <Link href="/explore" className="hover:text-chalk transition-colors duration-150">
+          Explore
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
+        <span className="text-ash truncate max-w-[180px]">{project?.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
+        <span className="text-chalk truncate max-w-[200px]">{mission.title}</span>
       </div>
+
+      {/* Mission title */}
+      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-6">
+        {mission.title}
+      </h2>
+
+      {/* Project context card */}
+      <div
+        className="mb-8 border border-iron"
+        style={{ background: "#1A1A1F", borderRadius: 12, padding: "20px 24px" }}
+      >
+        <h5 className="font-syne font-bold text-[18px] text-chalk mb-1">
+          {project?.name}
+        </h5>
+        {project?.app_url && (
+          <a
+            href={project.app_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono text-[13px] text-sky hover:underline block mb-2 truncate"
+          >
+            {project.app_url.replace(/^https?:\/\//, "")}
+          </a>
+        )}
+        {project?.description && (
+          <p className="font-mono text-[14px] text-ash leading-5">
+            {project.description}
+          </p>
+        )}
+      </div>
+
+      {/* YOUR MISSION callout */}
+      <div className="mb-8">
+        <p
+          className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+          style={{ letterSpacing: "1px" }}
+        >
+          Your Mission
+        </p>
+        <div
+          style={{
+            background: "rgba(232,255,71,0.05)",
+            borderLeft: "3px solid #E8FF47",
+            borderRadius: "0 8px 8px 0",
+            padding: "16px 20px",
+          }}
+        >
+          <p className="font-mono text-[16px] text-chalk leading-6 whitespace-pre-wrap">
+            {mission.task_description}
+          </p>
+        </div>
+      </div>
+
+      {/* Submission section */}
+      {isOwner ? (
+        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-iron rounded-[12px] text-center px-6">
+          <ShieldAlert className="w-10 h-10 text-ash mb-4" />
+          <h3 className="font-syne font-bold text-[20px] text-chalk mb-2">Project Owner</h3>
+          <p className="font-mono text-[14px] text-ash max-w-[400px]">
+            You created this project. Developers cannot submit test results for their own missions.
+          </p>
+          <Link
+            href="/dashboard"
+            className="mt-6 font-mono text-[13px] text-voltage hover:underline"
+          >
+            Go to Dashboard to view results
+          </Link>
+        </div>
+      ) : (
+        <TesterSubmissionForm
+          missionId={mission.id}
+          appUrl={project?.app_url ?? null}
+        />
+      )}
+
     </div>
   );
 }

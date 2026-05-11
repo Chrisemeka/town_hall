@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
 import { TestResultCard } from "@/components/test-card";
-import InlineEditMission from "@/components/InlineEditMission";
-import { ChevronLeft, Info, Activity, PowerOff, Power } from "lucide-react";
+import { ChevronLeft, Info, Activity, PowerOff, Power, Pencil } from "lucide-react";
+import InlineEditMission  from "@/components/InlineEditMission";
 
 export default async function DeveloperMissionDetailPage({ 
   params 
@@ -45,13 +45,19 @@ export default async function DeveloperMissionDetailPage({
             
             <div className="flex items-center justify-between mb-6">
               <span className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider ${
-                mission.is_active !== false 
-                  ? "bg-on-surface text-surface" 
+                mission.is_active !== false
+                  ? "bg-on-surface text-surface"
                   : "bg-surface-variant text-secondary border border-outline-variant"
               }`}>
                 {mission.is_active !== false ? <Activity size={12} /> : <PowerOff size={12} />}
                 {mission.is_active !== false ? "Active" : "Inactive"}
               </span>
+              <Link
+                href={`/dashboard/${projectId}/mission/${missionId}/edit`}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-outline-variant text-secondary hover:text-on-surface hover:border-on-surface/30 transition-colors"
+              >
+                <Pencil size={12} /> Edit Mission
+              </Link>
             </div>
 
             <InlineEditMission mission={mission} />
