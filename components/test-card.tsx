@@ -2,7 +2,7 @@
 
 import { MessageSquare, Clock, X, ChevronDown, ChevronUp, Maximize2, Sparkles } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
 export function TestResultCard({ data }: { data: any }) {
@@ -10,19 +10,24 @@ export function TestResultCard({ data }: { data: any }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isInsightOpen, setIsInsightOpen] = useState(false);
 
+  const sentimentVariant =
+    data.ai_sentiment === "NEGATIVE" || data.ai_sentiment === "FRUSTRATED"
+      ? "negative"
+      : "positive";
+
   return (
     <Card className="group flex flex-col overflow-hidden relative">
-      <div className="aspect-video relative bg-iron overflow-hidden cursor-pointer border-b border-iron" onClick={() => setIsOpen(true)}>
-        <img 
-          src={data.screenshot_url} 
-          alt="Telemetry Evidence" 
+      <div
+        className="aspect-video relative bg-iron overflow-hidden cursor-pointer border-b border-iron"
+        onClick={() => setIsOpen(true)}
+      >
+        <img
+          src={data.screenshot_url}
+          alt="Telemetry Evidence"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-80 group-hover:opacity-100"
         />
-        
         <div className="absolute top-4 right-4">
-          <Badge variant={data.ai_sentiment === 'NEGATIVE' || data.ai_sentiment === 'FRUSTRATED' ? 'negative' : 'positive'}>
-            {data.ai_sentiment}
-          </Badge>
+          <Badge variant={sentimentVariant}>{data.ai_sentiment}</Badge>
         </div>
       </div>
 
@@ -42,14 +47,14 @@ export function TestResultCard({ data }: { data: any }) {
           <div className="flex gap-3 mb-4 bg-iron/50 p-4 rounded-xl border border-transparent">
             <MessageSquare size={16} className="text-ash shrink-0 mt-0.5" />
             <p className="font-mono text-sm text-ash italic line-clamp-3 leading-relaxed">
-              "{data.tester_comment}"
+              &ldquo;{data.tester_comment}&rdquo;
             </p>
           </div>
         </div>
 
         {data.ai_summary && (
           <div className="mt-4 pt-4 border-t border-iron flex flex-col relative z-20">
-            <button 
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 setIsInsightOpen(!isInsightOpen);
@@ -67,7 +72,7 @@ export function TestResultCard({ data }: { data: any }) {
                 )}
               </div>
             </button>
-            
+
             {isInsightOpen && (
               <div className="font-mono text-sm text-ash leading-relaxed whitespace-pre-wrap mt-4 animate-in fade-in slide-in-from-top-1 bg-iron p-4 rounded-xl border border-transparent">
                 {data.ai_summary}
@@ -79,8 +84,11 @@ export function TestResultCard({ data }: { data: any }) {
 
       {/* Lightbox */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/95 backdrop-blur-sm p-4" onClick={() => setIsOpen(false)}>
-          <button 
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/95 backdrop-blur-sm p-4"
+          onClick={() => setIsOpen(false)}
+        >
+          <button
             className="absolute top-8 right-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors shadow-lg cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
@@ -90,9 +98,9 @@ export function TestResultCard({ data }: { data: any }) {
             <X size={20} />
           </button>
           <div className="bg-obsidian border border-iron shadow-2xl rounded-2xl p-2 max-w-5xl">
-            <img 
-              src={data.screenshot_url} 
-              alt="Full Telemetry Evidence" 
+            <img
+              src={data.screenshot_url}
+              alt="Full Telemetry Evidence"
               className="w-full max-h-[85vh] object-contain rounded-xl"
               onClick={(e) => e.stopPropagation()}
             />
