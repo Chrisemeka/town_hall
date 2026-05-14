@@ -20,7 +20,7 @@ export default function InlineEditProject({ project }: InlineEditProjectProps) {
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
     try {
-      await updateProject(project.id, formData)
+      await updateProject(project.id, null, formData)
       setIsEditing(false)
     } finally {
       setIsSubmitting(false)
