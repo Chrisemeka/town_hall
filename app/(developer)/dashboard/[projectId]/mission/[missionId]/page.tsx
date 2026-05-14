@@ -35,8 +35,8 @@ export default async function DeveloperMissionDetailPage({
     <div className="max-w-[1128px] mx-auto px-8 py-8">
 
       {/* Navigation bar */}
-      <div className="flex items-center justify-between mb-10 pb-6 border-b border-iron">
-        <div className="flex items-center gap-4 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-iron">
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href={`/dashboard/${projectId}`}
             className="flex items-center gap-1.5 h-8 px-3 border border-iron rounded-[6px] font-mono text-[13px] text-ash hover:text-chalk hover:border-ash transition-colors duration-150 shrink-0"
@@ -51,12 +51,12 @@ export default async function DeveloperMissionDetailPage({
             <span className="text-iron shrink-0">/</span>
             <Link
               href={`/dashboard/${projectId}`}
-              className="hover:text-chalk transition-colors duration-150 truncate max-w-[160px]"
+              className="hover:text-chalk transition-colors duration-150 truncate max-w-[100px] sm:max-w-[160px]"
             >
               {project?.name ?? "Project"}
             </Link>
             <span className="text-iron shrink-0">/</span>
-            <span className="text-chalk truncate max-w-[200px]">{mission.title}</span>
+            <span className="text-chalk truncate max-w-[120px] sm:max-w-[200px]">{mission.title}</span>
           </div>
         </div>
 
