@@ -89,14 +89,13 @@ export default async function ProjectDetailPage({
         </div>
 
         {/* Edit button */}
-        <button
+        <Link
+          href={`/dashboard/${projectId}/edit`}
           className="h-9 px-4 border border-iron text-ash rounded-[8px] font-mono text-[14px] hover:text-chalk hover:border-ash transition-colors duration-150 flex items-center gap-2 shrink-0"
-          disabled
-          title="Edit coming soon"
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit
-        </button>
+        </Link>
       </div>
 
       {/* Tabs */}

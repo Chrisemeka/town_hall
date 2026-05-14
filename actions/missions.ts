@@ -53,6 +53,22 @@ export async function updateMission(_prevState: unknown, formData: FormData) {
   redirect(`/dashboard/${projectId}/mission/${missionId}`)
 }
 
+export async function deleteMission(missionId: string, projectId: string) {
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  const { error } = await supabase
+    .from("missions")
+    .delete()
+    .eq("id", missionId)
+
+  if (error) throw new Error(error.message)
+
+  revalidatePath(`/dashboard/${projectId}`)
+}
+
 export async function toggleMissionStatus(missionId: string, projectId: string, newStatus: boolean) {
   const supabase = await createClient()
 

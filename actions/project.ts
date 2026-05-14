@@ -55,4 +55,5 @@ export async function updateProject(projectId: string, formData: FormData) {
   }
 
   revalidatePath(`/dashboard/${projectId}`)
+  redirect(`/dashboard/${projectId}`)
 }
