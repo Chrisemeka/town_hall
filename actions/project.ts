@@ -34,7 +34,7 @@ export async function createProject(prevState: any, formData: FormData) {
   redirect(`/dashboard/${data.id}`)
 }
 
-export async function updateProject(projectId: string, formData: FormData) {
+export async function updateProject(projectId: string, _prevState: unknown, formData: FormData) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
