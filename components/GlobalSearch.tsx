@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 
 type Result =
   | { kind: "project"; id: string; name: string; description: string | null }
-  | { kind: "mission"; id: string; title: string; projectName: string }
+  | { kind: "mission"; id: string; title: string; projectName: string; projectId: string }
 
 export function GlobalSearch() {
   const router  = useRouter()
@@ -41,7 +41,7 @@ export function GlobalSearch() {
         .limit(5),
       supabase
         .from("missions")
-        .select("id, title, projects(name)")
+        .select("id, title, project_id, projects(name)")
         .eq("is_active", true)
         .ilike("title", pattern)
         .limit(5),
@@ -61,6 +61,7 @@ export function GlobalSearch() {
         id:          m.id,
         title:       m.title,
         projectName: project?.name ?? "Unknown",
+        projectId:   (m as any).project_id,
       })
     }
 
@@ -99,9 +100,9 @@ export function GlobalSearch() {
     setQuery("")
     setResults([])
     if (r.kind === "project") {
-      router.push(`/explore`)
+      router.push(`/dashboard/${r.id}`)
     } else {
-      router.push(`/mission/${r.id}`)
+      router.push(`/dashboard/${r.projectId}/mission/${r.id}`)
     }
   }
 
