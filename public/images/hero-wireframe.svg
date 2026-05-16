@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1128" height="705" viewBox="0 0 1128 705">
+  <defs>
+    <clipPath id="win">
+      <rect width="1128" height="705" rx="16"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1128" height="705" rx="16" fill="#111114"/>
+
+  <g clip-path="url(#win)">
+
+    <!-- ══ CHROME BAR ════════════════════════════════════════════════════════ -->
+    <rect x="0" y="0" width="1128" height="50" fill="#111114"/>
+    <line x1="0" y1="50" x2="1128" y2="50" stroke="#2C2C35" stroke-width="1"/>
+    <!-- Traffic lights -->
+    <circle cx="32" cy="25" r="7" fill="#FF5F57"/>
+    <circle cx="54" cy="25" r="7" fill="#FFBD2E"/>
+    <circle cx="76" cy="25" r="7" fill="#28C840"/>
+    <!-- URL bar -->
+    <rect x="414" y="13" width="300" height="24" rx="6" fill="#1A1A1F" stroke="#2C2C35" stroke-width="0.5"/>
+    <text x="564" y="29" font-family="ui-monospace,'Fira Code','Cascadia Code',monospace" font-size="12" fill="#8A8A99" text-anchor="middle">townhall.dev/explore</text>
+
+    <!-- ══ SIDEBAR ════════════════════════════════════════════════════════════ -->
+    <rect x="0" y="51" width="195" height="654" fill="#0E0E10"/>
+    <line x1="195" y1="51" x2="195" y2="705" stroke="#2C2C35" stroke-width="1"/>
+
+    <!-- Logo -->
+    <rect x="22" y="72" width="22" height="22" rx="4" fill="#E8FF47" fill-opacity="0.1"/>
+    <polygon points="27,78 27,88 34,83" fill="#E8FF47"/>
+    <text x="53" y="88" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="15" font-weight="700" fill="#F0F0F2">Townhall</text>
+
+    <!-- MY WORK -->
+    <text x="22" y="122" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#4A4A5A" letter-spacing="1.5">MY WORK</text>
+    <text x="22" y="148" font-family="ui-monospace,monospace" font-size="13" fill="#8A8A99">My Projects</text>
+    <text x="22" y="174" font-family="ui-monospace,monospace" font-size="13" fill="#8A8A99">My Missions</text>
+
+    <!-- COMMUNITY -->
+    <text x="22" y="214" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#4A4A5A" letter-spacing="1.5">COMMUNITY</text>
+    <!-- Active: Explore Projects (two lines, voltage) -->
+    <text x="22" y="241" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#E8FF47">Explore</text>
+    <text x="22" y="261" font-family="ui-monospace,monospace" font-size="13" font-weight="700" fill="#E8FF47">Projects</text>
+    <!-- Browse Missions -->
+    <text x="22" y="293" font-family="ui-monospace,monospace" font-size="13" fill="#8A8A99">Browse</text>
+    <text x="22" y="313" font-family="ui-monospace,monospace" font-size="13" fill="#8A8A99">Missions</text>
+
+    <!-- ══ MAIN CONTENT ══════════════════════════════════════════════════════ -->
+    <rect x="196" y="51" width="932" height="654" fill="#0D0D10"/>
+
+    <!-- Page heading + live count -->
+    <text x="224" y="100" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="26" font-weight="700" fill="#F0F0F2">Explore Projects</text>
+    <text x="1100" y="100" font-family="ui-monospace,monospace" font-size="13" fill="#8A8A99" text-anchor="end">23 live</text>
+
+    <!-- Filter tabs -->
+    <rect x="224" y="115" width="50" height="30" rx="15" fill="#E8FF47" fill-opacity="0.05" stroke="#E8FF47" stroke-width="1.5"/>
+    <text x="249" y="135" font-family="ui-monospace,monospace" font-size="12" fill="#E8FF47" text-anchor="middle">All</text>
+
+    <rect x="284" y="115" width="126" height="30" rx="15" fill="none" stroke="#2C2C35" stroke-width="1"/>
+    <text x="347" y="135" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="middle">Needs Testers</text>
+
+    <rect x="420" y="115" width="74" height="30" rx="15" fill="none" stroke="#2C2C35" stroke-width="1"/>
+    <text x="457" y="135" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="middle">Recent</text>
+
+    <!-- ══ CARD ROW 1 (y=162) ════════════════════════════════════════════════ -->
+
+    <!-- Card 1: Tessera — ACTIVE -->
+    <rect x="224" y="162" width="432" height="142" rx="10" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1"/>
+    <text x="242" y="194" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#F0F0F2">Tessera</text>
+    <!-- ACTIVE badge -->
+    <rect x="579" y="179" width="61" height="22" rx="5" fill="#3FFFA2" fill-opacity="0.12" stroke="#3FFFA2" stroke-opacity="0.4" stroke-width="1"/>
+    <text x="609" y="194" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#3FFFA2" text-anchor="middle">ACTIVE</text>
+    <text x="242" y="220" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">tessera.studio</text>
+    <text x="242" y="283" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">4 missions · 11 feedbacks</text>
+    <text x="640" y="283" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="end">Test It →</text>
+
+    <!-- Card 2: Pulse Monitor — NEEDS TESTERS -->
+    <rect x="672" y="162" width="432" height="142" rx="10" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1"/>
+    <text x="690" y="194" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#F0F0F2">Pulse Monitor</text>
+    <!-- NEEDS TESTERS badge -->
+    <rect x="982" y="179" width="106" height="22" rx="5" fill="#E8FF47" fill-opacity="0.1" stroke="#E8FF47" stroke-opacity="0.35" stroke-width="1"/>
+    <text x="1035" y="194" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#E8FF47" text-anchor="middle">NEEDS TESTERS</text>
+    <text x="690" y="220" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">pulse.cloud</text>
+    <text x="690" y="283" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">3 missions · 0 feedbacks</text>
+    <text x="1088" y="283" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="end">Test It →</text>
+
+    <!-- ══ CARD ROW 2 (y=320) ════════════════════════════════════════════════ -->
+
+    <!-- Card 3: Loom Threads — ACTIVE -->
+    <rect x="224" y="320" width="432" height="142" rx="10" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1"/>
+    <text x="242" y="352" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#F0F0F2">Loom Threads</text>
+    <!-- ACTIVE badge -->
+    <rect x="579" y="337" width="61" height="22" rx="5" fill="#3FFFA2" fill-opacity="0.12" stroke="#3FFFA2" stroke-opacity="0.4" stroke-width="1"/>
+    <text x="609" y="352" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#3FFFA2" text-anchor="middle">ACTIVE</text>
+    <text x="242" y="378" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">threads.loom.dev</text>
+    <text x="242" y="441" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">2 missions · 6 feedbacks</text>
+    <text x="640" y="441" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="end">Test It →</text>
+
+    <!-- Card 4: Cardinal — NEEDS TESTERS -->
+    <rect x="672" y="320" width="432" height="142" rx="10" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1"/>
+    <text x="690" y="352" font-family="system-ui,sans-serif" font-size="16" font-weight="700" fill="#F0F0F2">Cardinal</text>
+    <!-- NEEDS TESTERS badge -->
+    <rect x="982" y="337" width="106" height="22" rx="5" fill="#E8FF47" fill-opacity="0.1" stroke="#E8FF47" stroke-opacity="0.35" stroke-width="1"/>
+    <text x="1035" y="352" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#E8FF47" text-anchor="middle">NEEDS TESTERS</text>
+    <text x="690" y="378" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">cardinal.fm</text>
+    <text x="690" y="441" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">5 missions · 2 feedbacks</text>
+    <text x="1088" y="441" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99" text-anchor="end">Test It →</text>
+
+
+  </g>
+</svg>

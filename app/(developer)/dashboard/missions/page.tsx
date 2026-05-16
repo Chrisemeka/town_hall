@@ -51,12 +51,11 @@ export default async function MyMissionsPage() {
             All missions across your projects.
           </p>
         </div>
-        <Link
-          href="/dashboard"
-          className="shrink-0 h-10 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] transition-colors duration-150 flex items-center gap-2 mt-1"
-        >
-          + Add Mission
-        </Link>
+        <Button variant="ghost" asChild>
+          <Link href="/dashboard" className="shrink-0 mt-1">
+            + Add Mission
+          </Link>
+        </Button>
       </div>
 
       {missions.length === 0 ? (
@@ -66,7 +65,7 @@ export default async function MyMissionsPage() {
           <p className="font-mono text-[14px] text-ash mb-6 max-w-[340px]">
             Add a mission to tell testers what to focus on.
           </p>
-          <Button variant="primary" asChild>
+          <Button variant="ghost" asChild>
             <Link href="/dashboard">Go to My Projects</Link>
           </Button>
         </div>

@@ -115,8 +115,10 @@ export default async function MyProjectsPage() {
           <p className="font-mono text-[14px] text-ash mb-6 text-center max-w-xs">
             Submit your first project and let the community test it.
           </p>
-          <Button variant="primary" asChild>
-            <Link href="/dashboard/new">New Project</Link>
+          <Button variant="ghost" asChild>
+            <Link href="/dashboard/new" className="flex items-center gap-2">
+              <span>+</span> New Project
+            </Link>
           </Button>
         </div>
       )}

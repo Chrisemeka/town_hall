@@ -39,14 +39,9 @@ function NavItem({
       href={href}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 h-10 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
-        isActive ? "text-chalk" : "text-ash hover:text-chalk",
+        "flex items-center gap-3 h-10 px-3 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
+        isActive ? "text-voltage bg-[rgba(232,255,71,0.06)]" : "text-ash hover:text-chalk",
       )}
-      style={
-        isActive
-          ? { background: "rgba(232,255,71,0.06)", borderLeft: "2px solid #E8FF47", paddingLeft: 10, paddingRight: 12 }
-          : { paddingLeft: 12, paddingRight: 12, background: "transparent" }
-      }
     >
       <Icon className="w-4 h-4 shrink-0" />
       {name}

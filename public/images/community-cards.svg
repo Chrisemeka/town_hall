@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1104" height="226" viewBox="0 0 1104 226">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="125%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- ══ CARD 1: DevSync CLI ═══════════════════════════════════════════════ -->
+  <rect x="12" y="8" width="344" height="210" rx="12" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1" filter="url(#shadow)"/>
+  <!-- Name -->
+  <text x="36" y="58" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#F0F0F2">DevSync CLI</text>
+  <!-- NEEDS TESTERS badge -->
+  <rect x="222" y="34" width="110" height="22" rx="4" fill="rgba(232,255,71,0.12)" stroke="#E8FF47" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="277" y="49" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="#E8FF47" text-anchor="middle" letter-spacing="0.5">NEEDS TESTERS</text>
+  <!-- Description -->
+  <text x="36" y="84" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">Fast CLI tool for keeping local dev</text>
+  <text x="36" y="104" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">environments in perfect sync with...</text>
+  <!-- URL -->
+  <text x="36" y="134" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">devsync.cli.dev</text>
+  <!-- Divider -->
+  <line x1="36" y1="166" x2="332" y2="166" stroke="#2C2C35" stroke-width="1"/>
+  <!-- Meta -->
+  <text x="36" y="189" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">2 Missions · 0 Feedbacks</text>
+  <!-- Test It button -->
+  <rect x="248" y="169" width="84" height="26" rx="6" fill="none" stroke="#E8FF47" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="290" y="187" font-family="ui-monospace,monospace" font-size="13" font-weight="600" fill="#E8FF47" text-anchor="middle">Test It →</text>
+
+  <!-- ══ CARD 2: Palette Flow ════════════════════════════════════════════════ -->
+  <rect x="380" y="8" width="344" height="210" rx="12" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1" filter="url(#shadow)"/>
+  <!-- Name -->
+  <text x="404" y="58" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#F0F0F2">Palette Flow</text>
+  <!-- ACTIVE badge -->
+  <rect x="634" y="34" width="62" height="22" rx="4" fill="rgba(63,255,162,0.12)" stroke="#3FFFA2" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="665" y="49" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="#3FFFA2" text-anchor="middle" letter-spacing="0.5">ACTIVE</text>
+  <!-- Description -->
+  <text x="404" y="84" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">Generative AI color palettes for</text>
+  <text x="404" y="104" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">modern web applications based on...</text>
+  <!-- URL -->
+  <text x="404" y="134" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">paletteflow.app</text>
+  <!-- Divider -->
+  <line x1="404" y1="166" x2="700" y2="166" stroke="#2C2C35" stroke-width="1"/>
+  <!-- Meta -->
+  <text x="404" y="189" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">4 Missions · 12 Feedbacks</text>
+  <!-- Test It button -->
+  <rect x="616" y="169" width="84" height="26" rx="6" fill="none" stroke="#E8FF47" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="658" y="187" font-family="ui-monospace,monospace" font-size="13" font-weight="600" fill="#E8FF47" text-anchor="middle">Test It →</text>
+
+  <!-- ══ CARD 3: QueryMaster ════════════════════════════════════════════════ -->
+  <rect x="748" y="8" width="344" height="210" rx="12" fill="#1A1A1F" stroke="#2C2C35" stroke-width="1" filter="url(#shadow)"/>
+  <!-- Name -->
+  <text x="772" y="58" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="20" font-weight="700" fill="#F0F0F2">QueryMaster</text>
+  <!-- NEEDS TESTERS badge -->
+  <rect x="958" y="34" width="110" height="22" rx="4" fill="rgba(232,255,71,0.12)" stroke="#E8FF47" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1013" y="49" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="#E8FF47" text-anchor="middle" letter-spacing="0.5">NEEDS TESTERS</text>
+  <!-- Description -->
+  <text x="772" y="84" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">Visual SQL builder that connects</text>
+  <text x="772" y="104" font-family="ui-monospace,monospace" font-size="14" fill="#8A8A99">directly to your Postgres database...</text>
+  <!-- URL -->
+  <text x="772" y="134" font-family="ui-monospace,monospace" font-size="13" fill="#47B8FF">querymaster.io</text>
+  <!-- Divider -->
+  <line x1="772" y1="166" x2="1068" y2="166" stroke="#2C2C35" stroke-width="1"/>
+  <!-- Meta -->
+  <text x="772" y="189" font-family="ui-monospace,monospace" font-size="12" fill="#8A8A99">1 Missions · 1 Feedbacks</text>
+  <!-- Test It button -->
+  <rect x="984" y="169" width="84" height="26" rx="6" fill="none" stroke="#E8FF47" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1026" y="187" font-family="ui-monospace,monospace" font-size="13" font-weight="600" fill="#E8FF47" text-anchor="middle">Test It →</text>
+
+</svg>
