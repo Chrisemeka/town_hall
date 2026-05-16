@@ -34,3 +34,16 @@ export async function signOutAction() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export async function deleteAccountAction() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/");
+
+  const { error } = await supabase.rpc("delete_user");
+  if (error) throw new Error(error.message);
+
+  await supabase.auth.signOut();
+  redirect("/");
+}

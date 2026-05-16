@@ -83,7 +83,7 @@ export default function LandingPage() {
                 </motion.h1>
                 <motion.p
                   variants={fadeUp}
-                  className="font-mono text-[16px] leading-6 lg:text-[18px] lg:leading-7 text-midnight/70 mb-8 max-w-xl"
+                  className="font-mono text-[16px] leading-6 lg:text-[14px] lg:leading-7 text-midnight/70 mb-8 max-w-xl"
                 >
                   Submit your project, define what to test, and get real feedback from developers — in return for testing theirs.
                 </motion.p>
@@ -136,7 +136,7 @@ export default function LandingPage() {
               viewport={{ once: true, margin: "-80px" }}
               variants={stagger}
             >
-              <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-3">
+              <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-forest uppercase tracking-[1px] mb-3">
                 The Loop
               </motion.p>
               <motion.h2 variants={fadeUp} className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-midnight mb-16">
@@ -368,13 +368,15 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col gap-3">
             <h6 className="font-mono font-medium text-[14px] text-chalk mb-1">Community</h6>
-            <Link href="#" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Guidelines</Link>
-            <Link href="#" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Twitter</Link>
+            <Link href="/guidelines" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Guidelines</Link>
+            <Link href="#" className="text-ash hover:text-chalk transition-colors duration-150" aria-label="X (Twitter)">
+              <NextImage src="/images/logo-white.png" alt="X" width={16} height={16} className="opacity-60 hover:opacity-100 transition-opacity duration-150" unoptimized />
+            </Link>
           </div>
           <div className="flex flex-col gap-3">
             <h6 className="font-mono font-medium text-[14px] text-chalk mb-1">Legal</h6>
-            <Link href="#" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
-            <Link href="#" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Terms of Service</Link>
+            <Link href="/privacy" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
+            <Link href="/terms" className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150">Terms of Service</Link>
           </div>
         </div>
         <div className="max-w-[1128px] mx-auto px-6 mt-12 pt-8 border-t border-iron">

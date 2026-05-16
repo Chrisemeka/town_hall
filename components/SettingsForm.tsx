@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
+import { deleteAccountAction } from "@/actions/auth"
 
 function SectionDivider() {
   return <div style={{ height: 1, background: "#2C2C35", margin: "32px 0" }} />
@@ -69,7 +70,8 @@ export function SettingsForm({
   const [notifFeedback, setNotifFeedback] = useState(true)
   const [notifMission,  setNotifMission]  = useState(false)
 
-  const [deleting, setDeleting] = useState(false)
+  const [deleteStep, setDeleteStep]   = useState<"idle" | "confirm">("idle")
+  const [deleting,   setDeleting]     = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   async function handleSaveProfile() {
@@ -91,10 +93,15 @@ export function SettingsForm({
   }
 
   async function handleDeleteAccount() {
-    if (!confirm("Are you sure? This cannot be undone.")) return
     setDeleting(true)
-    setDeleteError("Account deletion requires contacting support. Email us at support@townhall.dev")
-    setDeleting(false)
+    setDeleteError(null)
+    try {
+      await deleteAccountAction()
+    } catch (err: any) {
+      setDeleteError(err.message)
+      setDeleting(false)
+      setDeleteStep("idle")
+    }
   }
 
   return (
@@ -201,33 +208,53 @@ export function SettingsForm({
         </p>
 
         <div
-          className="rounded-[12px] p-5 flex items-center justify-between gap-4"
+          className="rounded-[12px] p-5 flex flex-col gap-4"
           style={{ background: "rgba(255,79,79,0.05)", border: "1px solid rgba(255,79,79,0.2)" }}
         >
-          <div>
-            <p className="font-mono text-[14px] text-chalk">Delete Account</p>
-            <p className="font-mono text-[13px] text-ash mt-0.5">
-              Permanently remove your account and all associated data.
-            </p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="font-mono text-[14px] text-chalk">Delete Account</p>
+              <p className="font-mono text-[13px] text-ash mt-0.5">
+                Permanently removes your account, projects, missions, and all feedback.
+              </p>
+            </div>
+            {deleteStep === "idle" && (
+              <button
+                onClick={() => setDeleteStep("confirm")}
+                className="shrink-0 h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium border transition-colors duration-150"
+                style={{ borderColor: "rgba(255,79,79,0.5)", color: "#FF4F4F", background: "transparent" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,79,79,0.1)" }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+              >
+                Delete Account
+              </button>
+            )}
           </div>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleting}
-            className="shrink-0 h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-            style={{
-              border: "1px solid rgba(255,79,79,0.5)",
-              color: "#FF4F4F",
-              background: "transparent",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,79,79,0.1)"
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "transparent"
-            }}
-          >
-            {deleting ? "Processing…" : "Delete Account"}
-          </button>
+
+          {deleteStep === "confirm" && (
+            <div className="border-t pt-4" style={{ borderColor: "rgba(255,79,79,0.2)" }}>
+              <p className="font-mono text-[13px] text-chalk mb-4">
+                This cannot be undone. All your data will be permanently deleted. Are you sure?
+              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+                  style={{ background: "#FF4F4F", color: "#0E0E10", border: "none" }}
+                >
+                  {deleting ? "Deleting…" : "Yes, delete my account"}
+                </button>
+                <button
+                  onClick={() => { setDeleteStep("idle"); setDeleteError(null) }}
+                  disabled={deleting}
+                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {deleteError && (
