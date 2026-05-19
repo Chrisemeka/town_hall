@@ -11,6 +11,7 @@ export default async function ExploreProjectsPage() {
       id, name, description, app_url, created_at,
       missions (id, is_active)
     `)
+    .is("flagged_at", null)
     .order("created_at", { ascending: false });
 
   /* Collect all active mission IDs across every project */
@@ -20,16 +21,16 @@ export default async function ExploreProjectsPage() {
       .map((m: any) => m.id),
   );
 
-  /* Flat query for test_results — avoids unreliable 3-level nested selects */
+  /* Counts come from the public view so tester comments stay private */
   const feedbacksByMission: Record<string, number> = {};
   if (allActiveMissionIds.length > 0) {
-    const { data: feedbacks } = await supabase
-      .from("test_results")
-      .select("mission_id")
+    const { data: counts } = await supabase
+      .from("mission_feedback_counts")
+      .select("mission_id, count")
       .in("mission_id", allActiveMissionIds);
 
-    for (const f of feedbacks ?? []) {
-      feedbacksByMission[f.mission_id] = (feedbacksByMission[f.mission_id] ?? 0) + 1;
+    for (const c of counts ?? []) {
+      feedbacksByMission[c.mission_id] = c.count;
     }
   }
 
