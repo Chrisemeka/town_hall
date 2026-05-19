@@ -25,6 +25,7 @@ export default async function MissionDetailPage({
 
   const projectData = mission.projects as any;
   const project = Array.isArray(projectData) ? projectData[0] : projectData;
+  if (project?.flagged_at) return notFound();
   const isOwner = user?.id === getOwnerId(mission.projects);
 
   return (

@@ -14,17 +14,30 @@ export default async function ProjectMissionsPage({
   const { data: project } = await supabase
     .from("projects")
     .select(`
-      id, name, description, app_url,
-      missions (id, title, is_active, created_at, test_results (count))
+      id, name, description, app_url, flagged_at,
+      missions (id, title, is_active, created_at)
     `)
     .eq("id", projectId)
     .single()
 
-  if (!project) notFound()
+  if (!project || (project as any).flagged_at) notFound()
 
   const missions = ((project as any).missions ?? []).filter(
     (m: any) => m.is_active !== false,
   )
+
+  const missionIds = missions.map((m: any) => m.id)
+  const countByMission: Record<string, number> = {}
+  if (missionIds.length > 0) {
+    const { data: counts } = await supabase
+      .from("mission_feedback_counts")
+      .select("mission_id, count")
+      .in("mission_id", missionIds)
+
+    for (const c of counts ?? []) {
+      countByMission[c.mission_id] = c.count
+    }
+  }
 
   return (
     <div className="max-w-[800px] mx-auto px-6 md:px-8 py-10">
@@ -75,7 +88,7 @@ export default async function ProjectMissionsPage({
       <div className="flex flex-col gap-4">
         {missions.map((mission: any, i: number) => {
           const num = (i + 1).toString().padStart(2, "0")
-          const feedbackCount = mission.test_results?.[0]?.count ?? 0
+          const feedbackCount = countByMission[mission.id] ?? 0
           return (
             <div
               key={mission.id}

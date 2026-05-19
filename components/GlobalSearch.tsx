@@ -37,12 +37,14 @@ export function GlobalSearch() {
       supabase
         .from("projects")
         .select("id, name, description")
+        .is("flagged_at", null)
         .ilike("name", pattern)
         .limit(5),
       supabase
         .from("missions")
-        .select("id, title, project_id, projects(name)")
+        .select("id, title, project_id, projects!inner(name, flagged_at)")
         .eq("is_active", true)
+        .is("projects.flagged_at", null)
         .ilike("title", pattern)
         .limit(5),
     ])

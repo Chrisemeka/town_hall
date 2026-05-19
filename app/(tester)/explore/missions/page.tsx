@@ -20,11 +20,24 @@ export default async function BrowseMissionsPage() {
     .from("missions")
     .select(`
       id, title, created_at,
-      projects (id, name, app_url),
-      test_results (count)
+      projects!inner (id, name, app_url, flagged_at)
     `)
     .eq("is_active", true)
+    .is("projects.flagged_at", null)
     .order("created_at", { ascending: false });
+
+  const missionIds = (raw ?? []).map((m: any) => m.id);
+  const countByMission: Record<string, number> = {};
+  if (missionIds.length > 0) {
+    const { data: counts } = await supabase
+      .from("mission_feedback_counts")
+      .select("mission_id, count")
+      .in("mission_id", missionIds);
+
+    for (const c of counts ?? []) {
+      countByMission[c.mission_id] = c.count;
+    }
+  }
 
   const missions: BrowseMission[] = (raw ?? []).map((m: any) => {
     const project = Array.isArray(m.projects) ? m.projects[0] : m.projects;
@@ -35,7 +48,7 @@ export default async function BrowseMissionsPage() {
       projectId:      project?.id ?? "",
       projectName:    project?.name ?? "Unknown",
       projectHandle:  handleFromUrl(project?.app_url ?? null, project?.name ?? ""),
-      feedbackCount:  m.test_results?.[0]?.count ?? 0,
+      feedbackCount:  countByMission[m.id] ?? 0,
     } satisfies BrowseMission;
   });
 
