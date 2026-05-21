@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Community Guidelines — Townhall" }
 
 export default function GuidelinesPage() {
   return (
-    <div className="theme-light min-h-screen bg-obsidian text-chalk">
+    <div className="min-h-screen bg-obsidian text-chalk">
 
       {/* Nav */}
       <header className="border-b border-iron">

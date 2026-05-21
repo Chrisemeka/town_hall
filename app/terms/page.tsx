@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Terms of Service — Townhall" };
 
 export default function TermsPage() {
   return (
-    <div className="theme-light min-h-screen bg-obsidian text-chalk">
+    <div className="min-h-screen bg-obsidian text-chalk">
 
       {/* Nav */}
       <header className="border-b border-iron">

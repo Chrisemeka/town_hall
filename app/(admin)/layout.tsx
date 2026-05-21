@@ -23,7 +23,7 @@ export default async function AdminLayout({
   if (profile?.role !== "admin") redirect("/explore")
 
   return (
-    <div className="theme-light min-h-screen bg-obsidian text-chalk">
+    <div className="min-h-screen bg-obsidian text-chalk">
       <AdminTopNav />
       <main className="pt-[56px] min-h-screen">{children}</main>
     </div>
