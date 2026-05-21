@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(mkdir -p \"c:\\\\Users\\\\USER\\\\Desktop\\\\townhall\\\\app\\\\\\(developer\\)\\\\dashboard\\\\[projectId]\\\\edit\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npx next *)",
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" status --short)",
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" diff --stat HEAD -- app/globals.css app/'\\(admin\\)'/layout.tsx app/privacy/page.tsx app/terms/page.tsx app/guidelines/page.tsx components/layout/AppShell.tsx)",
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" diff HEAD -- app/'\\(admin\\)'/layout.tsx app/privacy/page.tsx app/terms/page.tsx app/guidelines/page.tsx components/layout/AppShell.tsx)",
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" log --oneline -5)",
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" show --stat HEAD)"
     ],
     "additionalDirectories": [
       "c:\\Users\\USER\\Desktop\\townhall\\app\\(developer)\\dashboard\\[projectId]"
