@@ -87,6 +87,3 @@ townhall/
 ├── public/              # Static assets
 └── middleware.ts        # Next.js middleware
 ```
-
-
-
