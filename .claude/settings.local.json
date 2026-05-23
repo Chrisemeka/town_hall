@@ -9,7 +9,14 @@
       "Bash(git -C \"c:/Users/USER/Desktop/townhall\" diff --stat HEAD -- app/globals.css app/'\\(admin\\)'/layout.tsx app/privacy/page.tsx app/terms/page.tsx app/guidelines/page.tsx components/layout/AppShell.tsx)",
       "Bash(git -C \"c:/Users/USER/Desktop/townhall\" diff HEAD -- app/'\\(admin\\)'/layout.tsx app/privacy/page.tsx app/terms/page.tsx app/guidelines/page.tsx components/layout/AppShell.tsx)",
       "Bash(git -C \"c:/Users/USER/Desktop/townhall\" log --oneline -5)",
-      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" show --stat HEAD)"
+      "Bash(git -C \"c:/Users/USER/Desktop/townhall\" show --stat HEAD)",
+      "Bash(npm install *)",
+      "Bash(npx eslint *)",
+      "Bash(where ngrok *)",
+      "Bash(ngrok version *)",
+      "PowerShell($pm = @\\(\\); foreach \\($n in 'winget','choco','scoop'\\) { if \\(Get-Command $n -ErrorAction SilentlyContinue\\) { $pm += $n } } ; if \\($pm.Count -eq 0\\) { \"none\" } else { $pm -join ',' })",
+      "Bash(npm run *)",
+      "PowerShell(Stop-Process -Id 25240 -Force; Start-Sleep -Seconds 1; $remaining = Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'ngrok' }; if \\($remaining\\) { \"STILL_RUNNING\"; $remaining | Select-Object ProcessId, CommandLine | Format-List } else { \"CLEAN\" })"
     ],
     "additionalDirectories": [
       "c:\\Users\\USER\\Desktop\\townhall\\app\\(developer)\\dashboard\\[projectId]"
