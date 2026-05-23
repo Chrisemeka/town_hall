@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# md files
+townhall_email_notifications.md 
+Townhall_v2.pdf
