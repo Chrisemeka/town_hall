@@ -46,15 +46,15 @@ export default async function ProjectDetailPage({
   const status        = getStatus(missionCount, feedbackCount);
 
   return (
-    <div className="max-w-[1128px] mx-auto px-8 py-10">
+    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8">
-        <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8 min-w-0">
+        <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150 shrink-0">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron" />
-        <span className="text-chalk truncate max-w-[240px]">{project.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
+        <span className="text-chalk truncate max-w-[160px] sm:max-w-[240px]">{project.name}</span>
       </div>
 
       {/* Flag warning banner (shown to owner when an admin has flagged this project) */}
@@ -95,8 +95,8 @@ export default async function ProjectDetailPage({
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10">
         <div className="flex flex-col gap-3 min-w-0">
           {/* Name + badge */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <h1 className="font-syne font-bold text-[48px] leading-[52px] tracking-[-0.5px] text-chalk">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+            <h1 className="font-syne font-bold text-[32px] leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[48px] md:leading-[52px] tracking-[-0.5px] text-chalk break-words min-w-0">
               {project.name}
             </h1>
             <Badge variant={status} />

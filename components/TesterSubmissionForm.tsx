@@ -1,11 +1,16 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { submitTestResult } from "@/actions/submissions"
+import { submitTestResult, type SubmissionFieldErrors } from "@/actions/submissions"
 import { Upload, ExternalLink, CheckCircle } from "lucide-react"
-
-const ALLOWED = ["image/png", "image/jpeg", "image/webp"]
-const MAX_BYTES = 5 * 1024 * 1024
+import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import {
+  ALLOWED_SCREENSHOT_TYPES,
+  MAX_SCREENSHOT_BYTES,
+  COMMENT_MIN,
+  screenshotSchema,
+  submissionSchema,
+} from "@/lib/validation/schemas"
 
 export default function TesterSubmissionForm({
   missionId,
@@ -19,6 +24,7 @@ export default function TesterSubmissionForm({
   const [file,        setFile]        = useState<File | null>(null)
   const [preview,     setPreview]     = useState<string | null>(null)
   const [fileError,   setFileError]   = useState<string | null>(null)
+  const [commentError, setCommentError] = useState<string | null>(null)
   const [isDragOver,  setIsDragOver]  = useState(false)
   const [isHovered,   setIsHovered]   = useState(false)
   const [isSubmitting,setIsSubmitting]= useState(false)
@@ -26,9 +32,15 @@ export default function TesterSubmissionForm({
   const [isSuccess,   setIsSuccess]   = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // Prompt on reload while the tester has work in progress that hasn't been sent.
+  useUnsavedChangesWarning(
+    !isSuccess && (feedback.length > 0 || file !== null),
+  )
+
   function validateAndSet(f: File) {
-    if (!ALLOWED.includes(f.type) || f.size > MAX_BYTES) {
-      setFileError("File must be PNG, JPG, or WEBP under 5MB.")
+    const parsed = screenshotSchema.safeParse(f)
+    if (!parsed.success) {
+      setFileError(parsed.error.issues[0]?.message ?? "Invalid file.")
       return
     }
     setFileError(null)
@@ -45,23 +57,45 @@ export default function TesterSubmissionForm({
     if (fileRef.current) fileRef.current.value = ""
   }
 
+  function applyServerErrors(errors: SubmissionFieldErrors) {
+    setCommentError(errors.comment?.[0] ?? null)
+    setFileError(errors.screenshot?.[0] ?? null)
+  }
+
   async function handleSubmit() {
-    if (!file || feedback.length < 100 || isSubmitting) return
+    if (isSubmitting) return
+
+    // Client-side validate first so the user gets immediate feedback.
+    const localCheck = submissionSchema.safeParse({ missionId, comment: feedback })
+    const localFile = screenshotSchema.safeParse(file)
+    if (!localCheck.success || !localFile.success) {
+      setCommentError(
+        localCheck.success
+          ? null
+          : localCheck.error.issues.find((i) => i.path[0] === "comment")?.message ?? null,
+      )
+      setFileError(localFile.success ? null : localFile.error.issues[0]?.message ?? null)
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitError(null)
+    setCommentError(null)
+    setFileError(null)
     try {
       const fd = new FormData()
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
-      fd.append("screenshot", file)
+      fd.append("screenshot", file as File)
       const result = await submitTestResult(fd)
-      if (result?.success) {
+      if (result.success) {
         setIsSuccess(true)
-      } else if ((result as any)?.error) {
-        setSubmitError((result as any).error)
+      } else {
+        if (result.fieldErrors) applyServerErrors(result.fieldErrors)
+        setSubmitError(result.error)
       }
-    } catch (err: any) {
-      setSubmitError(err.message)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Unexpected error.")
     } finally {
       setIsSubmitting(false)
     }
@@ -87,7 +121,7 @@ export default function TesterSubmissionForm({
     )
   }
 
-  const canSubmit = feedback.length >= 100 && file !== null && !isSubmitting
+  const canSubmit = feedback.length >= COMMENT_MIN && file !== null && !isSubmitting
 
   const zoneBorder = fileError
     ? "#FF4F4F"
@@ -102,6 +136,9 @@ export default function TesterSubmissionForm({
     : isHovered
     ? "rgba(232,255,71,0.03)"
     : "#1A1A1F"
+
+  const acceptAttr = ALLOWED_SCREENSHOT_TYPES.join(",")
+  const maxMb = Math.round(MAX_SCREENSHOT_BYTES / (1024 * 1024))
 
   return (
     <div>
@@ -148,21 +185,31 @@ export default function TesterSubmissionForm({
 
         <textarea
           value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
+          onChange={(e) => {
+            setFeedback(e.target.value)
+            if (commentError) setCommentError(null)
+          }}
           placeholder="Share what you found — be specific and constructive."
-          className="w-full bg-obsidian border border-iron rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none"
+          className={[
+            "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
+            commentError ? "border-ember" : "border-iron focus:border-voltage",
+          ].join(" ")}
           style={{ minHeight: 160 }}
         />
-        <div className="flex items-center justify-between mt-2 mb-8">
-          <p
-            className={`font-mono text-[12px] ${
-              feedback.length > 0 && feedback.length < 100 ? "text-voltage" : "text-ash"
-            }`}
-          >
-            {feedback.length > 0 && feedback.length < 100
-              ? "Great feedback is at least 100 characters."
-              : "Be specific and constructive."}
-          </p>
+        <div className="flex items-center justify-between mt-2 mb-8 gap-3">
+          {commentError ? (
+            <p className="font-mono text-[12px] text-ember">{commentError}</p>
+          ) : (
+            <p
+              className={`font-mono text-[12px] ${
+                feedback.length > 0 && feedback.length < COMMENT_MIN ? "text-voltage" : "text-ash"
+              }`}
+            >
+              {feedback.length > 0 && feedback.length < COMMENT_MIN
+                ? `Great feedback is at least ${COMMENT_MIN} characters.`
+                : "Be specific and constructive."}
+            </p>
+          )}
           <span className="font-mono text-[12px] text-ash shrink-0">{feedback.length} chars</span>
         </div>
 
@@ -174,12 +221,13 @@ export default function TesterSubmissionForm({
           Proof of Visit
         </p>
         <p className="font-mono text-[13px] text-ash mb-4 leading-5">
-          Upload a screenshot from the project — this confirms you visited and provides visual context
-          for your feedback.
+          Upload a screenshot from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB. This
+          confirms you visited and provides visual context for your feedback.
         </p>
 
         {preview ? (
           <div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview}
               alt="screenshot preview"
@@ -225,7 +273,7 @@ export default function TesterSubmissionForm({
               <input
                 ref={fileRef}
                 type="file"
-                accept=".png,.jpg,.jpeg,.webp"
+                accept={acceptAttr}
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0]

@@ -16,10 +16,15 @@ export default function DeleteMissionButton({ missionId, projectId }: DeleteMiss
     if (!confirm("Delete this draft? This action cannot be undone.")) return
     setIsPending(true)
     try {
+      // Server action redirects to the project page on success.
       await deleteMission(missionId, projectId)
-      // Hard navigation bypasses Next.js router cache, guaranteeing fresh data
-      window.location.href = `/dashboard/${projectId}`
-    } catch {
+    } catch (err) {
+      // Re-throw Next.js redirect signals so navigation still happens.
+      if (err && typeof err === "object" && "digest" in err &&
+          typeof (err as { digest?: unknown }).digest === "string" &&
+          (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")) {
+        throw err
+      }
       setIsPending(false)
     }
   }

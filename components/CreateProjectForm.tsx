@@ -5,23 +5,20 @@ import { useFormStatus } from "react-dom"
 import { createProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
-
-const MAX_SUMMARY = 300
+import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { PROJECT_SUMMARY_MAX, PROJECT_NAME_MAX } from "@/lib/validation/schemas"
 
 export default function CreateProjectForm() {
   const [state, formAction] = useActionState(createProject, null)
   const [summary, setSummary]   = useState("")
-  const [urlError, setUrlError] = useState("")
+  const [name, setName]         = useState("")
+  const [appUrl, setAppUrl]     = useState("")
 
-  const validateUrl = (value: string) => {
-    if (!value) { setUrlError(""); return }
-    try {
-      new URL(value)
-      setUrlError("")
-    } catch {
-      setUrlError("Enter a valid URL — e.g. https://yourapp.com")
-    }
-  }
+  useUnsavedChangesWarning(
+    name.length > 0 || appUrl.length > 0 || summary.length > 0,
+  )
+
+  const fieldErrors = state?.fieldErrors ?? {}
 
   return (
     <div className="bg-graphite border border-iron rounded-[16px] p-10">
@@ -31,7 +28,7 @@ export default function CreateProjectForm() {
         Submit a Project
       </h2>
       <p className="font-mono text-[16px] leading-6 text-ash mb-8">
-        Tell the community what you've built.
+        Tell the community what you&apos;ve built.
       </p>
 
       {/* Server error */}
@@ -41,7 +38,7 @@ export default function CreateProjectForm() {
         </div>
       )}
 
-      <form action={formAction} className="flex flex-col gap-6">
+      <form action={formAction} className="flex flex-col gap-6" noValidate>
 
         {/* Project Name */}
         <div className="flex flex-col gap-2">
@@ -52,11 +49,16 @@ export default function CreateProjectForm() {
             id="name"
             name="name"
             type="text"
-            required
-            maxLength={80}
+            maxLength={PROJECT_NAME_MAX}
             placeholder="e.g. DevSync CLI"
-            className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={[
+              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+              fieldErrors.name?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
+          <FieldError errors={fieldErrors.name} />
         </div>
 
         {/* Project URL */}
@@ -68,18 +70,15 @@ export default function CreateProjectForm() {
             id="app_url"
             name="app_url"
             type="url"
-            required
             placeholder="https://yourapp.com"
-            onBlur={(e) => validateUrl(e.target.value)}
-            onChange={() => urlError && setUrlError("")}
+            value={appUrl}
+            onChange={(e) => setAppUrl(e.target.value)}
             className={[
               "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-              urlError ? "border-ember" : "border-iron focus:border-voltage",
+              fieldErrors.app_url?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
-          {urlError && (
-            <p className="font-mono text-[12px] text-ember">{urlError}</p>
-          )}
+          <FieldError errors={fieldErrors.app_url} />
         </div>
 
         {/* Brief Summary */}
@@ -90,17 +89,20 @@ export default function CreateProjectForm() {
           <textarea
             id="description"
             name="description"
-            required
-            maxLength={MAX_SUMMARY}
+            maxLength={PROJECT_SUMMARY_MAX}
             rows={5}
             placeholder="Describe what your project does and who it's for..."
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
-            className="w-full bg-obsidian border border-iron rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none"
+            className={[
+              "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
+              fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
-          <div className="flex justify-end">
-            <span className={`font-mono text-[12px] ${summary.length >= MAX_SUMMARY ? "text-ember" : "text-ash"}`}>
-              {summary.length} / {MAX_SUMMARY}
+          <div className="flex items-center justify-between gap-3">
+            <FieldError errors={fieldErrors.description} />
+            <span className={`font-mono text-[12px] ml-auto ${summary.length >= PROJECT_SUMMARY_MAX ? "text-ember" : "text-ash"}`}>
+              {summary.length} / {PROJECT_SUMMARY_MAX}
             </span>
           </div>
         </div>
@@ -137,6 +139,11 @@ export default function CreateProjectForm() {
       </form>
     </div>
   )
+}
+
+function FieldError({ errors }: { errors?: string[] }) {
+  if (!errors || errors.length === 0) return null
+  return <p className="font-mono text-[12px] text-ember mt-1">{errors[0]}</p>
 }
 
 function SubmitButton() {

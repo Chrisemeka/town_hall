@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
 import { broadcastAdminEmail } from "@/actions/admin/broadcast"
+import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 
 type TargetType = "all" | "single"
 type FieldErrors = Partial<Record<
@@ -30,6 +31,15 @@ export function BroadcastForm({ totalUsers }: BroadcastFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState<{ count: number } | null>(null)
   const [pending, startTransition] = useTransition()
+
+  useUnsavedChangesWarning(
+    !pending &&
+      (subject.length > 0 ||
+        messageBody.length > 0 ||
+        ctaLabel.length > 0 ||
+        ctaUrl.length > 0 ||
+        targetEmail.length > 0),
+  )
 
   function reset() {
     setSubject("")

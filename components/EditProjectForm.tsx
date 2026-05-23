@@ -5,6 +5,8 @@ import { useFormStatus } from "react-dom"
 import { updateProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
+import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { PROJECT_NAME_MAX, PROJECT_SUMMARY_MAX } from "@/lib/validation/schemas"
 
 export default function EditProjectForm({
   projectId,
@@ -22,6 +24,14 @@ export default function EditProjectForm({
   const [url, setUrl] = useState(initialUrl)
   const [description, setDescription] = useState(initialDescription)
 
+  useUnsavedChangesWarning(
+    name !== initialName ||
+      url !== initialUrl ||
+      description !== initialDescription,
+  )
+
+  const fieldErrors = state?.fieldErrors ?? {}
+
   return (
     <div className="bg-graphite border border-iron rounded-[16px] p-10">
       <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-8">
@@ -34,7 +44,7 @@ export default function EditProjectForm({
         </div>
       )}
 
-      <form action={formAction} className="flex flex-col gap-6">
+      <form action={formAction} className="flex flex-col gap-6" noValidate>
         <div className="flex flex-col gap-2">
           <label htmlFor="name" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
             Project Name
@@ -43,11 +53,15 @@ export default function EditProjectForm({
             id="name"
             name="name"
             type="text"
-            required
+            maxLength={PROJECT_NAME_MAX}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+            className={[
+              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+              fieldErrors.name?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
+          <FieldError errors={fieldErrors.name} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -61,8 +75,12 @@ export default function EditProjectForm({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://yourapp.com"
-            className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+            className={[
+              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+              fieldErrors.app_url?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
+          <FieldError errors={fieldErrors.app_url} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -73,10 +91,15 @@ export default function EditProjectForm({
             id="description"
             name="description"
             rows={5}
+            maxLength={PROJECT_SUMMARY_MAX}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full bg-obsidian border border-iron rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none"
+            className={[
+              "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
+              fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
           />
+          <FieldError errors={fieldErrors.description} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -88,6 +111,11 @@ export default function EditProjectForm({
       </form>
     </div>
   )
+}
+
+function FieldError({ errors }: { errors?: string[] }) {
+  if (!errors || errors.length === 0) return null
+  return <p className="font-mono text-[12px] text-ember mt-1">{errors[0]}</p>
 }
 
 function SaveButton() {

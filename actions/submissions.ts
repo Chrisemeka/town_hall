@@ -4,18 +4,54 @@ import { createClient, uploadToStorage, getPublicUrl } from "@/lib/supabase/serv
 import { generateAnalysis, parseSentiment } from "@/lib/ai"
 import { revalidatePath } from "next/cache"
 import { getOwnerId } from "@/lib/utils/project";
+import {
+  submissionSchema,
+  screenshotSchema,
+  toFieldErrors,
+  type SubmissionInput,
+  type FieldErrors,
+} from "@/lib/validation/schemas"
 
+export type SubmissionFieldErrors = FieldErrors<
+  SubmissionInput & { screenshot: File }
+>
 
-export async function submitTestResult(formData: FormData) {
+export type SubmissionResult =
+  | { success: true }
+  | { success: false; error: string; fieldErrors?: SubmissionFieldErrors }
+
+export async function submitTestResult(formData: FormData): Promise<SubmissionResult> {
   try {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: "You must be logged in to submit feedback." }
 
-    const missionId = formData.get("missionId") as string
-    const comment = formData.get("comment") as string
-    const file = formData.get("screenshot") as File
+    const parsed = submissionSchema.safeParse({
+      missionId: formData.get("missionId"),
+      comment: formData.get("comment"),
+    })
+    const fileParsed = screenshotSchema.safeParse(formData.get("screenshot"))
+
+    if (!parsed.success || !fileParsed.success) {
+      const fieldErrors: SubmissionFieldErrors = {}
+      if (!parsed.success) {
+        Object.assign(fieldErrors, toFieldErrors<SubmissionInput>(parsed.error))
+      }
+      if (!fileParsed.success) {
+        // screenshotSchema is a top-level instance check, so errors land at the
+        // root rather than under a field key — collect messages directly.
+        fieldErrors.screenshot = fileParsed.error.issues.map((i) => i.message)
+      }
+      return {
+        success: false,
+        error: "Please fix the highlighted fields.",
+        fieldErrors,
+      }
+    }
+
+    const { missionId, comment } = parsed.data
+    const file = fileParsed.data
 
     const { data: missionData } = await supabase
       .from("missions")
@@ -28,7 +64,10 @@ export async function submitTestResult(formData: FormData) {
       .eq("id", missionId)
       .single()
 
-    const mission = missionData as any
+    const mission = missionData as unknown as {
+      project_id: string
+      projects: { owner_id: string } | { owner_id: string }[] | null
+    } | null
 
     const projectOwnerId = getOwnerId(mission?.projects)
     if (projectOwnerId === user.id) {
@@ -62,7 +101,8 @@ export async function submitTestResult(formData: FormData) {
     revalidatePath("/dashboard")
     revalidatePath("/explore")
     return { success: true }
-  } catch (err: any) {
-    return { success: false, error: err?.message ?? "An unexpected error occurred. Please try again." }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "An unexpected error occurred. Please try again."
+    return { success: false, error: message }
   }
 }

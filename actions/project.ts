@@ -3,16 +3,43 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import {
+  projectSchema,
+  toFieldErrors,
+  type ProjectInput,
+  type FieldErrors,
+} from "@/lib/validation/schemas"
 
-export async function createProject(prevState: any, formData: FormData) {
+export type ProjectActionState =
+  | null
+  | {
+      error?: string
+      fieldErrors?: FieldErrors<ProjectInput>
+    }
+
+export async function createProject(
+  _prevState: ProjectActionState,
+  formData: FormData,
+): Promise<ProjectActionState> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const name = formData.get("name") as string
-  const description = formData.get("description") as string
-  const app_url = formData.get("app_url") as string
+  const parsed = projectSchema.safeParse({
+    name: formData.get("name"),
+    app_url: formData.get("app_url"),
+    description: formData.get("description"),
+  })
+
+  if (!parsed.success) {
+    return {
+      error: "Please fix the highlighted fields.",
+      fieldErrors: toFieldErrors<ProjectInput>(parsed.error),
+    }
+  }
+
+  const { name, app_url, description } = parsed.data
 
   const { data, error } = await supabase
     .from("projects")
@@ -34,15 +61,30 @@ export async function createProject(prevState: any, formData: FormData) {
   redirect(`/dashboard/${data.id}`)
 }
 
-export async function updateProject(projectId: string, _prevState: unknown, formData: FormData) {
+export async function updateProject(
+  projectId: string,
+  _prevState: ProjectActionState,
+  formData: FormData,
+): Promise<ProjectActionState> {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const name = formData.get("name") as string
-  const app_url = formData.get("app_url") as string
-  const description = formData.get("description") as string
+  const parsed = projectSchema.safeParse({
+    name: formData.get("name"),
+    app_url: formData.get("app_url"),
+    description: formData.get("description"),
+  })
+
+  if (!parsed.success) {
+    return {
+      error: "Please fix the highlighted fields.",
+      fieldErrors: toFieldErrors<ProjectInput>(parsed.error),
+    }
+  }
+
+  const { name, app_url, description } = parsed.data
 
   const { error } = await supabase
     .from("projects")
@@ -56,4 +98,4 @@ export async function updateProject(projectId: string, _prevState: unknown, form
 
   revalidatePath(`/dashboard/${projectId}`)
   redirect(`/dashboard/${projectId}`)
-}
+}

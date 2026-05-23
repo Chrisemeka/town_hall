@@ -21,7 +21,7 @@ export default async function EditProjectPage({
   if (!project) return notFound();
 
   return (
-    <div className="max-w-[1128px] mx-auto px-8 py-10">
+    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
       <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8">
         <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150">
           My Projects

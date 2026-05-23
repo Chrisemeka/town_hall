@@ -81,7 +81,7 @@ export default async function AdminSubmissionsPage() {
   }
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
         <ShieldCheck className="w-4 h-4 text-voltage" />
         <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
