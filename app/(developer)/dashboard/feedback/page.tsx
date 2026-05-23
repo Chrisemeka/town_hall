@@ -74,7 +74,7 @@ export default async function FeedbackReceivedPage() {
   );
 
   return (
-    <div className="max-w-[800px] mx-auto px-8 py-10">
+    <div className="max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       <div className="mb-8">
         <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">

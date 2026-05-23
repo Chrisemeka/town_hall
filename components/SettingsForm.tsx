@@ -3,6 +3,11 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { deleteAccountAction } from "@/actions/auth"
+import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import {
+  DISPLAY_NAME_MAX,
+  displayNameSchema,
+} from "@/lib/validation/schemas"
 
 function SectionDivider() {
   return <div style={{ height: 1, background: "#2C2C35", margin: "32px 0" }} />
@@ -63,9 +68,12 @@ export function SettingsForm({
   initialEmail: string
   initialDisplayName: string
 }) {
-  const [displayName, setDisplayName]   = useState(initialDisplayName)
-  const [saving,      setSaving]        = useState(false)
-  const [saveMsg,     setSaveMsg]       = useState<string | null>(null)
+  const [displayName,      setDisplayName]      = useState(initialDisplayName)
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null)
+  const [saving,           setSaving]           = useState(false)
+  const [saveMsg,          setSaveMsg]          = useState<string | null>(null)
+
+  useUnsavedChangesWarning(displayName !== initialDisplayName)
 
   const [notifFeedback, setNotifFeedback] = useState(true)
   const [notifMission,  setNotifMission]  = useState(false)
@@ -75,17 +83,24 @@ export function SettingsForm({
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   async function handleSaveProfile() {
+    const parsed = displayNameSchema.safeParse({ displayName })
+    if (!parsed.success) {
+      setDisplayNameError(parsed.error.issues[0]?.message ?? "Invalid display name.")
+      return
+    }
+
+    setDisplayNameError(null)
     setSaving(true)
     setSaveMsg(null)
     try {
       const supabase = createClient()
       const { error } = await supabase.auth.updateUser({
-        data: { display_name: displayName },
+        data: { display_name: parsed.data.displayName },
       })
       if (error) throw error
       setSaveMsg("Profile saved.")
-    } catch (err: any) {
-      setSaveMsg(err.message)
+    } catch (err) {
+      setSaveMsg(err instanceof Error ? err.message : "Failed to save.")
     } finally {
       setSaving(false)
       setTimeout(() => setSaveMsg(null), 3000)
@@ -97,8 +112,8 @@ export function SettingsForm({
     setDeleteError(null)
     try {
       await deleteAccountAction()
-    } catch (err: any) {
-      setDeleteError(err.message)
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete account.")
       setDeleting(false)
       setDeleteStep("idle")
     }
@@ -120,11 +135,21 @@ export function SettingsForm({
             <input
               id="display-name"
               type="text"
+              maxLength={DISPLAY_NAME_MAX}
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => {
+                setDisplayName(e.target.value)
+                if (displayNameError) setDisplayNameError(null)
+              }}
               placeholder="Your name"
-              className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+              className={[
+                "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+                displayNameError ? "border-ember" : "border-iron focus:border-voltage",
+              ].join(" ")}
             />
+            {displayNameError && (
+              <p className="font-mono text-[12px] text-ember">{displayNameError}</p>
+            )}
           </div>
 
           {/* Email (read-only) */}

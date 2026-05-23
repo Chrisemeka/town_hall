@@ -32,7 +32,7 @@ export default async function DeveloperMissionDetailPage({
   const isActive = mission.is_active !== false;
 
   return (
-    <div className="max-w-[1128px] mx-auto px-8 py-8">
+    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
 
       {/* Navigation bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-iron">
@@ -97,7 +97,7 @@ export default async function DeveloperMissionDetailPage({
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <Badge variant={isActive ? "active" : "draft"} />
-          <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+          <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk break-words min-w-0">
             {mission.title}
           </h1>
         </div>

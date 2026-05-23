@@ -141,18 +141,18 @@ export default async function AdminHomePage() {
   const recentActivity = activity.slice(0, 10)
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
 
       {/* ── Header row: welcome (left) + live clock (right) ─── */}
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-3 mb-3">
             <ShieldCheck className="w-5 h-5 text-voltage" />
             <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px]">
               Admin Console
             </p>
           </div>
-          <h1 className="font-syne font-bold text-[40px] leading-[44px] tracking-[-0.5px] text-chalk mb-2">
+          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[34px] sm:leading-[40px] md:text-[40px] md:leading-[44px] tracking-[-0.5px] text-chalk mb-2 break-words">
             Welcome, {displayName}.
           </h1>
           <p className="font-mono text-[14px] text-ash max-w-xl">

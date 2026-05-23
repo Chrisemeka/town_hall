@@ -163,14 +163,14 @@ export default async function AdminUsersPage() {
     .sort((a, b) => b.count - a.count)
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
         <ShieldCheck className="w-4 h-4 text-voltage" />
         <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
           Admin · Users
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-chalk mb-1">
         User Management
       </h1>
       <p className="font-mono text-[14px] text-ash mb-8">

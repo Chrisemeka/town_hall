@@ -61,11 +61,11 @@ export default async function ExploreProjectsPage() {
     .filter((p) => p.missionCount > 0);
 
   return (
-    <div className="max-w-[1128px] mx-auto px-8 py-10">
+    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
           Explore Projects
         </h1>
         <p className="font-mono text-[14px] text-ash mt-1">

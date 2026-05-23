@@ -4,35 +4,7 @@ import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendAdminBroadcast } from "@/lib/mail"
-
-const broadcastSchema = z
-  .object({
-    subject: z.string().trim().min(3, "Subject must be at least 3 characters.").max(150),
-    messageBody: z.string().trim().min(10, "Message must be at least 10 characters.").max(5000),
-    ctaLabel: z.string().trim().max(40).optional().or(z.literal("")),
-    ctaUrl: z
-      .string()
-      .trim()
-      .url("CTA URL must be a valid URL.")
-      .optional()
-      .or(z.literal("")),
-    targetType: z.enum(["all", "single"]),
-    targetEmail: z.string().trim().email("Enter a valid email address.").optional().or(z.literal("")),
-  })
-  .refine(
-    (data) => data.targetType !== "single" || !!data.targetEmail,
-    { message: "Recipient email is required.", path: ["targetEmail"] },
-  )
-  .refine(
-    (data) => {
-      const hasLabel = !!(data.ctaLabel && data.ctaLabel.length)
-      const hasUrl = !!(data.ctaUrl && data.ctaUrl.length)
-      return hasLabel === hasUrl
-    },
-    { message: "Provide both a CTA label and URL, or leave both empty.", path: ["ctaUrl"] },
-  )
-
-export type BroadcastInput = z.input<typeof broadcastSchema>
+import { broadcastSchema, type BroadcastInput } from "@/lib/validation/schemas"
 
 export type BroadcastResult =
   | { success: true; count: number }
@@ -86,7 +58,18 @@ export async function broadcastAdminEmail(input: BroadcastInput): Promise<Broadc
       .ilike("email", email)
       .maybeSingle()
 
-    recipients = [{ email, fullName: profile?.full_name ?? "" }]
+    // Only allow sending to addresses that belong to a registered user.
+    if (!profile?.email) {
+      return {
+        success: false,
+        error: "Email does not belong to an authenticated user",
+        fieldErrors: {
+          targetEmail: ["Email does not belong to an authenticated user"],
+        },
+      }
+    }
+
+    recipients = [{ email: profile.email, fullName: profile.full_name ?? "" }]
   } else {
     const { data: profiles, error } = await admin
       .from("profiles")

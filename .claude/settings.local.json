@@ -16,7 +16,8 @@
       "Bash(ngrok version *)",
       "PowerShell($pm = @\\(\\); foreach \\($n in 'winget','choco','scoop'\\) { if \\(Get-Command $n -ErrorAction SilentlyContinue\\) { $pm += $n } } ; if \\($pm.Count -eq 0\\) { \"none\" } else { $pm -join ',' })",
       "Bash(npm run *)",
-      "PowerShell(Stop-Process -Id 25240 -Force; Start-Sleep -Seconds 1; $remaining = Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'ngrok' }; if \\($remaining\\) { \"STILL_RUNNING\"; $remaining | Select-Object ProcessId, CommandLine | Format-List } else { \"CLEAN\" })"
+      "PowerShell(Stop-Process -Id 25240 -Force; Start-Sleep -Seconds 1; $remaining = Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'ngrok' }; if \\($remaining\\) { \"STILL_RUNNING\"; $remaining | Select-Object ProcessId, CommandLine | Format-List } else { \"CLEAN\" })",
+      "Bash(pip install *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\USER\\Desktop\\townhall\\app\\(developer)\\dashboard\\[projectId]"
