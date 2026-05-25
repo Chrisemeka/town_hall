@@ -77,7 +77,12 @@ export function SubmissionsList({
               <div className="w-10 h-10 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
                 {s.tester.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={s.tester.avatarUrl} alt={s.tester.fullName || s.tester.email} className="w-full h-full object-cover" />
+                  <img
+                    src={s.tester.avatarUrl}
+                    alt={s.tester.fullName || s.tester.email}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span className="font-mono text-[12px] text-ash">{initials(s.tester.fullName, s.tester.email)}</span>
                 )}

@@ -4,7 +4,15 @@ import { useState } from "react"
 import { TopNav } from "./TopNav"
 import { Sidebar } from "./Sidebar"
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  avatarUrl,
+  displayName,
+}: {
+  children: React.ReactNode
+  avatarUrl?: string | null
+  displayName?: string | null
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -12,6 +20,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <TopNav
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
+        avatarUrl={avatarUrl ?? null}
+        displayName={displayName ?? null}
       />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 

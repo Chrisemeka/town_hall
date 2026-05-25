@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/Input"
 import { Textarea } from "@/components/ui/Textarea"
 import { broadcastAdminEmail } from "@/actions/admin/broadcast"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { broadcastSchema } from "@/lib/validation/schemas"
+import { z } from "zod"
 
 type TargetType = "all" | "single"
 type FieldErrors = Partial<Record<
@@ -56,15 +58,15 @@ export function BroadcastForm({ totalUsers }: BroadcastFormProps) {
     setServerError(null)
     setSuccess(null)
 
+    const input = { subject, messageBody, ctaLabel, ctaUrl, targetType, targetEmail }
+    const parsed = broadcastSchema.safeParse(input)
+    if (!parsed.success) {
+      setFieldErrors(z.flattenError(parsed.error).fieldErrors as FieldErrors)
+      return
+    }
+
     startTransition(async () => {
-      const result = await broadcastAdminEmail({
-        subject,
-        messageBody,
-        ctaLabel,
-        ctaUrl,
-        targetType,
-        targetEmail,
-      })
+      const result = await broadcastAdminEmail(input)
 
       if (!result.success) {
         if (result.fieldErrors) setFieldErrors(result.fieldErrors as FieldErrors)

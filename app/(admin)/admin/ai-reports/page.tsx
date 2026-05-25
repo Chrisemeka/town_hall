@@ -237,7 +237,12 @@ export default async function AdminAIReportsPage() {
                     <div className="w-10 h-10 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
                       {r.tester.avatarUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={r.tester.avatarUrl} alt={r.tester.fullName || r.tester.email} className="w-full h-full object-cover" />
+                        <img
+                          src={r.tester.avatarUrl}
+                          alt={r.tester.fullName || r.tester.email}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
                       ) : (
                         <span className="font-mono text-[12px] text-ash">{initials(r.tester.fullName, r.tester.email)}</span>
                       )}

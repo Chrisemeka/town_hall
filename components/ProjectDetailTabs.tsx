@@ -104,10 +104,10 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           {missions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-chalk mb-2">No missions added.</p>
-              <p className="font-mono text-[14px] text-ash mb-6">
-                Add a mission to tell testers what to focus on.
+              <p className="font-mono text-[14px] text-ash mb-6 text-center">
+                Add a mission to activate your project and start receiving tester feedback.
               </p>
-              <Button variant="primary" asChild>
+              <Button variant="secondary" asChild>
                 <Link href={`/dashboard/${projectId}/mission/new`}>Add Mission</Link>
               </Button>
             </div>

@@ -227,7 +227,12 @@ export default async function AdminUsersPage() {
                       <div className="w-9 h-9 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
                         {u.avatarUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={u.avatarUrl} alt={u.fullName || u.email} className="w-full h-full object-cover" />
+                          <img
+                            src={u.avatarUrl}
+                            alt={u.fullName || u.email}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
                           <span className="font-mono text-[12px] text-ash">{initials(u.fullName, u.email)}</span>
                         )}

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Target, MessageSquare,
   Telescope, Compass, Settings,
-  User, LogOut,
+  User, LogOut, HelpCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
@@ -102,11 +102,13 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
             {/* Settings — desktop only */}
             <div className="hidden md:block">
               <NavItem href="/settings" name="Settings" icon={Settings} isActive={isActive("/settings")} />
+              <NavItem href="/onboarding" name="How it works" icon={HelpCircle} isActive={isActive("/onboarding")} />
             </div>
 
             {/* Profile + Sign Out — mobile only */}
             <div className="md:hidden flex flex-col gap-0.5">
               <NavItem href="/settings" name="Profile" icon={User} isActive={isActive("/settings")} onClick={onClose} />
+              <NavItem href="/onboarding" name="How it works" icon={HelpCircle} isActive={isActive("/onboarding")} onClick={onClose} />
               <form action={signOutAction}>
                 <button
                   type="submit"
