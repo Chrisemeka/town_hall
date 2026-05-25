@@ -1,21 +1,23 @@
 import Link from "next/link";
+import { BugPlay } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Community Guidelines — Townhall" };
 
 export default function GuidelinesPage() {
   return (
-    <div className="min-h-screen bg-obsidian text-chalk">
+    <div className="min-h-screen bg-bone text-midnight font-mono flex flex-col selection:bg-voltage selection:text-obsidian">
 
       {/* Nav */}
-      <header className="border-b border-iron">
+      <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
-          <Link href="/" className="font-syne font-bold text-[18px] text-chalk">
-            Townhall
+          <Link href="/" className="flex items-center gap-2">
+            <BugPlay className="w-5 h-5 text-midnight" />
+            <span className="font-syne font-bold text-[18px] text-midnight">Townhall</span>
           </Link>
           <Link
             href="/"
-            className="font-mono text-[13px] text-ash hover:text-chalk transition-colors duration-150"
+            className="font-mono text-[13px] text-midnight/70 hover:text-midnight transition-colors duration-150"
           >
             ← Back to Home
           </Link>
@@ -23,38 +25,38 @@ export default function GuidelinesPage() {
       </header>
 
       {/* Hero */}
-      <div className="border-b border-iron">
+      <div className="border-b border-midnight/10">
         <div className="max-w-[720px] mx-auto px-6 py-16">
-          <p className="font-mono text-[12px] text-ash uppercase tracking-[1.5px] mb-4">Community</p>
-          <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-chalk mb-4">
+          <p className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-4">Community</p>
+          <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-4">
             Community Guidelines
           </h1>
-          <p className="font-mono text-[15px] leading-7 text-ash">
+          <p className="font-mono text-[15px] leading-7 text-midnight/70">
             Townhall runs on reciprocity. Read this once and you'll understand everything about how and why this community works.
           </p>
         </div>
       </div>
 
       {/* Content */}
-      <main className="max-w-[720px] mx-auto px-6 py-16">
+      <main className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
         <div className="flex flex-col gap-12">
 
           {/* The Social Contract */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <span className="font-mono text-[11px] text-voltage uppercase tracking-[1.5px]">The Foundation</span>
+              <span className="font-mono text-[11px] text-forest uppercase tracking-[1.5px]">The Foundation</span>
             </div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-4">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               The Social Contract
             </h2>
-            <div className="border-l-2 border-voltage bg-[rgba(232,255,71,0.04)] rounded-r-[8px] px-6 py-5 mb-6">
-              <p className="font-mono text-[15px] leading-7 text-chalk">
+            <div className="border-l-2 border-voltage bg-voltage/10 rounded-r-[8px] px-6 py-5 mb-6">
+              <p className="font-mono text-[15px] leading-7 text-midnight">
                 "Ship with confidence. Test each other."
               </p>
             </div>
-            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-ash">
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
               <p>
-                Townhall is purely community-driven — no points, no rewards, no leaderboards. The platform exists because developers help each other. The implicit incentive is <span className="text-chalk">reciprocity</span>: you test others so others will test you.
+                Townhall is purely community-driven — no points, no rewards, no leaderboards. The platform exists because developers help each other. The implicit incentive is <span className="text-midnight">reciprocity</span>: you test others so others will test you.
               </p>
               <p>
                 This isn't a SaaS tool. It's a shared workspace where peers hold each other accountable. The energy here should feel collaborative and direct — developer to developer.
@@ -66,7 +68,7 @@ export default function GuidelinesPage() {
 
           {/* How It Works */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-6">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
               How It Works
             </h2>
             <div className="flex flex-col gap-8">
@@ -93,12 +95,12 @@ export default function GuidelinesPage() {
 
           {/* Proof of Visit */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-4">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               The Screenshot Requirement
             </h2>
-            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-ash">
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
               <p>
-                Every feedback submission requires two things: <span className="text-chalk">written feedback</span> and a <span className="text-chalk">screenshot from the project</span>.
+                Every feedback submission requires two things: <span className="text-midnight">written feedback</span> and a <span className="text-midnight">screenshot from the project</span>.
               </p>
               <p>
                 The screenshot serves a dual purpose — it acts as proof of visit so submitters know you actually used their product, and it provides visual context that written feedback alone can't capture.
@@ -113,7 +115,7 @@ export default function GuidelinesPage() {
 
           {/* Standards */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-6">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
               Standards of Conduct
             </h2>
             <div className="flex flex-col gap-4">
@@ -148,19 +150,19 @@ export default function GuidelinesPage() {
 
           {/* What good looks like */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-4">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               What Good Feedback Looks Like
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7">
-              <div className="bg-graphite border border-iron rounded-[12px] p-5">
-                <p className="text-[11px] text-ash uppercase tracking-[1px] mb-3">Good</p>
-                <p className="text-ash">
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Good</p>
+                <p className="text-midnight/70">
                   "The checkout form loses my input when I click back — I had to refill my card details twice. The error message on the CVV field also doesn't appear until I submit, which was confusing. Screenshot attached showing the empty state after navigating back."
                 </p>
               </div>
-              <div className="bg-graphite border border-iron rounded-[12px] p-5">
-                <p className="text-[11px] text-ash uppercase tracking-[1px] mb-3">Not helpful</p>
-                <p className="text-ash">
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p className="text-[11px] text-midnight/50 uppercase tracking-[1px] mb-3">Not helpful</p>
+                <p className="text-midnight/70">
                   "Looks good! Nice design."
                 </p>
               </div>
@@ -171,16 +173,16 @@ export default function GuidelinesPage() {
 
           {/* Enforcement */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-chalk mb-4">
+            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               Enforcement
             </h2>
-            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-ash">
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
               <p>
                 Townhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don't issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
               </p>
               <p>
                 If you encounter a violation — bad-faith feedback, abusive content, or a project that appears malicious — contact us at{" "}
-                <a href="mailto:terms@townhl.com" className="text-voltage hover:underline">
+                <a href="mailto:terms@townhl.com" className="text-forest hover:underline">
                   terms@townhl.com
                 </a>
               </p>
@@ -190,14 +192,14 @@ export default function GuidelinesPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-iron mt-8">
+      {/* Footer — dark, matches landing */}
+      <footer className="w-full bg-obsidian font-mono">
         <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash">© 2026 Townhall. All rights reserved.</p>
+          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Townhall. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/guidelines" className="font-mono text-[12px] text-voltage">Guidelines</Link>
-            <Link href="/privacy" className="font-mono text-[12px] text-ash hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
-            <Link href="/terms" className="font-mono text-[12px] text-ash hover:text-chalk transition-colors duration-150">Terms of Service</Link>
+            <Link href="/privacy" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
+            <Link href="/terms" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Terms of Service</Link>
           </div>
         </div>
       </footer>
@@ -207,18 +209,18 @@ export default function GuidelinesPage() {
 }
 
 function Divider() {
-  return <div className="border-t border-iron" />;
+  return <div className="border-t border-midnight/10" />;
 }
 
 function Role({ label, steps }: { label: string; steps: string[] }) {
   return (
     <div>
-      <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mb-3">{label}</p>
+      <p className="font-mono text-[12px] text-forest uppercase tracking-[1px] mb-3">{label}</p>
       <ol className="flex flex-col gap-3">
         {steps.map((step, i) => (
           <li key={i} className="flex gap-4">
-            <span className="font-mono text-[13px] text-voltage shrink-0 mt-0.5">{i + 1}.</span>
-            <span className="font-mono text-[14px] leading-6 text-ash">{step}</span>
+            <span className="font-mono text-[13px] text-forest shrink-0 mt-0.5">{i + 1}.</span>
+            <span className="font-mono text-[14px] leading-6 text-midnight/70">{step}</span>
           </li>
         ))}
       </ol>
@@ -228,11 +230,11 @@ function Role({ label, steps }: { label: string; steps: string[] }) {
 
 function Standard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="flex gap-4 py-4 border-b border-iron last:border-0">
+    <div className="flex gap-4 py-4 border-b border-midnight/10 last:border-0">
       <div className="w-1.5 h-1.5 rounded-full bg-voltage shrink-0 mt-2" />
       <div>
-        <p className="font-mono text-[14px] font-medium text-chalk mb-1">{title}</p>
-        <p className="font-mono text-[14px] leading-6 text-ash">{body}</p>
+        <p className="font-mono text-[14px] font-medium text-midnight mb-1">{title}</p>
+        <p className="font-mono text-[14px] leading-6 text-midnight/70">{body}</p>
       </div>
     </div>
   );

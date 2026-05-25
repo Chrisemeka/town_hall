@@ -63,7 +63,7 @@ export default async function MyMissionsPage() {
           <Target className="w-12 h-12 text-ash mb-4 opacity-40" />
           <h3 className="font-syne font-bold text-[24px] text-chalk mb-2">No missions yet.</h3>
           <p className="font-mono text-[14px] text-ash mb-6 max-w-[340px]">
-            Add a mission to tell testers what to focus on.
+            Add a mission to active your project and start receiving tester feedback.
           </p>
           <Button variant="ghost" asChild>
             <Link href="/dashboard">Go to My Projects</Link>

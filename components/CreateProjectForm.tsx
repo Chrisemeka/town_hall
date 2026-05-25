@@ -6,19 +6,45 @@ import { createProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
-import { PROJECT_SUMMARY_MAX, PROJECT_NAME_MAX } from "@/lib/validation/schemas"
+import {
+  PROJECT_SUMMARY_MAX,
+  PROJECT_NAME_MAX,
+  projectSchema,
+  toFieldErrors,
+  type ProjectInput,
+  type FieldErrors,
+} from "@/lib/validation/schemas"
 
 export default function CreateProjectForm() {
   const [state, formAction] = useActionState(createProject, null)
   const [summary, setSummary]   = useState("")
   const [name, setName]         = useState("")
   const [appUrl, setAppUrl]     = useState("")
+  const [clientErrors, setClientErrors] = useState<FieldErrors<ProjectInput>>({})
 
   useUnsavedChangesWarning(
     name.length > 0 || appUrl.length > 0 || summary.length > 0,
   )
 
-  const fieldErrors = state?.fieldErrors ?? {}
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget)
+    const parsed = projectSchema.safeParse({
+      name: fd.get("name"),
+      app_url: fd.get("app_url"),
+      description: fd.get("description"),
+    })
+    if (!parsed.success) {
+      e.preventDefault()
+      setClientErrors(toFieldErrors<ProjectInput>(parsed.error))
+      return
+    }
+    setClientErrors({})
+  }
+
+  const fieldErrors: FieldErrors<ProjectInput> = {
+    ...(state?.fieldErrors ?? {}),
+    ...clientErrors,
+  }
 
   return (
     <div className="bg-graphite border border-iron rounded-[16px] p-10">
@@ -38,7 +64,7 @@ export default function CreateProjectForm() {
         </div>
       )}
 
-      <form action={formAction} className="flex flex-col gap-6" noValidate>
+      <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
 
         {/* Project Name */}
         <div className="flex flex-col gap-2">

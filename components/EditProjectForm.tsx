@@ -6,7 +6,14 @@ import { updateProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
-import { PROJECT_NAME_MAX, PROJECT_SUMMARY_MAX } from "@/lib/validation/schemas"
+import {
+  PROJECT_NAME_MAX,
+  PROJECT_SUMMARY_MAX,
+  projectSchema,
+  toFieldErrors,
+  type ProjectInput,
+  type FieldErrors,
+} from "@/lib/validation/schemas"
 
 export default function EditProjectForm({
   projectId,
@@ -23,6 +30,7 @@ export default function EditProjectForm({
   const [name, setName] = useState(initialName)
   const [url, setUrl] = useState(initialUrl)
   const [description, setDescription] = useState(initialDescription)
+  const [clientErrors, setClientErrors] = useState<FieldErrors<ProjectInput>>({})
 
   useUnsavedChangesWarning(
     name !== initialName ||
@@ -30,7 +38,25 @@ export default function EditProjectForm({
       description !== initialDescription,
   )
 
-  const fieldErrors = state?.fieldErrors ?? {}
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const fd = new FormData(e.currentTarget)
+    const parsed = projectSchema.safeParse({
+      name: fd.get("name"),
+      app_url: fd.get("app_url"),
+      description: fd.get("description"),
+    })
+    if (!parsed.success) {
+      e.preventDefault()
+      setClientErrors(toFieldErrors<ProjectInput>(parsed.error))
+      return
+    }
+    setClientErrors({})
+  }
+
+  const fieldErrors: FieldErrors<ProjectInput> = {
+    ...(state?.fieldErrors ?? {}),
+    ...clientErrors,
+  }
 
   return (
     <div className="bg-graphite border border-iron rounded-[16px] p-10">
@@ -44,7 +70,7 @@ export default function EditProjectForm({
         </div>
       )}
 
-      <form action={formAction} className="flex flex-col gap-6" noValidate>
+      <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
         <div className="flex flex-col gap-2">
           <label htmlFor="name" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
             Project Name

@@ -9,6 +9,10 @@ import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
+  updateMissionSchema,
+  toFieldErrors,
+  type UpdateMissionInput,
+  type FieldErrors,
 } from "@/lib/validation/schemas"
 
 export default function EditMissionForm({
@@ -29,12 +33,34 @@ export default function EditMissionForm({
   const [state, formAction] = useActionState(updateMission, null)
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
+  const [clientErrors, setClientErrors] = useState<FieldErrors<UpdateMissionInput>>({})
 
   useUnsavedChangesWarning(
     title !== initialTitle || description !== initialDescription,
   )
 
-  const fieldErrors = state?.fieldErrors ?? {}
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null
+    const fd = new FormData(e.currentTarget, submitter ?? undefined)
+    const parsed = updateMissionSchema.safeParse({
+      missionId: fd.get("missionId"),
+      projectId: fd.get("projectId"),
+      title: fd.get("title"),
+      task_description: fd.get("task_description"),
+      intent: fd.get("intent"),
+    })
+    if (!parsed.success) {
+      e.preventDefault()
+      setClientErrors(toFieldErrors<UpdateMissionInput>(parsed.error))
+      return
+    }
+    setClientErrors({})
+  }
+
+  const fieldErrors: FieldErrors<UpdateMissionInput> = {
+    ...(state?.fieldErrors ?? {}),
+    ...clientErrors,
+  }
 
   return (
     <div className="bg-graphite border border-iron rounded-[16px] p-10">
@@ -55,7 +81,7 @@ export default function EditMissionForm({
         </div>
       )}
 
-      <form action={formAction} className="flex flex-col gap-6" noValidate>
+      <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
         <input type="hidden" name="missionId" value={missionId} />
         <input type="hidden" name="projectId" value={projectId} />
 

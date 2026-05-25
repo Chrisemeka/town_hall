@@ -8,10 +8,16 @@ import { signOutAction } from "@/actions/auth"
 export function TopNav({
   sidebarOpen,
   onToggleSidebar,
+  avatarUrl,
+  displayName,
 }: {
   sidebarOpen: boolean
   onToggleSidebar: () => void
+  avatarUrl?: string | null
+  displayName?: string | null
 }) {
+  const altText = displayName ?? "Your profile"
+
   return (
     <header className="fixed top-0 left-0 right-0 h-[56px] bg-obsidian border-b border-iron z-50 flex items-center px-4 md:px-6 justify-between">
 
@@ -41,9 +47,20 @@ export function TopNav({
         <Link
           href="/settings"
           aria-label="Settings"
-          className="w-8 h-8 rounded-full bg-graphite border border-iron flex items-center justify-center hover:border-voltage transition-colors duration-150"
+          title={displayName ?? "Settings"}
+          className="w-8 h-8 rounded-full bg-graphite border border-iron flex items-center justify-center overflow-hidden hover:border-voltage transition-colors duration-150"
         >
-          <User className="w-4 h-4 text-ash" />
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={avatarUrl}
+              alt={altText}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <User className="w-4 h-4 text-ash" />
+          )}
         </Link>
 
         <form action={signOutAction}>
