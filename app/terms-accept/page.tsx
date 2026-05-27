@@ -16,17 +16,17 @@ export default async function TermsAcceptPage() {
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, email, role, accepted_terms_at, completed_onboarding_at")
+    .select("full_name, email, role, accepted_terms_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  // Admins don't go through the onboarding flow.
+  // Admins don't go through the terms-acceptance flow.
   if (profile?.role === "admin") {
     redirect("/admin");
   }
 
   if (profile?.accepted_terms_at) {
-    redirect(profile.completed_onboarding_at ? "/explore" : "/onboarding");
+    redirect("/explore");
   }
 
   const displayName =
@@ -55,7 +55,7 @@ export default async function TermsAcceptPage() {
         <div className="w-full max-w-[520px]">
 
           <p className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-3">
-            Step 1 of 2
+            One last step
           </p>
           <h1 className="font-syne font-bold text-[32px] leading-[40px] tracking-[-0.5px] text-midnight mb-3">
             Accept our terms to continue

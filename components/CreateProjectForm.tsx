@@ -47,15 +47,17 @@ export default function CreateProjectForm() {
   }
 
   return (
-    <div className="bg-graphite border border-iron rounded-[16px] p-10">
+    <div id="tour-new-project-form" className="bg-graphite border border-iron rounded-[16px] p-10">
 
       {/* Header */}
-      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-1">
-        Submit a Project
-      </h2>
-      <p className="font-mono text-[16px] leading-6 text-ash mb-8">
-        Tell the community what you&apos;ve built.
-      </p>
+      <div id="tour-new-project-header">
+        <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-1">
+          Submit a Project
+        </h2>
+        <p className="font-mono text-[16px] leading-6 text-ash mb-8">
+          Tell the community what you&apos;ve built.
+        </p>
+      </div>
 
       {/* Server error */}
       {state?.error && (
@@ -134,15 +136,15 @@ export default function CreateProjectForm() {
         </div>
 
         {/* What Happens Next info box */}
-        <div className="bg-obsidian border border-iron rounded-[12px] p-6">
+        <div id="tour-new-project-next" className="bg-obsidian border border-iron rounded-[12px] p-6">
           <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
             What happens next?
           </p>
           <div className="flex flex-col gap-4">
             {[
-              { num: "01", text: "Your project is published to the community feed." },
-              { num: "02", text: "Add missions to tell testers exactly what to check." },
-              { num: "03", text: "Developers test it and submit feedback + screenshots." },
+              { num: "01", text: "Your project is created as a DRAFT — it won't appear on the Explore feed yet." },
+              { num: "02", text: "Add at least one mission to publish your project and tell testers what to check." },
+              { num: "03", text: "Once live, developers pick up your missions and submit feedback with screenshots." },
             ].map((step) => (
               <div key={step.num} className="flex items-start gap-4">
                 <span className="font-mono text-[12px] font-medium text-voltage shrink-0 w-6">

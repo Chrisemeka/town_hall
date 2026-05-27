@@ -37,6 +37,7 @@ export function TopNav({
       {/* Right: Desktop actions */}
       <div className="hidden md:flex items-center gap-4 shrink-0">
         <Link
+          id="tour-new-project-btn"
           href="/dashboard/new"
           className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 flex items-center gap-1.5"
         >

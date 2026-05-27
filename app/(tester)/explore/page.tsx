@@ -64,7 +64,7 @@ export default async function ExploreProjectsPage() {
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Page header */}
-      <div className="mb-8">
+      <div id="tour-explore-header" className="mb-8">
         <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
           Explore Projects
         </h1>
@@ -73,7 +73,9 @@ export default async function ExploreProjectsPage() {
         </p>
       </div>
 
-      <ExploreGrid projects={projects} />
+      <div id="tour-explore-grid">
+        <ExploreGrid projects={projects} />
+      </div>
 
     </div>
   );

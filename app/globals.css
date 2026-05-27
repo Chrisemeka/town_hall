@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4: include classes used by Onborda's dist files */
+@source "../node_modules/onborda/dist/**/*.{js,ts,jsx,tsx}";
+
 @theme {
   /* Font Families */
   --font-syne: var(--font-syne);
