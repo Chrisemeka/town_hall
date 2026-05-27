@@ -8,12 +8,13 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
 
   let avatarUrl: string | null = null
   let displayName: string | null = null
+  let seenTours: string[] = []
 
   if (user) {
     const admin = createAdminClient()
     const { data: profile } = await admin
       .from("profiles")
-      .select("avatar_url, full_name")
+      .select("avatar_url, full_name, seen_tours")
       .eq("id", user.id)
       .maybeSingle()
 
@@ -29,7 +30,13 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
       (user.user_metadata?.name as string | undefined) ??
       user.email ??
       null
+
+    seenTours = (profile?.seen_tours as string[] | null) ?? []
   }
 
-  return <AppShell avatarUrl={avatarUrl} displayName={displayName}>{children}</AppShell>
+  return (
+    <AppShell avatarUrl={avatarUrl} displayName={displayName} seenTours={seenTours}>
+      {children}
+    </AppShell>
+  )
 }

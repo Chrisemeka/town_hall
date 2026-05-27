@@ -49,6 +49,7 @@ export default async function MissionDetailPage({
 
       {/* Project context card */}
       <div
+        id="tour-mission-project"
         className="mb-8 border border-iron"
         style={{ background: "#1A1A1F", borderRadius: 12, padding: "20px 24px" }}
       >
@@ -73,7 +74,7 @@ export default async function MissionDetailPage({
       </div>
 
       {/* YOUR MISSION callout */}
-      <div className="mb-8">
+      <div id="tour-mission-brief" className="mb-8">
         <p
           className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
           style={{ letterSpacing: "1px" }}
@@ -110,10 +111,12 @@ export default async function MissionDetailPage({
           </Link>
         </div>
       ) : (
-        <TesterSubmissionForm
-          missionId={mission.id}
-          appUrl={project?.app_url ?? null}
-        />
+        <div id="tour-mission-submit-form">
+          <TesterSubmissionForm
+            missionId={mission.id}
+            appUrl={project?.app_url ?? null}
+          />
+        </div>
       )}
 
     </div>

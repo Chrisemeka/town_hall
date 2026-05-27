@@ -45,13 +45,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Routes that require an authenticated session.
-  const protectedPrefixes = ['/dashboard', '/settings', '/admin', '/mission', '/explore', '/terms-accept', '/onboarding']
+  const protectedPrefixes = ['/dashboard', '/settings', '/admin', '/mission', '/explore', '/terms-accept']
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
   )
 
   // If user is logged in and trying to access the homepage, redirect to /explore
-  // (terms / onboarding gating below will catch them if they haven't completed it)
+  // (terms gating below will catch them if they haven't accepted yet)
   if (user && pathname === '/') {
     return NextResponse.redirect(new URL('/explore', request.url))
   }
@@ -64,12 +64,11 @@ export async function middleware(request: NextRequest) {
     return redirectResponse
   }
 
-  // Onboarding-flow gating: authenticated non-admin users must accept terms, then
-  // complete the onboarding walkthrough, before reaching the rest of the app. Admins
-  // skip the whole flow. The flow pages themselves (/terms-accept, /onboarding) are
-  // exempt from the redirect so the user can complete them.
-  // Uses the service-role client so RLS on `profiles` can't block the read and cause a loop.
-  if (user && isProtected && pathname !== '/terms-accept' && pathname !== '/onboarding') {
+  // Terms gating: authenticated non-admin users must accept terms before reaching the
+  // rest of the app. The /terms-accept page itself is exempt to avoid a redirect loop.
+  // Admins skip this gate entirely. Uses the service-role client so RLS on `profiles`
+  // can't block the read.
+  if (user && isProtected && pathname !== '/terms-accept') {
     const admin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -78,22 +77,14 @@ export async function middleware(request: NextRequest) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('role, accepted_terms_at, completed_onboarding_at')
+      .select('role, accepted_terms_at')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (profile?.role !== 'admin') {
-      if (!profile?.accepted_terms_at) {
-        const redirectResponse = NextResponse.redirect(new URL('/terms-accept', request.url))
-        redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-        return redirectResponse
-      }
-
-      if (!profile?.completed_onboarding_at) {
-        const redirectResponse = NextResponse.redirect(new URL('/onboarding', request.url))
-        redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-        return redirectResponse
-      }
+    if (profile?.role !== 'admin' && !profile?.accepted_terms_at) {
+      const redirectResponse = NextResponse.redirect(new URL('/terms-accept', request.url))
+      redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+      return redirectResponse
     }
   }
 

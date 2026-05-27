@@ -49,7 +49,7 @@ export default async function MyProjectsPage() {
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Page header */}
-      <div className="flex items-center justify-between mb-8">
+      <div id="tour-my-projects-header" className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
             My Projects

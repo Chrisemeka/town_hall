@@ -56,7 +56,7 @@ export default async function BrowseMissionsPage() {
     <div className="max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Page header */}
-      <div className="mb-8">
+      <div id="tour-browse-missions-header" className="mb-8">
         <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
           Browse Missions
         </h1>
@@ -65,7 +65,9 @@ export default async function BrowseMissionsPage() {
         </p>
       </div>
 
-      <BrowseMissions missions={missions} />
+      <div id="tour-browse-missions-list">
+        <BrowseMissions missions={missions} />
+      </div>
 
     </div>
   );
