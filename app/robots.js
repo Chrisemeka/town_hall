@@ -3,12 +3,18 @@ export default function robots() {
     rules: [
       {
         userAgent: '*',
-        // Allow the landing page and the public legal/community pages.
-        // `/$` anchors the root exactly; the others match those paths and any
-        // sub-paths (none today, but safe to leave open).
-        allow: ['/$', '/privacy', '/terms', '/guidelines'],
-        // Block everything else (dashboard, explore, admin, mission, settings, api, …).
-        disallow: '/',
+        allow: '/',
+        // Block authenticated/private areas. Everything else (landing page,
+        // legal pages, sitemap.xml) stays crawlable.
+        disallow: [
+          '/api/',
+          '/admin',
+          '/dashboard',
+          '/explore',
+          '/mission/',
+          '/settings',
+          '/terms-accept',
+        ],
       },
     ],
     sitemap: 'https://twnhall.com/sitemap.xml',
