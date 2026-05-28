@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BugPlay } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Community Guidelines — Townhall" };
+export const metadata: Metadata = { title: "Community Guidelines — Twnhall" };
 
 export default function GuidelinesPage() {
   return (
@@ -13,7 +13,7 @@ export default function GuidelinesPage() {
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <BugPlay className="w-5 h-5 text-midnight" />
-            <span className="font-syne font-bold text-[18px] text-midnight">Townhall</span>
+            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </Link>
           <Link
             href="/"
@@ -32,7 +32,7 @@ export default function GuidelinesPage() {
             Community Guidelines
           </h1>
           <p className="font-mono text-[15px] leading-7 text-midnight/70">
-            Townhall runs on reciprocity. Read this once and you'll understand everything about how and why this community works.
+            Twnhall runs on reciprocity. Read this once and you'll understand everything about how and why this community works.
           </p>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function GuidelinesPage() {
             </div>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
               <p>
-                Townhall is purely community-driven — no points, no rewards, no leaderboards. The platform exists because developers help each other. The implicit incentive is <span className="text-midnight">reciprocity</span>: you test others so others will test you.
+                Twnhall is purely community-driven — no points, no rewards, no leaderboards. The platform exists because developers help each other. The implicit incentive is <span className="text-midnight">reciprocity</span>: you test others so others will test you.
               </p>
               <p>
                 This isn't a SaaS tool. It's a shared workspace where peers hold each other accountable. The energy here should feel collaborative and direct — developer to developer.
@@ -178,7 +178,7 @@ export default function GuidelinesPage() {
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
               <p>
-                Townhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don't issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
+                Twnhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don't issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
               </p>
               <p>
                 If you encounter a violation — bad-faith feedback, abusive content, or a project that appears malicious — contact us at{" "}
@@ -195,7 +195,7 @@ export default function GuidelinesPage() {
       {/* Footer — dark, matches landing */}
       <footer className="w-full bg-obsidian font-mono">
         <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Townhall. All rights reserved.</p>
+          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/guidelines" className="font-mono text-[12px] text-voltage">Guidelines</Link>
             <Link href="/privacy" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Privacy Policy</Link>

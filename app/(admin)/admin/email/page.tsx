@@ -2,7 +2,7 @@ import { Mail, ShieldCheck } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { BroadcastForm } from "@/components/admin/BroadcastForm"
 
-export const metadata = { title: "Email Broadcast — Admin · Townhall" }
+export const metadata = { title: "Email Broadcast — Admin · Twnhall" }
 
 export default async function AdminEmailPage() {
   const admin = createAdminClient()

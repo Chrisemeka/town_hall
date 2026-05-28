@@ -10,7 +10,7 @@ import {
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
 
-export const metadata = { title: "Mission — Admin · Townhall" }
+export const metadata = { title: "Mission — Admin · Twnhall" }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })

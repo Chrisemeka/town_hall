@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { BrowseMissions, type BrowseMission } from "@/components/BrowseMissions";
 
-export const metadata = { title: "Browse Missions — Townhall" };
+export const metadata = { title: "Browse Missions — Twnhall" };
 
 function handleFromUrl(url: string | null, name: string) {
   if (url) {

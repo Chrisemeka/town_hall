@@ -25,7 +25,7 @@ export function TopNav({
       <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
         <Link href="/explore" className="flex items-center gap-2">
           <BugPlay className="w-5 h-5 text-voltage" />
-          <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Townhall</span>
+          <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
         </Link>
       </div>
 

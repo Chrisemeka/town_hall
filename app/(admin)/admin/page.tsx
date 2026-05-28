@@ -156,7 +156,7 @@ export default async function AdminHomePage() {
             Welcome, {displayName}.
           </h1>
           <p className="font-mono text-[14px] text-ash max-w-xl">
-            Manage the Townhall community from here.
+            Manage the Twnhall community from here.
           </p>
         </div>
         <LiveClock />

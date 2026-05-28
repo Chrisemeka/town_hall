@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EditMissionForm from "@/components/EditMissionForm";
 
-export const metadata = { title: "Edit Mission — Townhall" };
+export const metadata = { title: "Edit Mission — Twnhall" };
 
 export default async function EditMissionPage({
   params,

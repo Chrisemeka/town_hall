@@ -1,11 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Onborda, OnbordaProvider, useOnborda } from "onborda"
-import { TOURS, tourForPath } from "./tours"
+import { getTours, tourForPath } from "./tours"
 import { OnbordaCard } from "./OnbordaCard"
 import { markTourSeen } from "@/actions/onboarding"
+
+// Tailwind's `md` breakpoint — below this the desktop nav (and its New Project
+// button) is hidden, so mobile tours skip steps that target it.
+const MOBILE_BREAKPOINT = 768
 
 // AUTO_START_DELAY: small delay before kicking off a tour on a new page so React
 // has time to mount target elements and Onborda can find the selectors.
@@ -76,13 +80,23 @@ export function TourProvider({
   // can safely call useOnborda. The Onborda visual layer is mounted client-only to
   // avoid SSR + framer-motion hydration noise.
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
+
+  const steps = useMemo(() => getTours(isMobile), [isMobile])
 
   return (
     <OnbordaProvider>
       {mounted ? (
         <Onborda
-          steps={TOURS}
+          steps={steps}
           showOnborda={true}
           shadowRgb="14,14,16"
           shadowOpacity="0.85"

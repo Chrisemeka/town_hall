@@ -15,7 +15,7 @@ export function MainNavbar() {
         {/* Logo area */}
         <Link href="/" className="flex items-center gap-2 group">
             <BugPlay size={24} color="#ffff" className="text-surface" />
-          <span className="text-lg font-bold text-on-surface tracking-tight">Townhall</span>
+          <span className="text-lg font-bold text-on-surface tracking-tight">Twnhall</span>
         </Link>
         
         {/* Navigation links */}

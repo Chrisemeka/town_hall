@@ -29,7 +29,7 @@ export default function LandingPage() {
           {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
             <BugPlay className="w-5 h-5 text-midnight" />
-            <span className="font-syne font-bold text-lg tracking-tight text-midnight">Townhall</span>
+            <span className="font-syne font-bold text-lg tracking-tight text-midnight">Twnhall</span>
           </div>
 
           {/* Right group: links + CTA */}
@@ -110,7 +110,7 @@ export default function LandingPage() {
               >
                 <NextImage
                   src="/images/hero-wireframe.svg"
-                  alt="Townhall app dashboard preview"
+                  alt="Twnhall app dashboard preview"
                   width={1128}
                   height={705}
                   className="w-full rounded-[16px] shadow-[0_16px_40px_rgba(0,0,0,0.2)]"
@@ -317,7 +317,7 @@ export default function LandingPage() {
             <div className="flex flex-col gap-5 max-w-sm">
               <div className="flex items-center gap-2">
                 <BugPlay className="w-6 h-6 text-voltage" />
-                <span className="font-syne font-bold text-[22px] text-chalk">Townhall</span>
+                <span className="font-syne font-bold text-[22px] text-chalk">Twnhall</span>
               </div>
               <p className="font-mono text-[14px] text-ash/80 leading-6">
                 Ship with confidence. Test each other.
@@ -349,7 +349,7 @@ export default function LandingPage() {
           {/* Bottom row */}
           <div className="border-t border-iron pt-6 flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="font-mono text-[12px] text-ash/60">
-              &copy; {new Date().getFullYear()} Townhall. All rights reserved.
+              &copy; {new Date().getFullYear()} Twnhall. All rights reserved.
             </span>
             <span className="text-ash/30 text-[10px]">·</span>
             <Link href="/privacy" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Privacy Policy</Link>

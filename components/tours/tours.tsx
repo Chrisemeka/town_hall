@@ -170,6 +170,24 @@ export const TOURS: Tour[] = [
   },
 ]
 
+// Selectors for elements that only exist on the desktop layout (md+). On mobile
+// these are display:none, so a tour step pointing at them would spotlight a
+// zero-size element. We strip those steps from the mobile tour set.
+const DESKTOP_ONLY_SELECTORS = new Set(["#tour-new-project-btn"])
+
+// Return the tour set adjusted for the current viewport. On mobile we drop steps
+// that target desktop-only elements, and remove any tour left with no steps.
+export function getTours(isMobile: boolean): Tour[] {
+  if (!isMobile) return TOURS
+
+  return TOURS
+    .map((tour) => ({
+      ...tour,
+      steps: tour.steps.filter((step) => !DESKTOP_ONLY_SELECTORS.has(step.selector)),
+    }))
+    .filter((tour) => tour.steps.length > 0)
+}
+
 // Map a pathname to a tour name. Returns null if the page has no tour.
 export function tourForPath(pathname: string): string | null {
   if (pathname === "/explore") return "explore"

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export const metadata = {
-  title: "New Project — Townhall",
+  title: "New Project — Twnhall",
 };
 
 export default async function NewProjectPage() {

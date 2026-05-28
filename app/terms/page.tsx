@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BugPlay } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Terms of Service — Townhall" };
+export const metadata: Metadata = { title: "Terms of Service — Twnhall" };
 
 export default function TermsPage() {
   return (
@@ -13,7 +13,7 @@ export default function TermsPage() {
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <BugPlay className="w-5 h-5 text-midnight" />
-            <span className="font-syne font-bold text-[18px] text-midnight">Townhall</span>
+            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </Link>
           <Link
             href="/"
@@ -34,13 +34,13 @@ export default function TermsPage() {
         <p className="font-mono text-[13px] text-midnight/60 mb-6">Last updated: May 11, 2026</p>
 
         <p className="font-mono text-[14px] leading-7 text-midnight/70 mb-12">
-          Welcome to <span className="text-midnight">Townhall</span>, the application designed to help you get real feedback from developers on your project. By using Townhall, you agree to abide by the following terms and conditions.
+          Welcome to <span className="text-midnight">Twnhall</span>, the application designed to help you get real feedback from developers on your project. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
 
         <div className="flex flex-col gap-10">
 
           <Section number="1" title="User Agreement">
-            <p>By using Townhall, you agree to comply with all applicable laws and regulations.</p>
+            <p>By using Twnhall, you agree to comply with all applicable laws and regulations.</p>
           </Section>
 
           <Section number="2" title="Privacy Policy">
@@ -56,12 +56,12 @@ export default function TermsPage() {
           </Section>
 
           <Section number="4" title="Liability and Disclaimers">
-            <p>Townhall is not liable for any damages or losses incurred while using the app.</p>
-            <p>Users acknowledge that they use Townhall at their own risk.</p>
+            <p>Twnhall is not liable for any damages or losses incurred while using the app.</p>
+            <p>Users acknowledge that they use Twnhall at their own risk.</p>
           </Section>
 
           <Section number="5" title="Termination Policy">
-            <p>Townhall reserves the right to suspend or terminate accounts that violate our terms and conditions.</p>
+            <p>Twnhall reserves the right to suspend or terminate accounts that violate our terms and conditions.</p>
           </Section>
 
           <Section number="6" title="Updates and Changes">
@@ -83,7 +83,7 @@ export default function TermsPage() {
 
           <div className="pt-6 border-t border-midnight/10">
             <p className="font-mono text-[13px] leading-6 text-midnight/70">
-              By using Townhall, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use the app.
+              By using Twnhall, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use the app.
             </p>
           </div>
 
@@ -93,7 +93,7 @@ export default function TermsPage() {
       {/* Footer — dark, matches landing */}
       <footer className="w-full bg-obsidian font-mono">
         <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Townhall. All rights reserved.</p>
+          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
             <Link href="/terms" className="font-mono text-[12px] text-voltage">Terms of Service</Link>

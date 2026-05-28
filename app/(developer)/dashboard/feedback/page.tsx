@@ -5,7 +5,7 @@ import { MessageSquare } from "lucide-react";
 import { FeedbackListPaged, type FeedbackEntry } from "@/components/FeedbackListPaged";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "Feedback Received — Townhall" };
+export const metadata = { title: "Feedback Received — Twnhall" };
 
 export default async function FeedbackReceivedPage() {
   const supabase = await createClient();
