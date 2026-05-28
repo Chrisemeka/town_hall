@@ -53,8 +53,8 @@ export default function MissionResultRow({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Two-column grid */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* Two-column grid (stacks on mobile) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* PROOF OF VISIT */}
         <div className="flex flex-col gap-3">
