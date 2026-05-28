@@ -5,7 +5,7 @@ import { BugPlay } from "lucide-react";
 import { TermsAcceptForm } from "@/components/TermsAcceptForm";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Accept Terms — Townhall" };
+export const metadata: Metadata = { title: "Accept Terms — Twnhall" };
 
 export default async function TermsAcceptPage() {
   const supabase = await createClient();
@@ -45,7 +45,7 @@ export default async function TermsAcceptPage() {
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center">
           <div className="flex items-center gap-2">
             <BugPlay className="w-5 h-5 text-midnight" />
-            <span className="font-syne font-bold text-[18px] text-midnight">Townhall</span>
+            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </div>
         </div>
       </header>
@@ -80,7 +80,7 @@ export default async function TermsAcceptPage() {
           <TermsAcceptForm />
 
           <p className="font-mono text-[12px] text-midnight/60 mt-8 leading-6">
-            By continuing you confirm that you have read and accepted Townhall's policies. Your acceptance is recorded against your account.
+            By continuing you confirm that you have read and accepted Twnhall's policies. Your acceptance is recorded against your account.
           </p>
 
         </div>

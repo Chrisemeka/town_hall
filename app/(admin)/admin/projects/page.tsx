@@ -5,7 +5,7 @@ import {
 } from "lucide-react"
 import { ProjectRowActions } from "@/components/admin/ProjectRowActions"
 
-export const metadata = { title: "Projects — Admin · Townhall" }
+export const metadata = { title: "Projects — Admin · Twnhall" }
 
 type ProjectStatus = "active" | "needs-testers" | "draft" | "flagged"
 

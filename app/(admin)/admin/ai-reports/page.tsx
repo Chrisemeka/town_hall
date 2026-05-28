@@ -5,7 +5,7 @@ import {
 } from "lucide-react"
 import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
 
-export const metadata = { title: "AI Reports — Admin · Townhall" }
+export const metadata = { title: "AI Reports — Admin · Twnhall" }
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const REPORT_LIMIT = 60

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
 
-export const metadata = { title: "Settings — Townhall" };
+export const metadata = { title: "Settings — Twnhall" };
 
 export default async function SettingsPage() {
   const supabase = await createClient();

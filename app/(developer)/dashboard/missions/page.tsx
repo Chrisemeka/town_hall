@@ -5,7 +5,7 @@ import { Target } from "lucide-react";
 import { MissionListPaged, type PagedMission } from "@/components/MissionListPaged";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "My Missions — Townhall" };
+export const metadata = { title: "My Missions — Twnhall" };
 
 export default async function MyMissionsPage() {
   const supabase = await createClient();

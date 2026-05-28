@@ -18,7 +18,7 @@ export function OnbordaCard({
 
   return (
     <div
-      className="w-[340px] max-w-[90vw] bg-graphite border border-iron rounded-[12px] p-5 text-chalk font-mono"
+      className="w-[min(340px,calc(100vw-24px))] bg-graphite border border-iron rounded-[12px] p-4 sm:p-5 text-chalk font-mono"
       style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.6)" }}
     >
       {/* Header */}

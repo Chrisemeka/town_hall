@@ -32,7 +32,7 @@ export function AdminTopNav() {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           <Link href="/admin" className="flex items-center gap-2 shrink-0">
             <BugPlay className="w-5 h-5 text-voltage" />
-            <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Townhall</span>
+            <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
           </Link>
           <span className="hidden sm:flex items-center gap-1 font-mono text-[10px] uppercase tracking-[1px] text-voltage border border-voltage/40 rounded px-2 py-0.5 shrink-0">
             <ShieldCheck className="w-3 h-3" />

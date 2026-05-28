@@ -6,7 +6,7 @@ import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
 import { RoleDistributionChart, type RoleSlice } from "@/components/admin/RoleDistributionChart"
 import { UserRowActions, type ModerationStatus } from "@/components/admin/UserRowActions"
 
-export const metadata = { title: "Users — Admin · Townhall" }
+export const metadata = { title: "Users — Admin · Twnhall" }
 
 type ProfileRow = {
   id: string

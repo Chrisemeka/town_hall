@@ -7,7 +7,7 @@ import {
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
 
-export const metadata = { title: "Submissions — Admin · Townhall" }
+export const metadata = { title: "Submissions — Admin · Twnhall" }
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000
 const CARD_LIMIT = 100

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import AddMissionForm from "@/components/AddMissionForm";
 
-export const metadata = { title: "New Mission — Townhall" };
+export const metadata = { title: "New Mission — Twnhall" };
 
 export default async function NewMissionPage({
   params,

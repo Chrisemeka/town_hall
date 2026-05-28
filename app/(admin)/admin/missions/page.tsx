@@ -2,7 +2,7 @@ import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Target, ShieldCheck, CheckCircle2, PauseCircle, MessageSquare } from "lucide-react"
 
-export const metadata = { title: "Missions — Admin · Townhall" }
+export const metadata = { title: "Missions — Admin · Twnhall" }
 
 type MissionStatus = "active" | "inactive"
 

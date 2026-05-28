@@ -15,7 +15,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Townhall",
+  title: "Twnhall",
   description: "Connecting developers with real-world testers.",
 };
 

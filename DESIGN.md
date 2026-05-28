@@ -1,6 +1,6 @@
-# Townhall — Design Brief
+# Twnhall — Design Brief
 **Version:** 2.1  
-**Product:** Townhall — Peer Usability Testing Platform for Developers  
+**Product:** Twnhall — Peer Usability Testing Platform for Developers  
 **Audience:** Developers & Engineers (dual role: submitters + testers)  
 **Stage:** Early-Stage Startup  
 **Scope:** Landing Page + Product Dashboard  
@@ -9,8 +9,8 @@
 
 ## 1. Product Overview
 
-### What is Townhall?
-Townhall is a peer-driven usability testing platform where developers upload their projects to be tested by other developers in the community. Every user is both a builder and a tester — you submit your project for feedback, and you give feedback on others'. It is collaborative, community-first, and built entirely around the developer-to-developer feedback loop.
+### What is Twnhall?
+Twnhall is a peer-driven usability testing platform where developers upload their projects to be tested by other developers in the community. Every user is both a builder and a tester — you submit your project for feedback, and you give feedback on others'. It is collaborative, community-first, and built entirely around the developer-to-developer feedback loop.
 
 ### How It Works (Core Flow)
 
@@ -28,7 +28,7 @@ Townhall is a peer-driven usability testing platform where developers upload the
 The platform is purely community-driven — no points, no rewards. The implicit incentive is reciprocity: you test others so others will test you. To maintain trust and quality, every feedback submission requires both written feedback and a screenshot from the project — the screenshot acts as proof of visit and provides visual context for the submitter. This is the core value proposition and must be communicated clearly throughout the design.
 
 ### The One Thing Users Will Remember
-**"Ship with confidence. Test each other."** Townhall feels like a developer community, not a SaaS tool — it carries the energy of a shared workspace where peers hold each other accountable.
+**"Ship with confidence. Test each other."** Twnhall feels like a developer community, not a SaaS tool — it carries the energy of a shared workspace where peers hold each other accountable.
 
 ---
 
@@ -94,7 +94,7 @@ Mission Detail Page
 "Open Project in New Tab" → User tests project externally
       │
       ▼
-Returns to Townhall → Feedback form unlocks
+Returns to Twnhall → Feedback form unlocks
       │
       ▼
 Submit Written Feedback + Screenshot → Logged to submitter's dashboard
@@ -106,7 +106,7 @@ Submit Written Feedback + Screenshot → Logged to submitter's dashboard
 
 ### 4.1 Color System
 
-Townhall uses a **neutrals-first dark palette with a single bold accent**, following the 60-30-10 rule:
+Twnhall uses a **neutrals-first dark palette with a single bold accent**, following the 60-30-10 rule:
 - **60%** — Deep neutral backgrounds (Obsidian, Graphite)
 - **30%** — Surface tones, borders, secondary text (Iron, Ash)
 - **10%** — Voltage accent, used exclusively on the most important action per screen
@@ -144,14 +144,14 @@ Townhall uses a **neutrals-first dark palette with a single bold accent**, follo
 
 ### 4.2 Typography
 
-Townhall uses a **two-font system** — a geometric display font for brand presence, and a monospace UI font that speaks directly to the developer audience.
+Twnhall uses a **two-font system** — a geometric display font for brand presence, and a monospace UI font that speaks directly to the developer audience.
 
 | Role | Font | Weight | Source |
 |------|------|--------|--------|
 | **Display / Headings** | [Syne](https://fonts.google.com/specimen/Syne) | Bold (700) | Google Fonts |
 | **UI / Body / Code** | [DM Mono](https://fonts.google.com/specimen/DM+Mono) | Regular (400), Medium (500) | Google Fonts |
 
-> **Font rationale:** Syne is angular, geometric, and distinctly modern — it ages well and carries editorial authority. DM Mono brings the developer aesthetic front and centre: monospace fonts communicate precision, code-adjacency, and technical credibility. For a peer testing platform, the font itself signals that Townhall was built by and for developers.
+> **Font rationale:** Syne is angular, geometric, and distinctly modern — it ages well and carries editorial authority. DM Mono brings the developer aesthetic front and centre: monospace fonts communicate precision, code-adjacency, and technical credibility. For a peer testing platform, the font itself signals that Twnhall was built by and for developers.
 
 #### Type Scale (4px grid, base: 16px)
 
@@ -326,7 +326,7 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 
 **Top Nav:**
 - Height: `56px`, Background: `#0E0E10`, `border-bottom: 1px solid #2C2C35`
-- Left: Logo + Townhall wordmark (Syne Bold, Chalk)
+- Left: Logo + Twnhall wordmark (Syne Bold, Chalk)
 - Center: Global search input, 320px, DM Mono 14px
 - Right: "New Project" (Secondary SM) + notification icon + user avatar (32px)
 
@@ -356,7 +356,7 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 - Height: `64px`, sticky, `backdrop-filter: blur(12px)`
 - Background: `rgba(245,245,247,0.85)` Bone with backdrop blur
 - Layout: logo far-left, links + Primary CTA grouped together on the far-right (no centered nav)
-- Logo: BugPlay icon (20×20, Midnight) + "Townhall" wordmark (Syne Bold 18px, Midnight)
+- Logo: BugPlay icon (20×20, Midnight) + "Twnhall" wordmark (Syne Bold 18px, Midnight)
 - Nav links: How It Works | Community — DM Mono 14px, Midnight 70% default → Midnight 100% hover, gap `28–36px` between links
 - Gap between link group and CTA: `32–40px` (`gap-8 lg:gap-10`)
 - CTA: Primary SM "Start Testing Free" (Voltage bg, Obsidian text, 8px radius) — triggers Google sign-in
@@ -422,7 +422,7 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 **⑦ Footer**
 - Two-region layout: brand block left + 2 link columns right (`flex-col lg:flex-row lg:justify-between`)
 - **Brand block** (`max-w-sm`):
-  - BugPlay icon (24×24, Voltage) + "Townhall" wordmark (22px Syne Bold, Chalk)
+  - BugPlay icon (24×24, Voltage) + "Twnhall" wordmark (22px Syne Bold, Chalk)
   - Tagline: "Ship with confidence. Test each other." (14px DM Mono, Ash 80%, `leading-6`)
   - Outlined pill CTA: "Start Testing Free" — `h-10 px-5`, `rounded-full`, `border border-ash/30`, Chalk text, DM Mono Medium 13px. Hover: `bg-chalk/[0.06]` + `border-chalk/40`. Triggers Google sign-in.
 - **Link columns** (gap `64–96px`):
@@ -560,7 +560,7 @@ User acting as **Submitter**. Managing their own submissions.
 
 ## 7. Visual Hierarchy Rules
 
-Applied from the DesignSpo framework, ranked and mapped to Townhall:
+Applied from the DesignSpo framework, ranked and mapped to Twnhall:
 
 1. **Size** — One Display or H1 per page anchors the eye. Mission watermark numbers are a scaled, intentional exception that creates rhythm, not competition.
 2. **Color (Voltage)** — One Primary CTA per viewport, never decorative. The moment it appears on two things, it stops meaning anything.
@@ -626,7 +626,7 @@ No infinite animations. No looping effects. Motion nudges attention once, then s
 
 ## 11. Tone of Voice
 
-Townhall speaks peer-to-peer — like a sharp, collegial developer, not a SaaS marketing page.
+Twnhall speaks peer-to-peer — like a sharp, collegial developer, not a SaaS marketing page.
 
 | Do | Don't |
 |----|-------|
@@ -710,4 +710,4 @@ KEY RULES
 
 ---
 
-*Design brief v2.1 — Townhall, peer usability testing platform for developers. All decisions grounded in the DesignSpo framework: 4-pixel grid system, HSB color theory, visual hierarchy by contrast, and typographic hierarchy by scale. v2.1 updates landing-page grid to 1,200px max width, responsive heading scale, and revised landing section specs (light How-it-Works, dividers, restructured footer).*
+*Design brief v2.1 — Twnhall, peer usability testing platform for developers. All decisions grounded in the DesignSpo framework: 4-pixel grid system, HSB color theory, visual hierarchy by contrast, and typographic hierarchy by scale. v2.1 updates landing-page grid to 1,200px max width, responsive heading scale, and revised landing section specs (light How-it-Works, dividers, restructured footer).*

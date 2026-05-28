@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BugPlay } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Privacy Policy — Townhall" };
+export const metadata: Metadata = { title: "Privacy Policy — Twnhall" };
 
 export default function PrivacyPolicyPage() {
   return (
@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <BugPlay className="w-5 h-5 text-midnight" />
-            <span className="font-syne font-bold text-[18px] text-midnight">Townhall</span>
+            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </Link>
           <Link
             href="/"
@@ -36,18 +36,18 @@ export default function PrivacyPolicyPage() {
         <div className="flex flex-col gap-10">
 
           <p className="font-mono text-[14px] leading-7 text-midnight/70">
-            At <span className="text-midnight">Townhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
+            At <span className="text-midnight">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
           </p>
 
           <Section title="Information We Collect">
             <p>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
-            <p><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Townhall, we may collect certain personal information such as your name, email address, and profile picture.</p>
+            <p><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture.</p>
             <p><span className="text-midnight font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device's Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p><span className="text-midnight font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
           </Section>
 
           <Section title="How We Use Your Information">
-            <p>We use your personal information to create and manage your Townhall account, communicate with you by email, or other equivalent forms of electronic communication, such as push notifications about updates or informative communications related to the functionalities, products or contracted services, including security updates when necessary or reasonable for their implementation, and to personalize your experience on the app.</p>
+            <p>We use your personal information to create and manage your Twnhall account, communicate with you by email, or other equivalent forms of electronic communication, such as push notifications about updates or informative communications related to the functionalities, products or contracted services, including security updates when necessary or reasonable for their implementation, and to personalize your experience on the app.</p>
             <p>We use usage information to improve our app, analyze trends, and enhance user experience.</p>
             <p>We may use device information to troubleshoot technical issues and ensure compatibility with our app.</p>
           </Section>
@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
       {/* Footer — dark, matches landing */}
       <footer className="w-full bg-obsidian font-mono">
         <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Townhall. All rights reserved.</p>
+          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="font-mono text-[12px] text-voltage">Privacy Policy</Link>
             <Link href="/terms" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Terms of Service</Link>
