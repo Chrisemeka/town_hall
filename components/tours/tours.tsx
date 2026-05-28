@@ -89,12 +89,37 @@ export const TOURS: Tour[] = [
     ],
   },
   {
+    tour: "project-missions",
+    steps: [
+      {
+        icon: "🔍",
+        title: "Check out the project",
+        content: <>Here's what you'll be testing. Read the summary and open the live site to see it for yourself.</>,
+        selector: "#tour-project-overview",
+        side: "bottom",
+        showControls: true,
+        pointerPadding: 8,
+        pointerRadius: 10,
+      },
+      {
+        icon: "🚀",
+        title: "Pick a mission",
+        content: <>Choose a mission and hit <span className="font-medium">Start</span> to read the brief and submit your feedback.</>,
+        selector: "#tour-project-missions",
+        side: "bottom",
+        showControls: true,
+        pointerPadding: 8,
+        pointerRadius: 10,
+      },
+    ],
+  },
+  {
     tour: "browse-missions",
     steps: [
       {
         icon: "🗺️",
         title: "Every open mission",
-        content: <>A flat list of every mission across every active project. Click any mission to read the brief and submit feedback — use this when you want a quick task rather than picking a whole project.</>,
+        content: <>Every open mission in one place. Tap one to read the brief and leave feedback.</>,
         selector: "#tour-browse-missions-header",
         side: "bottom",
         showControls: true,
@@ -170,22 +195,25 @@ export const TOURS: Tour[] = [
   },
 ]
 
-// Selectors for elements that only exist on the desktop layout (md+). On mobile
-// these are display:none, so a tour step pointing at them would spotlight a
-// zero-size element. We strip those steps from the mobile tour set.
-const DESKTOP_ONLY_SELECTORS = new Set(["#tour-new-project-btn"])
+// Some targets live in the desktop nav (md+) and are display:none on mobile,
+// where an equivalent element exists under a different id. On mobile we retarget
+// the step to its mobile counterpart so the spotlight lands on a visible element.
+const MOBILE_SELECTOR_OVERRIDES: Record<string, string> = {
+  "#tour-new-project-btn": "#tour-new-project-btn-mobile",
+}
 
-// Return the tour set adjusted for the current viewport. On mobile we drop steps
-// that target desktop-only elements, and remove any tour left with no steps.
+// Return the tour set adjusted for the current viewport. On mobile we swap any
+// desktop-only selectors for their mobile equivalents.
 export function getTours(isMobile: boolean): Tour[] {
   if (!isMobile) return TOURS
 
-  return TOURS
-    .map((tour) => ({
-      ...tour,
-      steps: tour.steps.filter((step) => !DESKTOP_ONLY_SELECTORS.has(step.selector)),
-    }))
-    .filter((tour) => tour.steps.length > 0)
+  return TOURS.map((tour) => ({
+    ...tour,
+    steps: tour.steps.map((step) => {
+      const override = MOBILE_SELECTOR_OVERRIDES[step.selector]
+      return override ? { ...step, selector: override } : step
+    }),
+  }))
 }
 
 // Map a pathname to a tour name. Returns null if the page has no tour.
@@ -194,6 +222,7 @@ export function tourForPath(pathname: string): string | null {
   if (pathname === "/dashboard") return "my-projects"
   if (pathname === "/dashboard/new") return "new-project"
   if (pathname === "/explore/missions") return "browse-missions"
+  if (pathname.startsWith("/explore/project/")) return "project-missions"
   if (pathname.startsWith("/mission/")) return "mission-submission"
   if (pathname === "/dashboard/missions") return "my-missions"
   if (pathname === "/dashboard/feedback") return "feedback-received"

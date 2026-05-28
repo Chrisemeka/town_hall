@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 export type FeedbackEntry = {
   id: string
@@ -65,9 +66,10 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
 
             <div className="flex flex-col gap-4">
               {group.entries.map((item, i) => (
-                <div
+                <Link
                   key={item.id}
-                  style={{ borderLeft: "3px solid #2C2C35", paddingLeft: 16 }}
+                  href={`/dashboard/${item.projectId}/mission/${item.missionId}`}
+                  className="group block border-l-[3px] border-iron pl-4 hover:border-voltage transition-colors duration-150"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-mono text-[12px] text-ash">
@@ -77,29 +79,15 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                     <span className="font-mono text-[12px] text-ash/60">{relTime(item.created_at)}</span>
                   </div>
 
-                  <p className="font-mono text-[14px] text-chalk leading-5 whitespace-pre-wrap mb-3">
+                  <p className="font-mono text-[14px] text-chalk leading-5 line-clamp-3">
                     {item.tester_comment}
                   </p>
 
-                  {item.screenshot_url && (
-                    <div>
-                      <img
-                        src={item.screenshot_url}
-                        alt="tester screenshot"
-                        className="w-full rounded-[8px] object-cover"
-                        style={{ maxHeight: 160 }}
-                      />
-                      <a
-                        href={item.screenshot_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-flex h-7 items-center px-3 border border-iron text-ash rounded-[6px] font-mono text-[12px] hover:border-voltage hover:text-voltage transition-colors duration-150"
-                      >
-                        View full screenshot
-                      </a>
-                    </div>
-                  )}
-                </div>
+                  <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
+                    Read full feedback
+                    <ArrowRight className="w-3 h-3" />
+                  </span>
+                </Link>
               ))}
             </div>
           </div>

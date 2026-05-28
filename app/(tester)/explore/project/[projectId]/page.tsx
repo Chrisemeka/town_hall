@@ -53,6 +53,7 @@ export default async function ProjectMissionsPage({
 
       {/* Project card */}
       <div
+        id="tour-project-overview"
         className="bg-graphite border border-iron rounded-[12px] p-6 mb-10"
         style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
       >
@@ -77,7 +78,7 @@ export default async function ProjectMissionsPage({
       </div>
 
       {/* Missions header */}
-      <div className="mb-5">
+      <div id="tour-project-missions" className="mb-5">
         <h2 className="font-syne font-bold text-[20px] text-chalk">Missions</h2>
         <p className="font-mono text-[13px] text-ash mt-0.5">
           {missions.length} available to test
@@ -95,15 +96,6 @@ export default async function ProjectMissionsPage({
               className="relative overflow-hidden bg-graphite border border-iron rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 hover:border-voltage/30 transition-colors duration-150"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
-              {/* Watermark number */}
-              <span
-                className="absolute right-4 top-1/2 -translate-y-1/2 font-syne font-bold select-none pointer-events-none leading-none text-voltage"
-                style={{ fontSize: 96, opacity: 0.08 }}
-                aria-hidden="true"
-              >
-                {num}
-              </span>
-
               <div className="flex-1 min-w-0 relative z-10">
                 <span className="font-syne font-bold text-voltage text-[14px] leading-none">
                   {num}
