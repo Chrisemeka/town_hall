@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { BugPlay, LogOut, User, Menu, X } from "lucide-react"
+import { BugPlay, LogOut, User, Menu, X, Plus } from "lucide-react"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { signOutAction } from "@/actions/auth"
 
@@ -75,14 +75,25 @@ export function TopNav({
         </form>
       </div>
 
-      {/* Right: Mobile hamburger */}
-      <button
-        className="md:hidden p-2 text-ash hover:text-chalk transition-colors duration-150"
-        onClick={onToggleSidebar}
-        aria-label="Toggle menu"
-      >
-        {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
+      {/* Right: Mobile actions */}
+      <div className="flex md:hidden items-center gap-2 shrink-0">
+        <Link
+          id="tour-new-project-btn-mobile"
+          href="/dashboard/new"
+          aria-label="New Project"
+          className="w-9 h-9 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
+        >
+          <Plus className="w-5 h-5" />
+        </Link>
+
+        <button
+          className="p-2 text-ash hover:text-chalk transition-colors duration-150"
+          onClick={onToggleSidebar}
+          aria-label="Toggle menu"
+        >
+          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+      </div>
 
     </header>
   )

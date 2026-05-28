@@ -87,15 +87,6 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                 className="relative overflow-hidden bg-graphite border border-iron rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-voltage/30"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
-                {/* Watermark number */}
-                <span
-                  className="absolute right-4 top-1/2 -translate-y-1/2 font-syne font-bold select-none pointer-events-none leading-none text-voltage"
-                  style={{ fontSize: 96, opacity: 0.08 }}
-                  aria-hidden="true"
-                >
-                  {num}
-                </span>
-
                 {/* Left content */}
                 <div className="flex-1 min-w-0 relative z-10">
                   {/* Number + project · handle */}

@@ -118,14 +118,16 @@ export default async function DeveloperMissionDetailPage({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col">
           {results.map((result, i) => (
-            <MissionResultRow
-              key={result.id}
-              result={result}
-              index={i}
-              appUrl={project?.app_url ?? null}
-            />
+            <div key={result.id}>
+              {i > 0 && <div className="my-10 border-t border-iron" />}
+              <MissionResultRow
+                result={result}
+                index={i}
+                appUrl={project?.app_url ?? null}
+              />
+            </div>
           ))}
         </div>
       )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight, ExternalLink } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
 
@@ -123,14 +123,6 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                   className="relative bg-graphite border border-iron rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-voltage/30"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
                 >
-                  {/* Voltage watermark number */}
-                  <div
-                    className="absolute right-4 top-1/2 -translate-y-1/2 font-syne font-bold text-voltage leading-none select-none pointer-events-none"
-                    style={{ fontSize: 96, opacity: 0.08 }}
-                  >
-                    {missionNum}
-                  </div>
-
                   {/* Card content */}
                   <div className="relative z-10 flex flex-col gap-3">
                     {/* Title row */}
@@ -191,10 +183,10 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
                 <div className="flex flex-col gap-4">
                   {items.map((result, idx) => (
-                    <div
+                    <Link
                       key={result.id}
-                      className="pl-4"
-                      style={{ borderLeft: "3px solid #2C2C35" }}
+                      href={`/dashboard/${projectId}/mission/${mission.id}`}
+                      className="group block border-l-[3px] border-iron pl-4 hover:border-voltage transition-colors duration-150"
                     >
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
@@ -207,32 +199,16 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         </span>
                       </div>
 
-                      {/* Feedback body */}
-                      <p className="font-mono text-[16px] leading-6 text-chalk mb-4">
+                      {/* Feedback body (truncated — full breakdown on mission page) */}
+                      <p className="font-mono text-[16px] leading-6 text-chalk line-clamp-3">
                         {result.tester_comment}
                       </p>
 
-                      {/* Screenshot thumbnail */}
-                      {result.screenshot_url && (
-                        <div className="flex flex-col gap-2">
-                          <img
-                            src={result.screenshot_url}
-                            alt="Screenshot"
-                            className="w-full rounded-[8px] object-cover"
-                            style={{ maxHeight: 160 }}
-                          />
-                          <a
-                            href={result.screenshot_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 font-mono text-[12px] text-ash hover:text-chalk transition-colors duration-150 w-fit"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            View full screenshot
-                          </a>
-                        </div>
-                      )}
-                    </div>
+                      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
+                        Read full feedback
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </Link>
                   ))}
                 </div>
               </div>

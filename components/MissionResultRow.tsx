@@ -42,7 +42,7 @@ export default function MissionResultRow({
   index: number
   appUrl: string | null
 }) {
-  const [insightOpen, setInsightOpen] = useState(true)
+  const [insightOpen, setInsightOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const developerNum = String(index + 1).padStart(2, "0")
@@ -53,8 +53,8 @@ export default function MissionResultRow({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Two-column grid */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* Two-column grid (stacks on mobile) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* PROOF OF VISIT */}
         <div className="flex flex-col gap-3">
@@ -113,7 +113,7 @@ export default function MissionResultRow({
         <div className="bg-graphite border border-iron rounded-[12px] p-6">
           <div className="flex items-center justify-between mb-4">
             <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
-              SYSTEM INSIGHT
+              Test Report
             </p>
             <button
               onClick={() => setInsightOpen(!insightOpen)}
