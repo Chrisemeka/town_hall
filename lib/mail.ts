@@ -9,12 +9,12 @@ import AdminBroadcast, {
   type AdminBroadcastProps,
 } from "@/emails/admin-broadcast"
 
-// Until a custom TownHall domain is verified in Resend, fall back to the
+// Until a custom Twnhall domain is verified in Resend, fall back to the
 // shared sandbox sender. Override per-env with MAIL_FROM_* if needed.
 const FROM_NOTIFICATIONS =
-  process.env.MAIL_FROM_NOTIFICATIONS ?? "TownHall <notifications@twnhall.com>"
+  process.env.MAIL_FROM_NOTIFICATIONS ?? "Twnhall <notifications@twnhall.com>"
 const FROM_ADMIN =
-  process.env.MAIL_FROM_ADMIN ?? "TownHall <notifications@twnhall.com>"
+  process.env.MAIL_FROM_ADMIN ?? "Twnhall <notifications@twnhall.com>"
 
 const BATCH_SIZE = 50
 

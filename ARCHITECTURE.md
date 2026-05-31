@@ -1,7 +1,7 @@
-# TownHall — Architecture Overview
+# Twnhall — Architecture Overview
 
-## What is TownHall?
-TownHall is a collaborative testing platform where developers can submit 
+## What is Twnhall?
+Twnhall is a collaborative testing platform where developers can submit 
 their web applications to be tested by other developers in exchange for 
 testing others in return.
 

@@ -36,7 +36,7 @@ export default function FeedbackNotification({
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={brand}>TownHall</Text>
+            <Text style={brand}>Twnhall</Text>
             <Text style={tagline}>Real feedback for real builders.</Text>
           </Section>
 
@@ -67,7 +67,7 @@ export default function FeedbackNotification({
             </Section>
 
             <Text style={paragraph}>
-              Open the submission in TownHall to see screenshots, the tester&apos;s
+              Open the submission in Twnhall to see screenshots, the tester&apos;s
               comments, and the AI summary.
             </Text>
           </Section>
@@ -76,10 +76,10 @@ export default function FeedbackNotification({
 
           <Section style={footer}>
             <Text style={footerText}>
-              You&apos;re receiving this because you own a project on TownHall.
+              You&apos;re receiving this because you own a project on Twnhall.
             </Text>
             <Text style={footerText}>
-              TownHall · Real feedback for real builders.
+              Twnhall · Real feedback for real builders.
             </Text>
           </Section>
         </Container>

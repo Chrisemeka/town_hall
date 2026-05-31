@@ -1,4 +1,4 @@
-# TownHall Email Notification System
+# Twnhall Email Notification System
 
 
 ## What to build
@@ -51,12 +51,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 A clean, branded email template sent to a project owner when they receive new feedback.
 
 Must include:
-- TownHall branding (name + tagline in header)
+- Twnhall branding (name + tagline in header)
 - Tester's name (or "A tester")
 - The project name being tested
 - The mission title
 - A short excerpt or summary of what was tested (passed as a prop)
-- A CTA button: "View Feedback" — links to the submission page on TownHall
+- A CTA button: "View Feedback" — links to the submission page on Twnhall
 - Clean footer with unsubscribe note
 
 Props interface:
@@ -76,11 +76,11 @@ interface FeedbackNotificationProps {
 A clean, general-purpose email template for admin messages.
 
 Must include:
-- TownHall branding in header
+- Twnhall branding in header
 - Subject/headline (passed as prop)
 - Message body (passed as prop, support basic line breaks)
 - Optional CTA button (label + URL, both optional props)
-- Footer with "This message was sent by the TownHall admin team"
+- Footer with "This message was sent by the Twnhall admin team"
 
 Props interface:
 ```ts
@@ -107,13 +107,13 @@ A shared utility that initialises the Resend client and exports two send functio
 
 sendFeedbackNotification(props: FeedbackNotificationProps & { to: string }): Promise<void>
 // - Renders the FeedbackNotification email template
-// - Sends via Resend from "TownHall <notifications@yourdomain.com>"
+// - Sends via Resend from "Twnhall <notifications@yourdomain.com>"
 // - Subject: "You have new feedback on [projectName]"
 // - Handles and logs errors without throwing (fire-and-forget)
 
 sendAdminBroadcast(props: AdminBroadcastProps & { to: string | string[] }): Promise<void>
 // - Renders the AdminBroadcast email template
-// - Sends via Resend from "TownHall <admin@yourdomain.com>"
+// - Sends via Resend from "Twnhall <admin@yourdomain.com>"
 // - Subject: passed in as props.subject
 // - If `to` is an array, send in batches of 50 (Resend batch limit)
 // - Handles and logs errors without throwing
