@@ -179,7 +179,7 @@ export default async function AdminHomePage() {
         <NavCard href="/admin/missions"    icon={Target}        title="Missions"    desc="Every mission across the platform with status, owner, and feedback counts." />
         <NavCard href="/admin/submissions" icon={MessageSquare} title="Submissions" desc="Every test result by a tester with comments, AI summaries, and screenshots." />
         <NavCard href="/admin/ai-reports"  icon={Sparkles}      title="AI Reports"  desc="Monitor AI-generated summaries and sentiment, with coverage and failure tracking." />
-        <NavCard href="/admin/email"       icon={Mail}          title="Email"       desc="Send a broadcast to a single user or everyone on TownHall." />
+        <NavCard href="/admin/email"       icon={Mail}          title="Email"       desc="Send a broadcast to a single user or everyone on Twnhall." />
       </div>
 
       {/* ── Recent activity ──────────────────────────────────── */}

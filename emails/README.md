@@ -1,4 +1,4 @@
-# TownHall — Email Notifications
+# Twnhall — Email Notifications
 
 Server-side transactional email via [Resend](https://resend.com) and
 [React Email](https://react.email). Two flows:
@@ -31,10 +31,10 @@ WEBHOOK_SECRET=replace-with-a-long-random-string
 # Grab from https://dashboard.ngrok.com/get-started/your-authtoken
 NGROK_AUTHTOKEN=replace-with-your-ngrok-authtoken
 
-# Optional: override the sender once a custom TownHall domain
+# Optional: override the sender once a custom Twnhall domain
 # is verified in Resend. Defaults to the Resend sandbox sender.
-# MAIL_FROM_NOTIFICATIONS=TownHall <notifications@yourdomain.com>
-# MAIL_FROM_ADMIN=TownHall <admin@yourdomain.com>
+# MAIL_FROM_NOTIFICATIONS=Twnhall <notifications@yourdomain.com>
+# MAIL_FROM_ADMIN=Twnhall <admin@yourdomain.com>
 ```
 
 > Until a custom domain is verified in Resend, the system falls back to
@@ -47,7 +47,7 @@ After deploying the API route, configure the webhook in Supabase:
 1. Dashboard → **Database** → **Webhooks** → **Create a new hook**.
 2. Settings:
    - **Name**: `on_submission_insert`
-   - **Table**: `test_results` *(TownHall's submissions table)*
+   - **Table**: `test_results` *(Twnhall's submissions table)*
    - **Events**: `Insert`
    - **Type**: HTTP request
    - **Method**: `POST`

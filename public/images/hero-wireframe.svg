@@ -18,7 +18,7 @@
     <circle cx="76" cy="25" r="7" fill="#28C840"/>
     <!-- URL bar -->
     <rect x="414" y="13" width="300" height="24" rx="6" fill="#1A1A1F" stroke="#2C2C35" stroke-width="0.5"/>
-    <text x="564" y="29" font-family="ui-monospace,'Fira Code','Cascadia Code',monospace" font-size="12" fill="#8A8A99" text-anchor="middle">townhall.dev/explore</text>
+    <text x="564" y="29" font-family="ui-monospace,'Fira Code','Cascadia Code',monospace" font-size="12" fill="#8A8A99" text-anchor="middle">twnhall.com/explore</text>
 
     <!-- ══ SIDEBAR ════════════════════════════════════════════════════════════ -->
     <rect x="0" y="51" width="195" height="654" fill="#0E0E10"/>

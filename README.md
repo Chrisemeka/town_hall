@@ -1,7 +1,7 @@
-# TownHall
+# Twnhall
 
-## What is TownHall?
-TownHall is a collaborative testing platform where developers can submit
+## What is Twnhall?
+Twnhall is a collaborative testing platform where developers can submit
 their web applications to be tested by other developers in exchange for 
 testing others in return. It bridges the gap for startups and solo 
 developers who need real-world QA feedback but don't have the budget 
@@ -10,7 +10,7 @@ for a dedicated QA team.
 ## The Problem it Solves
 Most early-stage developers and startups ship features without proper 
 real-world testing. Hiring a QA engineer is expensive and out of reach 
-for solo developers and small teams. TownHall creates a community-driven 
+for solo developers and small teams. Twnhall creates a community-driven 
 alternative where testing is reciprocal — you test others to get tested.
 
 ## How it Works
@@ -22,7 +22,7 @@ alternative where testing is reciprocal — you test others to get tested.
    projects, test them, and submit their results in the form of a 
    screenshot and a written summary of what they did and found.
 
-3. **AI-powered insights** — TownHall uses Gemini AI to analyse test 
+3. **AI-powered insights** — Twnhall uses Gemini AI to analyse test 
    results and generate a heuristic, user-friendly breakdown of the 
    findings — making raw feedback actionable even for non-technical 
    project owners.

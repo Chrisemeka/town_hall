@@ -6,7 +6,7 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 // Supabase Database Webhook payload shape (INSERT events).
-// The webhook fires on row insert into `test_results` (TownHall's submissions
+// The webhook fires on row insert into `test_results` (Twnhall's submissions
 // table). Configure it in Supabase Dashboard → Database → Webhooks with header
 // `x-webhook-secret: <WEBHOOK_SECRET>`.
 type WebhookPayload = {

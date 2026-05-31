@@ -23,8 +23,8 @@ export default async function AdminEmailPage() {
         Send a broadcast
       </h1>
       <p className="font-mono text-[14px] text-ash mb-8">
-        Compose a message to a single user or every account on TownHall. Sent
-        via Resend from the TownHall admin sender.
+        Compose a message to a single user or every account on Twnhall. Sent
+        via Resend from the Twnhall admin sender.
       </p>
 
       <div

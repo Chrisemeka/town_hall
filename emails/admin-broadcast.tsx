@@ -35,7 +35,7 @@ export default function AdminBroadcast({
       <Body style={body}>
         <Container style={container}>
           <Section style={header}>
-            <Text style={brand}>TownHall</Text>
+            <Text style={brand}>Twnhall</Text>
             <Text style={tagline}>A message from the team</Text>
           </Section>
 
@@ -67,10 +67,10 @@ export default function AdminBroadcast({
 
           <Section style={footer}>
             <Text style={footerText}>
-              This message was sent by the TownHall admin team.
+              This message was sent by the Twnhall admin team.
             </Text>
             <Text style={footerText}>
-              TownHall · Real feedback for real builders.
+              Twnhall · Real feedback for real builders.
             </Text>
           </Section>
         </Container>
