@@ -1,24 +1,7 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
-
-async function requireAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Not authenticated")
-
-  const admin = createAdminClient()
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle()
-
-  if (profile?.role !== "admin") throw new Error("Not authorized")
-  return { admin, adminUserId: user.id }
-}
+import { requireAdmin } from "@/lib/auth"
 
 export async function flagProject(projectId: string, reason: string) {
   const trimmed = reason.trim()
