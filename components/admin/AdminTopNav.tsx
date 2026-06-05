@@ -3,7 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BugPlay, LogOut, Menu, ShieldCheck, X } from "lucide-react"
+import { LogOut, Menu, ShieldCheck, X } from "lucide-react"
+import { Logo } from "@/components/Logo"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
 
@@ -31,7 +32,7 @@ export function AdminTopNav() {
       <header className="fixed top-0 left-0 right-0 h-[56px] bg-obsidian border-b border-iron z-50 flex items-center px-4 md:px-6 justify-between gap-3">
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           <Link href="/admin" className="flex items-center gap-2 shrink-0">
-            <BugPlay className="w-5 h-5 text-voltage" />
+            <Logo size={20} onDark />
             <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
           </Link>
           <span className="hidden sm:flex items-center gap-1 font-mono text-[10px] uppercase tracking-[1px] text-voltage border border-voltage/40 rounded px-2 py-0.5 shrink-0">
