@@ -29,7 +29,7 @@ export default function LandingPage() {
 
           {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
-            <Logo size={20} />
+            <Logo size={28} />
             <span className="font-syne font-bold text-lg tracking-tight text-midnight">Twnhall</span>
           </div>
 
