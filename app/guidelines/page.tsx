@@ -12,10 +12,11 @@ export default function GuidelinesPage() {
       <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Logo size={20} />
+            <Logo tabIndex={0} size={20} />
             <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </Link>
           <Link
+            tabIndex={0}
             href="/"
             className="font-mono text-[13px] text-midnight/70 hover:text-midnight transition-colors duration-150"
           >
@@ -27,12 +28,12 @@ export default function GuidelinesPage() {
       {/* Hero */}
       <div className="border-b border-midnight/10">
         <div className="max-w-[720px] mx-auto px-6 py-16">
-          <p className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-4">Community</p>
-          <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-4">
+          <p tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-4">Community</p>
+          <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-4">
             Community Guidelines
           </h1>
-          <p className="font-mono text-[15px] leading-7 text-midnight/70">
-            Twnhall runs on reciprocity. Read this once and you'll understand everything about how and why this community works.
+          <p tabIndex={0} className="font-mono text-[15px] leading-7 text-midnight/70">
+            Twnhall runs on reciprocity. Read this once and you&apos;ll understand everything about how and why this community works.
           </p>
         </div>
       </div>
@@ -44,22 +45,22 @@ export default function GuidelinesPage() {
           {/* The Social Contract */}
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <span className="font-mono text-[11px] text-forest uppercase tracking-[1.5px]">The Foundation</span>
+              <span tabIndex={0} className="font-mono text-[11px] text-forest uppercase tracking-[1.5px]">The Foundation</span>
             </div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               The Social Contract
             </h2>
             <div className="border-l-2 border-voltage bg-voltage/10 rounded-r-[8px] px-6 py-5 mb-6">
-              <p className="font-mono text-[15px] leading-7 text-midnight">
-                "Ship with confidence. Test each other."
+              <p tabIndex={0} className="font-mono text-[15px] leading-7 text-midnight">
+                &quot;Ship with confidence. Test each other.&quot;
               </p>
             </div>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
-              <p>
+              <p tabIndex={0}>
                 Twnhall is purely community-driven — no points, no rewards, no leaderboards. The platform exists because developers help each other. The implicit incentive is <span className="text-midnight">reciprocity</span>: you test others so others will test you.
               </p>
-              <p>
-                This isn't a SaaS tool. It's a shared workspace where peers hold each other accountable. The energy here should feel collaborative and direct — developer to developer.
+              <p tabIndex={0}>
+                This isn&apos;t a SaaS tool. It&apos;s a shared workspace where peers hold each other accountable. The energy here should feel collaborative and direct — developer to developer.
               </p>
             </div>
           </div>
@@ -68,7 +69,7 @@ export default function GuidelinesPage() {
 
           {/* How It Works */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
               How It Works
             </h2>
             <div className="flex flex-col gap-8">
@@ -95,17 +96,17 @@ export default function GuidelinesPage() {
 
           {/* Proof of Visit */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               The Screenshot Requirement
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
-              <p>
+              <p tabIndex={0}>
                 Every feedback submission requires two things: <span className="text-midnight">written feedback</span> and a <span className="text-midnight">screenshot from the project</span>.
               </p>
-              <p>
-                The screenshot serves a dual purpose — it acts as proof of visit so submitters know you actually used their product, and it provides visual context that written feedback alone can't capture.
+              <p tabIndex={0}>
+                The screenshot serves a dual purpose — it acts as proof of visit so submitters know you actually used their product, and it provides visual context that written feedback alone can&apos;t capture.
               </p>
-              <p>
+              <p tabIndex={0}>
                 This is not optional. Feedback without a screenshot cannot be submitted. This requirement is the trust layer that keeps the community honest.
               </p>
             </div>
@@ -115,7 +116,7 @@ export default function GuidelinesPage() {
 
           {/* Standards */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-6">
               Standards of Conduct
             </h2>
             <div className="flex flex-col gap-4">
@@ -150,20 +151,20 @@ export default function GuidelinesPage() {
 
           {/* What good looks like */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               What Good Feedback Looks Like
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7">
               <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
-                <p className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Good</p>
-                <p className="text-midnight/70">
-                  "The checkout form loses my input when I click back — I had to refill my card details twice. The error message on the CVV field also doesn't appear until I submit, which was confusing. Screenshot attached showing the empty state after navigating back."
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Good</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;The checkout form loses my input when I click back — I had to refill my card details twice. The error message on the CVV field also doesn&apos;t appear until I submit, which was confusing. Screenshot attached showing the empty state after navigating back.&quot;
                 </p>
               </div>
               <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
-                <p className="text-[11px] text-midnight/50 uppercase tracking-[1px] mb-3">Not helpful</p>
-                <p className="text-midnight/70">
-                  "Looks good! Nice design."
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Not helpful</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;Looks good! Nice design.&quot;
                 </p>
               </div>
             </div>
@@ -173,17 +174,17 @@ export default function GuidelinesPage() {
 
           {/* Enforcement */}
           <div>
-            <h2 className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               Enforcement
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
-              <p>
-                Twnhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don't issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
+              <p tabIndex={0}>
+                Twnhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don&apos;t issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
               </p>
-              <p>
+              <p tabIndex={0}>
                 If you encounter a violation — bad-faith feedback, abusive content, or a project that appears malicious — contact us at{" "}
-                <a href="mailto:terms@townhl.com" className="text-forest hover:underline">
-                  terms@townhl.com
+                <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-forest underline hover:overline">
+                  twnhallhq@gmail.com
                 </a>
               </p>
             </div>
@@ -195,11 +196,11 @@ export default function GuidelinesPage() {
       {/* Footer — dark, matches landing */}
       <footer className="w-full bg-obsidian font-mono">
         <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash/60">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
+          <p tabIndex={0} className="font-mono text-[12px] text-[#F0F0F2]">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
           <div className="flex items-center gap-6">
-            <Link href="/guidelines" className="font-mono text-[12px] text-voltage">Guidelines</Link>
-            <Link href="/privacy" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Privacy Policy</Link>
-            <Link href="/terms" className="font-mono text-[12px] text-ash/60 hover:text-chalk transition-colors duration-150">Terms of Service</Link>
+            <Link tabIndex={0} href="/guidelines" className="font-mono text-[12px] text-voltage">Guidelines</Link>
+            <Link tabIndex={0} href="/privacy" className="font-mono text-[12px] text-[#F0F0F2] hover:text-chalk transition-colors duration-150 text-decoration-line: underline hover:overline">Privacy Policy</Link>
+            <Link tabIndex={0} href="/terms" className="font-mono text-[12px] text-[#F0F0F2] hover:text-chalk transition-colors duration-150 text-decoration-line: underline hover:overline">Terms of Service</Link>
           </div>
         </div>
       </footer>
@@ -215,10 +216,10 @@ function Divider() {
 function Role({ label, steps }: { label: string; steps: string[] }) {
   return (
     <div>
-      <p className="font-mono text-[12px] text-forest uppercase tracking-[1px] mb-3">{label}</p>
+      <p tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1px] mb-3">{label}</p>
       <ol className="flex flex-col gap-3">
         {steps.map((step, i) => (
-          <li key={i} className="flex gap-4">
+          <li tabIndex={0} key={i} className="flex gap-4">
             <span className="font-mono text-[13px] text-forest shrink-0 mt-0.5">{i + 1}.</span>
             <span className="font-mono text-[14px] leading-6 text-midnight/70">{step}</span>
           </li>
@@ -233,8 +234,8 @@ function Standard({ title, body }: { title: string; body: string }) {
     <div className="flex gap-4 py-4 border-b border-midnight/10 last:border-0">
       <div className="w-1.5 h-1.5 rounded-full bg-voltage shrink-0 mt-2" />
       <div>
-        <p className="font-mono text-[14px] font-medium text-midnight mb-1">{title}</p>
-        <p className="font-mono text-[14px] leading-6 text-midnight/70">{body}</p>
+        <p tabIndex={0} className="font-mono text-[14px] font-medium text-midnight mb-1">{title}</p>
+        <p tabIndex={0} className="font-mono text-[14px] leading-6 text-midnight/70">{body}</p>
       </div>
     </div>
   );

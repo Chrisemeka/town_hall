@@ -1,30 +1,14 @@
 "use server"
 
 import { z } from "zod"
-import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendAdminBroadcast } from "@/lib/mail"
 import { broadcastSchema, type BroadcastInput } from "@/lib/validation/schemas"
+import { requireAdmin } from "@/lib/auth"
 
 export type BroadcastResult =
   | { success: true; count: number }
   | { success: false; error: string; fieldErrors?: Record<string, string[]> }
-
-async function requireAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Not authenticated")
-
-  const admin = createAdminClient()
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle()
-
-  if (profile?.role !== "admin") throw new Error("Not authorized")
-  return { admin, adminUser: user }
-}
 
 export async function broadcastAdminEmail(input: BroadcastInput): Promise<BroadcastResult> {
   let admin: ReturnType<typeof createAdminClient>
