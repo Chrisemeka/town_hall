@@ -202,7 +202,7 @@ export function SettingsForm({
       <SectionDivider />
 
       {/* ── Notifications ───────────────────────────────── */}
-      <div>
+      {/* <div>
         <h5 className="font-syne font-bold text-[20px] text-chalk mb-6">Notifications</h5>
 
         <div className="flex flex-col gap-5">
@@ -219,7 +219,7 @@ export function SettingsForm({
             onChange={setNotifMission}
           />
         </div>
-      </div>
+      </div> */}
 
       <SectionDivider />
 

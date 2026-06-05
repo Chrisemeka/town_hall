@@ -51,6 +51,22 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
     )
   }, [missions, query])
 
+  /* No missions on the platform at all — distinct from a search miss */
+  if (missions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
+        <p className="font-syne font-bold text-[24px] text-chalk mb-2">No missions yet.</p>
+        <p className="font-mono text-[14px] text-ash mb-6">Be the first to put your work in front of the community.</p>
+        <Link
+          href="/dashboard/new"
+          className="h-10 px-4 inline-flex items-center border border-chalk text-chalk rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+        >
+          New Project
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div>
       {/* Search */}

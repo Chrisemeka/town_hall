@@ -327,6 +327,7 @@ export default function LandingPage() {
               <p tabIndex={0} className="font-mono text-[14px] text-[#F0F0F2] leading-6">
                 Ship with confidence. Test each other.
               </p>
+              <p className="font-mono text-[#F0F0F2]">Contact us: <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-forest underline hover:overline">twnhallhq@gmail.com</a></p>
               <form action={signInWithGoogle} className="mt-2">
                 <button
                   tabIndex={0}
