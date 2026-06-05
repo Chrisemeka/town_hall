@@ -44,7 +44,7 @@ export default async function TermsAcceptPage() {
       <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
         <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center">
           <div className="flex items-center gap-2">
-            <Logo size={20} />
+            <Logo size={40} />
             <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
           </div>
         </div>

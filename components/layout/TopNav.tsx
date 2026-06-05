@@ -25,7 +25,7 @@ export function TopNav({
       {/* Left: Logo */}
       <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
         <Link href="/explore" className="flex items-center gap-2">
-          <Logo size={28} onDark />
+          <Logo size={40} onDark />
           <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
         </Link>
       </div>
