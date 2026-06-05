@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { BugPlay, LogOut, User, Menu, X, Plus } from "lucide-react"
+import { LogOut, User, Menu, X, Plus } from "lucide-react"
+import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { signOutAction } from "@/actions/auth"
 
@@ -24,7 +25,7 @@ export function TopNav({
       {/* Left: Logo */}
       <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
         <Link href="/explore" className="flex items-center gap-2">
-          <BugPlay className="w-5 h-5 text-voltage" />
+          <Logo size={28} onDark />
           <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
         </Link>
       </div>

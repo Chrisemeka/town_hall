@@ -4,6 +4,18 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { acceptTerms } from "@/actions/onboarding";
 
+// redirect() throws a special "NEXT_REDIRECT" error that must propagate for the
+// navigation to happen. It carries a `digest` starting with "NEXT_REDIRECT" —
+// detecting it here lets us re-throw redirects while still surfacing real errors.
+function isRedirectError(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    "digest" in err &&
+    typeof (err as { digest?: unknown }).digest === "string" &&
+    (err as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
 export function TermsAcceptForm() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +29,7 @@ export function TermsAcceptForm() {
       try {
         await acceptTerms();
       } catch (err) {
+        if (isRedirectError(err)) throw err;
         setError(err instanceof Error ? err.message : "Something went wrong.");
       }
     });

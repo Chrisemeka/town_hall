@@ -15,6 +15,34 @@ export async function GET(request: Request) {
 
       if (user) {
         const admin = createAdminClient()
+
+        // Self-heal a missing profile. The `on_auth_user_created` trigger only
+        // fires on the first INSERT into auth.users, so a profile deleted after
+        // signup is never recreated on subsequent logins — leaving the user
+        // orphaned and stuck at the terms gate. `ignoreDuplicates` makes this a
+        // no-op when a profile already exists, so we never clobber an existing
+        // row's role / accepted_terms_at / edited fields.
+        const { error: upsertError } = await admin
+          .from('profiles')
+          .upsert(
+            {
+              id: user.id,
+              email: user.email,
+              full_name:
+                (user.user_metadata?.full_name as string | undefined) ??
+                (user.user_metadata?.name as string | undefined) ??
+                null,
+              avatar_url:
+                (user.user_metadata?.avatar_url as string | undefined) ??
+                (user.user_metadata?.picture as string | undefined) ??
+                null,
+            },
+            { onConflict: 'id', ignoreDuplicates: true },
+          )
+        if (upsertError) {
+          console.error('Failed to ensure profile on login:', upsertError.message)
+        }
+
         const { data: profile } = await admin
           .from('profiles')
           .select('role, accepted_terms_at')

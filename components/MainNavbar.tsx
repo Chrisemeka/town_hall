@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Telescope, Layout, LogOut, BugPlay } from "lucide-react";
+import { Telescope, Layout, LogOut } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { signOutAction } from "@/actions/auth";
 
 export function MainNavbar() {
@@ -14,7 +15,7 @@ export function MainNavbar() {
         
         {/* Logo area */}
         <Link href="/" className="flex items-center gap-2 group">
-            <BugPlay size={24} color="#ffff" className="text-surface" />
+            <Logo size={24} onDark />
           <span className="text-lg font-bold text-on-surface tracking-tight">Twnhall</span>
         </Link>
         

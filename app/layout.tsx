@@ -19,6 +19,17 @@ export const metadata: Metadata = {
   applicationName: "Twnhall",
   title: "Twnhall",
   description: "Connecting developers with real-world testers.",
+  manifest: "/logo/site.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo/favicon-16x16.png", type: "image/png", sizes: "16x16" },
+      { url: "/logo/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/logo/android-chrome-192x192.png", type: "image/png", sizes: "192x192" },
+      { url: "/logo/android-chrome-512x512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/logo/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     siteName: "Twnhall",

@@ -2,9 +2,10 @@
 
 import { motion } from "framer-motion";
 import { signInWithGoogle } from "@/actions/auth";
-import { BugPlay, FileText, CheckCircle, Users, ArrowRight } from "lucide-react";
+import { FileText, CheckCircle, Users, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import NextImage from "next/image";
+import { Logo } from "@/components/Logo";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fadeUp: any = {
@@ -28,7 +29,7 @@ export default function LandingPage() {
 
           {/* Logo */}
           <div className="flex items-center gap-2 shrink-0">
-           <BugPlay className="w-5 h-5 text-midnight" />
+            <Logo size={20} />
             <span className="font-syne font-bold text-lg tracking-tight text-midnight">Twnhall</span>
           </div>
 
@@ -320,7 +321,7 @@ export default function LandingPage() {
             {/* Brand block */}
             <div className="flex flex-col gap-5 max-w-sm">
               <div className="flex items-center gap-2">
-                <BugPlay className="w-6 h-6 text-voltage" />
+                <Logo size={24} onDark />
                 <span className="font-syne font-bold text-[22px] text-chalk">Twnhall</span>
               </div>
               <p tabIndex={0} className="font-mono text-[14px] text-[#F0F0F2] leading-6">
