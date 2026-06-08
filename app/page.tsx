@@ -28,10 +28,10 @@ export default function LandingPage() {
         <div className="max-w-[1200px] mx-auto px-6 lg:px-8 h-full flex items-center justify-between gap-6">
 
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
+          <Link tabIndex={0} href="/" className="flex items-center gap-2 shrink-0">
             <Logo size={40} />
             <span className="font-syne font-bold text-lg tracking-tight text-midnight">Twnhall</span>
-          </div>
+          </Link>
 
           {/* Right group: links + CTA */}
           <div className="flex items-center gap-8 lg:gap-10">

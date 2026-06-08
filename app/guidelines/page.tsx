@@ -172,6 +172,58 @@ export default function GuidelinesPage() {
 
           <Divider />
 
+          {/* What a good project & mission looks like */}
+          <div>
+            <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
+              What a Good Project &amp; Mission Looks Like
+            </h2>
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70">
+              <p tabIndex={0}>
+                Testers can only help you as well as you brief them. A clear project sets the context; a focused mission tells testers exactly where to look and what kind of feedback you need.
+              </p>
+            </div>
+
+            <h3 tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1px] mt-8 mb-4">The Project</h3>
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7">
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Good</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;Ledgerly — a budgeting app for freelancers. It connects to your bank, auto-categorizes income and expenses, and forecasts taxes owed. We just shipped onboarding and the dashboard; both are live and need fresh eyes before launch.&quot;
+                </p>
+              </div>
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Not helpful</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;My new app. Check it out and tell me what you think.&quot;
+                </p>
+              </div>
+            </div>
+
+            <h3 tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1px] mt-8 mb-4">The Mission</h3>
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7">
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Good</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;Test the onboarding flow. Sign up with a new email, connect the demo bank (use credentials user / pass), and reach the dashboard. I want to know: where did you hesitate, did anything feel slow or unclear, and did the tax forecast make sense? Screenshot the step that confused you most.&quot;
+                </p>
+              </div>
+              <div className="bg-white border border-midnight/10 rounded-[12px] p-5">
+                <p tabIndex={0} className="text-[11px] text-forest uppercase tracking-[1px] mb-3">Not helpful</p>
+                <p tabIndex={0} className="text-midnight/70">
+                  &quot;Just look around and find bugs.&quot;
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70 mt-6">
+              <p tabIndex={0}>
+                A strong mission does three things: it <span className="text-midnight">scopes one focus area</span>, it gives testers <span className="text-midnight">the steps and any credentials</span> they need to get in, and it <span className="text-midnight">asks specific questions</span> so the feedback comes back actionable.
+              </p>
+            </div>
+          </div>
+
+          <Divider />
+
           {/* Enforcement */}
           <div>
             <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
