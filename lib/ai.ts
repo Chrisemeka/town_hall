@@ -12,15 +12,20 @@ export const ANALYSIS_PROMPT = (comment: string) => `
   user's comment: "${comment}". Provide a concise, jargon-free summary...
 `;
 
-export const generateAnalysis = async (comment: string, imageUrl: string) => {
+export const generateAnalysis = async (
+  comment: string,
+  image: { data: Uint8Array; mediaType: string },
+) => {
   const { text } = await generateText({
-    model: townhallModel, 
+    model: townhallModel,
     messages: [
       {
         role: "user",
         content: [
           { type: "text", text: ANALYSIS_PROMPT(comment) },
-          { type: "image", image: imageUrl },
+          // Inline the screenshot bytes so the model doesn't have to fetch the
+          // image back out of Supabase Storage over the network.
+          { type: "image", image: image.data, mediaType: image.mediaType },
         ],
       },
     ],
