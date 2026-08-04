@@ -112,6 +112,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       })
 
     if (dbError) {
+      console.error("[submitTestResult] insert failed:", dbError)
       return { success: false, error: "Failed to save your feedback. Please try again." }
     }
     // Read the screenshot bytes now (while the in-memory Files are in scope) so
