@@ -119,7 +119,7 @@ export default function CreateProjectForm() {
             name="description"
             maxLength={PROJECT_SUMMARY_MAX}
             rows={5}
-            placeholder="Describe what your project does and who it's for..."
+            placeholder="e.g. DevSync keeps your dotfiles in sync across machines. For developers who switch between a work laptop and a personal one and keep losing their shell config."
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             className={[
@@ -127,9 +127,15 @@ export default function CreateProjectForm() {
               fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
-          <div className="flex items-center justify-between gap-3">
-            <FieldError errors={fieldErrors.description} />
-            <span className={`font-mono text-[12px] ml-auto ${summary.length >= PROJECT_SUMMARY_MAX ? "text-ember" : "text-ash"}`}>
+          <div className="flex items-start justify-between gap-3">
+            {fieldErrors.description?.length ? (
+              <FieldError errors={fieldErrors.description} />
+            ) : (
+              <p className="font-mono text-[12px] text-ash leading-5 min-w-0">
+                Testers read this on the Explore feed — say what it does and who it&apos;s for.
+              </p>
+            )}
+            <span className={`font-mono text-[12px] shrink-0 ${summary.length >= PROJECT_SUMMARY_MAX ? "text-ember" : "text-ash"}`}>
               {summary.length} / {PROJECT_SUMMARY_MAX}
             </span>
           </div>

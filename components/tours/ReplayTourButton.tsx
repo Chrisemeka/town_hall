@@ -32,7 +32,7 @@ export function ReplayTourButton({ onClick }: { onClick?: () => void }) {
       )}
     >
       <HelpCircle className="w-4 h-4 shrink-0" />
-      How it works
+      Replay page tour
     </button>
   )
 }

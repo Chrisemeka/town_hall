@@ -51,7 +51,7 @@ export default function LandingPage() {
                 type="submit"
                 className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer"
               >
-                Start Testing Free
+                Continue with Google
               </button>
             </form>
           </div>
@@ -100,7 +100,7 @@ export default function LandingPage() {
                       type="submit"
                       className="h-14 px-7 inline-flex items-center justify-center gap-1.5 font-mono font-medium text-base text-midnight rounded-[8px] hover:bg-midnight/5 transition-colors duration-150 cursor-pointer"
                     >
-                      Explore Projects <ArrowRight className="w-[18px] h-[18px]" />
+                      Continue with Google <ArrowRight className="w-[18px] h-[18px]" />
                     </button>
                   </form>
                 </motion.div>
@@ -334,7 +334,7 @@ export default function LandingPage() {
                   type="submit"
                   className="h-10 px-5 inline-flex items-center justify-center border border-ash/30 text-chalk rounded-full font-mono font-medium text-[13px] hover:bg-chalk/[0.06] hover:border-chalk/40 transition-colors duration-150 cursor-pointer"
                 >
-                  Start Testing Free
+                  Continue with Google
                 </button>
               </form>
             </div>
