@@ -7,14 +7,18 @@ const google = createGoogleGenerativeAI({
 
 export const townhallModel = google('gemini-3-flash-preview');
 
-export const ANALYSIS_PROMPT = (comment: string) => `
-  You are an expert QA Engineer. Analyze this screenshot based on the 
+export const ANALYSIS_PROMPT = (comment: string, imageCount: number) => `
+  You are an expert QA Engineer. Analyze ${
+    imageCount > 1
+      ? `these ${imageCount} screenshots — they are in the order the tester captured them, so read them as steps in one journey`
+      : "this screenshot"
+  } based on the
   user's comment: "${comment}". Provide a concise, jargon-free summary...
 `;
 
 export const generateAnalysis = async (
   comment: string,
-  image: { data: Uint8Array; mediaType: string },
+  images: { data: Uint8Array; mediaType: string }[],
 ) => {
   const { text } = await generateText({
     model: townhallModel,
@@ -22,10 +26,14 @@ export const generateAnalysis = async (
       {
         role: "user",
         content: [
-          { type: "text", text: ANALYSIS_PROMPT(comment) },
+          { type: "text", text: ANALYSIS_PROMPT(comment, images.length) },
           // Inline the screenshot bytes so the model doesn't have to fetch the
-          // image back out of Supabase Storage over the network.
-          { type: "image", image: image.data, mediaType: image.mediaType },
+          // images back out of Supabase Storage over the network.
+          ...images.map((image) => ({
+            type: "image" as const,
+            image: image.data,
+            mediaType: image.mediaType,
+          })),
         ],
       },
     ],

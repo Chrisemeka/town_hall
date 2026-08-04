@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { ScreenshotStrip } from "@/components/ScreenshotStrip"
+import { screenshotList } from "@/lib/utils/screenshots"
 
 export type FeedbackEntry = {
   id: string
@@ -12,6 +14,7 @@ export type FeedbackEntry = {
   projectName: string
   tester_comment: string
   screenshot_url: string | null
+  screenshot_urls: string[] | null
   created_at: string
 }
 
@@ -82,6 +85,8 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                   <p className="font-mono text-[14px] text-chalk leading-5 line-clamp-3">
                     {item.tester_comment}
                   </p>
+
+                  <ScreenshotStrip urls={screenshotList(item)} />
 
                   <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
                     Read full feedback

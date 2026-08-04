@@ -102,6 +102,7 @@ export const ALLOWED_SCREENSHOT_TYPES = [
   "image/webp",
 ] as const
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
+export const MAX_SCREENSHOTS = 10
 
 export const submissionSchema = z.object({
   missionId: z.string().uuid("Invalid mission id."),
@@ -125,6 +126,12 @@ export const screenshotSchema = z
   .refine((f) => f.size <= MAX_SCREENSHOT_BYTES, {
     message: "Screenshot must be 5 MB or smaller.",
   })
+
+/** A submission carries 1..MAX_SCREENSHOTS images, each validated individually. */
+export const screenshotsSchema = z
+  .array(screenshotSchema)
+  .min(1, "At least one screenshot is required.")
+  .max(MAX_SCREENSHOTS, `You can attach up to ${MAX_SCREENSHOTS} screenshots.`)
 
 /* ──────────────────────────────────────────────────────────────
  * Settings

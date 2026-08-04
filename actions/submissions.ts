@@ -8,14 +8,14 @@ import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import {
   submissionSchema,
-  screenshotSchema,
+  screenshotsSchema,
   toFieldErrors,
   type SubmissionInput,
   type FieldErrors,
 } from "@/lib/validation/schemas"
 
 export type SubmissionFieldErrors = FieldErrors<
-  SubmissionInput & { screenshot: File }
+  SubmissionInput & { screenshots: File[] }
 >
 
 export type SubmissionResult =
@@ -33,17 +33,20 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       missionId: formData.get("missionId"),
       comment: formData.get("comment"),
     })
-    const fileParsed = screenshotSchema.safeParse(formData.get("screenshot"))
+    const filesParsed = screenshotsSchema.safeParse(formData.getAll("screenshots"))
 
-    if (!parsed.success || !fileParsed.success) {
+    if (!parsed.success || !filesParsed.success) {
       const fieldErrors: SubmissionFieldErrors = {}
       if (!parsed.success) {
         Object.assign(fieldErrors, toFieldErrors<SubmissionInput>(parsed.error))
       }
-      if (!fileParsed.success) {
-        // screenshotSchema is a top-level instance check, so errors land at the
-        // root rather than under a field key — collect messages directly.
-        fieldErrors.screenshot = fileParsed.error.issues.map((i) => i.message)
+      if (!filesParsed.success) {
+        // screenshotsSchema validates each file in place, so issues land at the
+        // array root (count limits) or at an index (a bad file) — flatten both,
+        // naming the offending image so the tester knows which one to fix.
+        fieldErrors.screenshots = filesParsed.error.issues.map((i) =>
+          typeof i.path[0] === "number" ? `Screenshot ${i.path[0] + 1} — ${i.message}` : i.message,
+        )
       }
       return {
         success: false,
@@ -53,7 +56,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     }
 
     const { missionId, comment } = parsed.data
-    const file = fileParsed.data
+    const files = filesParsed.data
 
     const { data: missionData } = await supabase
       .from("missions")
@@ -76,8 +79,13 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       return { success: false, error: "Developers cannot submit a test for your own project." }
     }
 
-    const uploadData = await uploadToStorage(supabase, file, user.id)
-    const publicUrl = getPublicUrl(supabase, uploadData.path)
+    // Upload in parallel, preserving the tester's ordering in the result array.
+    const publicUrls = await Promise.all(
+      files.map(async (file) => {
+        const uploadData = await uploadToStorage(supabase, file, user.id)
+        return getPublicUrl(supabase, uploadData.path)
+      }),
+    )
 
     // Generate the row id up front so we can reference it in the background
     // update without selecting it back — testers have INSERT but not SELECT
@@ -94,7 +102,10 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
         id: resultId,
         mission_id: missionId,
         tester_id: user.id,
-        screenshot_url: publicUrl,
+        screenshot_urls: publicUrls,
+        // Keep the legacy single-URL column populated with the first image so
+        // anything still reading it (admin tooling, exports) keeps working.
+        screenshot_url: publicUrls[0],
         tester_comment: comment,
         ai_summary: "",
         ai_sentiment: "NEUTRAL",
@@ -103,16 +114,17 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     if (dbError) {
       return { success: false, error: "Failed to save your feedback. Please try again." }
     }
-    // Read the screenshot bytes now (while the in-memory File is in scope) so
-    // the analysis can inline them instead of refetching publicUrl.
-    const imageBytes = new Uint8Array(await file.arrayBuffer())
-    const imageMediaType = file.type
+    // Read the screenshot bytes now (while the in-memory Files are in scope) so
+    // the analysis can inline them instead of refetching the public URLs.
+    const images = await Promise.all(
+      files.map(async (file) => ({
+        data: new Uint8Array(await file.arrayBuffer()),
+        mediaType: file.type,
+      })),
+    )
     after(async () => {
       try {
-        const { text } = await generateAnalysis(comment, {
-          data: imageBytes,
-          mediaType: imageMediaType,
-        })
+        const { text } = await generateAnalysis(comment, images)
         const sentiment = parseSentiment(text)
         const aiSummary = text.replace(sentiment, "").replace(/[*#]/g, "").trim()
 
