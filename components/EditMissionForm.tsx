@@ -6,6 +6,7 @@ import { updateMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { MissionRewardFields } from "@/components/MissionRewardFields"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
@@ -21,6 +22,8 @@ export default function EditMissionForm({
   projectName,
   initialTitle,
   initialDescription,
+  initialPayoutCents = 0,
+  initialCategory = "",
   isActive,
 }: {
   missionId: string
@@ -28,6 +31,8 @@ export default function EditMissionForm({
   projectName: string
   initialTitle: string
   initialDescription: string
+  initialPayoutCents?: number
+  initialCategory?: string
   isActive: boolean
 }) {
   const [state, formAction] = useActionState(updateMission, null)
@@ -48,6 +53,8 @@ export default function EditMissionForm({
       title: fd.get("title"),
       task_description: fd.get("task_description"),
       intent: fd.get("intent"),
+      payout: fd.get("payout"),
+      category: fd.get("category"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -108,6 +115,13 @@ export default function EditMissionForm({
             </span>
           </div>
         </div>
+
+        <MissionRewardFields
+          defaultPayout={initialPayoutCents > 0 ? initialPayoutCents / 100 : undefined}
+          defaultCategory={initialCategory}
+          payoutError={fieldErrors.payout}
+          categoryError={fieldErrors.category}
+        />
 
         <div className="flex flex-col gap-2">
           <label htmlFor="task_description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">

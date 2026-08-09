@@ -6,6 +6,7 @@ import { createMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { MissionRewardFields } from "@/components/MissionRewardFields"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
@@ -37,6 +38,8 @@ export default function AddMissionForm({
       title: fd.get("title"),
       task_description: fd.get("task_description"),
       intent: fd.get("intent"),
+      payout: fd.get("payout"),
+      category: fd.get("category"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -103,6 +106,11 @@ export default function AddMissionForm({
             </span>
           </div>
         </div>
+
+        <MissionRewardFields
+          payoutError={fieldErrors.payout}
+          categoryError={fieldErrors.category}
+        />
 
         {/* What to Test */}
         <div className="flex flex-col gap-2">

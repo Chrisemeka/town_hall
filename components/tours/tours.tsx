@@ -179,6 +179,31 @@ export const TOURS: Tour[] = [
     ],
   },
   {
+    tour: "tester-home",
+    steps: [
+      {
+        icon: "🧪",
+        title: "This is your Tester Home",
+        content: <>Everything you need as a tester lives here — open missions, the work you've submitted, and what you've earned.</>,
+        selector: "#tour-tester-header",
+        side: "bottom",
+        showControls: true,
+        pointerPadding: 8,
+        pointerRadius: 8,
+      },
+      {
+        icon: "💰",
+        title: "Get paid for approved work",
+        content: <>Submit a mission and it sits at <span className="font-medium">Pending Review</span> until the builder approves it. Approved work is what counts toward your balance and your rank.</>,
+        selector: "#earnings",
+        side: "left",
+        showControls: true,
+        pointerPadding: 10,
+        pointerRadius: 12,
+      },
+    ],
+  },
+  {
     tour: "feedback-received",
     steps: [
       {
@@ -218,6 +243,7 @@ export function getTours(isMobile: boolean): Tour[] {
 
 // Map a pathname to a tour name. Returns null if the page has no tour.
 export function tourForPath(pathname: string): string | null {
+  if (pathname === "/tester") return "tester-home"
   if (pathname === "/explore") return "explore"
   if (pathname === "/dashboard") return "my-projects"
   if (pathname === "/dashboard/new") return "new-project"

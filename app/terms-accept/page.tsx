@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getActiveAccount } from "@/lib/auth";
+import { CHOOSE_ACCOUNT_PATH, homeFor } from "@/lib/access";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { TermsAcceptForm } from "@/components/TermsAcceptForm";
@@ -26,7 +28,8 @@ export default async function TermsAcceptPage() {
   }
 
   if (profile?.accepted_terms_at) {
-    redirect("/explore");
+    const resolved = await getActiveAccount();
+    redirect(resolved?.active ? homeFor(resolved.active) : CHOOSE_ACCOUNT_PATH);
   }
 
   const displayName =

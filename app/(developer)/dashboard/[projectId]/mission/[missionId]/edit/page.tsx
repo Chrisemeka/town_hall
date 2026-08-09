@@ -58,6 +58,8 @@ export default async function EditMissionPage({
         projectName={projectName}
         initialTitle={mission.title}
         initialDescription={mission.task_description}
+        initialPayoutCents={mission.payout_cents ?? 0}
+        initialCategory={mission.category ?? ""}
         isActive={mission.is_active !== false}
       />
 

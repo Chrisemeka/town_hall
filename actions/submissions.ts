@@ -6,6 +6,7 @@ import { generateAnalysis, parseSentiment } from "@/lib/ai"
 import { revalidatePath } from "next/cache"
 import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
+import { getActiveAccount } from "@/lib/auth"
 import {
   submissionSchema,
   screenshotsSchema,
@@ -28,6 +29,18 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: "You must be logged in to submit feedback." }
+
+    // Submitting feedback is the Tester account's job. Middleware gates the page
+    // this posts from, but the action is the thing that actually writes — so the
+    // check lives here too, where every caller passes through.
+    //
+    // Deliberately not requireAccount(): that redirects, and the catch below
+    // would swallow the NEXT_REDIRECT into a generic failure. A returned error
+    // is the better outcome here anyway — the form can show it.
+    const account = await getActiveAccount()
+    if (account?.active !== "tester") {
+      return { success: false, error: "Switch to your Tester account to submit feedback." }
+    }
 
     const parsed = submissionSchema.safeParse({
       missionId: formData.get("missionId"),

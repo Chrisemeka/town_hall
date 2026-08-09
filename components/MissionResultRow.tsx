@@ -4,6 +4,8 @@ import { useState } from "react"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, X } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { screenshotList } from "@/lib/utils/screenshots"
+import SubmissionReview from "@/components/SubmissionReview"
+import type { SubmissionStatus } from "@/lib/review"
 
 type InsightItem = {
   status: "pass" | "warn" | "fail"
@@ -184,6 +186,14 @@ export default function MissionResultRow({
           )}
         </div>
       )}
+
+      {/* REVIEW — approve / request changes / rate, and the payout stub */}
+      <SubmissionReview
+        resultId={result.id}
+        status={(result.status ?? "pending") as SubmissionStatus}
+        rating={result.rating ?? null}
+        reviewNote={result.review_note ?? null}
+      />
 
       {/* Screenshot lightbox */}
       {lightboxOpen && current && (

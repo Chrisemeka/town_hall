@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { requireAccount } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
@@ -25,6 +26,10 @@ export async function createProject(
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
+
+  // Submitting a project is Builder-only. No try/catch wraps this action, so a
+  // redirect out to the tester's home is safe here.
+  await requireAccount("builder")
 
   const parsed = projectSchema.safeParse({
     name: formData.get("name"),

@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
         <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-2">
           Privacy Policy
         </h1>
-        <p tabIndex={0} className="font-mono text-[13px] text-midnight/60 mb-12">Last updated: May 11, 2026</p>
+        <p tabIndex={0} className="font-mono text-[13px] text-midnight/60 mb-12">Last updated: August 6, 2026</p>
 
         <div className="flex flex-col gap-10">
 
@@ -42,9 +42,44 @@ export default function PrivacyPolicyPage() {
 
           <Section title="Information We Collect">
             <p tabIndex={0}>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture. We sign you in through Google, and receive your name, email address, and profile picture from that sign-in.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — and when each was created. If you hold both, they are stored as two separate account records tied to the same sign-in.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Content You Submit:</span> Projects and mission briefs you create as a Builder, and the written feedback and screenshots you upload as a Tester. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Reputation Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, any note attached when changes are requested, and the aggregate rating, completed-mission count, and rank derived from them.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Earnings Information:</span> The payout amount attached to each mission you complete and the approval status that determines whether it counts toward your balance. We do not currently collect bank details or payment information, because withdrawals are not yet live. If you add a payout method in future, this policy will be updated before we collect it.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
+          </Section>
+
+          <Section title="Automated Analysis of Submissions">
+            <p tabIndex={0}>
+              When you submit feedback as a Tester, your written comment and the screenshots you attach are sent to <span className="text-midnight">Google&apos;s Gemini API</span> to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission.
+            </p>
+            <p tabIndex={0}>
+              Do not include passwords, personal data about other people, or anything you would not want processed by a third party in your written feedback or screenshots.
+            </p>
+            <p tabIndex={0}>
+              The generated summary is stored alongside your submission and shown to the Builder. It does not change your rating or whether your submission is approved — a human Builder makes that decision.
+            </p>
+          </Section>
+
+          <Section title="What Other Users Can See">
+            <p tabIndex={0}>
+              <span className="text-midnight font-medium">Builders see:</span> the written feedback, screenshots, and generated summary on submissions made against their own missions, and the name and profile picture attached to your account.
+            </p>
+            <p tabIndex={0}>
+              <span className="text-midnight font-medium">Testers see:</span> their own submissions and the status, rating, and any change request a Builder left on them. Testers cannot see other testers&apos; submissions.
+            </p>
+            <p tabIndex={0}>
+              Your aggregate rating, completed-mission count, and rank are shown on your own Tester home. Project and mission details a Builder publishes are visible to testers browsing the platform.
+            </p>
+          </Section>
+
+          <Section title="Service Providers We Use">
+            <p tabIndex={0}>We rely on the following third parties to operate Twnhall, and information is shared with them only as needed to provide the service:</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Supabase:</span> database, authentication, and file storage for screenshots.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Google:</span> sign-in, and the Gemini API for the automated analysis described above.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Resend:</span> transactional and notification email.</p>
           </Section>
 
           <Section title="How We Use Your Information">
@@ -68,6 +103,7 @@ export default function PrivacyPolicyPage() {
           <Section title="Delete Your Personal Data">
             <p tabIndex={0}>You have the right to delete or request we assist in deleting the Personal Data that we have collected about you.</p>
             <p tabIndex={0}>Our Service may give you the ability to delete certain information about you from within the Service. You can update, amend, or delete your details anytime by logging into your Account and going to the account section for managing your personal data.</p>
+            <p tabIndex={0}>Deleting your account removes every account type you hold. If you hold both a Builder and a Tester account, both are deleted together, along with the projects, missions, submissions, screenshots, ratings, and reputation attached to them.</p>
             <p tabIndex={0}>Additionally, you can contact us if you wish to access, correct, or delete any personal information that you have shared with us.</p>
             <p tabIndex={0}>Please keep in mind that we may need to keep certain information if there is a legal requirement or lawful basis to do so.</p>
           </Section>
