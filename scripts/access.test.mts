@@ -28,7 +28,7 @@ const BUILDER_ONLY = [
 
 for (const path of BUILDER_ONLY) {
   assert.equal(allowed(path, "builder"), true, `builder should reach ${path}`)
-  assert.equal(redirectFor(path, "tester"), "/tester", `tester must be bounced off ${path}`)
+  assert.equal(redirectFor(path, "tester"), "/explore", `tester must be bounced off ${path}`)
 }
 
 /* ── tester-only surfaces ────────────────────────────────────────────── */
@@ -92,7 +92,11 @@ assert.equal(allowed("/dashboard/abc", "tester"), false)
 /* ── homeFor ─────────────────────────────────────────────────────────── */
 
 assert.equal(homeFor("builder"), "/dashboard")
-assert.equal(homeFor("tester"), "/tester")
+assert.equal(homeFor("tester"), "/explore")
+
+// /tester is still a real tester surface — dropping it out of homeFor must not
+// quietly drop it out of the tester's reach.
+assert.equal(allowed("/tester", "tester"), true, "/tester must stay reachable")
 
 // A denial must never point at a route the same account would also be denied,
 // or the redirect loops.

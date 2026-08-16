@@ -42,9 +42,16 @@ function underAny(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => underPrefix(pathname, p))
 }
 
-/** Where a signed-in account lands after auth, and where it gets bounced to. */
+/**
+ * Where a signed-in account lands after auth, and where it gets bounced to.
+ *
+ * A tester lands on /explore, not /tester: /explore is the community feed with
+ * missions to pick up, while /tester is the personal surface, which for someone
+ * who has just verified is empty. /tester stays reachable from the sidebar —
+ * it is just not the front door.
+ */
 export function homeFor(account: AccountType): string {
-  return account === "tester" ? "/tester" : "/dashboard"
+  return account === "tester" ? "/explore" : "/dashboard"
 }
 
 export type AccessResult =
