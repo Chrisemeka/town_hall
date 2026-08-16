@@ -3,7 +3,15 @@
 // (node strips the types, no test framework needed)
 
 import assert from "node:assert/strict"
-import { CHOOSE_ACCOUNT_PATH, accessFor, homeFor, type AccountType } from "../lib/access.ts"
+import {
+  CHOOSE_ACCOUNT_PATH,
+  accessFor,
+  homeFor,
+  isRoleScoped,
+  isVerifyPath,
+  verifyPathFor,
+  type AccountType,
+} from "../lib/access.ts"
 
 const allowed = (path: string, account: AccountType | null) => accessFor(path, account).allow
 
@@ -103,5 +111,96 @@ assert.equal(allowed("/tester", "tester"), true, "/tester must stay reachable")
 for (const account of ["builder", "tester"] as const) {
   assert.equal(allowed(homeFor(account), account), true, `${account} must be allowed at its own home`)
 }
+
+/* ── verification gate: which paths it covers ────────────────────────── */
+
+assert.equal(verifyPathFor("tester"), "/verify/tester")
+assert.equal(verifyPathFor("builder"), "/verify/builder")
+
+// The gate must never lock a user out of the gate.
+assert.equal(allowed("/verify/tester", "tester"), true, "a tester must reach their own verify page")
+assert.equal(allowed("/verify/builder", "builder"), true, "a builder must reach their own verify page")
+
+// The other role's verify page is not yours, verified or not.
+assert.equal(redirectFor("/verify/tester", "builder"), "/dashboard")
+assert.equal(redirectFor("/verify/builder", "tester"), "/explore")
+
+// No account yet means there is no role to verify — pick one first.
+assert.equal(redirectFor("/verify/tester", null), CHOOSE_ACCOUNT_PATH)
+
+// Same segment-aware matching as everything else here.
+assert.equal(isVerifyPath("/verify"), true)
+assert.equal(isVerifyPath("/verify/tester"), true)
+assert.equal(isVerifyPath("/verifyxyz"), false, "/verifyxyz must not match the /verify prefix")
+
+// The gate applies to role-scoped surfaces and nothing else. The shared ones
+// are the escape hatches: leaving, switching role, and accepting terms all have
+// to stay reachable while unverified.
+for (const path of ["/dashboard", "/explore", "/tester", "/mission/abc", "/verify/tester", "/verify/builder"]) {
+  assert.equal(isRoleScoped(path), true, `${path} should be gated`)
+}
+for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guidelines", "/admin", "/", "/terms"]) {
+  assert.equal(isRoleScoped(path), false, `${path} must stay reachable while unverified`)
+}
+
+/* ── verification gate: the composition terminates ───────────────────── */
+
+// Loops don't come from any single rule, they come from the rules pointing at
+// each other. This walks the same decision middleware.ts makes, following
+// redirects until they stop, and fails if a path is ever visited twice.
+function nextHop(pathname: string, account: AccountType | null, verified: boolean): string | null {
+  if (account && isRoleScoped(pathname)) {
+    const verifyPath = verifyPathFor(account)
+    if (!verified && pathname !== verifyPath) return verifyPath
+    if (verified && isVerifyPath(pathname)) return homeFor(account)
+  }
+  const access = accessFor(pathname, account)
+  return access.allow ? null : access.redirect
+}
+
+function settlesAt(start: string, account: AccountType | null, verified: boolean): string {
+  const seen = [start]
+  let path = start
+  for (let i = 0; i < 10; i++) {
+    const next = nextHop(path, account, verified)
+    if (next === null) return path
+    assert.ok(!seen.includes(next), `redirect loop: ${[...seen, next].join(" -> ")}`)
+    seen.push(next)
+    path = next
+  }
+  assert.fail(`never settled from ${start}: ${seen.join(" -> ")}`)
+}
+
+const GATED = ["/dashboard", "/dashboard/abc-123", "/explore", "/tester", "/mission/abc-123"]
+
+// Unverified: everything role-scoped funnels to that role's verify page...
+for (const path of [...GATED, "/verify/builder", "/verify/tester"]) {
+  assert.equal(settlesAt(path, "tester", false), "/verify/tester", `unverified tester from ${path}`)
+  assert.equal(settlesAt(path, "builder", false), "/verify/builder", `unverified builder from ${path}`)
+}
+
+// ...and the verify page itself is where it stops, which is the whole point.
+assert.equal(settlesAt("/verify/tester", "tester", false), "/verify/tester")
+assert.equal(settlesAt("/verify/builder", "builder", false), "/verify/builder")
+
+// Verified: the flow is not somewhere to go back to.
+assert.equal(settlesAt("/verify/tester", "tester", true), "/explore")
+assert.equal(settlesAt("/verify/builder", "builder", true), "/dashboard")
+assert.equal(settlesAt("/verify/builder", "tester", true), "/explore")
+
+// Verified users are otherwise untouched by the gate.
+for (const path of ["/explore", "/tester", "/mission/abc-123"]) {
+  assert.equal(settlesAt(path, "tester", true), path, `verified tester should stay on ${path}`)
+}
+assert.equal(settlesAt("/dashboard", "builder", true), "/dashboard")
+
+// Unverified users are not trapped: they can still leave or change role.
+for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/guidelines", "/terms-accept"]) {
+  assert.equal(settlesAt(path, "tester", false), path, `${path} must stay reachable while unverified`)
+}
+
+// No account yet: the picker still resolves first, and the gate stays out of it.
+assert.equal(settlesAt("/dashboard", null, false), CHOOSE_ACCOUNT_PATH)
+assert.equal(settlesAt(CHOOSE_ACCOUNT_PATH, null, false), CHOOSE_ACCOUNT_PATH)
 
 console.log("access gating: all assertions passed")
