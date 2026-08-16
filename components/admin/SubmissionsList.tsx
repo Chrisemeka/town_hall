@@ -10,7 +10,7 @@ export type SubmissionRow = {
   testerComment: string
   aiSummary: string | null
   aiSentiment: Sentiment
-  screenshotUrl: string | null
+  screenshotUrls: string[]
   mission: { id: string; title: string } | null
   project: { id: string; name: string } | null
   tester: { fullName: string; email: string; avatarUrl: string | null }
@@ -153,24 +153,31 @@ export function SubmissionsList({
                   </div>
                 )}
 
-                {/* Screenshot */}
-                {s.screenshotUrl && (
-                  <Link
-                    href={s.screenshotUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-start gap-2 group"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={s.screenshotUrl}
-                      alt="Tester screenshot"
-                      className="w-32 h-20 object-cover rounded-[6px] border border-iron group-hover:border-voltage/40 transition-colors duration-150"
-                    />
-                    <span className="font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150 inline-flex items-center gap-1 mt-1">
-                      View full <ExternalLink className="w-3 h-3" />
+                {/* Screenshots */}
+                {s.screenshotUrls.length > 0 && (
+                  <div className="flex flex-wrap items-start gap-2">
+                    {s.screenshotUrls.map((url, i) => (
+                      <Link
+                        key={url}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group inline-flex"
+                        title={`Open screenshot ${i + 1} of ${s.screenshotUrls.length}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Tester screenshot ${i + 1}`}
+                          className="w-32 h-20 object-cover rounded-[6px] border border-iron group-hover:border-voltage/40 transition-colors duration-150"
+                        />
+                      </Link>
+                    ))}
+                    <span className="font-mono text-[12px] text-ash inline-flex items-center gap-1 mt-1">
+                      {s.screenshotUrls.length} screenshot{s.screenshotUrls.length !== 1 ? "s" : ""}
+                      <ExternalLink className="w-3 h-3" />
                     </span>
-                  </Link>
+                  </div>
                 )}
               </div>
             </div>

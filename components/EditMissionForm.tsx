@@ -6,6 +6,7 @@ import { updateMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { MissionRewardFields } from "@/components/MissionRewardFields"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
@@ -21,6 +22,8 @@ export default function EditMissionForm({
   projectName,
   initialTitle,
   initialDescription,
+  initialPayoutCents = 0,
+  initialCategory = "",
   isActive,
 }: {
   missionId: string
@@ -28,6 +31,8 @@ export default function EditMissionForm({
   projectName: string
   initialTitle: string
   initialDescription: string
+  initialPayoutCents?: number
+  initialCategory?: string
   isActive: boolean
 }) {
   const [state, formAction] = useActionState(updateMission, null)
@@ -48,6 +53,8 @@ export default function EditMissionForm({
       title: fd.get("title"),
       task_description: fd.get("task_description"),
       intent: fd.get("intent"),
+      payout: fd.get("payout"),
+      category: fd.get("category"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -109,6 +116,13 @@ export default function EditMissionForm({
           </div>
         </div>
 
+        <MissionRewardFields
+          defaultPayout={initialPayoutCents > 0 ? initialPayoutCents / 100 : undefined}
+          defaultCategory={initialCategory}
+          payoutError={fieldErrors.payout}
+          categoryError={fieldErrors.category}
+        />
+
         <div className="flex flex-col gap-2">
           <label htmlFor="task_description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
             What to Test
@@ -128,10 +142,10 @@ export default function EditMissionForm({
             <div className="min-w-0">
               <FieldError errors={fieldErrors.task_description} />
               {!fieldErrors.task_description?.length && (
-                <p className={`font-mono text-[12px] ${description.length < 100 && description.length > 0 ? "text-voltage" : "text-ash"}`}>
-                  {description.length < 100 && description.length > 0
-                    ? "Be more specific — aim for at least 100 characters."
-                    : `Be specific. Minimum ${MISSION_DESCRIPTION_MIN} characters; clearer instructions get better feedback.`}
+                <p className={`font-mono text-[12px] ${description.length > 0 && description.length < MISSION_DESCRIPTION_MIN ? "text-voltage" : "text-ash"}`}>
+                  {description.length > 0 && description.length < MISSION_DESCRIPTION_MIN
+                    ? `${MISSION_DESCRIPTION_MIN - description.length} more characters needed.`
+                    : "Be specific — name the screens and the exact steps testers should follow."}
                 </p>
               )}
             </div>
@@ -141,12 +155,18 @@ export default function EditMissionForm({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <PublishButton />
-          {!isActive && <DraftButton />}
-          <Button variant="ghost" size="lg" asChild>
-            <Link href={`/dashboard/${projectId}/mission/${missionId}`}>Cancel</Link>
-          </Button>
+        <div className="flex flex-col gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <PublishButton />
+            {!isActive && <DraftButton />}
+            <Button variant="ghost" size="lg" asChild>
+              <Link href={`/dashboard/${projectId}/mission/${missionId}`}>Cancel</Link>
+            </Button>
+          </div>
+          <p className="font-mono text-[12px] text-ash leading-5">
+            Publishing puts this mission — and your project — on the Explore feed where testers
+            pick it up. Drafts stay private, and a project with no published mission stays hidden.
+          </p>
         </div>
       </form>
     </div>

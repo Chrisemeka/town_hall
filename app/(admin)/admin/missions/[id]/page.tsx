@@ -9,6 +9,7 @@ import {
   normalizeSentiment,
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
+import { screenshotList } from "@/lib/utils/screenshots"
 
 export const metadata = { title: "Mission — Admin · Twnhall" }
 
@@ -48,7 +49,7 @@ export default async function AdminMissionDetailPage({
 
   const { data: testResults } = await admin
     .from("test_results")
-    .select("id, mission_id, tester_id, screenshot_url, tester_comment, ai_summary, ai_sentiment, created_at")
+    .select("id, mission_id, tester_id, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, created_at")
     .eq("mission_id", mission.id)
     .order("created_at", { ascending: false })
 
@@ -77,7 +78,7 @@ export default async function AdminMissionDetailPage({
     testerComment: r.tester_comment ?? "",
     aiSummary: r.ai_summary ?? null,
     aiSentiment: normalizeSentiment(r.ai_sentiment),
-    screenshotUrl: r.screenshot_url ?? null,
+    screenshotUrls: screenshotList(r),
     mission: { id: mission.id, title: mission.title },
     project: project ? { id: project.id, name: project.name } : null,
     tester: testerById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null },

@@ -4,17 +4,22 @@ import { useState } from "react"
 import { TopNav } from "./TopNav"
 import { Sidebar } from "./Sidebar"
 import { TourProvider } from "@/components/tours/TourProvider"
+import type { AccountType } from "@/lib/access"
 
 export function AppShell({
   children,
   avatarUrl,
   displayName,
   seenTours,
+  account = "builder",
+  heldTypes = [],
 }: {
   children: React.ReactNode
   avatarUrl?: string | null
   displayName?: string | null
   seenTours?: string[]
+  account?: AccountType
+  heldTypes?: AccountType[]
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -26,8 +31,14 @@ export function AppShell({
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
           avatarUrl={avatarUrl ?? null}
           displayName={displayName ?? null}
+          account={account}
         />
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          account={account}
+          heldTypes={heldTypes}
+        />
 
         {/* Mobile backdrop */}
         {sidebarOpen && (

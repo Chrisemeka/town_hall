@@ -1,16 +1,23 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { Reorder } from "framer-motion"
 import { submitTestResult, type SubmissionFieldErrors } from "@/actions/submissions"
-import { Upload, ExternalLink, CheckCircle } from "lucide-react"
+import { Upload, ExternalLink, CheckCircle, X } from "lucide-react"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { compressImage } from "@/lib/image"
 import {
   ALLOWED_SCREENSHOT_TYPES,
   MAX_SCREENSHOT_BYTES,
+  MAX_SCREENSHOTS,
   COMMENT_MIN,
   screenshotSchema,
   submissionSchema,
 } from "@/lib/validation/schemas"
+
+// Each picked image is paired with its object URL so previews survive reordering
+// and each entry has a stable key.
+type Shot = { file: File; url: string }
 
 export default function TesterSubmissionForm({
   missionId,
@@ -21,9 +28,8 @@ export default function TesterSubmissionForm({
 }) {
   const [unlocked,    setUnlocked]    = useState(false)
   const [feedback,    setFeedback]    = useState("")
-  const [file,        setFile]        = useState<File | null>(null)
-  const [preview,     setPreview]     = useState<string | null>(null)
-  const [fileError,   setFileError]   = useState<string | null>(null)
+  const [shots,       setShots]       = useState<Shot[]>([])
+  const [fileErrors,  setFileErrors]  = useState<string[]>([])
   const [commentError, setCommentError] = useState<string | null>(null)
   const [isDragOver,  setIsDragOver]  = useState(false)
   const [isHovered,   setIsHovered]   = useState(false)
@@ -34,32 +40,40 @@ export default function TesterSubmissionForm({
 
   // Prompt on reload while the tester has work in progress that hasn't been sent.
   useUnsavedChangesWarning(
-    !isSuccess && (feedback.length > 0 || file !== null),
+    !isSuccess && (feedback.length > 0 || shots.length > 0),
   )
 
-  function validateAndSet(f: File) {
-    const parsed = screenshotSchema.safeParse(f)
-    if (!parsed.success) {
-      setFileError(parsed.error.issues[0]?.message ?? "Invalid file.")
-      return
+  function addFiles(incoming: File[]) {
+    const errors: string[] = []
+    const accepted: Shot[] = []
+
+    for (const f of incoming) {
+      if (shots.length + accepted.length >= MAX_SCREENSHOTS) {
+        errors.push(`You can attach up to ${MAX_SCREENSHOTS} screenshots — the rest were skipped.`)
+        break
+      }
+      const parsed = screenshotSchema.safeParse(f)
+      if (!parsed.success) {
+        errors.push(`${f.name} — ${parsed.error.issues[0]?.message ?? "Invalid file."}`)
+        continue
+      }
+      accepted.push({ file: f, url: URL.createObjectURL(f) })
     }
-    setFileError(null)
-    if (preview) URL.revokeObjectURL(preview)
-    setFile(f)
-    setPreview(URL.createObjectURL(f))
+
+    if (accepted.length) setShots((prev) => [...prev, ...accepted])
+    setFileErrors(errors)
   }
 
-  function removeFile() {
-    if (preview) URL.revokeObjectURL(preview)
-    setFile(null)
-    setPreview(null)
-    setFileError(null)
+  function removeShot(target: Shot) {
+    URL.revokeObjectURL(target.url)
+    setShots((prev) => prev.filter((s) => s.url !== target.url))
+    setFileErrors([])
     if (fileRef.current) fileRef.current.value = ""
   }
 
   function applyServerErrors(errors: SubmissionFieldErrors) {
     setCommentError(errors.comment?.[0] ?? null)
-    setFileError(errors.screenshot?.[0] ?? null)
+    setFileErrors(errors.screenshots ?? [])
   }
 
   async function handleSubmit() {
@@ -67,26 +81,26 @@ export default function TesterSubmissionForm({
 
     // Client-side validate first so the user gets immediate feedback.
     const localCheck = submissionSchema.safeParse({ missionId, comment: feedback })
-    const localFile = screenshotSchema.safeParse(file)
-    if (!localCheck.success || !localFile.success) {
+    if (!localCheck.success || shots.length === 0) {
       setCommentError(
         localCheck.success
           ? null
           : localCheck.error.issues.find((i) => i.path[0] === "comment")?.message ?? null,
       )
-      setFileError(localFile.success ? null : localFile.error.issues[0]?.message ?? null)
+      if (shots.length === 0) setFileErrors(["At least one screenshot is required."])
       return
     }
 
     setIsSubmitting(true)
     setSubmitError(null)
     setCommentError(null)
-    setFileError(null)
+    setFileErrors([])
     try {
+      const compressed = await Promise.all(shots.map((s) => compressImage(s.file)))
       const fd = new FormData()
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
-      fd.append("screenshot", file as File)
+      for (const file of compressed) fd.append("screenshots", file)
       const result = await submitTestResult(fd)
       if (result.success) {
         setIsSuccess(true)
@@ -121,9 +135,10 @@ export default function TesterSubmissionForm({
     )
   }
 
-  const canSubmit = feedback.length >= COMMENT_MIN && file !== null && !isSubmitting
+  const canSubmit = feedback.length >= COMMENT_MIN && shots.length > 0 && !isSubmitting
+  const isFull = shots.length >= MAX_SCREENSHOTS
 
-  const zoneBorder = fileError
+  const zoneBorder = fileErrors.length
     ? "#FF4F4F"
     : isDragOver
     ? "#E8FF47"
@@ -221,76 +236,101 @@ export default function TesterSubmissionForm({
           Proof of Visit
         </p>
         <p className="font-mono text-[13px] text-ash mb-4 leading-5">
-          Upload a screenshot from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB. This
-          confirms you visited and provides visual context for your feedback.
+          Upload screenshots from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB each, up to{" "}
+          {MAX_SCREENSHOTS}. Capture the whole journey, not just the final screen: the more steps you
+          show, the more the builder can act on.
         </p>
 
-        {preview ? (
-          <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={preview}
-              alt="screenshot preview"
-              className="w-full rounded-[8px] object-cover"
-              style={{ maxHeight: 240 }}
-            />
-            <div className="flex items-center justify-between mt-3">
-              <span className="font-mono text-[12px] text-ash truncate mr-4">{file?.name}</span>
-              <button
-                type="button"
-                onClick={removeFile}
-                className="h-7 px-3 border border-iron text-ash rounded-[6px] font-mono text-[12px] hover:border-voltage hover:text-voltage transition-colors duration-150 shrink-0"
+        {/* Thumbnail strip — drag to reorder, × to remove */}
+        {shots.length > 0 && (
+          <Reorder.Group
+            axis="x"
+            values={shots}
+            onReorder={setShots}
+            className="flex flex-wrap gap-3 mb-4 list-none p-0"
+          >
+            {shots.map((shot, i) => (
+              <Reorder.Item
+                key={shot.url}
+                value={shot}
+                className="relative w-20 h-20 rounded-[8px] overflow-hidden border border-iron bg-obsidian cursor-grab active:cursor-grabbing shrink-0"
               >
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault()
-                setIsDragOver(false)
-                const f = e.dataTransfer.files[0]
-                if (f) validateAndSet(f)
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={shot.url}
+                  alt={`Screenshot ${i + 1}: ${shot.file.name}`}
+                  className="w-full h-full object-cover pointer-events-none"
+                  draggable={false}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeShot(shot)}
+                  aria-label={`Remove ${shot.file.name}`}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-obsidian/85 border border-iron text-ash hover:text-ember hover:border-ember transition-colors duration-150 flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <span className="absolute bottom-0 left-0 right-0 bg-obsidian/80 font-mono text-[10px] text-ash text-center leading-4">
+                  {i + 1}
+                </span>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
+        )}
+
+        {/* Drop zone — hidden once the cap is reached */}
+        {!isFull && (
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault()
+              setIsDragOver(false)
+              addFiles(Array.from(e.dataTransfer.files))
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={() => fileRef.current?.click()}
+            style={{
+              background: zoneBg,
+              border: `1px dashed ${zoneBorder}`,
+              borderRadius: 12,
+              padding: shots.length > 0 ? 20 : 32,
+              minHeight: shots.length > 0 ? 88 : 140,
+              cursor: "pointer",
+              transition: "border-color 150ms ease, background 150ms ease",
+            }}
+            className="flex flex-col items-center justify-center"
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept={acceptAttr}
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                addFiles(Array.from(e.target.files ?? []))
+                e.target.value = ""
               }}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-              onClick={() => fileRef.current?.click()}
-              style={{
-                background: zoneBg,
-                border: `1px dashed ${zoneBorder}`,
-                borderRadius: 12,
-                padding: 32,
-                minHeight: 140,
-                cursor: "pointer",
-                transition: "border-color 150ms ease, background 150ms ease",
-              }}
-              className="flex flex-col items-center justify-center"
-            >
-              <input
-                ref={fileRef}
-                type="file"
-                accept={acceptAttr}
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  if (f) validateAndSet(f)
-                }}
-              />
-              <Upload className="w-6 h-6 text-ash mb-3" />
-              <p className="font-mono text-[13px] text-ash text-center">
-                Drop your screenshot here{" "}
-                <span className="text-voltage">or browse files</span>
-              </p>
-            </div>
-            {fileError && (
-              <p className="font-mono text-[12px] text-ember mt-2">{fileError}</p>
-            )}
+            />
+            <Upload className="w-6 h-6 text-ash mb-3" />
+            <p className="font-mono text-[13px] text-ash text-center">
+              {shots.length > 0 ? "Add more screenshots" : "Drop your screenshots here"}{" "}
+              <span className="text-voltage">or browse files</span>
+            </p>
           </div>
         )}
+
+        {shots.length > 0 && (
+          <p className="font-mono text-[12px] text-ash mt-2">
+            {shots.length} of {MAX_SCREENSHOTS} attached
+            {shots.length > 1 && " · drag a thumbnail to reorder"}
+          </p>
+        )}
+
+        {fileErrors.map((msg) => (
+          <p key={msg} className="font-mono text-[12px] text-ember mt-2">{msg}</p>
+        ))}
 
         {/* CTAs */}
         <div className="flex items-center gap-3 mt-8">

@@ -2,6 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getActiveAccount } from "@/lib/auth";
+import { CHOOSE_ACCOUNT_PATH, homeFor } from "@/lib/access";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
@@ -23,7 +25,11 @@ export async function acceptTerms() {
     throw new Error("Could not save your acceptance. Please try again.");
   }
 
-  redirect("/explore");
+  // There is no single landing page any more — a fresh signup has no account
+  // record yet and goes on to pick one; a returning user goes to whichever
+  // account is active.
+  const resolved = await getActiveAccount();
+  redirect(resolved?.active ? homeFor(resolved.active) : CHOOSE_ACCOUNT_PATH);
 }
 
 // Append a tour name to the user's `seen_tours` array on `profiles`. Idempotent —

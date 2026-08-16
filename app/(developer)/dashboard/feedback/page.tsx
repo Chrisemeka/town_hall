@@ -49,7 +49,7 @@ export default async function FeedbackReceivedPage() {
     missionIds.length > 0
       ? await supabase
           .from("test_results")
-          .select("id, tester_comment, screenshot_url, created_at, mission_id")
+          .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id")
           .in("mission_id", missionIds)
           .order("created_at", { ascending: true })
       : { data: [] as any[] };
@@ -65,6 +65,7 @@ export default async function FeedbackReceivedPage() {
       projectName:   missionMeta[r.mission_id].projectName,
       tester_comment: r.tester_comment,
       screenshot_url: r.screenshot_url,
+      screenshot_urls: r.screenshot_urls,
       created_at:    r.created_at,
     }));
 

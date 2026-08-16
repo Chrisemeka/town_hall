@@ -1,30 +1,41 @@
 "use client"
 
 import Link from "next/link"
-import { LogOut, User, Menu, X, Plus } from "lucide-react"
+import { LogOut, User, Menu, X, Plus, Search } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { signOutAction } from "@/actions/auth"
+import { homeFor, type AccountType } from "@/lib/access"
+
+// The primary CTA is whatever that account type is here to do.
+const CTA: Record<AccountType, { href: string; label: string; icon: React.ElementType }> = {
+  builder: { href: "/dashboard/new", label: "New Project", icon: Plus },
+  tester: { href: "/explore/missions", label: "Browse Missions", icon: Search },
+}
 
 export function TopNav({
   sidebarOpen,
   onToggleSidebar,
   avatarUrl,
   displayName,
+  account = "builder",
 }: {
   sidebarOpen: boolean
   onToggleSidebar: () => void
   avatarUrl?: string | null
   displayName?: string | null
+  account?: AccountType
 }) {
   const altText = displayName ?? "Your profile"
+  const cta = CTA[account]
+  const CtaIcon = cta.icon
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[56px] bg-obsidian border-b border-iron z-50 flex items-center px-4 md:px-6 justify-between">
 
       {/* Left: Logo */}
       <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
-        <Link href="/explore" className="flex items-center gap-2">
+        <Link href={homeFor(account)} className="flex items-center gap-2">
           <Logo size={40} onDark />
           <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
         </Link>
@@ -39,11 +50,11 @@ export function TopNav({
       <div className="hidden md:flex items-center gap-4 shrink-0">
         <Link
           id="tour-new-project-btn"
-          href="/dashboard/new"
+          href={cta.href}
           className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 flex items-center gap-1.5"
         >
-          <span className="text-[16px] leading-none mb-[1px]">+</span>
-          New Project
+          <CtaIcon className="w-3.5 h-3.5" />
+          {cta.label}
         </Link>
 
         <Link
@@ -80,11 +91,11 @@ export function TopNav({
       <div className="flex md:hidden items-center gap-2 shrink-0">
         <Link
           id="tour-new-project-btn-mobile"
-          href="/dashboard/new"
-          aria-label="New Project"
+          href={cta.href}
+          aria-label={cta.label}
           className="w-9 h-9 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
         >
-          <Plus className="w-5 h-5" />
+          <CtaIcon className="w-5 h-5" />
         </Link>
 
         <button

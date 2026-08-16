@@ -5,6 +5,8 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { Button } from "@/components/ui/Button"
+import { ScreenshotStrip } from "@/components/ScreenshotStrip"
+import { screenshotList } from "@/lib/utils/screenshots"
 
 type Mission = {
   id: string
@@ -18,7 +20,8 @@ type Mission = {
 type TestResult = {
   id: string
   tester_comment: string
-  screenshot_url: string
+  screenshot_url: string | null
+  screenshot_urls: string[] | null
   created_at: string
   missions: { id: string; title: string } | null
 }
@@ -203,6 +206,8 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       <p className="font-mono text-[16px] leading-6 text-chalk line-clamp-3">
                         {result.tester_comment}
                       </p>
+
+                      <ScreenshotStrip urls={screenshotList(result)} />
 
                       <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
                         Read full feedback

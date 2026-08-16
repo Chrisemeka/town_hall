@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { getActiveAccount } from "@/lib/auth"
+import type { AccountType } from "@/lib/access"
 import { AppShell } from "./AppShell"
 
 export async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -9,6 +11,8 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
   let avatarUrl: string | null = null
   let displayName: string | null = null
   let seenTours: string[] = []
+  let account: AccountType = "builder"
+  let heldTypes: AccountType[] = []
 
   if (user) {
     const admin = createAdminClient()
@@ -32,10 +36,22 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
       null
 
     seenTours = (profile?.seen_tours as string[] | null) ?? []
+
+    // Drives which nav the shell renders. Presentation only — the actual gate
+    // is accessFor() in middleware plus requireAccount() on the page.
+    const resolved = await getActiveAccount()
+    account = resolved?.active ?? "builder"
+    heldTypes = resolved?.types ?? []
   }
 
   return (
-    <AppShell avatarUrl={avatarUrl} displayName={displayName} seenTours={seenTours}>
+    <AppShell
+      avatarUrl={avatarUrl}
+      displayName={displayName}
+      seenTours={seenTours}
+      account={account}
+      heldTypes={heldTypes}
+    >
       {children}
     </AppShell>
   )

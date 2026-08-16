@@ -30,7 +30,7 @@ export default async function ProjectDetailPage({
       .order("created_at", { ascending: true }),
     supabase
       .from("test_results")
-      .select("id, tester_comment, screenshot_url, created_at, missions!inner(id, title, project_id)")
+      .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, missions!inner(id, title, project_id)")
       .eq("missions.project_id", projectId)
       .order("created_at", { ascending: false }),
   ]);

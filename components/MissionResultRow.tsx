@@ -1,8 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronUp, ChevronDown, CheckCircle2, AlertTriangle, X } from "lucide-react"
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, X } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
+import { screenshotList } from "@/lib/utils/screenshots"
+import SubmissionReview from "@/components/SubmissionReview"
+import type { SubmissionStatus } from "@/lib/review"
 
 type InsightItem = {
   status: "pass" | "warn" | "fail"
@@ -44,6 +47,11 @@ export default function MissionResultRow({
 }) {
   const [insightOpen, setInsightOpen] = useState(false)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [active, setActive] = useState(0)
+
+  const shots = screenshotList(result)
+  const current = shots[active] ?? shots[0] ?? null
+  const step = (delta: number) => setActive((i) => (i + delta + shots.length) % shots.length)
 
   const developerNum = String(index + 1).padStart(2, "0")
   const date = formatDate(result.created_at)
@@ -60,15 +68,20 @@ export default function MissionResultRow({
         <div className="flex flex-col gap-3">
           <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
             PROOF OF VISIT
+            {shots.length > 1 && (
+              <span className="text-ash normal-case tracking-normal">
+                {" "}· {active + 1} of {shots.length}
+              </span>
+            )}
           </p>
           <div
             className="relative bg-graphite border border-iron rounded-[12px] overflow-hidden cursor-pointer"
-            onClick={() => result.screenshot_url && setLightboxOpen(true)}
+            onClick={() => current && setLightboxOpen(true)}
           >
-            {result.screenshot_url ? (
+            {current ? (
               <img
-                src={result.screenshot_url}
-                alt="Proof of visit"
+                src={current}
+                alt={`Proof of visit ${active + 1}`}
                 className="w-full object-cover"
               />
             ) : (
@@ -82,6 +95,26 @@ export default function MissionResultRow({
               </div>
             )}
           </div>
+
+          {/* Thumbnail strip — only worth showing when there's more than one */}
+          {shots.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              {shots.map((url, i) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => setActive(i)}
+                  aria-label={`View screenshot ${i + 1}`}
+                  className={[
+                    "w-14 h-14 rounded-[8px] overflow-hidden border transition-colors duration-150 shrink-0",
+                    i === active ? "border-voltage" : "border-iron hover:border-ash",
+                  ].join(" ")}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
           {(displayUrl || date) && (
             <p className="font-mono text-[12px] text-ash">
               {displayUrl && <span>{displayUrl}</span>}
@@ -154,8 +187,16 @@ export default function MissionResultRow({
         </div>
       )}
 
+      {/* REVIEW — approve / request changes / rate, and the payout stub */}
+      <SubmissionReview
+        resultId={result.id}
+        status={(result.status ?? "pending") as SubmissionStatus}
+        rating={result.rating ?? null}
+        reviewNote={result.review_note ?? null}
+      />
+
       {/* Screenshot lightbox */}
-      {lightboxOpen && result.screenshot_url && (
+      {lightboxOpen && current && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/95 backdrop-blur-sm p-4"
           onClick={() => setLightboxOpen(false)}
@@ -166,15 +207,40 @@ export default function MissionResultRow({
           >
             <X size={20} />
           </button>
+
+          {shots.length > 1 && (
+            <>
+              <button
+                aria-label="Previous screenshot"
+                className="absolute left-4 md:left-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); step(-1) }}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                aria-label="Next screenshot"
+                className="absolute right-4 md:right-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); step(1) }}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
+
           <div
             className="bg-obsidian border border-iron shadow-2xl rounded-2xl p-2 max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={result.screenshot_url}
-              alt="Full proof of visit"
+              src={current}
+              alt={`Full proof of visit ${active + 1}`}
               className="w-full max-h-[85vh] object-contain rounded-xl"
             />
+            {shots.length > 1 && (
+              <p className="font-mono text-[12px] text-ash text-center py-2">
+                {active + 1} of {shots.length}
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -6,6 +6,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
+import {
+  ACCOUNT_COOKIE,
+  CHOOSE_ACCOUNT_PATH,
+  accessFor,
+  homeFor,
+  type AccountType,
+} from '@/lib/access'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -45,30 +52,29 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Routes that require an authenticated session.
-  const protectedPrefixes = ['/dashboard', '/settings', '/admin', '/mission', '/explore', '/terms-accept']
+  const protectedPrefixes = [
+    '/dashboard', '/settings', '/admin', '/mission', '/explore',
+    '/terms-accept', '/tester', CHOOSE_ACCOUNT_PATH,
+  ]
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
   )
 
-  // If user is logged in and trying to access the homepage, redirect to /explore
-  // (terms gating below will catch them if they haven't accepted yet)
-  if (user && pathname === '/') {
-    return NextResponse.redirect(new URL('/explore', request.url))
+  const noStore = (res: NextResponse) => {
+    // Make sure the redirect itself is never cached so back/forward navigation re-runs auth.
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+    return res
   }
 
   // Anonymous users hitting a protected route get bounced to the landing page.
   if (!user && isProtected) {
-    const redirectResponse = NextResponse.redirect(new URL('/', request.url))
-    // Make sure the redirect itself is never cached so back/forward navigation re-runs auth.
-    redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-    return redirectResponse
+    return noStore(NextResponse.redirect(new URL('/', request.url)))
   }
 
-  // Terms gating: authenticated non-admin users must accept terms before reaching the
-  // rest of the app. The /terms-accept page itself is exempt to avoid a redirect loop.
-  // Admins skip this gate entirely. Uses the service-role client so RLS on `profiles`
-  // can't block the read.
-  if (user && isProtected && pathname !== '/terms-accept') {
+  // A signed-in user on a gated route (or the homepage) needs their profile and
+  // account records to decide where they belong. One embedded read covers both —
+  // service-role so RLS on `profiles` / `accounts` can't block it.
+  if (user && (isProtected || pathname === '/')) {
     const admin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -77,14 +83,42 @@ export async function middleware(request: NextRequest) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('role, accepted_terms_at')
+      .select('role, accepted_terms_at, accounts(type)')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (profile?.role !== 'admin' && !profile?.accepted_terms_at) {
-      const redirectResponse = NextResponse.redirect(new URL('/terms-accept', request.url))
-      redirectResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
-      return redirectResponse
+    const isAdmin = profile?.role === 'admin'
+
+    // Terms gating: authenticated non-admin users must accept terms before reaching
+    // the rest of the app. The /terms-accept page itself is exempt to avoid a loop.
+    if (!isAdmin && !profile?.accepted_terms_at) {
+      if (pathname !== '/terms-accept') {
+        return noStore(NextResponse.redirect(new URL('/terms-accept', request.url)))
+      }
+    } else {
+      // The cookie is only a preference — intersect it with the accounts that
+      // actually exist so a forged value can never widen access. Same resolution
+      // order as getActiveAccount() in lib/auth.ts.
+      const types = ((profile?.accounts ?? []) as { type: AccountType }[]).map((a) => a.type)
+      const preferred = request.cookies.get(ACCOUNT_COOKIE)?.value as AccountType | undefined
+      const active =
+        preferred && types.includes(preferred)
+          ? preferred
+          : types.includes('builder')
+            ? 'builder'
+            : (types[0] ?? null)
+
+      if (pathname === '/') {
+        const target = isAdmin ? '/admin' : active ? homeFor(active) : CHOOSE_ACCOUNT_PATH
+        return noStore(NextResponse.redirect(new URL(target, request.url)))
+      }
+
+      if (!isAdmin) {
+        const access = accessFor(pathname, active)
+        if (!access.allow) {
+          return noStore(NextResponse.redirect(new URL(access.redirect, request.url)))
+        }
+      }
     }
   }
 

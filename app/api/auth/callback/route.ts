@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CHOOSE_ACCOUNT_PATH, homeFor, type AccountType } from '@/lib/access'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/explore'
+  const next = searchParams.get('next')
 
   if (code) {
     const supabase = await createClient()
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
 
         const { data: profile } = await admin
           .from('profiles')
-          .select('role, accepted_terms_at')
+          .select('role, accepted_terms_at, accounts(type)')
           .eq('id', user.id)
           .maybeSingle()
 
@@ -58,11 +59,25 @@ export async function GET(request: Request) {
         if (!profile?.accepted_terms_at) {
           return NextResponse.redirect(`${origin}/terms-accept`)
         }
+
+        // Then they need an account type. Post-auth redirect depends on which
+        // one they hold — there is no single landing page any more.
+        const types = ((profile?.accounts ?? []) as { type: AccountType }[]).map((a) => a.type)
+        if (types.length === 0) {
+          return NextResponse.redirect(`${origin}${CHOOSE_ACCOUNT_PATH}`)
+        }
+
+        // `next` is only honoured when it's reachable from the resolved account;
+        // middleware would bounce it otherwise, so resolve it here instead.
+        const active: AccountType = types.includes('builder') ? 'builder' : types[0]
+        return NextResponse.redirect(`${origin}${next ?? homeFor(active)}`)
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      return NextResponse.redirect(`${origin}${next ?? '/'}`)
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // ponytail: no /auth/auth-code-error page exists — bounce to the landing page
+  // with a flag instead of a 404. Add a real error page when the copy matters.
+  return NextResponse.redirect(`${origin}/?error=auth`)
 }

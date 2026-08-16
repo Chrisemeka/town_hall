@@ -1,11 +1,13 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { requireAccount } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
   createMissionSchema,
   updateMissionSchema,
+  toCents,
   toFieldErrors,
   type CreateMissionInput,
   type UpdateMissionInput,
@@ -35,11 +37,18 @@ export async function createMission(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
+  // Mission authoring is Builder-only. RLS still enforces project ownership on
+  // top of this — this stops a Tester account authoring against a project the
+  // same person happens to own from their Builder side.
+  await requireAccount("builder")
+
   const parsed = createMissionSchema.safeParse({
     projectId: formData.get("projectId"),
     title: formData.get("title"),
     task_description: formData.get("task_description"),
     intent: formData.get("intent"),
+    payout: formData.get("payout"),
+    category: formData.get("category"),
   })
 
   if (!parsed.success) {
@@ -49,12 +58,19 @@ export async function createMission(
     }
   }
 
-  const { projectId, title, task_description, intent } = parsed.data
+  const { projectId, title, task_description, intent, payout, category } = parsed.data
   const is_active = intent === "publish"
 
   const { error } = await supabase
     .from("missions")
-    .insert({ project_id: projectId, title, task_description, is_active })
+    .insert({
+      project_id: projectId,
+      title,
+      task_description,
+      is_active,
+      payout_cents: toCents(payout),
+      category: category || null,
+    })
     .select()
     .single()
 
@@ -79,6 +95,8 @@ export async function updateMission(
     title: formData.get("title"),
     task_description: formData.get("task_description"),
     intent: formData.get("intent"),
+    payout: formData.get("payout"),
+    category: formData.get("category"),
   })
 
   if (!parsed.success) {
@@ -88,12 +106,18 @@ export async function updateMission(
     }
   }
 
-  const { missionId, projectId, title, task_description, intent } = parsed.data
+  const { missionId, projectId, title, task_description, intent, payout, category } = parsed.data
   const is_active = intent === "publish"
 
   const { error } = await supabase
     .from("missions")
-    .update({ title, task_description, is_active })
+    .update({
+      title,
+      task_description,
+      is_active,
+      payout_cents: toCents(payout),
+      category: category || null,
+    })
     .eq("id", missionId)
 
   if (error) return { error: error.message }

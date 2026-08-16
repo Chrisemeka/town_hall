@@ -62,6 +62,9 @@ export const missionIntentSchema = z.enum(["publish", "draft"], {
   message: "Choose publish or draft.",
 })
 
+export const MISSION_CATEGORY_MAX = 40
+export const MISSION_PAYOUT_MAX = 1000
+
 const missionFields = {
   title: z
     .string()
@@ -76,6 +79,26 @@ const missionFields = {
       `Tell testers what to do — at least ${MISSION_DESCRIPTION_MIN} characters.`,
     ),
   intent: missionIntentSchema,
+  // Payout is entered in whole currency units and stored as cents. Blank means
+  // unpaid, which is what every mission created before this field existed is.
+  payout: z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? 0 : v),
+    z.coerce
+      .number()
+      .min(0, "Payout can't be negative.")
+      .max(MISSION_PAYOUT_MAX, `Payout must be ${MISSION_PAYOUT_MAX} or less.`),
+  ),
+  category: z
+    .string()
+    .trim()
+    .max(MISSION_CATEGORY_MAX, `Tag must be ${MISSION_CATEGORY_MAX} characters or fewer.`)
+    .optional()
+    .or(z.literal("")),
+}
+
+/** Currency units off a form -> the integer cents the column stores. */
+export function toCents(payout: number): number {
+  return Math.round(payout * 100)
 }
 
 export const createMissionSchema = z.object({
@@ -102,6 +125,7 @@ export const ALLOWED_SCREENSHOT_TYPES = [
   "image/webp",
 ] as const
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
+export const MAX_SCREENSHOTS = 10
 
 export const submissionSchema = z.object({
   missionId: z.string().uuid("Invalid mission id."),
@@ -125,6 +149,46 @@ export const screenshotSchema = z
   .refine((f) => f.size <= MAX_SCREENSHOT_BYTES, {
     message: "Screenshot must be 5 MB or smaller.",
   })
+
+/** A submission carries 1..MAX_SCREENSHOTS images, each validated individually. */
+export const screenshotsSchema = z
+  .array(screenshotSchema)
+  .min(1, "At least one screenshot is required.")
+  .max(MAX_SCREENSHOTS, `You can attach up to ${MAX_SCREENSHOTS} screenshots.`)
+
+/* ──────────────────────────────────────────────────────────────
+ * Submission review (builder side)
+ * ──────────────────────────────────────────────────────────── */
+
+export const REVIEW_NOTE_MAX = 500
+
+export const reviewSchema = z
+  .object({
+    resultId: z.string().uuid("Invalid submission id."),
+    action: z.enum(["approve", "request_changes", "mark_paid"], {
+      message: "Choose approve, request changes, or mark paid.",
+    }),
+    rating: z.coerce
+      .number()
+      .int()
+      .min(1, "Rate the tester from 1 to 5.")
+      .max(5, "Rate the tester from 1 to 5.")
+      .optional(),
+    note: z.string().trim().max(REVIEW_NOTE_MAX).optional().or(z.literal("")),
+  })
+  // A rating is what feeds the tester's aggregate on their home screen, so it's
+  // required on the two actions that are actually a judgement of the work.
+  .refine((d) => d.action === "mark_paid" || d.rating !== undefined, {
+    message: "Rate the tester from 1 to 5.",
+    path: ["rating"],
+  })
+  // "Needs changes" with no reason is unactionable for the tester.
+  .refine((d) => d.action !== "request_changes" || !!d.note, {
+    message: "Tell the tester what needs changing.",
+    path: ["note"],
+  })
+
+export type ReviewInput = z.infer<typeof reviewSchema>
 
 /* ──────────────────────────────────────────────────────────────
  * Settings

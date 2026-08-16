@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
+import { storagePathsFor } from "@/lib/utils/screenshots"
 
 export async function flagProject(projectId: string, reason: string) {
   const trimmed = reason.trim()
@@ -39,13 +40,6 @@ export async function unflagProject(projectId: string) {
   revalidatePath(`/dashboard/${projectId}`)
 }
 
-function storagePathFromPublicUrl(url: string): string | null {
-  const marker = "/screenshots/"
-  const i = url.indexOf(marker)
-  if (i === -1) return null
-  return url.slice(i + marker.length)
-}
-
 export async function removeProject(projectId: string) {
   const { admin } = await requireAdmin()
 
@@ -62,15 +56,11 @@ export async function removeProject(projectId: string) {
   if (missionIds.length > 0) {
     const { data: results, error: fetchErr } = await admin
       .from("test_results")
-      .select("screenshot_url")
+      .select("screenshot_url, screenshot_urls")
       .in("mission_id", missionIds)
     if (fetchErr) throw new Error(fetchErr.message)
 
-    screenshotPaths = (results ?? [])
-      .map((r: { screenshot_url: string | null }) =>
-        r.screenshot_url ? storagePathFromPublicUrl(r.screenshot_url) : null,
-      )
-      .filter((p): p is string => !!p)
+    screenshotPaths = storagePathsFor(results ?? [])
 
     const { error: trErr } = await admin.from("test_results").delete().in("mission_id", missionIds)
     if (trErr) throw new Error(trErr.message)

@@ -4,23 +4,42 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Target, MessageSquare,
-  Telescope, Compass, Settings,
-  User, LogOut,
+  Telescope, Compass, Settings, LayoutGrid,
+  User, LogOut, BookOpen, Repeat,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
+import { switchAccount } from "@/actions/accounts"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
+import type { AccountType } from "@/lib/access"
 
-const MY_WORK_LINKS = [
-  { name: "My Projects",       href: "/dashboard",           icon: LayoutDashboard },
-  { name: "My Missions",       href: "/dashboard/missions",  icon: Target },
-  { name: "Feedback Received", href: "/dashboard/feedback",  icon: MessageSquare },
-]
+// Each account type gets its own nav. There is no combined view — a Builder
+// account has no business reaching the tester surfaces and vice versa, and
+// middleware would bounce the link anyway.
+const NAV: Record<AccountType, { heading: string; links: { name: string; href: string; icon: React.ElementType }[] }[]> = {
+  builder: [
+    {
+      heading: "My Work",
+      links: [
+        { name: "My Projects",       href: "/dashboard",          icon: LayoutDashboard },
+        { name: "My Missions",       href: "/dashboard/missions", icon: Target },
+        { name: "Feedback Received", href: "/dashboard/feedback", icon: MessageSquare },
+      ],
+    },
+  ],
+  tester: [
+    {
+      heading: "Tester",
+      links: [
+        { name: "Tester Home",       href: "/tester",           icon: LayoutGrid },
+        { name: "Available Missions", href: "/explore/missions", icon: Compass },
+        { name: "Explore Projects",  href: "/explore",          icon: Telescope },
+      ],
+    },
+  ],
+}
 
-const COMMUNITY_LINKS = [
-  { name: "Explore Projects",  href: "/explore",             icon: Telescope },
-  { name: "Browse Missions",   href: "/explore/missions",    icon: Compass },
-]
+const EXACT_MATCH = new Set(["/dashboard", "/explore", "/tester"])
 
 function NavItem({
   href,
@@ -50,10 +69,21 @@ function NavItem({
   )
 }
 
-export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  account = "builder",
+  heldTypes = [],
+}: {
+  isOpen: boolean
+  onClose: () => void
+  account?: AccountType
+  heldTypes?: AccountType[]
+}) {
   const pathname = usePathname()
 
-  const EXACT_MATCH = new Set(["/dashboard", "/explore"])
+  const other: AccountType = account === "builder" ? "tester" : "builder"
+  const hasOther = heldTypes.includes(other)
 
   const isActive = (href: string) =>
     EXACT_MATCH.has(href)
@@ -69,46 +99,59 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
     >
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-8">
 
-        {/* MY WORK */}
-        <div>
-          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
-            My Work
-          </p>
-          <div className="flex flex-col gap-0.5">
-            {MY_WORK_LINKS.map((link) => (
-              <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
-            ))}
+        {NAV[account].map((section) => (
+          <div key={section.heading}>
+            <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+              {section.heading}
+            </p>
+            <div className="flex flex-col gap-0.5">
+              {section.links.map((link) => (
+                <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* COMMUNITY */}
-        <div>
-          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
-            Community
-          </p>
-          <div className="flex flex-col gap-0.5">
-            {COMMUNITY_LINKS.map((link) => (
-              <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
-            ))}
-          </div>
-        </div>
+        ))}
 
         {/* ACCOUNT */}
         <div className="mt-auto pt-6 border-t border-iron">
           <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
-            Account
+            Account · {account}
           </p>
           <div className="flex flex-col gap-0.5">
+
+            {/* Switching between two accounts this person holds — not a role
+                toggle on one profile. Each is its own record with its own data. */}
+            {hasOther ? (
+              <form action={switchAccount.bind(null, other)}>
+                <button
+                  type="submit"
+                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 cursor-pointer"
+                >
+                  <Repeat className="w-4 h-4 shrink-0" />
+                  Switch to {other}
+                </button>
+              </form>
+            ) : (
+              <NavItem
+                href="/choose-account"
+                name={`Add ${other} account`}
+                icon={Repeat}
+                isActive={isActive("/choose-account")}
+                onClick={onClose}
+              />
+            )}
 
             {/* Settings — desktop only */}
             <div className="hidden md:block">
               <NavItem href="/settings" name="Settings" icon={Settings} isActive={isActive("/settings")} />
+              <NavItem href="/guidelines" name="How it works" icon={BookOpen} isActive={isActive("/guidelines")} />
               <ReplayTourButton onClick={onClose} />
             </div>
 
             {/* Profile + Sign Out — mobile only */}
             <div className="md:hidden flex flex-col gap-0.5">
               <NavItem href="/settings" name="Profile" icon={User} isActive={isActive("/settings")} onClick={onClose} />
+              <NavItem href="/guidelines" name="How it works" icon={BookOpen} isActive={isActive("/guidelines")} onClick={onClose} />
               <ReplayTourButton onClick={onClose} />
               <form action={signOutAction}>
                 <button
