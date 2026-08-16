@@ -57,16 +57,30 @@ export function isVerifyPath(pathname: string): boolean {
  * True for surfaces that belong to one role — and therefore exactly where the
  * verification gate applies.
  *
- * The gate is per-role, so it can only sensibly apply to routes that are per-
- * role. The shared surfaces are per-person: /settings holds account deletion,
- * /choose-account is how someone adds or switches a role, /terms-accept is its
- * own gate. Gating those on an unverified account traps the user — they could
- * neither leave, nor switch to the role they actually wanted, nor reach the
- * page the terms gate is trying to send them to.
+ * DO NOT widen this to "every protected route". It reads like an oversight and
+ * it is not; three separate things break if you do.
  *
- * It also keeps the two enforcement layers honest: requireAccount() guards
- * role-scoped surfaces and nothing else, so middleware gating a wider set than
- * that would make the two layers disagree about who is allowed where.
+ * 1. It traps the user. The shared surfaces are per-person, not per-role:
+ *    /settings holds account deletion and /choose-account is how someone adds
+ *    or switches a role. Gate those and an unverified tester can neither leave
+ *    nor become a builder — their only exit is completing a flow they may have
+ *    opened by accident. /terms-accept is worse: it is itself a gate, so
+ *    gating it means the two gates point at each other.
+ *
+ * 2. It desynchronises the two enforcement layers. requireAccount() guards
+ *    role-scoped surfaces and nothing else — /settings and /choose-account do
+ *    not call it at all. A wider URL-level gate would make middleware stricter
+ *    than the in-page check, which is the exact disagreement the two-layer
+ *    pattern in CLAUDE.md exists to prevent.
+ *
+ * 3. It is per-role by construction. "Is this person verified" is not a
+ *    question with one answer — the same person can be a verified builder and
+ *    an unverified tester at once. On a surface belonging to neither role
+ *    there is no role to ask about.
+ *
+ * The spec's acceptance criterion reads "any protected route", which is where
+ * the temptation comes from. Role-scoped is the reading that leaves the user a
+ * way out; it was reviewed and chosen deliberately, not missed.
  */
 export function isRoleScoped(pathname: string): boolean {
   if (underAny(pathname, SHARED_PREFIXES)) return false
