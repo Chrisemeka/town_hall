@@ -6,6 +6,7 @@ import type { z } from "zod"
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { Button } from "@/components/ui/Button"
 import type { AccountType } from "@/lib/access"
+import { formatPhoneAsYouType, isAllowedPhoneKey } from "@/lib/phone"
 import { COUNTRIES, SKILLS, SKILLS_MAX, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
   BIO_MAX,
@@ -196,6 +197,20 @@ type StepProps = {
 }
 
 function IdentityStep({ values, errors, set }: StepProps) {
+  function onPhoneChange(next: string) {
+    // Deleting is left alone: re-formatting a shrinking value puts back the
+    // separator the user just removed, so backspace looks like it does nothing.
+    const deleting = next.length < values.phone.length
+    set("phone", deleting ? next : formatPhoneAsYouType(next, values.country))
+  }
+
+  function onCountryChange(code: string) {
+    set("country", code)
+    // Re-group what they already typed rather than clearing it. The number is
+    // still their number; only the grouping is a function of the country.
+    if (values.phone) set("phone", formatPhoneAsYouType(values.phone, code))
+  }
+
   return (
     <>
       <Field label="Full name" htmlFor="fullName" error={errors.fullName}>
@@ -212,7 +227,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
         <select
           id="country"
           value={values.country}
-          onChange={(e) => set("country", e.target.value)}
+          onChange={(e) => onCountryChange(e.target.value)}
           className={inputClass(!!errors.country?.length)}
         >
           <option value="">Select your country</option>
@@ -233,9 +248,13 @@ function IdentityStep({ values, errors, set }: StepProps) {
         <input
           id="phone"
           type="tel"
+          inputMode="tel"
           value={values.phone}
           placeholder="+234 801 234 5678"
-          onChange={(e) => set("phone", e.target.value)}
+          onKeyDown={(e) => {
+            if (!isAllowedPhoneKey(e)) e.preventDefault()
+          }}
+          onChange={(e) => onPhoneChange(e.target.value)}
           className={inputClass(!!errors.phone?.length)}
         />
       </Field>
