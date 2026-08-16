@@ -9,16 +9,22 @@ export type AccountType = "builder" | "tester"
 
 export const CHOOSE_ACCOUNT_PATH = "/choose-account"
 export const ACCOUNT_COOKIE = "th_account"
+export const VERIFY_PREFIX = "/verify"
+
+/** Where an account that has not cleared the verification gate has to go. */
+export function verifyPathFor(account: AccountType): string {
+  return `${VERIFY_PREFIX}/${account}`
+}
 
 /** Builder-only surfaces: projects, mission authoring, feedback review. */
-const BUILDER_PREFIXES = ["/dashboard"]
+const BUILDER_PREFIXES = ["/dashboard", verifyPathFor("builder")]
 
 /**
  * Tester-only surfaces. `/explore` and `/mission` are in here because they
  * exist purely to find and complete missions — that is the tester's job, so
  * under separate account types they are not a builder's to visit.
  */
-const TESTER_PREFIXES = ["/tester", "/explore", "/mission"]
+const TESTER_PREFIXES = ["/tester", "/explore", "/mission", verifyPathFor("tester")]
 
 /**
  * Reachable from either account type: they are per-person, not per-account.
@@ -40,6 +46,31 @@ function underPrefix(pathname: string, prefix: string): boolean {
 
 function underAny(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => underPrefix(pathname, p))
+}
+
+/** True for the gate's own pages, which the gate itself must never redirect. */
+export function isVerifyPath(pathname: string): boolean {
+  return underPrefix(pathname, VERIFY_PREFIX)
+}
+
+/**
+ * True for surfaces that belong to one role — and therefore exactly where the
+ * verification gate applies.
+ *
+ * The gate is per-role, so it can only sensibly apply to routes that are per-
+ * role. The shared surfaces are per-person: /settings holds account deletion,
+ * /choose-account is how someone adds or switches a role, /terms-accept is its
+ * own gate. Gating those on an unverified account traps the user — they could
+ * neither leave, nor switch to the role they actually wanted, nor reach the
+ * page the terms gate is trying to send them to.
+ *
+ * It also keeps the two enforcement layers honest: requireAccount() guards
+ * role-scoped surfaces and nothing else, so middleware gating a wider set than
+ * that would make the two layers disagree about who is allowed where.
+ */
+export function isRoleScoped(pathname: string): boolean {
+  if (underAny(pathname, SHARED_PREFIXES)) return false
+  return underAny(pathname, BUILDER_PREFIXES) || underAny(pathname, TESTER_PREFIXES)
 }
 
 /**
@@ -64,6 +95,14 @@ export type AccessResult =
  * `account` is the *active* account type, already validated against the
  * database — never the raw cookie. A null account means the user is
  * authenticated but has not created any account record yet.
+ *
+ * Note what this deliberately does not know: whether the account has cleared
+ * the verification gate. This answers "may this role be here", and
+ * /verify/[role] is scoped to its role like any other surface — so an account
+ * is always allowed at its own verify page, and the gate can never lock a user
+ * out of the gate. Whether they are *sent* there is a separate question, owned
+ * by middleware.ts and requireAccount(), because only they can read the
+ * timestamp.
  */
 export function accessFor(pathname: string, account: AccountType | null): AccessResult {
   // Shared surfaces resolve first so /choose-account can never redirect to
