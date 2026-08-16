@@ -10,7 +10,6 @@ import {
   builderStep1Schema,
   testerStep1Schema,
   testerStep2Schema,
-  testerStep3Schema,
 } from "@/lib/validation/schemas"
 import { VerificationFlow, type VerificationValues } from "@/components/verification/VerificationFlow"
 
@@ -18,7 +17,7 @@ export const metadata: Metadata = { title: "Complete your profile — Twnhall" }
 
 /** The steps that collect something, in order. Review is the one after these. */
 const COLLECTING_STEPS = {
-  tester: [testerStep1Schema, testerStep2Schema, testerStep3Schema],
+  tester: [testerStep1Schema, testerStep2Schema],
   builder: [builderStep1Schema],
 } as const
 
@@ -53,7 +52,7 @@ export default async function VerifyPage({
   const admin = createAdminClient()
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, country, phone, timezone, bio, skills")
+    .select("full_name, country, phone, timezone, skills")
     .eq("id", userId)
     .maybeSingle()
 
@@ -62,7 +61,6 @@ export default async function VerifyPage({
     country: profile?.country ?? "",
     phone: profile?.phone ?? "",
     timezone: profile?.timezone ?? "",
-    bio: profile?.bio ?? "",
     skills: profile?.skills ?? [],
   }
 
