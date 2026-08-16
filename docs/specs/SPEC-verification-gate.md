@@ -214,3 +214,120 @@ Run these against a local Supabase after each commit lands (see the prompt for c
 Because existing accounts will all be forced through the flow on first login post-deploy, ship this with a short banner (already-existing toast/banner component if available) on the `/verify/[role]` page: "Twnhall now requires a completed profile before you can [test missions / manage projects]. This takes about a minute." — DM Mono 14px, Ash text, Voltage border-left per Design.md §6.7's Mission Instructions block styling.
 
 That is the only user-facing communication in this feature. No emails, no in-app announcements.
+
+# AMENDMENT — Append to SPEC-verification-gate.md
+
+Instructions for the user: paste everything below the `---` line into `docs/specs/SPEC-verification-gate.md` at the bottom of the file. Commit as `docs(spec): amend verification gate for Model Z + custom skills` on `main`. Push. Then rebase `feat/verification-gate` onto the updated `main` before Stage 5b begins.
+
+---
+
+## Amendment 01 — Model Z scope change and custom skills
+
+**Date:** After Stage 4 shipped, before Stage 5.
+
+**Context:** Manual testing of the verification flow surfaced a product concern — requiring a 50-500 character bio at verification is too much friction for a first-mission unlock, and the bio doesn't serve a clear downstream purpose the way structured skills do. Skills also became more flexible: users can add custom tags beyond the fixed vocabulary.
+
+### What changes
+
+**Tester verification is now 3 steps, not 4:**
+
+1. Identity — full name, country, phone (unchanged)
+2. Skills — canonical vocabulary + user-added custom tags (changed shape, see below)
+3. Review (unchanged)
+
+**Bio drops out of verification entirely.** The `profiles.bio` column stays in the schema (already migrated in Stage 1) but is not collected during verification. Bio editing moves to a separate `feat/profile-editor` follow-up PR, alongside country/phone/skills editing.
+
+**Skills becomes a combo box** — users pick from the canonical vocabulary OR add custom tags with the constraints below.
+
+### Skills input — new specification
+
+Users can enter skills two ways:
+- Select from the canonical `SKILLS` vocabulary in `lib/vocabulary.ts` (unchanged: Frontend, Backend, Mobile, Design, Product, Data, DevOps, QA, AI/ML, Non-technical user)
+- Type a custom skill and press Enter to add it
+
+**Constraints for custom skills:**
+
+| Constraint | Value |
+|------------|-------|
+| Length | 2–30 characters |
+| Allowed characters | Letters, numbers, spaces, `.`, `-`, `+`, `/`, `#` |
+| Deduplication with vocabulary | Case-insensitive match against canonical `SKILLS` — if user types "frontend", store as canonical `Frontend`, not a new custom tag |
+| Deduplication with existing custom tags in user's own list | Same case-insensitive comparison — cannot add the same skill twice |
+| Total tags per user | Max 8 (canonical + custom combined) — unchanged from original spec |
+| Minimum tags per user | 1 (unchanged) |
+
+**Normalization on save:**
+- Trim leading/trailing whitespace
+- Collapse internal whitespace to single spaces
+- Preserve display casing as the user typed it (do not lowercase — "AI/ML" reads better than "ai/ml")
+- Case-insensitive comparison for deduplication only
+
+**Storage:** stays as `profiles.skills text[]`. No schema change. Custom tags live in the array alongside canonical ones — no way to distinguish them at the DB level, which is fine for MVP.
+
+**Moderation posture for MVP:** none. Custom tags are trusted. Admin dashboard should surface a "new custom skills this week" count as a tripwire (out of scope for this PR — track as a follow-up).
+
+### UI for the skills combo box
+
+Establishes a new pattern for the codebase (previously no combo box existed).
+
+- Text input field, placeholder: "Add a skill and press Enter"
+- Below input: selected tags rendered as removable pills (Design.md §5.4 badge styling — small × icon, click removes)
+- Below input, as user types: dropdown showing canonical skills that case-insensitively match the current input
+- User can either click a suggestion or press Enter with their typed value to add a custom tag
+- Inline error text (DM Mono 12px, Ember) for:
+  - Too short: "Skill must be at least 2 characters"
+  - Too long: "Skill must be 30 characters or less"
+  - Invalid characters: "Skill can only contain letters, numbers, and . - + / #"
+  - Duplicate: "You've already added that skill"
+  - Over max tags: "Maximum 8 skills"
+
+Design conformance: input styling per Design.md §5.2 (40px height, Graphite bg, Iron border, Voltage focus, DM Mono 14px). Suggestion dropdown uses Card styling per §5.3 (Graphite bg, Iron border, 12px radius) with each row 32px tall, DM Mono 14px, hover state per existing Nav item hover pattern.
+
+### Zod schema changes
+
+Replace the existing `skills` field in `testerVerificationSchema` and `testerStep3Schema` with:
+
+```
+skills: z.array(
+  z.string()
+    .trim()
+    .min(2, "Skill must be at least 2 characters")
+    .max(30, "Skill must be 30 characters or less")
+    .regex(/^[\p{L}\p{N}\s.\-+/#]+$/u, "Skill can only contain letters, numbers, and . - + / #")
+).min(1, "Add at least one skill").max(8, "Maximum 8 skills")
+```
+
+Deduplication happens client-side before submit and server-side in the action. Custom tags matching canonical entries (case-insensitive) are normalized to the canonical casing before storage.
+
+`testerStep2Schema` (was "about you" step with bio) is deleted. The remaining per-step schemas renumber:
+- `testerStep1Schema` — identity (unchanged)
+- `testerStep2Schema` — skills (was `testerStep3Schema`)
+- Review step has no schema of its own — it re-validates against `testerVerificationSchema`
+
+### Server action changes
+
+- `saveVerificationStep` continues to work — it validates against `.partial()` of the role schema, which naturally handles the removed bio field
+- `completeVerification` continues to work — it re-validates against the full role schema, which no longer includes bio
+- The per-role skill normalization (matching custom entries against canonical vocabulary) happens in `saveVerificationStep` before writing to the DB. Add a helper `normalizeSkills(skills: string[]): string[]` in `lib/vocabulary.ts` that returns the deduplicated, canonically-cased array.
+
+### Files to remove
+
+- Any component or schema referencing the bio step for testers. If Stage 4's UI included a `BioStep` component, delete it.
+- The bio-related tests in `actions/__tests__/verification.test.ts` need updating — remove bio field from happy-path fixtures, remove any test asserting bio validation.
+
+### Acceptance criteria changes to the original spec
+
+- Original AC #5 becomes: "The tester flow collects identity + skills across three steps; each step's data persists on Continue; drop-off returns to the last incomplete step."
+- Original AC #6 unchanged (builder flow, 2 steps)
+- Original AC #12 (Vitest coverage) needs to be extended to cover the custom skills flow: canonical selection, custom tag entry, invalid character rejection, duplicate rejection, over-max rejection, and case-insensitive dedup against canonical vocabulary.
+
+### Non-goals (unchanged from original spec, plus new)
+
+- No suggest-as-you-type from previously-created custom tags across all users (deferred — would require a new DB query or table)
+- No profanity/moderation filter on custom skills (deferred until abuse volume warrants)
+- No admin UI for reviewing new custom skills (deferred — tripwire metric only)
+- No display of collected verification data on profile pages (deferred to `feat/profile-editor` follow-up PR)
+
+### Rollout consideration
+
+Existing users who have already been verified under the original spec have `bio` populated. That data stays in the column, unused by verification flows. When `feat/profile-editor` ships, those users will see their existing bio and can edit or clear it.
