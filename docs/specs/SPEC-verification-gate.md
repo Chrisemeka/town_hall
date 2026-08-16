@@ -130,7 +130,7 @@ The page is a multi-step form. Steps:
 
 **Progressive save:** each "Continue" click persists what has been entered so far to `profiles` (partial update). If the user drops off mid-flow, they return to where they left off. The gate does not open until step "Review" is submitted, which sets `accounts.verification_completed_at = now()`.
 
-**Post-verification:** redirect to the role's default landing surface — `/dashboard` for builder, `/tester` for tester.
+**Post-verification:** redirect to the role's default landing surface — `/dashboard` for builder, `/explore` for tester.
 
 ## Server actions
 
