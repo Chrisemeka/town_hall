@@ -63,7 +63,14 @@ export const COUNTRIES = `
   .trim()
   .split(/\s+/) as [string, ...string[]]
 
-const regionNames = new Intl.DisplayNames(["en"], { type: "region" })
+// The locale is pinned, and "en-US" specifically — not undefined, not [], not
+// bare "en". Those defer to the runtime, and the runtime is not the same on
+// both sides of a render: Node's ICU build resolved FK to "Falkland Islands"
+// while the browser resolved it to "Falkland Islands (Islas Malvinas)", so the
+// server markup and the hydrated markup disagreed and React threw. Any region
+// with a disputed or aliased name can do this. Widening this back to a
+// runtime-dependent locale reintroduces the hydration error.
+const regionNames = new Intl.DisplayNames(["en-US"], { type: "region" })
 
 /** "NG" -> "Nigeria". The platform owns the names, so we don't ship a second list. */
 export function countryName(code: string): string {
