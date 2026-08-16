@@ -9,8 +9,12 @@ import { NextResponse, type NextRequest } from 'next/server'
 import {
   ACCOUNT_COOKIE,
   CHOOSE_ACCOUNT_PATH,
+  VERIFY_PREFIX,
   accessFor,
   homeFor,
+  isRoleScoped,
+  isVerifyPath,
+  verifyPathFor,
   type AccountType,
 } from '@/lib/access'
 
@@ -54,7 +58,7 @@ export async function middleware(request: NextRequest) {
   // Routes that require an authenticated session.
   const protectedPrefixes = [
     '/dashboard', '/settings', '/admin', '/mission', '/explore',
-    '/terms-accept', '/tester', CHOOSE_ACCOUNT_PATH,
+    '/terms-accept', '/tester', VERIFY_PREFIX, CHOOSE_ACCOUNT_PATH,
   ]
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
@@ -83,7 +87,7 @@ export async function middleware(request: NextRequest) {
 
     const { data: profile } = await admin
       .from('profiles')
-      .select('role, accepted_terms_at, accounts(type)')
+      .select('role, accepted_terms_at, accounts(type, verification_completed_at)')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -99,7 +103,11 @@ export async function middleware(request: NextRequest) {
       // The cookie is only a preference — intersect it with the accounts that
       // actually exist so a forged value can never widen access. Same resolution
       // order as getActiveAccount() in lib/auth.ts.
-      const types = ((profile?.accounts ?? []) as { type: AccountType }[]).map((a) => a.type)
+      const rows = (profile?.accounts ?? []) as {
+        type: AccountType
+        verification_completed_at: string | null
+      }[]
+      const types = rows.map((a) => a.type)
       const preferred = request.cookies.get(ACCOUNT_COOKIE)?.value as AccountType | undefined
       const active =
         preferred && types.includes(preferred)
@@ -108,12 +116,35 @@ export async function middleware(request: NextRequest) {
             ? 'builder'
             : (types[0] ?? null)
 
+      // Read off the account that was actually resolved above, never off the
+      // cookie's claim — a verified builder account says nothing about the
+      // tester account this request is acting as. Mirrors getActiveAccount().
+      const verified = !!rows.find((a) => a.type === active)?.verification_completed_at
+
       if (pathname === '/') {
         const target = isAdmin ? '/admin' : active ? homeFor(active) : CHOOSE_ACCOUNT_PATH
         return noStore(NextResponse.redirect(new URL(target, request.url)))
       }
 
       if (!isAdmin) {
+        // Verification gate — the URL-level half of requireAccount()'s check.
+        // Same exemption shape as the terms gate above: the page that lifts the
+        // gate is the one page the gate must not apply to, or it redirects to
+        // itself forever. Runs before accessFor() so an unverified user lands on
+        // /verify/[role] in one hop rather than bouncing via their role home.
+        // Scoped to role-scoped paths only (see isRoleScoped) so it matches
+        // exactly what requireAccount() gates in-page.
+        if (active && isRoleScoped(pathname)) {
+          const verifyPath = verifyPathFor(active)
+          if (!verified && pathname !== verifyPath) {
+            return noStore(NextResponse.redirect(new URL(verifyPath, request.url)))
+          }
+          // Already through the gate: the flow is not somewhere to go back to.
+          if (verified && isVerifyPath(pathname)) {
+            return noStore(NextResponse.redirect(new URL(homeFor(active), request.url)))
+          }
+        }
+
         const access = accessFor(pathname, active)
         if (!access.allow) {
           return noStore(NextResponse.redirect(new URL(access.redirect, request.url)))

@@ -1,4 +1,9 @@
 import { z } from "zod"
+import { parsePhoneNumberFromString } from "libphonenumber-js"
+// Relative, with the extension: scripts/*.test.mts import this file under plain
+// node, which resolves neither the "@/" alias nor an extensionless specifier.
+import { COUNTRIES, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
+import type { AccountType } from "../access.ts"
 
 /* ──────────────────────────────────────────────────────────────
  * Shared helpers
@@ -264,3 +269,113 @@ export const broadcastSchema = z
   )
 
 export type BroadcastInput = z.input<typeof broadcastSchema>
+
+/* ──────────────────────────────────────────────────────────────
+ * Verification gate
+ * ──────────────────────────────────────────────────────────── */
+
+export const FULL_NAME_MIN = 2
+export const FULL_NAME_MAX = 80
+export const SKILL_MIN = 2
+export const SKILL_MAX = 30
+
+/**
+ * Identity — what both roles have to give up before their gate opens. Kept as a
+ * field bag rather than a schema so the two role schemas below compose it
+ * instead of redeclaring it; a builder and a tester answer these identically.
+ */
+const identityFields = {
+  fullName: z
+    .string()
+    .trim()
+    .min(FULL_NAME_MIN, `Name must be at least ${FULL_NAME_MIN} characters.`)
+    .max(FULL_NAME_MAX, `Name must be ${FULL_NAME_MAX} characters or fewer.`),
+  country: z.enum(COUNTRIES, { message: "Select your country." }),
+  // Parsed rather than regex-matched: E.164 is only half the problem, the other
+  // half is whether the national number is actually valid for that country.
+  // Normalised to E.164 on the way through so the column holds one format.
+  phone: z
+    .string()
+    .trim()
+    .min(1, "Phone number is required.")
+    .refine((v) => parsePhoneNumberFromString(v)?.isValid() ?? false, {
+      message: "Enter a valid phone number including country code — e.g. +234 801 234 5678.",
+    })
+    // Unreachable fallback: refine above already proved this parses.
+    .transform((v) => parsePhoneNumberFromString(v)?.number ?? v),
+}
+
+/**
+ * Timezone is a tester-only identity field. It sits with the identity fields
+ * rather than in a step of its own — the "about you" step it used to share with
+ * the bio is gone, and a lone dropdown is not a step.
+ */
+const timezoneField = {
+  timezone: z.enum(TIMEZONES, { message: "Select your timezone." }),
+}
+
+/**
+ * One skill. Free text, not an enum: the vocabulary is a starting point now,
+ * not a fence. What is still enforced is that a tag is a tag — long enough to
+ * mean something, short enough to render in a pill, and made of characters that
+ * belong in a skill name rather than markup or an injected payload.
+ */
+export const skillSchema = z
+  .string()
+  .trim()
+  .min(SKILL_MIN, `Skill must be at least ${SKILL_MIN} characters`)
+  .max(SKILL_MAX, `Skill must be ${SKILL_MAX} characters or less`)
+  .regex(/^[\p{L}\p{N}\s.\-+/#]+$/u, "Skill can only contain letters, numbers, and . - + / #")
+
+const skillsField = {
+  // No uniqueness check here on purpose: normalizeSkills() runs on both write
+  // paths and collapses case-insensitive duplicates before this ever sees them,
+  // so a refine could only fire on a list that had skipped normalisation — and
+  // would then report "duplicate" for something the user cannot see or fix.
+  skills: z
+    .array(skillSchema)
+    .min(SKILLS_MIN, "Add at least one skill")
+    .max(SKILLS_MAX, `Maximum ${SKILLS_MAX} skills`),
+}
+
+/* Per-step schemas — the form validates the step in front of the user with
+ * these, so an error lands on the field that caused it rather than on a later
+ * step the user hasn't reached yet. */
+
+export const builderStep1Schema = z.object(identityFields)
+/** Tester step 1 is builder step 1 plus the timezone. */
+export const testerStep1Schema = z.object({ ...identityFields, ...timezoneField })
+export const testerStep2Schema = z.object(skillsField)
+
+/* Full role schemas — what `completeVerification` re-checks before it opens the
+ * gate, because the partial saves that got us here each only saw one step. */
+
+export const testerVerificationSchema = z.object({
+  ...identityFields,
+  ...timezoneField,
+  ...skillsField,
+})
+/** A builder's full requirement is its only step. Named for symmetry at the call site. */
+export const builderVerificationSchema = builderStep1Schema
+
+export type TesterVerificationInput = z.input<typeof testerVerificationSchema>
+export type BuilderVerificationInput = z.input<typeof builderVerificationSchema>
+
+/** The schema a role's completed profile is judged against. */
+export function verificationSchemaFor(role: AccountType) {
+  return role === "tester" ? testerVerificationSchema : builderVerificationSchema
+}
+
+/**
+ * The same schema with every field optional — what a mid-flow "Continue" save is
+ * checked against.
+ *
+ * A step save cannot demand every field, because the point of it is that the
+ * later steps are still blank. It still fully validates whatever *was* sent, so
+ * a bad phone number is rejected at step 1 rather than surfacing at the end. The
+ * completeness check is `verificationSchemaFor()` at the gate, which is where it
+ * belongs — the step number a client claims to be on is not evidence.
+ */
+export function verificationStepSchemaFor(role: AccountType) {
+  return verificationSchemaFor(role).partial()
+}
