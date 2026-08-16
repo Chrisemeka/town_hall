@@ -146,7 +146,10 @@ export async function requireAccount(type: AccountType): Promise<{ userId: strin
  */
 export async function requireAccountForVerification(
   type: AccountType,
-): Promise<{ userId: string }> {
+): Promise<{ userId: string; verified: boolean }> {
   const resolved = await resolveAccountOrRedirect(type)
-  return { userId: resolved.userId }
+  // `verified` is returned rather than acted on: the verify page needs it to
+  // bounce someone who is already through (the in-page half of that check), and
+  // it is already loaded here, so asking for it again would be a second query.
+  return { userId: resolved.userId, verified: resolved.verified }
 }

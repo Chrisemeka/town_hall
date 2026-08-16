@@ -96,7 +96,20 @@ describe("requireAccountForVerification", () => {
     // If this ever redirects, /verify/[role] sends the user to /verify/[role]
     // and the account can never become verified.
     given({ rows: [unverified("tester")] })
-    await expect(requireAccountForVerification("tester")).resolves.toEqual({ userId: USER_ID })
+    await expect(requireAccountForVerification("tester")).resolves.toEqual({
+      userId: USER_ID,
+      verified: false,
+    })
+  })
+
+  it("reports verification rather than acting on it", async () => {
+    // The verify page bounces an already-verified user itself. This helper
+    // hands it the answer instead of redirecting, so the page keeps the choice.
+    given({ rows: [verified("tester")] })
+    await expect(requireAccountForVerification("tester")).resolves.toEqual({
+      userId: USER_ID,
+      verified: true,
+    })
   })
 
   it("still enforces everything that is not the verification gate", async () => {

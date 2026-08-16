@@ -76,7 +76,7 @@ function useAdmin(opts: Parameters<typeof fakeAdmin>[0] = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.mocked(requireAccountForVerification).mockResolvedValue({ userId: USER_ID })
+  vi.mocked(requireAccountForVerification).mockResolvedValue({ userId: USER_ID, verified: false })
 })
 
 describe("saveVerificationStep", () => {
