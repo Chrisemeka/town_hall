@@ -18,7 +18,6 @@ const COMPLETE_TESTER = {
   country: "NG",
   phone: "+2348012345678",
   timezone: "Africa/Lagos",
-  bio: "I break onboarding flows for a living and write up exactly which step lost me.",
   skills: ["QA", "Frontend"],
 }
 
@@ -138,23 +137,37 @@ describe("saveVerificationStep", () => {
     // This write runs as service-role, so an unmapped key reaching the UPDATE
     // would be a privilege escalation, not a typo.
     const result = await saveVerificationStep("tester", {
-      bio: "I break onboarding flows for a living and write up exactly which step lost me.",
+      timezone: "Africa/Lagos",
       role: "admin",
       moderation_status: "clear",
       verification_completed_at: new Date().toISOString(),
     })
 
     expect(result.success).toBe(true)
-    expect(Object.keys(writes[0].values)).toEqual(["bio"])
+    expect(Object.keys(writes[0].values)).toEqual(["timezone"])
   })
 
-  it("rejects a skill outside the vocabulary", async () => {
+  it("no longer writes bio, which verification has stopped collecting", async () => {
+    const writes = useAdmin()
+
+    // The column still exists and still holds what earlier verifications put
+    // there. It is simply not this flow's to touch any more.
+    const result = await saveVerificationStep("tester", {
+      timezone: "Africa/Lagos",
+      bio: "A perfectly valid bio that must not reach the database from here.",
+    })
+
+    expect(result.success).toBe(true)
+    expect(Object.keys(writes[0].values)).toEqual(["timezone"])
+  })
+
+  it("accepts a skill outside the vocabulary, which is the point of model Z", async () => {
     const writes = useAdmin()
 
     const result = await saveVerificationStep("tester", { skills: ["Astrology"] })
 
-    expect(result.success).toBe(false)
-    expect(writes).toHaveLength(0)
+    expect(result.success).toBe(true)
+    expect(writes[0].values.skills).toEqual(["Astrology"])
   })
 
   it("ignores tester-only fields on a builder save", async () => {
@@ -162,11 +175,65 @@ describe("saveVerificationStep", () => {
 
     const result = await saveVerificationStep("builder", {
       fullName: "Ada Lovelace",
-      bio: "Builders do not have a bio in this flow, so this must not be written.",
+      timezone: "Africa/Lagos",
+      skills: ["QA"],
     })
 
     expect(result.success).toBe(true)
     expect(Object.keys(writes[0].values)).toEqual(["full_name"])
+  })
+
+  it("rewrites skills to canonical spelling before writing", async () => {
+    const writes = useAdmin()
+
+    const result = await saveVerificationStep("tester", { skills: ["frontend", "  qa  "] })
+
+    expect(result.success).toBe(true)
+    expect(writes[0].values.skills).toEqual(["Frontend", "QA"])
+  })
+
+  it("collapses duplicates that only differ by case before writing", async () => {
+    const writes = useAdmin()
+
+    // The schema accepts both — they are each individually valid strings. It is
+    // normalisation, not validation, that stops the profile holding two tags
+    // that say the same thing.
+    const result = await saveVerificationStep("tester", {
+      skills: ["React", "react", "frontend", "Frontend"],
+    })
+
+    expect(result.success).toBe(true)
+    expect(writes[0].values.skills).toEqual(["React", "Frontend"])
+  })
+
+  it("keeps a custom skill the vocabulary does not have", async () => {
+    const writes = useAdmin()
+
+    const result = await saveVerificationStep("tester", { skills: ["Rust", "gRPC"] })
+
+    expect(result.success).toBe(true)
+    expect(writes[0].values.skills).toEqual(["Rust", "gRPC"])
+  })
+
+  it("rejects a skill with characters that do not belong in a tag", async () => {
+    const writes = useAdmin()
+
+    const result = await saveVerificationStep("tester", { skills: ["<script>alert(1)</script>"] })
+
+    expect(result.success).toBe(false)
+    expect(result.success === false && result.fieldErrors?.skills).toBeTruthy()
+    expect(writes).toHaveLength(0)
+  })
+
+  it("rejects more than the maximum number of skills", async () => {
+    const writes = useAdmin()
+
+    const result = await saveVerificationStep("tester", {
+      skills: ["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8", "a9"],
+    })
+
+    expect(result.success).toBe(false)
+    expect(writes).toHaveLength(0)
   })
 
   it("surfaces a database failure instead of reporting success", async () => {
@@ -195,6 +262,31 @@ describe("completeVerification", () => {
 
     expect(result.success).toBe(false)
     expect(result.success === false && result.fieldErrors?.skills).toBeTruthy()
+    expect(writes).toHaveLength(0)
+  })
+
+  it("normalises what it reads before judging it", async () => {
+    // Defends the gate against rows this action did not write — a direct DB
+    // edit could leave "frontend" and "Frontend" side by side, and that should
+    // still verify rather than trip on a duplicate the user cannot see.
+    const writes = useAdmin({
+      profile: { ...COMPLETE_TESTER, skills: ["frontend", "Frontend", "  qa  "] },
+    })
+
+    const result = await completeVerification("tester")
+
+    expect(result).toEqual({ success: true, redirectTo: "/explore" })
+    expect(writes).toHaveLength(1)
+  })
+
+  it("refuses a profile whose only skills are whitespace", async () => {
+    // Normalisation drops these, which drops the list below the minimum —
+    // the gate must not open on a profile with no real skills on it.
+    const writes = useAdmin({ profile: { ...COMPLETE_TESTER, skills: ["  ", ""] } })
+
+    const result = await completeVerification("tester")
+
+    expect(result.success).toBe(false)
     expect(writes).toHaveLength(0)
   })
 

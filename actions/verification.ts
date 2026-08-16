@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccountForVerification } from "@/lib/auth"
 import { homeFor, type AccountType } from "@/lib/access"
+import { normalizeSkills } from "@/lib/vocabulary"
 import {
   toFieldErrors,
   verificationSchemaFor,
@@ -25,13 +26,18 @@ type VerificationResult =
   | { success: true; redirectTo?: string }
   | { success: false; error: string; fieldErrors?: FieldErrors<VerificationFields> }
 
-/** Validated input -> the profiles columns it maps to. */
+/**
+ * Validated input -> the profiles columns it maps to.
+ *
+ * `bio` is absent deliberately. The column still exists and still holds what
+ * earlier verifications wrote, but verification no longer collects it, and a
+ * mapping here is what would let it be written again.
+ */
 const COLUMN_FOR = {
   fullName: "full_name",
   country: "country",
   phone: "phone",
   timezone: "timezone",
-  bio: "bio",
   skills: "skills",
 } as const
 
@@ -69,7 +75,13 @@ export async function saveVerificationStep(
     }
   }
 
+  // Canonical spelling and de-duplication happen here rather than in the
+  // schema, because they rewrite the value rather than judge it — "frontend"
+  // is not invalid, it is just another way of writing "Frontend".
   const columns = toProfileColumns(parsed.data)
+  if (Array.isArray(columns.skills)) {
+    columns.skills = normalizeSkills(columns.skills as string[])
+  }
   if (Object.keys(columns).length === 0) return { success: true }
 
   const admin = createAdminClient()
@@ -96,7 +108,7 @@ export async function completeVerification(role: AccountType): Promise<Verificat
   const admin = createAdminClient()
   const { data: profile, error: readError } = await admin
     .from("profiles")
-    .select("full_name, country, phone, timezone, bio, skills")
+    .select("full_name, country, phone, timezone, skills")
     .eq("id", userId)
     .maybeSingle()
 
@@ -110,8 +122,10 @@ export async function completeVerification(role: AccountType): Promise<Verificat
     country: profile?.country,
     phone: profile?.phone,
     timezone: profile?.timezone,
-    bio: profile?.bio,
-    skills: profile?.skills ?? [],
+    // Normalised on the way in as well as on the way out: rows written before
+    // this rule existed, or by anything that bypassed the action, still have to
+    // clear the same bar as a list that came through the form.
+    skills: normalizeSkills(profile?.skills ?? []),
   })
 
   if (!parsed.success) {
