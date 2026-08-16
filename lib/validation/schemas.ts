@@ -2,7 +2,7 @@ import { z } from "zod"
 import { parsePhoneNumberFromString } from "libphonenumber-js"
 // Relative, with the extension: scripts/*.test.mts import this file under plain
 // node, which resolves neither the "@/" alias nor an extensionless specifier.
-import { COUNTRIES, SKILLS, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
+import { COUNTRIES, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
 import type { AccountType } from "../access.ts"
 
 /* ──────────────────────────────────────────────────────────────
@@ -276,8 +276,8 @@ export type BroadcastInput = z.input<typeof broadcastSchema>
 
 export const FULL_NAME_MIN = 2
 export const FULL_NAME_MAX = 80
-export const BIO_MIN = 50
-export const BIO_MAX = 500
+export const SKILL_MIN = 2
+export const SKILL_MAX = 30
 
 /**
  * Identity — what both roles have to give up before their gate opens. Kept as a
@@ -305,22 +305,37 @@ const identityFields = {
     .transform((v) => parsePhoneNumberFromString(v)?.number ?? v),
 }
 
-const testerProfileFields = {
+/**
+ * Timezone is a tester-only identity field. It sits with the identity fields
+ * rather than in a step of its own — the "about you" step it used to share with
+ * the bio is gone, and a lone dropdown is not a step.
+ */
+const timezoneField = {
   timezone: z.enum(TIMEZONES, { message: "Select your timezone." }),
-  bio: z
-    .string()
-    .trim()
-    .min(BIO_MIN, `Tell builders a bit more — at least ${BIO_MIN} characters.`)
-    .max(BIO_MAX, `Bio must be ${BIO_MAX} characters or fewer.`),
 }
 
+/**
+ * One skill. Free text, not an enum: the vocabulary is a starting point now,
+ * not a fence. What is still enforced is that a tag is a tag — long enough to
+ * mean something, short enough to render in a pill, and made of characters that
+ * belong in a skill name rather than markup or an injected payload.
+ */
+export const skillSchema = z
+  .string()
+  .trim()
+  .min(SKILL_MIN, `Skill must be at least ${SKILL_MIN} characters`)
+  .max(SKILL_MAX, `Skill must be ${SKILL_MAX} characters or less`)
+  .regex(/^[\p{L}\p{N}\s.\-+/#]+$/u, "Skill can only contain letters, numbers, and . - + / #")
+
 const skillsField = {
+  // No uniqueness check here on purpose: normalizeSkills() runs on both write
+  // paths and collapses case-insensitive duplicates before this ever sees them,
+  // so a refine could only fire on a list that had skipped normalisation — and
+  // would then report "duplicate" for something the user cannot see or fix.
   skills: z
-    .array(z.enum(SKILLS, { message: "That isn't one of the available skills." }))
-    .min(SKILLS_MIN, "Pick at least one skill.")
-    .max(SKILLS_MAX, `Pick ${SKILLS_MAX} skills or fewer.`)
-    // Without this, the same tag eight times passes the max check.
-    .refine((s) => new Set(s).size === s.length, "Each skill can only be picked once."),
+    .array(skillSchema)
+    .min(SKILLS_MIN, "Add at least one skill")
+    .max(SKILLS_MAX, `Maximum ${SKILLS_MAX} skills`),
 }
 
 /* Per-step schemas — the form validates the step in front of the user with
@@ -328,17 +343,16 @@ const skillsField = {
  * step the user hasn't reached yet. */
 
 export const builderStep1Schema = z.object(identityFields)
-/** Tester step 1 asks exactly what builder step 1 asks. */
-export const testerStep1Schema = builderStep1Schema
-export const testerStep2Schema = z.object(testerProfileFields)
-export const testerStep3Schema = z.object(skillsField)
+/** Tester step 1 is builder step 1 plus the timezone. */
+export const testerStep1Schema = z.object({ ...identityFields, ...timezoneField })
+export const testerStep2Schema = z.object(skillsField)
 
 /* Full role schemas — what `completeVerification` re-checks before it opens the
  * gate, because the partial saves that got us here each only saw one step. */
 
 export const testerVerificationSchema = z.object({
   ...identityFields,
-  ...testerProfileFields,
+  ...timezoneField,
   ...skillsField,
 })
 /** A builder's full requirement is its only step. Named for symmetry at the call site. */

@@ -24,6 +24,54 @@ export type Skill = (typeof SKILLS)[number]
 export const SKILLS_MIN = 1
 export const SKILLS_MAX = 8
 
+/** Trim the ends and squash runs of internal whitespace to one space. */
+function collapseWhitespace(value: string): string {
+  return value.trim().replace(/\s+/g, " ")
+}
+
+/**
+ * The canonical spelling of a skill, if we have one.
+ *
+ * A user typing "frontend" means the same thing as the vocabulary's "Frontend",
+ * so it is stored as "Frontend" rather than becoming a second, near-identical
+ * tag. Anything with no canonical match is a custom tag and keeps the casing
+ * the user chose — "AI/ML" reads better than "ai/ml", and we have no basis for
+ * guessing how someone wants their own words capitalised.
+ */
+export function canonicalSkill(skill: string): string {
+  const cleaned = collapseWhitespace(skill)
+  const canonical = SKILLS.find((s) => s.toLowerCase() === cleaned.toLowerCase())
+  return canonical ?? cleaned
+}
+
+/**
+ * Cleans a skill list for storage: whitespace collapsed, canonical spellings
+ * applied, duplicates removed case-insensitively.
+ *
+ * Order is preserved and the first spelling of a duplicate wins — if someone
+ * has "React" and later adds "react", the list keeps "React". There is no
+ * better answer available: both are the user's own words, and the earlier one
+ * is the one they have already seen on screen.
+ *
+ * Empty entries are dropped rather than rejected. They only arise from
+ * whitespace-only input, which is not a skill and not worth an error.
+ */
+export function normalizeSkills(skills: string[]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+
+  for (const raw of skills) {
+    const value = canonicalSkill(raw)
+    if (!value) continue
+    const key = value.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(value)
+  }
+
+  return out
+}
+
 /**
  * ISO 3166-1 alpha-2, officially assigned codes. Stored as codes rather than
  * names so the display string can change (and be localised) without a data
