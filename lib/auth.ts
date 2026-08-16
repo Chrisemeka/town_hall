@@ -74,14 +74,45 @@ export async function getActiveAccount(): Promise<{
 }
 
 /**
- * Page/action guard mirroring `requireAdmin()`. Middleware gates these routes
- * too, but middleware's matcher is config — this is the check that survives
- * someone editing it, and it is what server actions rely on.
+ * Identity half of the account guard: signed in, holds an account, and it is
+ * the one being asked for. Deliberately not exported — the verification gate
+ * below is the other half, and code that skips it should have to say so by
+ * name rather than by reaching for a helper that quietly omits it.
  */
-export async function requireAccount(type: AccountType): Promise<{ userId: string }> {
+async function resolveAccountOrRedirect(type: AccountType): Promise<{ userId: string }> {
   const resolved = await getActiveAccount()
   if (!resolved) redirect("/")
   if (resolved.active === null) redirect(CHOOSE_ACCOUNT_PATH)
   if (resolved.active !== type) redirect(homeFor(resolved.active))
   return { userId: resolved.userId }
+}
+
+/**
+ * Page/action guard mirroring `requireAdmin()`. Middleware gates these routes
+ * too, but middleware's matcher is config — this is the check that survives
+ * someone editing it, and it is what server actions rely on.
+ */
+export async function requireAccount(type: AccountType): Promise<{ userId: string }> {
+  return resolveAccountOrRedirect(type)
+}
+
+/**
+ * `requireAccount()` minus the verification gate. This is NOT a bug, and it is
+ * not a general-purpose escape hatch.
+ *
+ * The verification actions run *inside* /verify/[role]. Once `requireAccount()`
+ * gains its gate (it redirects an unverified account to /verify/[role]), those
+ * actions calling it would redirect the user to the page they are already on,
+ * forever — the flow could never save a step, so the account could never become
+ * verified, so the redirect could never stop. Something has to run before the
+ * gate opens, and this is the only thing allowed to.
+ *
+ * Everything else goes through `requireAccount()`. If a new caller appears
+ * here, the question to ask is why that surface runs before verification —
+ * almost always the answer is that it shouldn't.
+ */
+export async function requireAccountForVerification(
+  type: AccountType,
+): Promise<{ userId: string }> {
+  return resolveAccountOrRedirect(type)
 }
