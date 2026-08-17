@@ -47,3 +47,11 @@ export function inputClass(hasError: boolean): string {
     hasError ? "border-ember" : "border-iron focus:border-voltage",
   ].join(" ")
 }
+
+/** The same box as a textarea: §5.2 gives it 120px of height and 12px/16px padding. */
+export function textareaClass(hasError: boolean): string {
+  return [
+    "min-h-[120px] w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-y",
+    hasError ? "border-ember" : "border-iron focus:border-voltage",
+  ].join(" ")
+}

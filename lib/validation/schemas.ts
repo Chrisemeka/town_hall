@@ -195,23 +195,11 @@ export const reviewSchema = z
 
 export type ReviewInput = z.infer<typeof reviewSchema>
 
-/* ──────────────────────────────────────────────────────────────
- * Settings
- * ──────────────────────────────────────────────────────────── */
-
-export const DISPLAY_NAME_MAX = 50
-
-export const displayNameSchema = z.object({
-  displayName: z
-    .string()
-    .trim()
-    .min(1, "Display name is required.")
-    .max(
-      DISPLAY_NAME_MAX,
-      `Display name must be ${DISPLAY_NAME_MAX} characters or fewer.`,
-    ),
-})
-export type DisplayNameInput = z.infer<typeof displayNameSchema>
+/* Settings used to validate its display name against a schema of its own here.
+ * It now writes profiles.full_name through updateProfileSchema below, which
+ * validates the same value against the same rule the verification gate uses —
+ * two limits on one column is how the gate and the editor end up disagreeing
+ * about what fits in it. */
 
 /* ──────────────────────────────────────────────────────────────
  * Admin broadcast
