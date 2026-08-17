@@ -279,30 +279,49 @@ export const FULL_NAME_MAX = 80
 export const SKILL_MIN = 2
 export const SKILL_MAX = 30
 
+/* The individual field schemas, exported one by one.
+ *
+ * They are named exports rather than inline members of the field bags below
+ * because verification is no longer their only consumer — the profile editor
+ * validates the same five values, and two definitions of "a valid phone number"
+ * is how the gate and the editor end up disagreeing about the row they both
+ * write. Composed into bags immediately after, which is what keeps the role
+ * schemas reading as a list of fields rather than a wall of validators. */
+
+export const fullNameSchema = z
+  .string()
+  .trim()
+  .min(FULL_NAME_MIN, `Name must be at least ${FULL_NAME_MIN} characters.`)
+  .max(FULL_NAME_MAX, `Name must be ${FULL_NAME_MAX} characters or fewer.`)
+
+export const countryEnum = z.enum(COUNTRIES, { message: "Select your country." })
+
+/**
+ * Parsed rather than regex-matched: E.164 is only half the problem, the other
+ * half is whether the national number is actually valid for that country.
+ * Normalised to E.164 on the way through so the column holds one format.
+ */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(1, "Phone number is required.")
+  .refine((v) => parsePhoneNumberFromString(v)?.isValid() ?? false, {
+    message: "Enter a valid phone number including country code — e.g. +234 801 234 5678.",
+  })
+  // Unreachable fallback: refine above already proved this parses.
+  .transform((v) => parsePhoneNumberFromString(v)?.number ?? v)
+
+export const timezoneEnum = z.enum(TIMEZONES, { message: "Select your timezone." })
+
 /**
  * Identity — what both roles have to give up before their gate opens. Kept as a
  * field bag rather than a schema so the two role schemas below compose it
  * instead of redeclaring it; a builder and a tester answer these identically.
  */
 const identityFields = {
-  fullName: z
-    .string()
-    .trim()
-    .min(FULL_NAME_MIN, `Name must be at least ${FULL_NAME_MIN} characters.`)
-    .max(FULL_NAME_MAX, `Name must be ${FULL_NAME_MAX} characters or fewer.`),
-  country: z.enum(COUNTRIES, { message: "Select your country." }),
-  // Parsed rather than regex-matched: E.164 is only half the problem, the other
-  // half is whether the national number is actually valid for that country.
-  // Normalised to E.164 on the way through so the column holds one format.
-  phone: z
-    .string()
-    .trim()
-    .min(1, "Phone number is required.")
-    .refine((v) => parsePhoneNumberFromString(v)?.isValid() ?? false, {
-      message: "Enter a valid phone number including country code — e.g. +234 801 234 5678.",
-    })
-    // Unreachable fallback: refine above already proved this parses.
-    .transform((v) => parsePhoneNumberFromString(v)?.number ?? v),
+  fullName: fullNameSchema,
+  country: countryEnum,
+  phone: phoneSchema,
 }
 
 /**
@@ -311,7 +330,7 @@ const identityFields = {
  * the bio is gone, and a lone dropdown is not a step.
  */
 const timezoneField = {
-  timezone: z.enum(TIMEZONES, { message: "Select your timezone." }),
+  timezone: timezoneEnum,
 }
 
 /**
@@ -327,15 +346,21 @@ export const skillSchema = z
   .max(SKILL_MAX, `Skill must be ${SKILL_MAX} characters or less`)
   .regex(/^[\p{L}\p{N}\s.\-+/#]+$/u, "Skill can only contain letters, numbers, and . - + / #")
 
+/**
+ * The whole list.
+ *
+ * No uniqueness check here on purpose: normalizeSkills() runs on every write
+ * path and collapses case-insensitive duplicates before this ever sees them, so
+ * a refine could only fire on a list that had skipped normalisation — and would
+ * then report "duplicate" for something the user cannot see or fix.
+ */
+export const skillsArraySchema = z
+  .array(skillSchema)
+  .min(SKILLS_MIN, "Add at least one skill")
+  .max(SKILLS_MAX, `Maximum ${SKILLS_MAX} skills`)
+
 const skillsField = {
-  // No uniqueness check here on purpose: normalizeSkills() runs on both write
-  // paths and collapses case-insensitive duplicates before this ever sees them,
-  // so a refine could only fire on a list that had skipped normalisation — and
-  // would then report "duplicate" for something the user cannot see or fix.
-  skills: z
-    .array(skillSchema)
-    .min(SKILLS_MIN, "Add at least one skill")
-    .max(SKILLS_MAX, `Maximum ${SKILLS_MAX} skills`),
+  skills: skillsArraySchema,
 }
 
 /* Per-step schemas — the form validates the step in front of the user with
@@ -379,3 +404,47 @@ export function verificationSchemaFor(role: AccountType) {
 export function verificationStepSchemaFor(role: AccountType) {
   return verificationSchemaFor(role).partial()
 }
+
+/* ──────────────────────────────────────────────────────────────
+ * Profile editor
+ * ──────────────────────────────────────────────────────────── */
+
+export const BIO_MAX = 500
+
+/**
+ * What Settings may change about a person.
+ *
+ * Keyed by column name rather than by the camelCase field names verification
+ * uses. The editor's job is "write these columns", and naming the keys after the
+ * columns is what lets the action's allowlist be a straight comparison instead of
+ * a second mapping table that can fall out of step with this one.
+ *
+ * Every field is optional because the payload is partial by design: someone who
+ * only changed their phone number sends only their phone number, and a field
+ * that is absent means "leave that column alone".
+ *
+ * Reuses the verification primitives rather than restating them — the gate and
+ * the editor write the same five columns, so they have to agree on what is
+ * allowed in them. A phone number the gate accepted cannot be one the editor
+ * rejects.
+ */
+export const updateProfileSchema = z.object({
+  full_name: fullNameSchema.optional(),
+  country: countryEnum.optional(),
+  phone: phoneSchema.optional(),
+  timezone: timezoneEnum.optional(),
+  bio: z
+    .string()
+    .trim()
+    .max(BIO_MAX, `Bio must be ${BIO_MAX} characters or fewer.`)
+    // An emptied textarea is a cleared bio, not an empty string — the column
+    // goes back to NULL so "has a bio" stays a single check everywhere else.
+    .transform((v) => v || null)
+    .nullable()
+    .optional(),
+  skills: skillsArraySchema.optional(),
+})
+
+export type UpdateProfileInput = z.input<typeof updateProfileSchema>
+/** The parsed shape — what actually reaches the column list. */
+export type UpdateProfileFields = z.output<typeof updateProfileSchema>
