@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { accountTypesFor } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
 
@@ -10,10 +12,19 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/explore");
 
-  const displayName =
-    (user.user_metadata?.display_name as string | undefined) ??
-    (user.user_metadata?.full_name as string | undefined) ??
-    "";
+  // Service-role read, per the RLS pattern in CLAUDE.md — `profiles` has no
+  // policy that would let the anon key see even the caller's own row.
+  const admin = createAdminClient();
+  const [{ data: profile }, accountTypes] = await Promise.all([
+    admin
+      .from("profiles")
+      .select("full_name, country, phone, timezone, bio, skills")
+      .eq("id", user.id)
+      .maybeSingle(),
+    // Resolved on the server: whether to offer the skills field is an account
+    // fact, and the client has no business querying for it.
+    accountTypesFor(user.id),
+  ]);
 
   return (
     <div className="max-w-[640px] mx-auto px-6 py-10">
@@ -30,7 +41,15 @@ export default async function SettingsPage() {
 
       <SettingsForm
         initialEmail={user.email ?? ""}
-        initialDisplayName={displayName}
+        initialProfile={{
+          full_name: profile?.full_name ?? "",
+          country: profile?.country ?? "",
+          phone: profile?.phone ?? "",
+          timezone: profile?.timezone ?? "",
+          bio: profile?.bio ?? "",
+          skills: profile?.skills ?? [],
+        }}
+        hasTesterAccount={accountTypes.includes("tester")}
       />
 
     </div>

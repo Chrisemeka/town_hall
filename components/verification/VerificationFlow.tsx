@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation"
 import type { z } from "zod"
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { Button } from "@/components/ui/Button"
+import { Field, inputClass } from "@/components/ui/Field"
+import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
 import { formatPhoneAsYouType, isAllowedPhoneKey } from "@/lib/phone"
-import { addSkill, removeSkill, suggestionsFor } from "@/lib/skills"
-import { COUNTRIES, SKILLS_MAX, TIMEZONES, countryName } from "@/lib/vocabulary"
+import { COUNTRIES, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
   FULL_NAME_MAX,
   builderStep1Schema,
@@ -172,7 +173,11 @@ export function VerificationFlow({
             <IdentityStep role={role} values={values} errors={errors} set={set} />
           )}
           {steps[step]?.id === "skills" && (
-            <SkillsStep values={values} errors={errors} set={set} />
+            <SkillsInput
+              value={values.skills}
+              onChange={(skills) => set("skills", skills)}
+              error={errors.skills}
+            />
           )}
           {onReview && (
             <ReviewStep role={role} values={values} steps={steps} onEdit={setStep} />
@@ -298,108 +303,6 @@ function IdentityStep({ role, values, errors, set }: StepProps & { role: Account
   )
 }
 
-function SkillsStep({ values, errors, set }: StepProps) {
-  const [input, setInput] = useState("")
-  const [open, setOpen] = useState(false)
-  // Errors from trying to add one skill are separate from the step's own
-  // errors: "you already added that" is about the attempt, not about the list.
-  const [addError, setAddError] = useState<string | null>(null)
-
-  const suggestions = suggestionsFor(input, values.skills)
-
-  function add(raw: string) {
-    const { skills, error } = addSkill(values.skills, raw)
-    setAddError(error)
-    if (error) return
-    set("skills", skills)
-    setInput("")
-  }
-
-  return (
-    <Field
-      label="Skills"
-      htmlFor="skills"
-      error={addError ? [addError] : errors.skills}
-      helper={`Pick from the list or add your own — up to ${SKILLS_MAX}. "Non-technical user" is a real answer; builders need those testers most.`}
-    >
-      <div className="relative">
-        <input
-          id="skills"
-          value={input}
-          autoComplete="off"
-          role="combobox"
-          aria-expanded={open && suggestions.length > 0}
-          aria-controls="skill-suggestions"
-          placeholder="Add a skill and press Enter"
-          onChange={(e) => {
-            setInput(e.target.value)
-            setAddError(null)
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
-          onKeyDown={(e) => {
-            // Enter belongs to the combo box here, not to the form — without
-            // this it would submit the step with the tag still unadded.
-            if (e.key === "Enter") {
-              e.preventDefault()
-              add(input)
-            }
-            if (e.key === "Escape") setOpen(false)
-          }}
-          className={inputClass(!!addError || !!errors.skills?.length)}
-        />
-
-        {open && suggestions.length > 0 && (
-          <ul
-            id="skill-suggestions"
-            className="absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-graphite border border-iron rounded-[12px] py-2"
-          >
-            {suggestions.map((skill) => (
-              <li key={skill}>
-                <button
-                  type="button"
-                  // Blur fires before click, which would close the list out
-                  // from under the pointer. Suppressing the blur keeps the
-                  // click on the row that was actually under the cursor.
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => add(skill)}
-                  className="w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-chalk hover:bg-white/[0.04] transition-colors duration-150"
-                >
-                  {skill}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {values.skills.length > 0 && (
-        <ul className="flex flex-wrap gap-2 pt-1">
-          {values.skills.map((skill) => (
-            <li
-              key={skill}
-              className="inline-flex items-center gap-2 bg-voltage/[0.12] text-voltage rounded-[4px] pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
-            >
-              {skill}
-              <button
-                type="button"
-                aria-label={`Remove ${skill}`}
-                onClick={() => {
-                  set("skills", removeSkill(values.skills, skill))
-                  setAddError(null)
-                }}
-                className="h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-voltage/70 hover:text-obsidian hover:bg-voltage transition-colors duration-150"
-              >
-                &times;
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Field>
-  )
-}
-
 function ReviewStep({
   role,
   values,
@@ -485,37 +388,3 @@ function StepIndicator({ labels, current }: { labels: string[]; current: number 
   )
 }
 
-function Field({
-  label,
-  htmlFor,
-  error,
-  helper,
-  children,
-}: {
-  label: string
-  htmlFor: string
-  error?: string[]
-  helper?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={htmlFor} className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
-        {label}
-      </label>
-      {children}
-      {error?.length ? (
-        <p className="font-mono text-[12px] text-ember">{error[0]}</p>
-      ) : helper ? (
-        <p className="font-mono text-[12px] text-ash leading-5">{helper}</p>
-      ) : null}
-    </div>
-  )
-}
-
-function inputClass(hasError: boolean): string {
-  return [
-    "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-    hasError ? "border-ember" : "border-iron focus:border-voltage",
-  ].join(" ")
-}
