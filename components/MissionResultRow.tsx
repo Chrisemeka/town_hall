@@ -37,6 +37,19 @@ function formatDate(iso: string) {
   })
 }
 
+/**
+ * Screenshots render through <img>, not next/image, deliberately.
+ *
+ * They are already downscaled to 1600px and re-encoded as WebP in the browser
+ * before upload (lib/image.ts), so the optimiser would be re-optimising its own
+ * output — at a per-image cost on Vercel — on a screen only the mission's owner
+ * and admins ever load. Their intrinsic dimensions are unknown at render time
+ * too, so each of the three would need `fill` plus a positioned parent, and the
+ * Supabase Storage host would have to join images.remotePatterns.
+ *
+ * The thumbnail strip is the one place with a real win: it paints a 1600px
+ * source into a 56px box. Worth revisiting there first if this is reopened.
+ */
 export default function MissionResultRow({
   result,
   index,
@@ -80,6 +93,7 @@ export default function MissionResultRow({
             onClick={() => current && setLightboxOpen(true)}
           >
             {current ? (
+              // eslint-disable-next-line @next/next/no-img-element -- see note above
               <img
                 src={current}
                 alt={`Proof of visit ${active + 1}`}
@@ -111,6 +125,7 @@ export default function MissionResultRow({
                     i === active ? "border-voltage" : "border-iron hover:border-ash",
                   ].join(" ")}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
                   <img src={url} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -232,6 +247,7 @@ export default function MissionResultRow({
             className="bg-obsidian border border-iron shadow-2xl rounded-2xl p-2 max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
             <img
               src={current}
               alt={`Full proof of visit ${active + 1}`}
