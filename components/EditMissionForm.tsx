@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { MissionRewardFields } from "@/components/MissionRewardFields"
+import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
   updateMissionSchema,
-  toFieldErrors,
-  type UpdateMissionInput,
-  type FieldErrors,
+  toPathErrors,
+  type TestStep,
 } from "@/lib/validation/schemas"
 
 export default function EditMissionForm({
@@ -24,6 +24,9 @@ export default function EditMissionForm({
   initialDescription,
   initialPayoutCents = 0,
   initialCategory = "",
+  initialDeviceTarget = "both",
+  initialSteps,
+  initialTemplateId = null,
   isActive,
 }: {
   missionId: string
@@ -33,15 +36,20 @@ export default function EditMissionForm({
   initialDescription: string
   initialPayoutCents?: number
   initialCategory?: string
+  initialDeviceTarget?: string
+  /** Already parsed by the page — an unparseable column renders as no steps. */
+  initialSteps: TestStep[]
+  initialTemplateId?: string | null
   isActive: boolean
 }) {
   const [state, formAction] = useActionState(updateMission, null)
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
-  const [clientErrors, setClientErrors] = useState<FieldErrors<UpdateMissionInput>>({})
+  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>({})
+  const [stepsDirty, setStepsDirty] = useState(false)
 
   useUnsavedChangesWarning(
-    title !== initialTitle || description !== initialDescription,
+    title !== initialTitle || description !== initialDescription || stepsDirty,
   )
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -55,16 +63,21 @@ export default function EditMissionForm({
       intent: fd.get("intent"),
       payout: fd.get("payout"),
       category: fd.get("category"),
+      device_target: fd.get("device_target"),
+      test_steps: fd.get("test_steps"),
     })
     if (!parsed.success) {
       e.preventDefault()
-      setClientErrors(toFieldErrors<UpdateMissionInput>(parsed.error))
+      // Path-keyed, not flattened: a bad step three has to land on step three.
+      setClientErrors(toPathErrors(parsed.error))
       return
     }
     setClientErrors({})
   }
 
-  const fieldErrors: FieldErrors<UpdateMissionInput> = {
+  // Server errors are flat (top-level fields only); client errors carry the
+  // full path, so a per-step message can reach the row that caused it.
+  const fieldErrors: Record<string, string[] | undefined> = {
     ...(state?.fieldErrors ?? {}),
     ...clientErrors,
   }
@@ -118,9 +131,16 @@ export default function EditMissionForm({
 
         <MissionRewardFields
           defaultPayout={initialPayoutCents > 0 ? initialPayoutCents / 100 : undefined}
-          defaultCategory={initialCategory}
           payoutError={fieldErrors.payout}
-          categoryError={fieldErrors.category}
+        />
+
+        <TestCaseEditor
+          initialCategory={initialCategory || null}
+          initialDeviceTarget={initialDeviceTarget}
+          initialSteps={initialSteps}
+          initialTemplateId={initialTemplateId}
+          errors={fieldErrors}
+          onDirtyChange={setStepsDirty}
         />
 
         <div className="flex flex-col gap-2">

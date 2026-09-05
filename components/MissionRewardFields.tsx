@@ -1,22 +1,20 @@
 "use client"
 
-import { MISSION_CATEGORY_MAX, MISSION_PAYOUT_MAX } from "@/lib/validation/schemas"
+import { MISSION_PAYOUT_MAX } from "@/lib/validation/schemas"
 
 /**
- * Payout + category, shared by the create and edit mission forms so the two
- * can't drift. Both are optional — a blank payout is an unpaid mission, which
- * is what every mission created before these fields existed is.
+ * Payout, shared by the create and edit mission forms so the two can't drift.
+ *
+ * Category used to live here as a free-text tag. It moved to TestCaseEditor
+ * when it became the test-category enum — it is now the first question of the
+ * test case, not a reward field.
  */
 export function MissionRewardFields({
   defaultPayout,
-  defaultCategory,
   payoutError,
-  categoryError,
 }: {
   defaultPayout?: number
-  defaultCategory?: string
   payoutError?: string[]
-  categoryError?: string[]
 }) {
   const inputClass = (hasError?: string[]) =>
     [
@@ -54,25 +52,6 @@ export function MissionRewardFields({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="category" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
-          Skill tag <span className="normal-case tracking-normal">(optional)</span>
-        </label>
-        <input
-          id="category"
-          name="category"
-          type="text"
-          maxLength={MISSION_CATEGORY_MAX}
-          placeholder="e.g. Auth flow, Sanity check"
-          defaultValue={defaultCategory ?? ""}
-          className={inputClass(categoryError)}
-        />
-        {categoryError?.length ? (
-          <p className="font-mono text-[12px] text-ember">{categoryError[0]}</p>
-        ) : (
-          <p className="font-mono text-[12px] text-ash">Shown on the tester&apos;s mission card.</p>
-        )}
-      </div>
     </div>
   )
 }

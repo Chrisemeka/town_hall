@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { MissionRewardFields } from "@/components/MissionRewardFields"
+import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import {
   MISSION_TITLE_MAX,
   MISSION_DESCRIPTION_MIN,
   createMissionSchema,
-  toFieldErrors,
-  type CreateMissionInput,
-  type FieldErrors,
+  toPathErrors,
 } from "@/lib/validation/schemas"
 
 export default function AddMissionForm({
@@ -26,9 +25,10 @@ export default function AddMissionForm({
   const [state, formAction] = useActionState(createMission, null)
   const [title,       setTitle]       = useState("")
   const [description, setDescription] = useState("")
-  const [clientErrors, setClientErrors] = useState<FieldErrors<CreateMissionInput>>({})
+  const [clientErrors, setClientErrors] = useState<Record<string, string[]>>({})
+  const [stepsDirty, setStepsDirty] = useState(false)
 
-  useUnsavedChangesWarning(title.length > 0 || description.length > 0)
+  useUnsavedChangesWarning(title.length > 0 || description.length > 0 || stepsDirty)
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null
@@ -40,16 +40,21 @@ export default function AddMissionForm({
       intent: fd.get("intent"),
       payout: fd.get("payout"),
       category: fd.get("category"),
+      device_target: fd.get("device_target"),
+      test_steps: fd.get("test_steps"),
     })
     if (!parsed.success) {
       e.preventDefault()
-      setClientErrors(toFieldErrors<CreateMissionInput>(parsed.error))
+      // Path-keyed, not flattened: a bad step three has to land on step three.
+      setClientErrors(toPathErrors(parsed.error))
       return
     }
     setClientErrors({})
   }
 
-  const fieldErrors: FieldErrors<CreateMissionInput> = {
+  // Server errors are flat (top-level fields only); client errors carry the
+  // full path, so a per-step message can reach the row that caused it.
+  const fieldErrors: Record<string, string[] | undefined> = {
     ...(state?.fieldErrors ?? {}),
     ...clientErrors,
   }
@@ -107,9 +112,15 @@ export default function AddMissionForm({
           </div>
         </div>
 
-        <MissionRewardFields
-          payoutError={fieldErrors.payout}
-          categoryError={fieldErrors.category}
+        <MissionRewardFields payoutError={fieldErrors.payout} />
+
+        <TestCaseEditor
+          initialCategory={null}
+          initialDeviceTarget="both"
+          initialSteps={[]}
+          initialTemplateId={null}
+          errors={fieldErrors}
+          onDirtyChange={setStepsDirty}
         />
 
         {/* What to Test */}

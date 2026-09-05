@@ -37,6 +37,23 @@ export function toFieldErrors<T extends Record<string, unknown>>(
   return z.flattenError(error).fieldErrors as FieldErrors<T>
 }
 
+/**
+ * Every issue keyed by its full dotted path — "test_steps.2.action".
+ *
+ * flattenError() above only reports top-level fields, which is right for a flat
+ * form but collapses an array of objects: a bad action on step three arrives as
+ * one anonymous "test_steps" error with no way to put it on the row that caused
+ * it. This keeps the path so the step editor can.
+ */
+export function toPathErrors(error: z.ZodError): Record<string, string[]> {
+  const out: Record<string, string[]> = {}
+  for (const issue of error.issues) {
+    const key = issue.path.join(".")
+    ;(out[key] ??= []).push(issue.message)
+  }
+  return out
+}
+
 /* ──────────────────────────────────────────────────────────────
  * Projects
  * ──────────────────────────────────────────────────────────── */
