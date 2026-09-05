@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { Flag, FlagOff, Trash2, AlertTriangle } from "lucide-react"
 import { flagProject, unflagProject, removeProject } from "@/actions/admin/projects"
+import { errorMessage } from "@/lib/errors"
 
 type Mode = "idle" | "flag-prompt" | "delete-confirm"
 
@@ -31,8 +32,8 @@ export function ProjectRowActions({
     startTransition(async () => {
       try {
         await unflagProject(projectId)
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
       }
     })
   }
@@ -48,8 +49,8 @@ export function ProjectRowActions({
       try {
         await flagProject(projectId, trimmed)
         reset()
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
       }
     })
   }
@@ -59,8 +60,8 @@ export function ProjectRowActions({
     startTransition(async () => {
       try {
         await removeProject(projectId)
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
         setMode("idle")
       }
     })

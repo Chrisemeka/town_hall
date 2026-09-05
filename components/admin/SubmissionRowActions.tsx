@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { Trash2, AlertTriangle } from "lucide-react"
 import { deleteSubmission } from "@/actions/admin/submissions"
+import { errorMessage } from "@/lib/errors"
 
 export function SubmissionRowActions({ submissionId }: { submissionId: string }) {
   const [confirm, setConfirm] = useState(false)
@@ -14,8 +15,8 @@ export function SubmissionRowActions({ submissionId }: { submissionId: string })
     startTransition(async () => {
       try {
         await deleteSubmission(submissionId)
-      } catch (err: any) {
-        setError(err?.message ?? "Delete failed")
+      } catch (err) {
+        setError(errorMessage(err, "Delete failed"))
         setConfirm(false)
       }
     })

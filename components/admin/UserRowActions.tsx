@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { Ban, PauseCircle, RotateCw, AlertTriangle, ShieldCheck } from "lucide-react"
 import { suspendUser, banUser, reactivateUser } from "@/actions/admin/users"
+import { errorMessage } from "@/lib/errors"
 
 type Mode = "idle" | "suspend-prompt" | "ban-prompt" | "reactivate-confirm"
 export type ModerationStatus = "active" | "suspended" | "banned"
@@ -49,8 +50,8 @@ export function UserRowActions({
       try {
         await suspendUser(userId, trimmed, duration)
         reset()
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
       }
     })
   }
@@ -63,8 +64,8 @@ export function UserRowActions({
       try {
         await banUser(userId, trimmed)
         reset()
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
       }
     })
   }
@@ -75,8 +76,8 @@ export function UserRowActions({
       try {
         await reactivateUser(userId)
         reset()
-      } catch (err: any) {
-        setError(err?.message ?? "Action failed")
+      } catch (err) {
+        setError(errorMessage(err, "Action failed"))
         setMode("idle")
       }
     })
