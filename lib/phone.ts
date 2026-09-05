@@ -96,3 +96,34 @@ export function isBareDialCode(value: string, country: string): boolean {
   const dial = dialCodeFor(country)
   return dial !== null && value.trim() === dial
 }
+
+/**
+ * What the phone field should become when the country dropdown changes, or null
+ * to leave it exactly as it is.
+ *
+ * Pure, and separate from the component, because this is the branch that can
+ * silently delete someone's phone number — it is worth being able to test every
+ * path of it without standing up a DOM. The component applies the answer and
+ * decides nothing.
+ *
+ * `prevCountry` is the country the field was filled against, not the new one.
+ * The question being asked is whether what is sitting there came from the old
+ * country's autofill, and only the old country can answer that.
+ */
+export function phoneForCountryChange(
+  phone: string,
+  prevCountry: string,
+  nextCountry: string,
+): string | null {
+  const dial = dialCodeFor(nextCountry)
+  // No metadata for this country (BV, HM and AQ are all selectable). Nothing to
+  // fill in, and reformatting what is there would only churn it.
+  if (!dial) return null
+  // Ours to replace. Trailing space so the caret sits where the national number
+  // begins. Replacing rather than prepending is what keeps US->CA, which share
+  // +1, from producing "+1+1 ".
+  if (!phone.trim() || isBareDialCode(phone, prevCountry)) return `${dial} `
+  // Theirs to keep. The number is still their number; only the grouping is a
+  // function of the country.
+  return formatPhoneAsYouType(phone, nextCountry)
+}
