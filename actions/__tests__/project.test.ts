@@ -9,12 +9,17 @@ vi.mock("next/navigation", () => ({
     throw new Error(`NEXT_REDIRECT:${url}`)
   }),
 }))
-vi.mock("@/lib/auth", () => ({ requireAccount: vi.fn() }))
+vi.mock("@/lib/auth", () => ({
+  requireAccount: vi.fn(),
+  requireProjectOwner: vi.fn(),
+}))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 
 import { createProject, updateProject } from "@/actions/project"
-import { requireAccount } from "@/lib/auth"
+import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
 const PROJECT_ID = "22222222-2222-4222-8222-222222222222"
@@ -75,24 +80,28 @@ function fakeClient(opts: { user?: { id: string } | null; writeError?: { message
     },
   }
 
-  const client = {
+  // Auth still comes off the session client; the write goes through service role.
+  vi.mocked(createClient).mockResolvedValue({
     auth: {
       getUser: () =>
         Promise.resolve({ data: { user: "user" in opts ? opts.user : { id: USER_ID } } }),
     },
+  } as unknown as Awaited<ReturnType<typeof createClient>>)
+
+  vi.mocked(createAdminClient).mockReturnValue({
     from(table: string) {
       state.table = table
       return chain
     },
-  }
+  } as unknown as ReturnType<typeof createAdminClient>)
 
-  vi.mocked(createClient).mockResolvedValue(client as unknown as Awaited<ReturnType<typeof createClient>>)
   return writes
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(requireAccount).mockResolvedValue({ userId: USER_ID })
+  vi.mocked(requireProjectOwner).mockResolvedValue(undefined)
 })
 
 describe("createProject", () => {
@@ -190,6 +199,16 @@ describe("updateProject", () => {
     const writes = fakeClient({ user: null })
 
     await expect(updateProject(PROJECT_ID, null, formData(VALID))).rejects.toThrow("Unauthorized")
+    expect(writes).toHaveLength(0)
+  })
+
+  it("rejects a project the caller does not own, and writes nothing", async () => {
+    // Service role bypasses RLS, so this guard replaced the owner-scoped policy
+    // that used to reduce a foreign write to zero rows.
+    const writes = fakeClient()
+    vi.mocked(requireProjectOwner).mockRejectedValue(new Error("Not authorized"))
+
+    await expect(updateProject(PROJECT_ID, null, formData(VALID))).rejects.toThrow("Not authorized")
     expect(writes).toHaveLength(0)
   })
 
