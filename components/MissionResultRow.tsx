@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge"
 import { screenshotList } from "@/lib/utils/screenshots"
 import SubmissionReview from "@/components/SubmissionReview"
 import type { SubmissionStatus } from "@/lib/review"
+import type { TestResultRow } from "@/lib/types/db"
 
 type InsightItem = {
   status: "pass" | "warn" | "fail"
@@ -41,7 +42,7 @@ export default function MissionResultRow({
   index,
   appUrl,
 }: {
-  result: any
+  result: TestResultRow
   index: number
   appUrl: string | null
 }) {

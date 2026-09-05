@@ -4,6 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, LayoutDashboard, Target, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { one } from "@/lib/utils/project"
+import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db"
+
+/** Exactly what the mission half of the search asks for. */
+type MissionHit = Pick<MissionRow, "id" | "title" | "project_id"> & {
+  projects: Embedded<Pick<ProjectRow, "name" | "flagged_at">>
+}
 
 type Result =
   | { kind: "project"; id: string; name: string; description: string | null }
@@ -51,16 +58,14 @@ export function GlobalSearch() {
     for (const p of projectRes.data ?? []) {
       items.push({ kind: "project", id: p.id, name: p.name, description: p.description })
     }
-    for (const m of missionRes.data ?? []) {
-      const project = Array.isArray((m as any).projects)
-        ? (m as any).projects[0]
-        : (m as any).projects
+    for (const m of (missionRes.data ?? []) as MissionHit[]) {
+      const project = one(m.projects)
       items.push({
         kind:        "mission",
         id:          m.id,
         title:       m.title,
         projectName: project?.name ?? "Unknown",
-        projectId:   (m as any).project_id,
+        projectId:   m.project_id,
       })
     }
 
