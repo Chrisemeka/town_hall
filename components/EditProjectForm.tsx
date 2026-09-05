@@ -6,6 +6,7 @@ import { updateProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { PROJECT_CATEGORIES } from "@/lib/vocabulary"
 import {
   PROJECT_NAME_MAX,
   PROJECT_SUMMARY_MAX,
@@ -20,22 +21,29 @@ export default function EditProjectForm({
   initialName,
   initialUrl,
   initialDescription,
+  initialCategory,
 }: {
   projectId: string
   initialName: string
   initialUrl: string
   initialDescription: string
+  /** Null for every project created before categories existed. */
+  initialCategory: string | null
 }) {
   const [state, formAction] = useActionState(updateProject.bind(null, projectId), null)
   const [name, setName] = useState(initialName)
   const [url, setUrl] = useState(initialUrl)
   const [description, setDescription] = useState(initialDescription)
+  // Empty string, not the raw null, so an uncategorised project opens on the
+  // placeholder rather than on whichever option happens to be first.
+  const [category, setCategory] = useState(initialCategory ?? "")
   const [clientErrors, setClientErrors] = useState<FieldErrors<ProjectInput>>({})
 
   useUnsavedChangesWarning(
     name !== initialName ||
       url !== initialUrl ||
-      description !== initialDescription,
+      description !== initialDescription ||
+      category !== (initialCategory ?? ""),
   )
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -44,6 +52,7 @@ export default function EditProjectForm({
       name: fd.get("name"),
       app_url: fd.get("app_url"),
       description: fd.get("description"),
+      category: fd.get("category"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -110,14 +119,37 @@ export default function EditProjectForm({
         </div>
 
         <div className="flex flex-col gap-2">
+          <label htmlFor="category" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={[
+              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk focus:outline-none transition-colors duration-150",
+              fieldErrors.category?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
+          >
+            <option value="">Select a category</option>
+            {PROJECT_CATEGORIES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <FieldError errors={fieldErrors.category} />
+        </div>
+
+        <div className="flex flex-col gap-2">
           <label htmlFor="description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
-            Description
+            What is it? (2 sentences)
           </label>
           <textarea
             id="description"
             name="description"
-            rows={5}
-            maxLength={PROJECT_SUMMARY_MAX}
+            rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className={[
@@ -125,7 +157,15 @@ export default function EditProjectForm({
               fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
-          <FieldError errors={fieldErrors.description} />
+          <div className="flex items-start justify-between gap-3">
+            <FieldError errors={fieldErrors.description} />
+            {/* No maxLength on the textarea: a project written before the cap
+                dropped to 200 has to be readable and editable, and maxLength
+                would leave the builder unable to see what they are trimming. */}
+            <span className={`font-mono text-[12px] shrink-0 ${description.length > PROJECT_SUMMARY_MAX ? "text-ember" : "text-ash"}`}>
+              {description.length} / {PROJECT_SUMMARY_MAX}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-2">

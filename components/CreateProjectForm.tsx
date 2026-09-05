@@ -6,6 +6,7 @@ import { createProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { PROJECT_CATEGORIES } from "@/lib/vocabulary"
 import {
   PROJECT_SUMMARY_MAX,
   PROJECT_NAME_MAX,
@@ -20,10 +21,11 @@ export default function CreateProjectForm() {
   const [summary, setSummary]   = useState("")
   const [name, setName]         = useState("")
   const [appUrl, setAppUrl]     = useState("")
+  const [category, setCategory] = useState("")
   const [clientErrors, setClientErrors] = useState<FieldErrors<ProjectInput>>({})
 
   useUnsavedChangesWarning(
-    name.length > 0 || appUrl.length > 0 || summary.length > 0,
+    name.length > 0 || appUrl.length > 0 || summary.length > 0 || category.length > 0,
   )
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -32,6 +34,7 @@ export default function CreateProjectForm() {
       name: fd.get("name"),
       app_url: fd.get("app_url"),
       description: fd.get("description"),
+      category: fd.get("category"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -109,17 +112,48 @@ export default function CreateProjectForm() {
           <FieldError errors={fieldErrors.app_url} />
         </div>
 
+        {/* Category */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="category" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            Category
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={[
+              "w-full h-10 bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk focus:outline-none transition-colors duration-150",
+              fieldErrors.category?.length ? "border-ember" : "border-iron focus:border-voltage",
+            ].join(" ")}
+          >
+            <option value="">Select a category</option>
+            {PROJECT_CATEGORIES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          {fieldErrors.category?.length ? (
+            <FieldError errors={fieldErrors.category} />
+          ) : (
+            <p className="font-mono text-[12px] text-ash leading-5">
+              Testers filter the Explore feed by this.
+            </p>
+          )}
+        </div>
+
         {/* Brief Summary */}
         <div className="flex flex-col gap-2">
           <label htmlFor="description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
-            Brief Summary
+            What is it? (2 sentences)
           </label>
           <textarea
             id="description"
             name="description"
             maxLength={PROJECT_SUMMARY_MAX}
-            rows={5}
-            placeholder="e.g. DevSync keeps your dotfiles in sync across machines. For developers who switch between a work laptop and a personal one and keep losing their shell config."
+            rows={4}
+            placeholder="e.g. DevSync keeps your dotfiles in sync across machines. It is for developers who switch laptops and keep losing their shell config."
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             className={[

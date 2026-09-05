@@ -40,6 +40,7 @@ export default async function EditProjectPage({
           initialName={project.name ?? ""}
           initialUrl={project.app_url ?? ""}
           initialDescription={project.description ?? ""}
+          initialCategory={project.category ?? null}
         />
       </div>
     </div>
