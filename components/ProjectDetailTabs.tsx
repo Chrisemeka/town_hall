@@ -141,11 +141,6 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       <Badge variant={status} />
                     </div>
 
-                    {/* Description */}
-                    <p className="font-mono text-[14px] leading-5 text-ash line-clamp-3">
-                      {mission.task_description}
-                    </p>
-
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-2 border-t border-iron mt-1">
                       <span className="font-mono text-[12px] text-ash">
