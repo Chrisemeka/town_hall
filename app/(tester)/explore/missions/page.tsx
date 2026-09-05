@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { BrowseMissions, type BrowseMission } from "@/components/BrowseMissions";
+import { one } from "@/lib/utils/project";
+import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
+
+/** Exactly what the select below asks for. */
+type BrowseRow = Pick<MissionRow, "id" | "title" | "created_at"> & {
+  projects: Embedded<Pick<ProjectRow, "id" | "name" | "app_url" | "flagged_at">>;
+};
 
 export const metadata = { title: "Browse Missions — Twnhall" };
 
@@ -26,7 +33,8 @@ export default async function BrowseMissionsPage() {
     .is("projects.flagged_at", null)
     .order("created_at", { ascending: false });
 
-  const missionIds = (raw ?? []).map((m: any) => m.id);
+  const rows = (raw ?? []) as BrowseRow[];
+  const missionIds = rows.map((m) => m.id);
   const countByMission: Record<string, number> = {};
   if (missionIds.length > 0) {
     const { data: counts } = await supabase
@@ -39,8 +47,8 @@ export default async function BrowseMissionsPage() {
     }
   }
 
-  const missions: BrowseMission[] = (raw ?? []).map((m: any) => {
-    const project = Array.isArray(m.projects) ? m.projects[0] : m.projects;
+  const missions: BrowseMission[] = rows.map((m) => {
+    const project = one(m.projects);
     return {
       id:             m.id,
       title:          m.title,

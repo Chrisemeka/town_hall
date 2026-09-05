@@ -1,5 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { ExploreGrid, type ExploreProject } from "@/components/ExploreGrid";
+import type { MissionRow, ProjectRow } from "@/lib/types/db";
+
+/** Exactly what the select below asks for. */
+type ExploreRow = Pick<
+  ProjectRow,
+  "id" | "name" | "description" | "app_url" | "created_at"
+> & {
+  missions: Pick<MissionRow, "id" | "is_active">[] | null;
+};
 
 export default async function ExploreProjectsPage() {
   const supabase = await createClient();
@@ -15,10 +24,11 @@ export default async function ExploreProjectsPage() {
     .order("created_at", { ascending: false });
 
   /* Collect all active mission IDs across every project */
-  const allActiveMissionIds = (raw ?? []).flatMap((p: any) =>
+  const rows = (raw ?? []) as ExploreRow[];
+  const allActiveMissionIds = rows.flatMap((p) =>
     (p.missions ?? [])
-      .filter((m: any) => m.is_active !== false)
-      .map((m: any) => m.id),
+      .filter((m) => m.is_active !== false)
+      .map((m) => m.id),
   );
 
   /* Counts come from the public view so tester comments stay private */
@@ -34,13 +44,13 @@ export default async function ExploreProjectsPage() {
     }
   }
 
-  const projects: ExploreProject[] = (raw ?? [])
-    .map((p: any) => {
-      const allMissions: any[] = p.missions ?? [];
+  const projects: ExploreProject[] = rows
+    .map((p) => {
+      const allMissions = p.missions ?? [];
       const active = allMissions.filter((m) => m.is_active !== false);
       const missionCount  = active.length;
       const feedbackCount = active.reduce(
-        (sum: number, m: any) => sum + (feedbacksByMission[m.id] ?? 0),
+        (sum, m) => sum + (feedbacksByMission[m.id] ?? 0),
         0,
       );
       const firstMissionId = active[0]?.id ?? null;

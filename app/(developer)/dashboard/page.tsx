@@ -1,10 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
+import type { ProjectRow } from "@/lib/types/db";
 import Link from "next/link";
 import { ArrowRight, FolderOpen } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 
 type ProjectStatus = "active" | "needs-testers" | "draft";
+
+/** Exactly what the select above asks for. PostgREST returns the count as a
+ *  one-element array, which is why the reduce indexes into it. */
+type ProjectCard = Pick<
+  ProjectRow,
+  "id" | "name" | "description" | "app_url" | "created_at"
+> & {
+  missions: { id: string; test_results: { count: number }[] | null }[] | null;
+};
 
 function getStatus(missionCount: number, feedbackCount: number): ProjectStatus {
   if (missionCount === 0) return "draft";
@@ -30,11 +40,11 @@ export default async function MyProjectsPage() {
     .eq("owner_id", user?.id)
     .order("created_at", { ascending: false });
 
-  const projects = (raw ?? []).map((p: any) => {
-    const missions: any[] = p.missions ?? [];
+  const projects = ((raw ?? []) as ProjectCard[]).map((p) => {
+    const missions = p.missions ?? [];
     const missionCount = missions.length;
     const feedbackCount = missions.reduce(
-      (sum: number, m: any) => sum + (m.test_results?.[0]?.count ?? 0),
+      (sum, m) => sum + (m.test_results?.[0]?.count ?? 0),
       0,
     );
     return {

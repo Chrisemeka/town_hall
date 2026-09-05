@@ -1,5 +1,14 @@
 import { createClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
+import type { MissionRow, ProjectRow } from "@/lib/types/db"
+
+/** Exactly what the select below asks for. */
+type ProjectWithMissions = Pick<
+  ProjectRow,
+  "id" | "name" | "description" | "app_url" | "flagged_at"
+> & {
+  missions: Pick<MissionRow, "id" | "title" | "is_active" | "created_at">[] | null
+}
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
@@ -20,13 +29,11 @@ export default async function ProjectMissionsPage({
     .eq("id", projectId)
     .single()
 
-  if (!project || (project as any).flagged_at) notFound()
+  const row = project as ProjectWithMissions | null
+  if (!row || row.flagged_at) notFound()
 
-  const missions = ((project as any).missions ?? []).filter(
-    (m: any) => m.is_active !== false,
-  )
-
-  const missionIds = missions.map((m: any) => m.id)
+  const missions = (row.missions ?? []).filter((m) => m.is_active !== false)
+  const missionIds = missions.map((m) => m.id)
   const countByMission: Record<string, number> = {}
   if (missionIds.length > 0) {
     const { data: counts } = await supabase
@@ -48,7 +55,7 @@ export default async function ProjectMissionsPage({
           Explore
         </Link>
         <span>/</span>
-        <span className="text-chalk truncate">{project.name}</span>
+        <span className="text-chalk truncate">{row.name}</span>
       </div>
 
       {/* Project card */}
@@ -58,21 +65,21 @@ export default async function ProjectMissionsPage({
         style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
       >
         <h1 className="font-syne font-bold text-[28px] leading-[34px] text-chalk mb-1">
-          {project.name}
+          {row.name}
         </h1>
-        {project.app_url && (
+        {row.app_url && (
           <a
-            href={project.app_url}
+            href={row.app_url}
             target="_blank"
             rel="noopener noreferrer"
             className="font-mono text-[13px] text-sky hover:underline mb-3 block"
           >
-            {project.app_url.replace(/^https?:\/\//, "")}
+            {row.app_url.replace(/^https?:\/\//, "")}
           </a>
         )}
-        {project.description && (
+        {row.description && (
           <p className="font-mono text-[14px] text-ash leading-5 mt-2">
-            {project.description}
+            {row.description}
           </p>
         )}
       </div>
@@ -87,7 +94,7 @@ export default async function ProjectMissionsPage({
 
       {/* Mission list */}
       <div className="flex flex-col gap-4">
-        {missions.map((mission: any, i: number) => {
+        {missions.map((mission, i) => {
           const num = (i + 1).toString().padStart(2, "0")
           const feedbackCount = countByMission[mission.id] ?? 0
           return (

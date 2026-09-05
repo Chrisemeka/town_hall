@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import { getOwnerId } from "@/lib/utils/project";
+import { getOwnerId, one } from "@/lib/utils/project";
+import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
+
+/** `select("*, projects(*)")` — the whole mission with its whole project. */
+type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
 import TesterSubmissionForm from "@/components/TesterSubmissionForm";
 
 export default async function MissionDetailPage({
@@ -23,8 +27,7 @@ export default async function MissionDetailPage({
 
   if (!mission) return notFound();
 
-  const projectData = mission.projects as any;
-  const project = Array.isArray(projectData) ? projectData[0] : projectData;
+  const project = one((mission as MissionWithProject).projects);
   if (project?.flagged_at) return notFound();
   const isOwner = user?.id === getOwnerId(mission.projects);
 
