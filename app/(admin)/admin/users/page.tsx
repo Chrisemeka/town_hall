@@ -8,6 +8,14 @@ import { UserRowActions, type ModerationStatus } from "@/components/admin/UserRo
 
 export const metadata = { title: "Users — Admin · Twnhall" }
 
+/** What admin.auth.admin.listUsers() actually returns per user. */
+type AuthUser = {
+  id: string
+  email?: string
+  created_at: string
+  banned_until?: string | null
+}
+
 type ProfileRow = {
   id: string
   full_name: string | null
@@ -76,7 +84,9 @@ async function fetchAllAuthUsers(admin: ReturnType<typeof createAdminClient>) {
   while (true) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage })
     if (error) throw error
-    const batch = data.users.map((u: any) => ({
+    // banned_until is on the admin API's user payload but not on the public
+    // User type, so it has to be spelled out rather than inferred.
+    const batch = (data.users as AuthUser[]).map((u) => ({
       id: u.id,
       email: u.email,
       created_at: u.created_at,
@@ -104,15 +114,15 @@ export default async function AdminUsersPage() {
   const profileById = new Map(profiles.map((p) => [p.id, p]))
 
   const projectCounts = new Map<string, number>()
-  for (const row of projectsRes.data ?? []) {
-    const id = (row as any).owner_id as string | null
+  for (const row of (projectsRes.data ?? []) as { owner_id: string | null }[]) {
+    const id = row.owner_id
     if (!id) continue
     projectCounts.set(id, (projectCounts.get(id) ?? 0) + 1)
   }
 
   const missionCounts = new Map<string, number>()
-  for (const row of testResultsRes.data ?? []) {
-    const id = (row as any).tester_id as string | null
+  for (const row of (testResultsRes.data ?? []) as { tester_id: string | null }[]) {
+    const id = row.tester_id
     if (!id) continue
     missionCounts.set(id, (missionCounts.get(id) ?? 0) + 1)
   }

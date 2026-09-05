@@ -1,6 +1,15 @@
 import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { Target, ShieldCheck, CheckCircle2, PauseCircle, MessageSquare } from "lucide-react"
+import type { MissionRow, ProfileRow, ProjectRow } from "@/lib/types/db"
+
+/** Exactly what the selects below ask for. */
+type MissionLite = Pick<
+  MissionRow,
+  "id" | "title" | "task_description" | "created_at" | "is_active" | "project_id"
+>
+type ProjectLite = Pick<ProjectRow, "id" | "name" | "owner_id" | "flagged_at">
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email">
 
 export const metadata = { title: "Missions — Admin · Twnhall" }
 
@@ -42,13 +51,13 @@ export default async function AdminMissionsPage() {
   ])
 
   const projectById = new Map(
-    (projectsRes.data ?? []).map((p: any) => [
+    ((projectsRes.data ?? []) as ProjectLite[]).map((p) => [
       p.id,
       { name: p.name, ownerId: p.owner_id, flagged: !!p.flagged_at },
     ]),
   )
   const profileById = new Map(
-    (profilesRes.data ?? []).map((p: any) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]),
+    ((profilesRes.data ?? []) as ProfileLite[]).map((p) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]),
   )
 
   const feedbackByMission = new Map<string, number>()
@@ -56,7 +65,7 @@ export default async function AdminMissionsPage() {
     feedbackByMission.set(r.mission_id, (feedbackByMission.get(r.mission_id) ?? 0) + 1)
   }
 
-  const missions: AdminMissionRow[] = (missionsRes.data ?? []).map((m: any) => {
+  const missions: AdminMissionRow[] = ((missionsRes.data ?? []) as MissionLite[]).map((m) => {
     const project = projectById.get(m.project_id) ?? { name: "—", ownerId: "", flagged: false }
     const owner = profileById.get(project.ownerId) ?? { fullName: "", email: "" }
     return {

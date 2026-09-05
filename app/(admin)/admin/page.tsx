@@ -6,6 +6,15 @@ import {
   ArrowRight, ShieldCheck, UserPlus, Flag, Activity, AlertTriangle, Mail,
 } from "lucide-react"
 import { LiveClock } from "@/components/admin/LiveClock"
+import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+
+/** Exactly what the feed selects below ask for. */
+type SubmissionLite = Pick<TestResultRow, "id" | "tester_id" | "mission_id" | "created_at">
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email">
+type MissionLite = Pick<MissionRow, "id" | "title">
+/** flagged_at is nullable on the column but not here: this select filters with
+ *  `.not("flagged_at", "is", null)`, which is why the feed can use it directly. */
+type FlaggedLite = Pick<ProjectRow, "id" | "name" | "flag_reason"> & { flagged_at: string }
 
 type ActivityKind = "signup" | "submission" | "flag"
 type ActivityItem = {
@@ -78,8 +87,9 @@ export default async function AdminHomePage() {
   ])
 
   // Lookups for submission feed
-  const subTesterIds  = Array.from(new Set((recentSubmissionsRes.data ?? []).map((r: any) => r.tester_id).filter(Boolean)))
-  const subMissionIds = Array.from(new Set((recentSubmissionsRes.data ?? []).map((r: any) => r.mission_id).filter(Boolean)))
+  const recentSubmissions = (recentSubmissionsRes.data ?? []) as SubmissionLite[]
+  const subTesterIds  = Array.from(new Set(recentSubmissions.map((r) => r.tester_id).filter(Boolean)))
+  const subMissionIds = Array.from(new Set(recentSubmissions.map((r) => r.mission_id).filter(Boolean)))
 
   const [subTestersRes, subMissionsRes] = await Promise.all([
     subTesterIds.length
@@ -90,8 +100,8 @@ export default async function AdminHomePage() {
       : Promise.resolve({ data: [] }),
   ])
 
-  const testerById  = new Map((subTestersRes.data ?? []).map((p: any) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]))
-  const missionById = new Map((subMissionsRes.data ?? []).map((m: any) => [m.id, m.title as string]))
+  const testerById  = new Map(((subTestersRes.data ?? []) as ProfileLite[]).map((p) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]))
+  const missionById = new Map(((subMissionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, m.title]))
 
   // Build combined activity feed
   const activity: ActivityItem[] = []
@@ -109,7 +119,7 @@ export default async function AdminHomePage() {
     })
   }
 
-  for (const r of (recentSubmissionsRes.data ?? []) as any[]) {
+  for (const r of recentSubmissions) {
     const tester = testerById.get(r.tester_id)
     const missionTitle = missionById.get(r.mission_id)
     activity.push({
@@ -124,7 +134,7 @@ export default async function AdminHomePage() {
     })
   }
 
-  for (const p of (recentFlaggedRes.data ?? []) as any[]) {
+  for (const p of (recentFlaggedRes.data ?? []) as FlaggedLite[]) {
     activity.push({
       kind: "flag",
       timestamp: p.flagged_at,

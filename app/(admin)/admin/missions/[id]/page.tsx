@@ -10,6 +10,15 @@ import {
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
 import { screenshotList } from "@/lib/utils/screenshots"
+import type { ProfileRow, TestResultRow } from "@/lib/types/db"
+
+/** Exactly what the two selects below ask for. */
+type ResultLite = Pick<
+  TestResultRow,
+  | "id" | "mission_id" | "tester_id" | "screenshot_url" | "screenshot_urls"
+  | "tester_comment" | "ai_summary" | "ai_sentiment" | "created_at"
+>
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
 
 export const metadata = { title: "Mission — Admin · Twnhall" }
 
@@ -53,7 +62,8 @@ export default async function AdminMissionDetailPage({
     .eq("mission_id", mission.id)
     .order("created_at", { ascending: false })
 
-  const testerIds = Array.from(new Set((testResults ?? []).map((r: any) => r.tester_id).filter(Boolean)))
+  const results = (testResults ?? []) as ResultLite[]
+  const testerIds = Array.from(new Set(results.map((r) => r.tester_id).filter(Boolean)))
   const { data: testers } = testerIds.length > 0
     ? await admin
         .from("profiles")
@@ -62,17 +72,17 @@ export default async function AdminMissionDetailPage({
     : { data: [] }
 
   const testerById = new Map(
-    (testers ?? []).map((p: any) => [
+    ((testers ?? []) as ProfileLite[]).map((p) => [
       p.id,
       {
-        fullName: (p.full_name as string) ?? "",
-        email: (p.email as string) ?? "",
-        avatarUrl: (p.avatar_url as string | null) ?? null,
+        fullName: p.full_name ?? "",
+        email: p.email ?? "",
+        avatarUrl: p.avatar_url ?? null,
       },
     ]),
   )
 
-  const submissions: SubmissionRow[] = (testResults ?? []).map((r: any) => ({
+  const submissions: SubmissionRow[] = results.map((r) => ({
     id: r.id,
     createdAt: r.created_at,
     testerComment: r.tester_comment ?? "",

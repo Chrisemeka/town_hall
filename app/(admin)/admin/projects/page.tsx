@@ -4,6 +4,10 @@ import {
   FolderOpen, ShieldCheck, CheckCircle2, AlertCircle, Flag, ExternalLink,
 } from "lucide-react"
 import { ProjectRowActions } from "@/components/admin/ProjectRowActions"
+import type { ProfileRow, ProjectRow } from "@/lib/types/db"
+
+/** Exactly what the profiles select below asks for. */
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email">
 
 export const metadata = { title: "Projects — Admin · Twnhall" }
 
@@ -57,7 +61,7 @@ export default async function AdminProjectsPage() {
   ])
 
   const profileById = new Map(
-    (profilesRes.data ?? []).map((p: any) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]),
+    ((profilesRes.data ?? []) as ProfileLite[]).map((p) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]),
   )
 
   const missionsByProject = new Map<string, string[]>()
@@ -72,7 +76,7 @@ export default async function AdminProjectsPage() {
     feedbackByMission.set(r.mission_id, (feedbackByMission.get(r.mission_id) ?? 0) + 1)
   }
 
-  const projects: AdminProjectRow[] = (projectsRes.data ?? []).map((p: any) => {
+  const projects: AdminProjectRow[] = ((projectsRes.data ?? []) as ProjectRow[]).map((p) => {
     const missionIds = missionsByProject.get(p.id) ?? []
     const missionCount = missionIds.length
     const feedbackCount = missionIds.reduce((sum, mid) => sum + (feedbackByMission.get(mid) ?? 0), 0)

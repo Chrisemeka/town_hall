@@ -6,7 +6,19 @@ import {
   normalizeSentiment,
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
+import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
 import { screenshotList } from "@/lib/utils/screenshots"
+
+/** Exactly what the four selects below ask for. */
+type ResultLite = Pick<
+  TestResultRow,
+  | "id" | "mission_id" | "tester_id" | "screenshot_url" | "screenshot_urls"
+  | "tester_comment" | "ai_summary" | "ai_sentiment" | "created_at"
+>
+type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">
+type ProjectLite = Pick<ProjectRow, "id" | "name">
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
+
 
 export const metadata = { title: "Submissions — Admin · Twnhall" }
 
@@ -27,23 +39,23 @@ export default async function AdminSubmissionsPage() {
   ])
 
   const missionById = new Map(
-    (missionsRes.data ?? []).map((m: any) => [m.id, { title: m.title as string, projectId: m.project_id as string }]),
+    ((missionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, { title: m.title, projectId: m.project_id }]),
   )
   const projectById = new Map(
-    (projectsRes.data ?? []).map((p: any) => [p.id, { name: p.name as string }]),
+    ((projectsRes.data ?? []) as ProjectLite[]).map((p) => [p.id, { name: p.name }]),
   )
   const profileById = new Map(
-    (profilesRes.data ?? []).map((p: any) => [
+    ((profilesRes.data ?? []) as ProfileLite[]).map((p) => [
       p.id,
       {
-        fullName: (p.full_name as string) ?? "",
-        email: (p.email as string) ?? "",
-        avatarUrl: (p.avatar_url as string | null) ?? null,
+        fullName: p.full_name ?? "",
+        email: p.email ?? "",
+        avatarUrl: p.avatar_url ?? null,
       },
     ]),
   )
 
-  const allSubmissions: SubmissionRow[] = (resultsRes.data ?? []).map((r: any) => {
+  const allSubmissions: SubmissionRow[] = ((resultsRes.data ?? []) as ResultLite[]).map((r) => {
     const mission = missionById.get(r.mission_id)
     const project = mission ? projectById.get(mission.projectId) : undefined
     const tester = profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null }

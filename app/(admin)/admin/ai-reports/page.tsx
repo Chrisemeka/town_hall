@@ -4,6 +4,16 @@ import {
   Sparkles, ShieldCheck, Smile, Frown, AlertTriangle, Meh,
 } from "lucide-react"
 import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
+import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+
+/** Exactly what the four selects below ask for. */
+type ResultLite = Pick<
+  TestResultRow,
+  "id" | "mission_id" | "tester_id" | "tester_comment" | "ai_summary" | "ai_sentiment" | "created_at"
+>
+type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">
+type ProjectLite = Pick<ProjectRow, "id" | "name">
+type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
 
 export const metadata = { title: "AI Reports — Admin · Twnhall" }
 
@@ -72,26 +82,31 @@ export default async function AdminAIReportsPage() {
   ])
 
   const missionById = new Map(
-    (missionsRes.data ?? []).map((m: any) => [m.id, { title: m.title as string, projectId: m.project_id as string }]),
+    ((missionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, { title: m.title, projectId: m.project_id }]),
   )
   const projectById = new Map(
-    (projectsRes.data ?? []).map((p: any) => [p.id, { name: p.name as string }]),
+    ((projectsRes.data ?? []) as ProjectLite[]).map((p) => [p.id, { name: p.name }]),
   )
   const profileById = new Map(
-    (profilesRes.data ?? []).map((p: any) => [
+    ((profilesRes.data ?? []) as ProfileLite[]).map((p) => [
       p.id,
       {
-        fullName: (p.full_name as string) ?? "",
-        email: (p.email as string) ?? "",
-        avatarUrl: (p.avatar_url as string | null) ?? null,
+        fullName: p.full_name ?? "",
+        email: p.email ?? "",
+        avatarUrl: p.avatar_url ?? null,
       },
     ]),
   )
 
-  const allResults = (resultsRes.data ?? []) as any[]
+  const allResults = (resultsRes.data ?? []) as ResultLite[]
   const totalSubmissions = allResults.length
 
-  const successful = allResults.filter((r) => r.ai_summary && r.ai_summary.trim() !== "")
+  // Type predicate, not just a boolean: the filter is what makes ai_summary
+  // non-null for every row downstream, and ReportRow requires it.
+  const successful = allResults.filter(
+    (r): r is ResultLite & { ai_summary: string } =>
+      !!r.ai_summary && r.ai_summary.trim() !== "",
+  )
   const failed = allResults.filter((r) => !r.ai_summary || r.ai_summary.trim() === "")
 
   const sentimentCounts = { POSITIVE: 0, NEUTRAL: 0, FRUSTRATED: 0, UNKNOWN: 0 }
@@ -101,7 +116,7 @@ export default async function AdminAIReportsPage() {
   const failedCount = failed.length
   const coverage = totalSubmissions > 0 ? Math.round((totalReports / totalSubmissions) * 100) : 0
 
-  const reports: ReportRow[] = successful.slice(0, REPORT_LIMIT).map((r: any) => {
+  const reports: ReportRow[] = successful.slice(0, REPORT_LIMIT).map((r) => {
     const mission = missionById.get(r.mission_id)
     const project = mission ? projectById.get(mission.projectId) : undefined
     const tester = profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null }
@@ -117,7 +132,7 @@ export default async function AdminAIReportsPage() {
     }
   })
 
-  const failedRows: FailedRow[] = failed.slice(0, 10).map((r: any) => {
+  const failedRows: FailedRow[] = failed.slice(0, 10).map((r) => {
     const mission = missionById.get(r.mission_id)
     const tester = profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null }
     return {
