@@ -2,7 +2,10 @@ import { z } from "zod"
 import { parsePhoneNumberFromString } from "libphonenumber-js"
 // Relative, with the extension: scripts/*.test.mts import this file under plain
 // node, which resolves neither the "@/" alias nor an extensionless specifier.
-import { COUNTRIES, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
+import { COUNTRIES, PROJECT_CATEGORIES, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
+// Relative with the extension, like the imports above: scripts/*.test.mts run
+// this file under plain node, which does not resolve the "@/" alias.
+import { countSentences } from "../sentences.ts"
 import type { AccountType } from "../access.ts"
 
 /* ──────────────────────────────────────────────────────────────
@@ -31,7 +34,15 @@ export function toFieldErrors<T extends Record<string, unknown>>(
  * ──────────────────────────────────────────────────────────── */
 
 export const PROJECT_NAME_MAX = 80
-export const PROJECT_SUMMARY_MAX = 300
+// Lowered from 300. Two sentences do not need 300 characters, and the cap is a
+// cheaper and more exact constraint than the sentence heuristic layered on it.
+export const PROJECT_SUMMARY_MAX = 200
+export const PROJECT_SUMMARY_MAX_SENTENCES = 2
+
+/** The category vocabulary, enforced here because the column has no CHECK. */
+export const projectCategorySchema = z.enum(PROJECT_CATEGORIES, {
+  message: "Choose a category.",
+})
 
 export const projectSchema = z.object({
   name: z
@@ -51,7 +62,13 @@ export const projectSchema = z.object({
     .max(
       PROJECT_SUMMARY_MAX,
       `Summary must be ${PROJECT_SUMMARY_MAX} characters or fewer.`,
-    ),
+    )
+    // The counting lives in lib/sentences.ts so it can be tested against the
+    // abbreviation and decimal cases without going through a schema parse.
+    .refine((value) => countSentences(value) <= PROJECT_SUMMARY_MAX_SENTENCES, {
+      message: "Keep it to two sentences — say what it does and who it's for.",
+    }),
+  category: projectCategorySchema,
 })
 
 export type ProjectInput = z.infer<typeof projectSchema>
