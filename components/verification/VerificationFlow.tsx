@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button"
 import { Field, inputClass } from "@/components/ui/Field"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
-import { formatPhoneAsYouType, isAllowedPhoneKey } from "@/lib/phone"
+import { dialCodeFor, formatPhoneAsYouType, isAllowedPhoneKey, isBareDialCode } from "@/lib/phone"
 import { COUNTRIES, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
   FULL_NAME_MAX,
@@ -222,10 +222,26 @@ function IdentityStep({ values, errors, set }: StepProps) {
   }
 
   function onCountryChange(code: string) {
+    const dial = dialCodeFor(code)
+    // Read against the *previous* country — values.country is still the old one
+    // until the state update below lands. This is the whole question: is what is
+    // in the field the form's to replace, or the user's to keep?
+    const ours = !values.phone.trim() || isBareDialCode(values.phone, values.country)
+
     set("country", code)
-    // Re-group what they already typed rather than clearing it. The number is
-    // still their number; only the grouping is a function of the country.
-    if (values.phone) set("phone", formatPhoneAsYouType(values.phone, code))
+
+    // No metadata for this country (BV, HM, AQ are all selectable). Nothing to
+    // fill in, and rewriting what is already there would only churn it.
+    if (!dial) return
+
+    if (ours) {
+      // Trailing space so the caret sits where the national number begins.
+      set("phone", `${dial} `)
+    } else {
+      // Re-group what they already typed rather than clearing it. The number is
+      // still their number; only the grouping is a function of the country.
+      set("phone", formatPhoneAsYouType(values.phone, code))
+    }
   }
 
   return (
@@ -260,7 +276,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
         label="Phone"
         htmlFor="phone"
         error={errors.phone}
-        helper="Include your country code — e.g. +234 801 234 5678."
+        helper="We've filled in your country code."
       >
         <input
           id="phone"
