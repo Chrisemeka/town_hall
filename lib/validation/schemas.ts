@@ -195,6 +195,15 @@ export function toCents(payout: number): number {
 
 export const createMissionSchema = z.object({
   projectId: z.string().uuid("Invalid project id."),
+  // Provenance only, and only settable at creation. Validated rather than taken
+  // on trust: it is a free string on the wire, and an unknown value here would
+  // make "which template did this come from" unanswerable later.
+  template_id: z
+    .string()
+    .trim()
+    .max(60)
+    .optional()
+    .transform((v) => v || null),
   ...missionFields,
 })
 export type CreateMissionInput = z.infer<typeof createMissionSchema>

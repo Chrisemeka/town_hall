@@ -1,7 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { requireAccount } from "@/lib/auth"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
@@ -37,18 +38,20 @@ export async function createMission(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  // Mission authoring is Builder-only. RLS still enforces project ownership on
-  // top of this — this stops a Tester account authoring against a project the
-  // same person happens to own from their Builder side.
+  // Mission authoring is Builder-only. This stops a Tester account authoring
+  // against a project the same person happens to own from their Builder side.
   await requireAccount("builder")
 
   const parsed = createMissionSchema.safeParse({
     projectId: formData.get("projectId"),
+    template_id: formData.get("template_id") ?? undefined,
     title: formData.get("title"),
     task_description: formData.get("task_description"),
     intent: formData.get("intent"),
     payout: formData.get("payout"),
     category: formData.get("category"),
+    device_target: formData.get("device_target"),
+    test_steps: formData.get("test_steps"),
   })
 
   if (!parsed.success) {
@@ -58,10 +61,15 @@ export async function createMission(
     }
   }
 
-  const { projectId, title, task_description, intent, payout, category } = parsed.data
+  const { projectId, template_id, title, task_description, intent, payout, category, device_target, test_steps } =
+    parsed.data
   const is_active = intent === "publish"
 
-  const { error } = await supabase
+  // Service role bypasses RLS, so ownership is checked here rather than by the
+  // database. See requireProjectOwner() for why the move was made.
+  await requireProjectOwner(projectId, user.id)
+
+  const { error } = await createAdminClient()
     .from("missions")
     .insert({
       project_id: projectId,
@@ -69,7 +77,10 @@ export async function createMission(
       task_description,
       is_active,
       payout_cents: toCents(payout),
-      category: category || null,
+      category,
+      device_target,
+      test_steps,
+      template_id,
     })
     .select()
     .single()
@@ -89,6 +100,8 @@ export async function updateMission(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
+  await requireAccount("builder")
+
   const parsed = updateMissionSchema.safeParse({
     missionId: formData.get("missionId"),
     projectId: formData.get("projectId"),
@@ -97,6 +110,8 @@ export async function updateMission(
     intent: formData.get("intent"),
     payout: formData.get("payout"),
     category: formData.get("category"),
+    device_target: formData.get("device_target"),
+    test_steps: formData.get("test_steps"),
   })
 
   if (!parsed.success) {
@@ -106,19 +121,29 @@ export async function updateMission(
     }
   }
 
-  const { missionId, projectId, title, task_description, intent, payout, category } = parsed.data
+  const { missionId, projectId, title, task_description, intent, payout, category, device_target, test_steps } =
+    parsed.data
   const is_active = intent === "publish"
 
-  const { error } = await supabase
+  await requireProjectOwner(projectId, user.id)
+
+  // Explicit column list, and template_id is not in it: provenance is set once
+  // at creation and an edit must not rewrite where a mission came from.
+  const { error } = await createAdminClient()
     .from("missions")
     .update({
       title,
       task_description,
       is_active,
       payout_cents: toCents(payout),
-      category: category || null,
+      category,
+      device_target,
+      test_steps,
     })
     .eq("id", missionId)
+    // Belt and braces with requireProjectOwner: the guard proves the caller owns
+    // projectId, this proves the mission being written belongs to that project.
+    .eq("project_id", projectId)
 
   if (error) return { error: error.message }
 
@@ -133,10 +158,14 @@ export async function deleteMission(missionId: string, projectId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const { error } = await supabase
+  await requireAccount("builder")
+  await requireProjectOwner(projectId, user.id)
+
+  const { error } = await createAdminClient()
     .from("missions")
     .delete()
     .eq("id", missionId)
+    .eq("project_id", projectId)
 
   if (error) throw new Error(error.message)
 
@@ -152,10 +181,14 @@ export async function toggleMissionStatus(missionId: string, projectId: string, 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const { error } = await supabase
+  await requireAccount("builder")
+  await requireProjectOwner(projectId, user.id)
+
+  const { error } = await createAdminClient()
     .from("missions")
     .update({ is_active: newStatus })
     .eq("id", missionId)
+    .eq("project_id", projectId)
 
   if (error) throw new Error(error.message)
 

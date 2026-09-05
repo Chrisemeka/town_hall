@@ -130,6 +130,38 @@ export async function requireAccount(type: AccountType): Promise<{ userId: strin
 }
 
 /**
+ * Asserts the caller owns the project they are about to write to.
+ *
+ * This exists because the mission actions moved to the service-role client, and
+ * service role bypasses RLS. Until that move, `projects` and `missions` carried
+ * owner-scoped RLS policies that silently reduced a cross-tenant write to zero
+ * rows — those actions never had an ownership check in code, they leaned on the
+ * database for it. Moving the client without moving that check would have
+ * traded a working guarantee for nothing.
+ *
+ * Reads with the service-role client on purpose: an anon read here would be
+ * subject to the same policies being bypassed, so a project the caller cannot
+ * see would look identical to one that does not exist, and the guard would
+ * throw the wrong reason.
+ *
+ * Throws rather than returning a result. Every caller treats "not yours" as
+ * unreachable rather than as a form error, and a thrown error cannot be
+ * accidentally ignored the way a returned one can.
+ */
+export async function requireProjectOwner(projectId: string, userId: string): Promise<void> {
+  const admin = createAdminClient()
+  const { data: project, error } = await admin
+    .from("projects")
+    .select("owner_id")
+    .eq("id", projectId)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  if (!project) throw new Error("Project not found")
+  if (project.owner_id !== userId) throw new Error("Not authorized")
+}
+
+/**
  * `requireAccount()` minus the verification gate. This is NOT a bug, and it is
  * not a general-purpose escape hatch.
  *
