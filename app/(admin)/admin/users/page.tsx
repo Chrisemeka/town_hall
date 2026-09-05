@@ -137,6 +137,11 @@ export default async function AdminUsersPage() {
     })
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
 
+  // Async Server Component: this renders once per request on the server, so
+  // reading the clock here is the intent, not a hazard. The rule guards client
+  // re-render determinism, which cannot apply to a component that never
+  // re-renders on the client.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const thirtyDaysAgo = now - 30 * ONE_DAY_MS
   const newUsers30d = users.filter((u) => +new Date(u.createdAt) >= thirtyDaysAgo).length

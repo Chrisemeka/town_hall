@@ -64,6 +64,11 @@ export default async function AdminSubmissionsPage() {
   const submissions = allSubmissions.slice(0, CARD_LIMIT)
 
   const total = allSubmissions.length
+  // Async Server Component: this renders once per request on the server, so
+  // reading the clock here is the intent, not a hazard. The rule guards client
+  // re-render determinism, which cannot apply to a component that never
+  // re-renders on the client.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const sevenDaysAgo = now - 7 * ONE_DAY_MS
   const last7d = allSubmissions.filter((r) => +new Date(r.createdAt) >= sevenDaysAgo).length

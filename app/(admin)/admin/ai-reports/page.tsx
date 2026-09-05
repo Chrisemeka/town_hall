@@ -130,6 +130,11 @@ export default async function AdminAIReportsPage() {
   })
 
   // Reports per day for last 30 days
+  // Async Server Component: this renders once per request on the server, so
+  // reading the clock here is the intent, not a hazard. The rule guards client
+  // re-render determinism, which cannot apply to a component that never
+  // re-renders on the client.
+  // eslint-disable-next-line react-hooks/purity
   const now = Date.now()
   const reportsByDay: SignupPoint[] = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(now - (29 - i) * ONE_DAY_MS)
