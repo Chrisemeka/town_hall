@@ -65,11 +65,26 @@ export type MissionRow = {
   id: string
   project_id: string
   title: string
+  /** The overall brief. The testable substance is `test_steps`. */
   task_description: string
   created_at: string
   is_active: boolean | null
   payout_cents: number | null
+  /** A TEST_CATEGORIES value since the test-case migration. Null on older rows. */
   category: string | null
+  /**
+   * The ordered test case. Defaulted to '[]' in the database, so this is never
+   * null — but it is very often empty, on every mission that predates it.
+   *
+   * Typed as unknown rather than TestStep[]: this is what came out of a jsonb
+   * column, and nothing in the database constrains its shape. Parse it through
+   * testStepsSchema before trusting it.
+   */
+  test_steps: unknown
+  /** A DEVICE_TARGETS value. Defaulted to 'both', so never null. */
+  device_target: string
+  /** Which template this was built from, if any. Provenance only. */
+  template_id: string | null
   load_test_at: string | null
   testers_needed: number | null
 }
