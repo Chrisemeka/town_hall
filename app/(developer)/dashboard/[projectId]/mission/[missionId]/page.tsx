@@ -1,4 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { one } from "@/lib/utils/project";
+import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
+
+/** `select("*, projects(*)")` — the whole mission with its whole project. */
+type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
@@ -28,7 +33,7 @@ export default async function DeveloperMissionDetailPage({
 
   const mission = missionRes.data;
   const results = resultsRes.data || [];
-  const project = (mission as any).projects as any;
+  const project = one((mission as MissionWithProject).projects);
   const isActive = mission.is_active !== false;
 
   return (

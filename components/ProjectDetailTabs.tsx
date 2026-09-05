@@ -13,8 +13,10 @@ type Mission = {
   title: string
   task_description: string
   created_at: string
-  is_active: boolean
-  test_results: [{ count: number }] | []
+  is_active: boolean | null
+  // Nullable and unbounded: the reader already does `?.[0]?.count ?? 0`, so the
+  // tuple was a tighter claim than PostgREST makes.
+  test_results: { count: number }[] | null
 }
 
 type TestResult = {
@@ -32,8 +34,10 @@ interface Props {
   results: TestResult[]
 }
 
-function getMissionStatus(isActive: boolean, feedbackCount: number) {
-  if (!isActive) return "draft" as const
+// `!== false` rather than a truthiness test: is_active is nullable, and every
+// other surface in the app reads a null as still active.
+function getMissionStatus(isActive: boolean | null, feedbackCount: number) {
+  if (isActive === false) return "draft" as const
   if (feedbackCount === 0) return "needs-testers" as const
   return "active" as const
 }

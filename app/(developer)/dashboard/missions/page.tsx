@@ -1,4 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import type { MissionRow } from "@/lib/types/db";
+
+/** Exactly what the select below asks for. */
+type PagedMissionRow = Pick<MissionRow, "id" | "title" | "is_active" | "project_id"> & {
+  test_results: { count: number }[] | null;
+};
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Target } from "lucide-react";
@@ -28,9 +34,9 @@ export default async function MyMissionsPage() {
           .select("id, title, is_active, project_id, test_results(count)")
           .in("project_id", projectIds)
           .order("created_at", { ascending: false })
-      : { data: [] as any[] };
+      : { data: [] as PagedMissionRow[] };
 
-  const missions: PagedMission[] = (rawMissions ?? []).map((m: any) => ({
+  const missions: PagedMission[] = (rawMissions ?? []).map((m) => ({
     id:            m.id,
     title:         m.title,
     project_id:    m.project_id,

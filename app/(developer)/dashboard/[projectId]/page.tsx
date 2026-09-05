@@ -1,4 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
+import { one } from "@/lib/utils/project";
+import type { Embedded, MissionRow, TestResultRow } from "@/lib/types/db";
+
+/** Exactly what the two list selects below ask for. */
+type ProjectMission = Pick<
+  MissionRow,
+  "id" | "title" | "task_description" | "created_at" | "is_active"
+> & { test_results: { count: number }[] | null };
+/** The `missions!inner(...)` embed. PostgREST returns an object here, but
+ *  supabase-js infers an array from the select string, so the type admits both
+ *  and one() settles it before the rows leave this file. */
+type ProjectResult = Pick<
+  TestResultRow,
+  "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at"
+> & { missions: Embedded<Pick<MissionRow, "id" | "title" | "project_id">> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Pencil, Flag } from "lucide-react";
@@ -38,8 +53,11 @@ export default async function ProjectDetailPage({
   if (!projectRes.data) return notFound();
 
   const project  = projectRes.data;
-  const missions = (missionsRes.data ?? []) as any[];
-  const results  = (resultsRes.data ?? []) as any[];
+  const missions = (missionsRes.data ?? []) as ProjectMission[];
+  const results  = ((resultsRes.data ?? []) as ProjectResult[]).map((r) => ({
+    ...r,
+    missions: one(r.missions),
+  }));
 
   const missionCount  = missions.length;
   const feedbackCount = results.length;

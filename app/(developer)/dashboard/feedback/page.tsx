@@ -1,4 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import type { MissionRow, TestResultRow } from "@/lib/types/db";
+
+/** Exactly what the two selects below ask for. */
+type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">;
+type ResultLite = Pick<
+  TestResultRow,
+  "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at" | "mission_id"
+>;
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare } from "lucide-react";
@@ -29,12 +37,12 @@ export default async function FeedbackReceivedPage() {
           .from("missions")
           .select("id, title, project_id")
           .in("project_id", projectIds)
-      : { data: [] as any[] };
+      : { data: [] as MissionLite[] };
 
-  const missionIds = (missions ?? []).map((m: any) => m.id);
+  const missionIds = (missions ?? []).map((m) => m.id);
   const missionMeta: Record<string, { title: string; projectId: string; projectName: string }> =
     Object.fromEntries(
-      (missions ?? []).map((m: any) => [
+      (missions ?? []).map((m) => [
         m.id,
         {
           title:       m.title,
@@ -52,12 +60,12 @@ export default async function FeedbackReceivedPage() {
           .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id")
           .in("mission_id", missionIds)
           .order("created_at", { ascending: true })
-      : { data: [] as any[] };
+      : { data: [] as ResultLite[] };
 
   /* flatten into FeedbackEntry[] with mission context attached */
   const items: FeedbackEntry[] = (rawResults ?? [])
-    .filter((r: any) => missionMeta[r.mission_id])
-    .map((r: any) => ({
+    .filter((r) => missionMeta[r.mission_id])
+    .map((r) => ({
       id:            r.id,
       missionId:     r.mission_id,
       missionTitle:  missionMeta[r.mission_id].title,
