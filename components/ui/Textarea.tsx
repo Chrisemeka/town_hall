@@ -1,7 +1,9 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+// Alias rather than an empty extending interface, which is the same type with
+// an extra hop. Kept exported so a consumer can name the props.
+export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
