@@ -1,8 +1,11 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Search, ArrowRight } from "lucide-react"
+
+/** How many cards a page shows, and how many each "Load more" adds. */
+const PAGE_SIZE = 6
 
 export type BrowseMission = {
   id: string
@@ -27,9 +30,17 @@ function relTime(iso: string) {
 
 export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
   const [query,   setQuery]   = useState("")
-  const [visible, setVisible] = useState(6)
+  const [visible, setVisible] = useState(PAGE_SIZE)
 
-  useEffect(() => setVisible(6), [query])
+  // Pagination resets whenever the query changes. Adjusted during render
+  // rather than in an effect: React re-runs this render before committing, so
+  // the browser never paints the old page size against the new query. An
+  // effect would paint one frame of the wrong thing, then correct it.
+  const [lastQuery, setLastQuery] = useState(query)
+  if (query !== lastQuery) {
+    setLastQuery(query)
+    setVisible(PAGE_SIZE)
+  }
 
   const displayed = useMemo(() => {
     if (!query.trim()) return missions
@@ -142,7 +153,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           {displayed.length > visible && (
             <div className="flex justify-center mt-10">
               <button
-                onClick={() => setVisible((v) => v + 6)}
+                onClick={() => setVisible((v) => v + PAGE_SIZE)}
                 className="h-10 px-6 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:bg-graphite transition-colors duration-150"
               >
                 Load More
