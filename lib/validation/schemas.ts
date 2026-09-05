@@ -313,9 +313,12 @@ const identityFields = {
 }
 
 /**
- * Timezone is a tester-only identity field. It sits with the identity fields
- * rather than in a step of its own — the "about you" step it used to share with
- * the bio is gone, and a lone dropdown is not a step.
+ * Timezone, asked of both roles. It sits with the identity fields rather than in
+ * a step of its own — the "about you" step it used to share with the bio is
+ * gone, and a lone dropdown is not a step.
+ *
+ * Kept separate from identityFields only because it arrived later; both role
+ * schemas now compose both bags. Fold it in if a third field ever joins it.
  */
 const timezoneField = {
   timezone: timezoneEnum,
@@ -355,9 +358,18 @@ const skillsField = {
  * these, so an error lands on the field that caused it rather than on a later
  * step the user hasn't reached yet. */
 
-export const builderStep1Schema = z.object(identityFields)
-/** Tester step 1 is builder step 1 plus the timezone. */
 export const testerStep1Schema = z.object({ ...identityFields, ...timezoneField })
+/**
+ * Structurally identical to tester step 1 — both roles now answer the same
+ * identity questions, timezone included.
+ *
+ * Aliased rather than re-declared on purpose. Two `z.object()` calls listing the
+ * same fields are one careless edit away from disagreeing, and the disagreement
+ * would surface as a builder being rejected at the gate for a field their own
+ * form never asked them for. Keeping both names is for the call sites, which
+ * read better naming the role than picking the "other" role's schema.
+ */
+export const builderStep1Schema = testerStep1Schema
 export const testerStep2Schema = z.object(skillsField)
 
 /* Full role schemas — what `completeVerification` re-checks before it opens the
