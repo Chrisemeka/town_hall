@@ -1,4 +1,9 @@
-import { AsYouType, type CountryCode } from "libphonenumber-js"
+import {
+  AsYouType,
+  getCountryCallingCode,
+  isSupportedCountry,
+  type CountryCode,
+} from "libphonenumber-js"
 
 /**
  * Phone input behaviour for the verification form. UX only — the schema in
@@ -58,4 +63,36 @@ export function formatPhoneAsYouType(value: string, country?: string): string {
   // An unknown or empty country is not an error here — AsYouType ignores it and
   // falls back to reading the country from the "+" prefix.
   return new AsYouType(country as CountryCode | undefined).input(value) || value
+}
+
+/**
+ * The dial code for a country — "+234" for NG — or null when there is not one.
+ *
+ * The null case is not defensive padding. COUNTRIES carries all 249 ISO 3166-1
+ * codes and libphonenumber has metadata for fewer: Bouvet Island, Heard &
+ * McDonald and a few other uninhabited territories are real options in the
+ * dropdown with no calling code behind them. getCountryCallingCode() throws on
+ * those, so the support check runs before the call rather than as a try/catch
+ * around it — a throw here would take the whole form down on a dropdown change.
+ */
+export function dialCodeFor(country: string): string | null {
+  if (!country || !isSupportedCountry(country)) return null
+  return `+${getCountryCallingCode(country)}`
+}
+
+/**
+ * Whether the field holds nothing but `country`'s dial code.
+ *
+ * This is the whole question the country dropdown needs answered: a value the
+ * form filled in may be replaced when the country changes, a number the user
+ * typed may not. Getting it wrong in the permissive direction silently deletes
+ * someone's phone number, so the check is exact rather than a prefix match —
+ * "+2348012345678" starts with "+234" and is emphatically not a bare dial code.
+ *
+ * Whitespace-insensitive because the autofill leaves a trailing space to type
+ * after, and that space is not the user's input.
+ */
+export function isBareDialCode(value: string, country: string): boolean {
+  const dial = dialCodeFor(country)
+  return dial !== null && value.trim() === dial
 }
