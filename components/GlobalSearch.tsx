@@ -13,24 +13,21 @@ export function GlobalSearch() {
   const router  = useRouter()
   const supabase = createClient()
 
-  const [query,    setQuery]    = useState("")
-  const [results,  setResults]  = useState<Result[]>([])
-  const [loading,  setLoading]  = useState(false)
-  const [open,     setOpen]     = useState(false)
-  const [cursor,   setCursor]   = useState(-1)
+  const [query,     setQuery]     = useState("")
+  const [open,      setOpen]      = useState(false)
+  const [cursor,    setCursor]    = useState(-1)
+  // What came back, and which query it answers. Keeping the second half is what
+  // lets `loading` and the visible list be derived instead of stored — a stored
+  // `loading` has to be flipped on from the effect that starts the search, and a
+  // synchronous setState in an effect is a cascading render.
+  const [fetched,    setFetched]    = useState<Result[]>([])
+  const [fetchedFor, setFetchedFor] = useState("")
 
   const containerRef  = useRef<HTMLDivElement>(null)
   const inputRef      = useRef<HTMLInputElement>(null)
-  const debounceRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /* ── search ────────────────────────────────────────── */
   const search = useCallback(async (q: string) => {
-    if (q.length < 2) {
-      setResults([])
-      setLoading(false)
-      return
-    }
-    setLoading(true)
     const pattern = `%${q}%`
 
     const [projectRes, missionRes] = await Promise.all([
@@ -67,23 +64,24 @@ export function GlobalSearch() {
       })
     }
 
-    setResults(items)
-    setLoading(false)
+    setFetched(items)
+    setFetchedFor(q)
     setCursor(-1)
   }, [supabase])
 
-  /* debounce */
+  /* debounce — schedules the search and nothing else */
+  const longEnough = query.length >= 2
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (query.length < 2) {
-      setResults([])
-      setLoading(false)
-      return
-    }
-    setLoading(true)
-    debounceRef.current = setTimeout(() => search(query), 250)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [query, search])
+    if (!longEnough) return
+    const timer = setTimeout(() => { void search(query) }, 250)
+    return () => clearTimeout(timer)
+  }, [query, longEnough, search])
+
+  // Derived, so a slow response for an earlier query can never overwrite the
+  // view for the current one: results only show while they answer what is in
+  // the box, and anything else still counts as loading.
+  const results = fetchedFor === query ? fetched : []
+  const loading = longEnough && fetchedFor !== query
 
   /* close on outside click */
   useEffect(() => {
@@ -100,7 +98,6 @@ export function GlobalSearch() {
   function navigate(r: Result) {
     setOpen(false)
     setQuery("")
-    setResults([])
     if (r.kind === "project") {
       router.push(`/dashboard/${r.id}`)
     } else {
