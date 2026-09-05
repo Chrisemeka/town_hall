@@ -35,6 +35,7 @@ export async function createProject(
     name: formData.get("name"),
     app_url: formData.get("app_url"),
     description: formData.get("description"),
+    category: formData.get("category"),
   })
 
   if (!parsed.success) {
@@ -44,7 +45,7 @@ export async function createProject(
     }
   }
 
-  const { name, app_url, description } = parsed.data
+  const { name, app_url, description, category } = parsed.data
 
   const { data, error } = await supabase
     .from("projects")
@@ -52,6 +53,7 @@ export async function createProject(
       name,
       description,
       app_url,
+      category,
       owner_id: user.id,
     })
     .select()
@@ -80,6 +82,7 @@ export async function updateProject(
     name: formData.get("name"),
     app_url: formData.get("app_url"),
     description: formData.get("description"),
+    category: formData.get("category"),
   })
 
   if (!parsed.success) {
@@ -89,11 +92,11 @@ export async function updateProject(
     }
   }
 
-  const { name, app_url, description } = parsed.data
+  const { name, app_url, description, category } = parsed.data
 
   const { error } = await supabase
     .from("projects")
-    .update({ name, app_url, description })
+    .update({ name, app_url, description, category })
     .eq("id", projectId)
 
   if (error) {
