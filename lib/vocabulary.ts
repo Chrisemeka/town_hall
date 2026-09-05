@@ -55,6 +55,58 @@ export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number]
 /** What a project with no category shows. Never stored — null stays null. */
 export const UNCATEGORISED_LABEL = "Uncategorised"
 
+/**
+ * What kind of testing a mission asks for.
+ *
+ * Machine values, unlike PROJECT_CATEGORIES — those are display copy the
+ * builder picks from a list, these are enum-ish values a migration already
+ * writes and that code branches on, so a slug is the right shape and
+ * testCategoryLabel() renders them.
+ */
+export const TEST_CATEGORIES = ["process_flow", "component", "ui_design"] as const
+
+export type TestCategory = (typeof TEST_CATEGORIES)[number]
+
+const TEST_CATEGORY_LABELS: Record<TestCategory, string> = {
+  process_flow: "Process Flow Testing",
+  component: "Component Testing",
+  ui_design: "UI Design Testing",
+}
+
+/** One line explaining each category, shown on the picker cards. */
+export const TEST_CATEGORY_BLURBS: Record<TestCategory, string> = {
+  process_flow: "A journey end to end — sign up, checkout, reset a password.",
+  component: "Individual elements like buttons, inputs, and checkboxes.",
+  ui_design: "How it reads and feels — clarity, hierarchy, polish.",
+}
+
+/** Human label for a stored test category. Unknown values render as-is. */
+export function testCategoryLabel(value: string): string {
+  return TEST_CATEGORY_LABELS[value as TestCategory] ?? value
+}
+
+/**
+ * Where a mission is meant to be tested.
+ *
+ * Three states in one column, not a set: "both" is its own answer rather than
+ * the union of the other two, and storing it that way keeps "the builder did
+ * not care" distinguishable from "the builder picked both deliberately".
+ */
+export const DEVICE_TARGETS = ["mobile", "desktop", "both"] as const
+
+export type DeviceTarget = (typeof DEVICE_TARGETS)[number]
+
+const DEVICE_TARGET_LABELS: Record<DeviceTarget, string> = {
+  mobile: "Mobile",
+  desktop: "Desktop",
+  both: "Mobile & Desktop",
+}
+
+/** Human label for a stored device target. Unknown values render as-is. */
+export function deviceTargetLabel(value: string): string {
+  return DEVICE_TARGET_LABELS[value as DeviceTarget] ?? value
+}
+
 export const SKILLS_MIN = 1
 export const SKILLS_MAX = 8
 

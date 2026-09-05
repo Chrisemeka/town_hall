@@ -6,7 +6,17 @@
 // Run with: npm test
 
 import assert from "node:assert/strict"
-import { COUNTRIES, PROJECT_CATEGORIES, SKILLS, TIMEZONES, countryName } from "../lib/vocabulary.ts"
+import {
+  COUNTRIES,
+  DEVICE_TARGETS,
+  PROJECT_CATEGORIES,
+  SKILLS,
+  TEST_CATEGORIES,
+  TIMEZONES,
+  countryName,
+  deviceTargetLabel,
+  testCategoryLabel,
+} from "../lib/vocabulary.ts"
 
 const noDuplicates = (list: readonly string[], label: string) =>
   assert.equal(new Set(list).size, list.length, `${label} contains a duplicate`)
@@ -85,3 +95,38 @@ assert.equal(
 )
 
 console.log("project categories: all assertions passed")
+
+/* ── test categories and device targets ──────────────────────────────── */
+
+for (const [list, label] of [
+  [TEST_CATEGORIES, "TEST_CATEGORIES"],
+  [DEVICE_TARGETS, "DEVICE_TARGETS"],
+] as const) {
+  assert.ok(list.length > 0, `${label} is empty — z.enum would throw at import`)
+  noDuplicates(list, label)
+  for (const value of list) {
+    // Stored values, not display copy: a space or capital here means the
+    // migration and the schema are writing different things than the UI reads.
+    assert.match(value, /^[a-z][a-z_]*$/, `${label} value "${value}" is not snake_case`)
+  }
+}
+
+// A value with no label renders as its raw slug, which is the kind of thing
+// that ships to production looking like a typo.
+for (const value of TEST_CATEGORIES) {
+  assert.notEqual(testCategoryLabel(value), value, `${value} has no human label`)
+}
+for (const value of DEVICE_TARGETS) {
+  assert.notEqual(deviceTargetLabel(value), value, `${value} has no human label`)
+}
+
+// The migration writes these three literals. If the vocabulary is renamed
+// without a follow-up migration, the rows it already wrote stop matching.
+for (const value of ["process_flow", "component", "ui_design"]) {
+  assert.ok(
+    (TEST_CATEGORIES as readonly string[]).includes(value),
+    `"${value}" is written by 20260905_02_mission_test_cases.sql and must stay in TEST_CATEGORIES`,
+  )
+}
+
+console.log("test categories + device targets: all assertions passed")
