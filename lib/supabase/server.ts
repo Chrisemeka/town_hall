@@ -18,7 +18,9 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set({ name, value, ...options })
             )
-          } catch (error) {
+          } catch {
+            // Called from a Server Component, where cookies are read-only. The
+            // session refresh in middleware.ts is what actually persists them.
           }
         },
       },

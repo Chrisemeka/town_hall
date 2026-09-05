@@ -25,16 +25,6 @@ function relTime(iso: string) {
   return `${Math.floor(days / 30)}mo ago`
 }
 
-function handleFromUrl(url: string | null, name: string) {
-  if (url) {
-    try {
-      const host = new URL(url).hostname.replace(/^www\./, "")
-      return `@${host.split(".")[0]}`
-    } catch { /* fall through */ }
-  }
-  return `@${name.toLowerCase().replace(/\s+/g, "")}`
-}
-
 export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
   const [query,   setQuery]   = useState("")
   const [visible, setVisible] = useState(6)

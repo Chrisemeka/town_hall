@@ -54,54 +54,6 @@ function SectionDivider() {
   return <div style={{ height: 1, background: "#2C2C35", margin: "32px 0" }} />
 }
 
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-}) {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className="relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
-      style={{ background: checked ? "#E8FF47" : "#2C2C35" }}
-    >
-      <span
-        className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-obsidian transition-transform duration-150"
-        style={{ transform: checked ? "translateX(20px)" : "translateX(0)" }}
-      />
-    </button>
-  )
-}
-
-function ToggleRow({
-  label,
-  description,
-  checked,
-  onChange,
-}: {
-  label: string
-  description: string
-  checked: boolean
-  onChange: (v: boolean) => void
-}) {
-  return (
-    <div className="flex items-center justify-between gap-6">
-      <div>
-        <p className="font-mono text-[14px] text-chalk">{label}</p>
-        <p className="font-mono text-[13px] text-ash mt-0.5">{description}</p>
-      </div>
-      <Toggle checked={checked} onChange={onChange} label={label} />
-    </div>
-  )
-}
-
 export function SettingsForm({
   initialEmail,
   initialProfile,
@@ -126,9 +78,6 @@ export function SettingsForm({
   // from the column it was just written to — without this, saving a phone number
   // and then reloading would still be met with "leave site?".
   useUnsavedChangesWarning(!saved && JSON.stringify(values) !== JSON.stringify(initialProfile))
-
-  const [notifFeedback, setNotifFeedback] = useState(true)
-  const [notifMission,  setNotifMission]  = useState(false)
 
   const [deleteStep, setDeleteStep]   = useState<"idle" | "confirm">("idle")
   const [deleting,   setDeleting]     = useState(false)
@@ -345,25 +294,6 @@ export function SettingsForm({
 
       <SectionDivider />
 
-      {/* ── Notifications ───────────────────────────────── */}
-      {/* <div>
-        <h5 className="font-syne font-bold text-[20px] text-chalk mb-6">Notifications</h5>
-
-        <div className="flex flex-col gap-5">
-          <ToggleRow
-            label="Feedback received"
-            description="Email when a tester submits feedback on your mission."
-            checked={notifFeedback}
-            onChange={setNotifFeedback}
-          />
-          <ToggleRow
-            label="New mission added"
-            description="Email when a new mission is available to test."
-            checked={notifMission}
-            onChange={setNotifMission}
-          />
-        </div>
-      </div> */}
 
       <SectionDivider />
 
