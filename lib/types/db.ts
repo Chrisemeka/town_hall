@@ -54,6 +54,7 @@ export type ProjectRow = {
   name: string
   description: string | null
   app_url: string | null
+  category: string | null
   created_at: string
   flagged_at: string | null
   flag_reason: string | null
