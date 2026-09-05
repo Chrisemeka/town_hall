@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EditMissionForm from "@/components/EditMissionForm";
-import { testStepsSchema } from "@/lib/validation/schemas";
+import { storedTestStepsSchema } from "@/lib/validation/schemas";
 
 export const metadata = { title: "Edit Mission — Twnhall" };
 
@@ -31,7 +31,7 @@ export default async function EditMissionPage({
   // Parsed here rather than in the form: test_steps is jsonb and nothing in the
   // database constrains its shape, so a row written before the schema existed —
   // or by hand — must degrade to an empty editor rather than crash the page.
-  const parsedSteps = testStepsSchema.safeParse(mission.test_steps);
+  const parsedSteps = storedTestStepsSchema.safeParse(mission.test_steps);
   const initialSteps = parsedSteps.success ? parsedSteps.data : [];
 
   return (

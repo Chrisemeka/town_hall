@@ -145,6 +145,17 @@ export const testStepSchema = z.object({
 
 export type TestStep = z.infer<typeof testStepSchema>
 
+/**
+ * What a stored test case is allowed to look like when reading it back.
+ *
+ * Deliberately laxer than testStepsSchema: an empty array is a legitimate
+ * stored state — it is what every mission written before test cases existed
+ * holds — and the 1..15 bounds are a rule about what a builder may *save*, not
+ * about what the column may contain. Parsing reads with the write schema
+ * reports those rows as corrupt, which they are not.
+ */
+export const storedTestStepsSchema = z.array(testStepSchema)
+
 export const testStepsSchema = z
   .array(testStepSchema)
   .min(1, "Add at least one step.")

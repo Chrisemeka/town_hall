@@ -1,4 +1,4 @@
-import { testStepsSchema } from "@/lib/validation/schemas"
+import { storedTestStepsSchema } from "@/lib/validation/schemas"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
 
 /**
@@ -11,7 +11,9 @@ import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
  * instead of in each of the three pages.
  */
 export function TestCaseView({ steps }: { steps: unknown }) {
-  const parsed = testStepsSchema.safeParse(steps)
+  // storedTestStepsSchema, not the write schema: an empty array is a normal
+  // stored state here, and the 1..15 bounds are a rule about saving.
+  const parsed = storedTestStepsSchema.safeParse(steps)
 
   // Two different nothings, deliberately not merged: a mission with no steps is
   // the normal state for everything written before test cases existed, while a
