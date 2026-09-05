@@ -202,7 +202,10 @@ const missionFields = {
   // without one cannot be filtered or explained to a tester.
   category: z.enum(TEST_CATEGORIES, { message: "Pick what kind of testing this is." }),
   device_target: z.enum(DEVICE_TARGETS, { message: "Pick where this should be tested." }),
-  test_steps: testStepsSchema,
+  // The JSON-string variant: this arrives off FormData as a string, and
+  // parsing it inside the schema keeps a malformed body a field error rather
+  // than a throw out of the action.
+  test_steps: testStepsJsonSchema,
 }
 
 /** Currency units off a form -> the integer cents the column stores. */
