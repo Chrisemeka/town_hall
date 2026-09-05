@@ -83,7 +83,7 @@ export default async function TermsAcceptPage() {
           <TermsAcceptForm />
 
           <p className="font-mono text-[12px] text-midnight/60 mt-8 leading-6">
-            By continuing you confirm that you have read and accepted Twnhall's policies. Your acceptance is recorded against your account.
+            By continuing you confirm that you have read and accepted Twnhall&apos;s policies. Your acceptance is recorded against your account.
           </p>
 
         </div>

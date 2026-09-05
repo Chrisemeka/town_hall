@@ -47,7 +47,7 @@ export function TermsAcceptForm() {
           aria-describedby="terms-agreement-text"
         />
         <span id="terms-agreement-text" className="font-mono text-[14px] leading-6 text-midnight/70 group-hover:text-midnight transition-colors duration-150">
-          I agree to Twnhall's{" "}
+          I agree to Twnhall&apos;s{" "}
           <Link href="/terms" target="_blank" className="text-forest hover:underline">
             Terms of Service
           </Link>

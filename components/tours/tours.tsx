@@ -29,7 +29,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🚀",
         title: "Submit your own work",
-        content: <>When you're ready to get feedback on something you've built, hit <span className="font-medium">New Project</span> in the top-right.</>,
+        content: <>When you&apos;re ready to get feedback on something you&apos;ve built, hit <span className="font-medium">New Project</span> in the top-right.</>,
         selector: "#tour-new-project-btn",
         side: "bottom-right",
         showControls: true,
@@ -44,7 +44,7 @@ export const TOURS: Tour[] = [
       {
         icon: "📁",
         title: "Your projects live here",
-        content: <>Every project you've submitted shows up on this page. Open one to see its missions and the feedback you've received.</>,
+        content: <>Every project you&apos;ve submitted shows up on this page. Open one to see its missions and the feedback you&apos;ve received.</>,
         selector: "#tour-my-projects-header",
         side: "bottom",
         showControls: true,
@@ -94,7 +94,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🔍",
         title: "Check out the project",
-        content: <>Here's what you'll be testing. Read the summary and open the live site to see it for yourself.</>,
+        content: <>Here&apos;s what you&apos;ll be testing. Read the summary and open the live site to see it for yourself.</>,
         selector: "#tour-project-overview",
         side: "bottom",
         showControls: true,
@@ -169,7 +169,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🎯",
         title: "All missions across your projects",
-        content: <>Every mission you've added to your own projects lives here, in one place. Use this view to manage what testers are working on across everything you've shipped.</>,
+        content: <>Every mission you&apos;ve added to your own projects lives here, in one place. Use this view to manage what testers are working on across everything you&apos;ve shipped.</>,
         selector: "#tour-my-missions-header",
         side: "bottom",
         showControls: true,
@@ -184,7 +184,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🧪",
         title: "This is your Tester Home",
-        content: <>Everything you need as a tester lives here — open missions, the work you've submitted, and what you've earned.</>,
+        content: <>Everything you need as a tester lives here — open missions, the work you&apos;ve submitted, and what you&apos;ve earned.</>,
         selector: "#tour-tester-header",
         side: "bottom",
         showControls: true,

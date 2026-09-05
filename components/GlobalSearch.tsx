@@ -172,7 +172,7 @@ export function GlobalSearch() {
           ) : results.length === 0 ? (
             <div className="px-4 py-3">
               <p className="font-mono text-[13px] text-ash">
-                No results for <span className="text-chalk">"{query}"</span>
+                No results for <span className="text-chalk">&quot;{query}&quot;</span>
               </p>
             </div>
           ) : (
