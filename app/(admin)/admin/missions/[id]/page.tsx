@@ -11,6 +11,7 @@ import {
 } from "@/components/admin/SubmissionsList"
 import { screenshotList } from "@/lib/utils/screenshots"
 import type { ProfileRow, TestResultRow } from "@/lib/types/db"
+import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView"
 
 /** Exactly what the two selects below ask for. */
 type ResultLite = Pick<
@@ -36,7 +37,7 @@ export default async function AdminMissionDetailPage({
 
   const { data: mission } = await admin
     .from("missions")
-    .select("id, title, task_description, created_at, is_active, project_id")
+    .select("id, title, task_description, created_at, is_active, project_id, category, device_target, test_steps")
     .eq("id", id)
     .maybeSingle()
 
@@ -179,6 +180,17 @@ export default async function AdminMissionDetailPage({
             {mission.task_description || <span className="text-ash italic">No task description.</span>}
           </p>
         </div>
+      </div>
+
+      {/* Test case */}
+      <div className="mb-8">
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-3">Test case</p>
+        <MissionChips
+          category={mission.category}
+          deviceTarget={mission.device_target}
+          className="mb-3"
+        />
+        <TestCaseView steps={mission.test_steps} />
       </div>
 
       {/* Project context card */}

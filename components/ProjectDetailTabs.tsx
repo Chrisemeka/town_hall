@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
+import { MissionChips } from "@/components/missions/TestCaseView"
 import { Button } from "@/components/ui/Button"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
@@ -14,6 +15,8 @@ type Mission = {
   task_description: string
   created_at: string
   is_active: boolean | null
+  category: string | null
+  device_target: string | null
   // Nullable and unbounded: the reader already does `?.[0]?.count ?? 0`, so the
   // tuple was a tighter claim than PostgREST makes.
   test_results: { count: number }[] | null
@@ -144,6 +147,11 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       </div>
                       <Badge variant={status} />
                     </div>
+
+                    <MissionChips
+                      category={mission.category}
+                      deviceTarget={mission.device_target}
+                    />
 
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-2 border-t border-iron mt-1">

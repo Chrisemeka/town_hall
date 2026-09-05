@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getOwnerId, one } from "@/lib/utils/project";
@@ -96,6 +97,17 @@ export default async function MissionDetailPage({
             {mission.task_description}
           </p>
         </div>
+
+        <MissionChips
+          category={mission.category}
+          deviceTarget={mission.device_target}
+          className="mt-4"
+        />
+
+        <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mt-6 mb-3">
+          Test steps
+        </p>
+        <TestCaseView steps={mission.test_steps} />
       </div>
 
       {/* Submission section */}

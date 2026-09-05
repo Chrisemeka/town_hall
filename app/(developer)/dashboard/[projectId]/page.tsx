@@ -5,7 +5,7 @@ import type { Embedded, MissionRow, TestResultRow } from "@/lib/types/db";
 /** Exactly what the two list selects below ask for. */
 type ProjectMission = Pick<
   MissionRow,
-  "id" | "title" | "task_description" | "created_at" | "is_active"
+  "id" | "title" | "task_description" | "created_at" | "is_active" | "category" | "device_target"
 > & { test_results: { count: number }[] | null };
 /** The `missions!inner(...)` embed. PostgREST returns an object here, but
  *  supabase-js infers an array from the select string, so the type admits both
@@ -40,7 +40,7 @@ export default async function ProjectDetailPage({
     supabase.from("projects").select("*").eq("id", projectId).single(),
     supabase
       .from("missions")
-      .select("id, title, task_description, created_at, is_active, test_results(count)")
+      .select("id, title, task_description, created_at, is_active, category, device_target, test_results(count)")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true }),
     supabase

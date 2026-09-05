@@ -9,6 +9,7 @@ import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
 import { ChevronLeft, Pencil, Power, PowerOff } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
+import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import DeleteMissionButton from "@/components/DeleteMissionButton";
 import MissionResultRow from "@/components/MissionResultRow";
 
@@ -112,6 +113,19 @@ export default async function DeveloperMissionDetailPage({
         <p className="font-mono text-[15px] leading-6 text-ash max-w-3xl">
           {mission.task_description}
         </p>
+
+        <MissionChips
+          category={mission.category}
+          deviceTarget={mission.device_target}
+          className="mt-4"
+        />
+
+        <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mt-6 mb-3">
+          TEST STEPS
+        </p>
+        <div className="max-w-3xl">
+          <TestCaseView steps={mission.test_steps} />
+        </div>
       </div>
 
       {/* Results */}
