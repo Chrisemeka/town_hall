@@ -9,6 +9,7 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { requireAccountForVerification } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { builderStep1Schema, testerStep1Schema } from "@/lib/validation/schemas"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
 
@@ -19,6 +20,14 @@ const COMPLETE_TESTER = {
   phone: "+2348012345678",
   timezone: "Africa/Lagos",
   skills: ["QA", "Frontend"],
+}
+
+/** The same, minus skills — a builder is asked for everything else. */
+const COMPLETE_BUILDER = {
+  full_name: "Ada Lovelace",
+  country: "NG",
+  phone: "+2348012345678",
+  timezone: "Africa/Lagos",
 }
 
 type Write = { table: string; values: Record<string, unknown>; filters: Record<string, unknown> }
@@ -180,7 +189,8 @@ describe("saveVerificationStep", () => {
     })
 
     expect(result.success).toBe(true)
-    expect(Object.keys(writes[0].values)).toEqual(["full_name"])
+    // Timezone is a builder field now. Skills is the only one left that is not.
+    expect(Object.keys(writes[0].values)).toEqual(["full_name", "timezone"])
   })
 
   it("rewrites skills to canonical spelling before writing", async () => {
@@ -320,15 +330,36 @@ describe("completeVerification", () => {
     expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "tester" })
   })
 
-  it("holds a builder to three fields and sends them to /dashboard", async () => {
-    const writes = useAdmin({
-      profile: { full_name: "Ada Lovelace", country: "NG", phone: "+2348012345678" },
-    })
+  it("holds a builder to four fields and sends them to /dashboard", async () => {
+    const writes = useAdmin({ profile: COMPLETE_BUILDER })
 
     const result = await completeVerification("builder")
 
     expect(result).toEqual({ success: true, redirectTo: "/dashboard" })
     expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "builder" })
+  })
+
+  it("refuses to open a builder's gate without a timezone", async () => {
+    // The field builders were never asked for before. A builder who somehow
+    // reaches the gate without one is incomplete like any other, and the
+    // timestamp must not be written.
+    const writes = useAdmin({ profile: { ...COMPLETE_BUILDER, timezone: null } })
+
+    const result = await completeVerification("builder")
+
+    expect(result.success).toBe(false)
+    expect(result.success === false && result.fieldErrors?.timezone).toBeTruthy()
+    expect(writes).toHaveLength(0)
+  })
+
+  it("still does not ask a builder for skills", async () => {
+    // Widening the builder schema by one field must not have widened it by two.
+    const writes = useAdmin({ profile: { ...COMPLETE_BUILDER, skills: [] } })
+
+    const result = await completeVerification("builder")
+
+    expect(result).toEqual({ success: true, redirectTo: "/dashboard" })
+    expect(writes).toHaveLength(1)
   })
 
   it("surfaces a database failure instead of reporting success", async () => {
@@ -338,5 +369,15 @@ describe("completeVerification", () => {
 
     expect(result.success).toBe(false)
     expect(result.success === false && result.error).toMatch(/could not complete/i)
+  })
+})
+
+describe("step 1 schemas", () => {
+  it("are one schema shared by both roles, not two declarations of it", () => {
+    // The alias is what stops them drifting. Two z.object() calls listing the
+    // same fields would let one gain a field the other did not, and the symptom
+    // would be a builder rejected at the gate for a field their own form never
+    // rendered.
+    expect(builderStep1Schema).toBe(testerStep1Schema)
   })
 })

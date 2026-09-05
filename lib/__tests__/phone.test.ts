@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { formatPhoneAsYouType, isAllowedPhoneKey, type PhoneKeyEvent } from "@/lib/phone"
+import {
+  dialCodeFor,
+  formatPhoneAsYouType,
+  isAllowedPhoneKey,
+  isBareDialCode,
+  phoneForCountryChange,
+  type PhoneKeyEvent,
+} from "@/lib/phone"
 
 /** A keydown as the field would see it, with the caret at `caret`. */
 function keydown(key: string, caret = 0, mods: { ctrlKey?: boolean; metaKey?: boolean } = {}): PhoneKeyEvent {
@@ -97,5 +104,84 @@ describe("formatPhoneAsYouType", () => {
 
   it("passes an empty value straight through", () => {
     expect(formatPhoneAsYouType("", "NG")).toBe("")
+  })
+})
+
+describe("dialCodeFor", () => {
+  it("returns the calling code for a supported country", () => {
+    expect(dialCodeFor("NG")).toBe("+234")
+    expect(dialCodeFor("GB")).toBe("+44")
+  })
+
+  it("returns null rather than throwing for a country with no metadata", () => {
+    // These are real options in the dropdown: COUNTRIES carries all 249 ISO
+    // 3166-1 codes and libphonenumber has fewer. getCountryCallingCode() throws
+    // on each of these, which without the guard would take the form down on a
+    // dropdown change.
+    for (const code of ["BV", "HM", "AQ"]) {
+      expect(dialCodeFor(code)).toBeNull()
+    }
+  })
+
+  it("returns null for an empty or nonsense country", () => {
+    expect(dialCodeFor("")).toBeNull()
+    expect(dialCodeFor("ZZ")).toBeNull()
+  })
+})
+
+describe("isBareDialCode", () => {
+  it("matches the dial code with or without the trailing space", () => {
+    expect(isBareDialCode("+234", "NG")).toBe(true)
+    expect(isBareDialCode("+234 ", "NG")).toBe(true)
+  })
+
+  it("does not match a real number that merely starts with the dial code", () => {
+    // The whole reason the check is an exact match and not a prefix match.
+    expect(isBareDialCode("+234 801 234 5678", "NG")).toBe(false)
+    expect(isBareDialCode("+2348012345678", "NG")).toBe(false)
+  })
+
+  it("matches for either country of a shared calling code", () => {
+    expect(isBareDialCode("+1", "US")).toBe(true)
+    expect(isBareDialCode("+1", "CA")).toBe(true)
+  })
+
+  it("is false for a country with no dial code", () => {
+    expect(isBareDialCode("+234", "BV")).toBe(false)
+  })
+})
+
+describe("phoneForCountryChange", () => {
+  it("fills the dial code into an empty field", () => {
+    expect(phoneForCountryChange("", "", "NG")).toBe("+234 ")
+  })
+
+  it("fills into a field holding only whitespace", () => {
+    expect(phoneForCountryChange("   ", "", "NG")).toBe("+234 ")
+  })
+
+  it("swaps a bare dial code for the newly chosen country's", () => {
+    expect(phoneForCountryChange("+234 ", "NG", "GB")).toBe("+44 ")
+  })
+
+  it("does not double-prefix when the two countries share a calling code", () => {
+    // US and CA are both +1. Replacing rather than prepending is what keeps
+    // this from becoming "+1+1 ".
+    expect(phoneForCountryChange("+1 ", "US", "CA")).toBe("+1 ")
+  })
+
+  it("keeps a number the user actually typed", () => {
+    // The failure this exists to prevent: type your number, notice the country
+    // is wrong, fix it, and lose the number.
+    const typed = "+234 801 234 5678"
+    const result = phoneForCountryChange(typed, "NG", "GB")
+
+    expect(result).not.toBeNull()
+    expect(result?.replace(/\D/g, "")).toBe("2348012345678")
+  })
+
+  it("leaves the field alone when the new country has no metadata", () => {
+    expect(phoneForCountryChange("+234 801 234 5678", "NG", "BV")).toBeNull()
+    expect(phoneForCountryChange("", "", "BV")).toBeNull()
   })
 })
