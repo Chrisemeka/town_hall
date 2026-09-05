@@ -85,6 +85,9 @@ export function VerificationFlow({
   const [errors, setErrors] = useState<Errors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+  // `pending` goes false the moment the action resolves, which is before the
+  // destination route has fetched anything — that gap is what this covers.
+  const [navigating, setNavigating] = useState(false)
 
   // Detected client-side and only as a default — filling it during render would
   // not match what the server rendered, and overwriting a saved choice would
@@ -139,11 +142,21 @@ export function VerificationFlow({
         if (broken !== -1) setStep(broken)
         return
       }
-      if (result.redirectTo) router.push(result.redirectTo)
+      if (result.redirectTo) {
+        // Set, never cleared. This component is on its way out, and turning it
+        // back off would flash the review step for a frame before the
+        // destination paints.
+        setNavigating(true)
+        router.push(result.redirectTo)
+      }
     })
   }
 
   const onReview = step === reviewStep
+
+  // Terminal. Returning early is what guarantees no field, button or step
+  // indicator is left on screen to be clicked while the route is in flight.
+  if (navigating) return <NavigatingPanel role={role} />
 
   return (
     <>
@@ -378,6 +391,46 @@ function ReviewStep({
 }
 
 /* ── shared bits ─────────────────────────────────────────────────────── */
+
+/**
+ * What the user looks at between "Complete verification" resolving and the
+ * dashboard painting.
+ *
+ * Keeps the page heading so the surface does not visually collapse, and drops
+ * everything interactive. Naming the destination is the point — "Loading…"
+ * would not tell the user that the thing they just asked for is what is
+ * arriving.
+ */
+function NavigatingPanel({ role }: { role: AccountType }) {
+  return (
+    <>
+      <p className="font-mono text-[12px] text-voltage uppercase tracking-[1.5px] mb-3">
+        Complete your profile
+      </p>
+      <h1 className="font-syne font-bold text-[32px] leading-[40px] tracking-[-0.5px] text-chalk mb-8">
+        {role === "tester" ? "Set up your tester profile" : "Set up your builder profile"}
+      </h1>
+
+      <div className="bg-graphite border border-iron rounded-[16px] p-10">
+        <div
+          className="flex flex-col items-center justify-center gap-4 py-12"
+          role="status"
+          aria-live="polite"
+        >
+          {/* The one rotation Design.md §9 allows: it reports ongoing work
+              rather than decorating. */}
+          <span
+            aria-hidden="true"
+            className="w-8 h-8 rounded-full border-2 border-iron border-t-voltage animate-spin"
+          />
+          <p className="font-mono text-[14px] text-ash">
+            Setting up your {role} dashboard…
+          </p>
+        </div>
+      </div>
+    </>
+  )
+}
 
 function StepIndicator({ labels, current }: { labels: string[]; current: number }) {
   return (
