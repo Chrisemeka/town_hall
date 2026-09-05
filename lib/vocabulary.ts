@@ -21,6 +21,40 @@ export const SKILLS = [
 
 export type Skill = (typeof SKILLS)[number]
 
+/**
+ * What kind of product a project is. Drives the Explore filter.
+ *
+ * Order is display order in the dropdown, and nothing keys off it except
+ * "Other", which must stay last. "Other" has to exist: a builder whose category
+ * is missing will otherwise pick a wrong one, and a wrong category is worse for
+ * a filter people trust than an honest catch-all.
+ *
+ * Stored as the label itself rather than a slug. The list is small, the values
+ * are display-ready, and a slug would add a mapping table for no gain — if these
+ * ever need renaming without a data migration, that is the moment to add one.
+ */
+export const PROJECT_CATEGORIES = [
+  "Fintech",
+  "HealthTech",
+  "EdTech",
+  "E-commerce",
+  "SaaS / B2B Tools",
+  "Developer Tools",
+  "AI / ML",
+  "Social & Community",
+  "Marketplace",
+  "Productivity",
+  "Media & Entertainment",
+  "Logistics & Mobility",
+  "Gaming",
+  "Other",
+] as const
+
+export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number]
+
+/** What a project with no category shows. Never stored — null stays null. */
+export const UNCATEGORISED_LABEL = "Uncategorised"
+
 export const SKILLS_MIN = 1
 export const SKILLS_MAX = 8
 

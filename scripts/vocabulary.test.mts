@@ -6,7 +6,7 @@
 // Run with: npm test
 
 import assert from "node:assert/strict"
-import { COUNTRIES, SKILLS, TIMEZONES, countryName } from "../lib/vocabulary.ts"
+import { COUNTRIES, PROJECT_CATEGORIES, SKILLS, TIMEZONES, countryName } from "../lib/vocabulary.ts"
 
 const noDuplicates = (list: readonly string[], label: string) =>
   assert.equal(new Set(list).size, list.length, `${label} contains a duplicate`)
@@ -64,3 +64,24 @@ assert.deepEqual(TIMEZONES, [...TIMEZONES].sort(), "TIMEZONES must stay sorted f
 noDuplicates(SKILLS, "SKILLS")
 
 console.log("verification vocabulary: all assertions passed")
+
+/* ── project categories ──────────────────────────────────────────────── */
+
+assert.ok(PROJECT_CATEGORIES.length > 0, "PROJECT_CATEGORIES is empty — z.enum would throw at import")
+noDuplicates(PROJECT_CATEGORIES, "PROJECT_CATEGORIES")
+
+for (const category of PROJECT_CATEGORIES) {
+  assert.equal(category, category.trim(), `"${category}" has surrounding whitespace`)
+  assert.ok(category.length > 0, "PROJECT_CATEGORIES contains an empty string")
+}
+
+// "Other" is what stops a builder whose category is missing from picking a wrong
+// one, and it reads as a catch-all only while it sits at the bottom of the list.
+assert.ok(PROJECT_CATEGORIES.includes("Other"), "PROJECT_CATEGORIES must offer an 'Other' catch-all")
+assert.equal(
+  PROJECT_CATEGORIES[PROJECT_CATEGORIES.length - 1],
+  "Other",
+  "'Other' must be last — it is the fallback, not a peer",
+)
+
+console.log("project categories: all assertions passed")
