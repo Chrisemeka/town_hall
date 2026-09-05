@@ -1,18 +1,52 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 import { Clock } from "lucide-react"
 
 function pad(n: number) { return n.toString().padStart(2, "0") }
 
-export function LiveClock() {
-  const [now, setNow] = useState<Date | null>(null)
+/**
+ * The wall clock as an external store.
+ *
+ * A ticking clock is mutable state that lives outside React. Seeding it from a
+ * mount effect — `setNow(new Date())` then an interval — renders once with a
+ * placeholder, commits, then immediately renders again, which is the cascading
+ * render react-hooks/set-state-in-effect flags.
+ *
+ * One interval is shared by every mounted clock and stops when the last one
+ * unmounts, so the tick is not per-instance. getSnapshot has to return a value
+ * that only changes when the store does, which is why the timestamp is cached
+ * here rather than read fresh on each call — returning a new Date() per call
+ * would re-render forever.
+ */
+let tick = Date.now()
+let timer: ReturnType<typeof setInterval> | null = null
+const listeners = new Set<() => void>()
 
-  useEffect(() => {
-    setNow(new Date())
-    const interval = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(interval)
-  }, [])
+function subscribe(onChange: () => void) {
+  listeners.add(onChange)
+  timer ??= setInterval(() => {
+    tick = Date.now()
+    for (const listener of listeners) listener()
+  }, 1000)
+
+  return () => {
+    listeners.delete(onChange)
+    if (listeners.size === 0 && timer) {
+      clearInterval(timer)
+      timer = null
+    }
+  }
+}
+
+const getSnapshot = () => tick
+// Null on the server: the server's clock is not the viewer's, so rendering it
+// would only hydrate into a mismatch a moment later.
+const getServerSnapshot = () => null
+
+export function LiveClock() {
+  const ms = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const now = ms === null ? null : new Date(ms)
 
   return (
     <div

@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { Onborda, OnbordaProvider, useOnborda } from "onborda"
 import { getTours, tourForPath } from "./tours"
 import { OnbordaCard } from "./OnbordaCard"
 import { markTourSeen } from "@/actions/onboarding"
+import { useHydrated } from "@/lib/hooks/useHydrated"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 
 // Tailwind's `md` breakpoint — below this the desktop nav (and its New Project
 // button) is hidden, so mobile tours skip steps that target it.
@@ -79,16 +81,8 @@ export function TourProvider({
   // OnbordaProvider must wrap everything (server + client) so descendant components
   // can safely call useOnborda. The Onborda visual layer is mounted client-only to
   // avoid SSR + framer-motion hydration noise.
-  const [mounted, setMounted] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
+  const mounted = useHydrated()
+  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
 
   const steps = useMemo(() => getTours(isMobile), [isMobile])
 
