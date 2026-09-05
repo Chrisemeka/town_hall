@@ -5,7 +5,7 @@ import type { MissionRow, ProjectRow } from "@/lib/types/db";
 /** Exactly what the select below asks for. */
 type ExploreRow = Pick<
   ProjectRow,
-  "id" | "name" | "description" | "app_url" | "created_at"
+  "id" | "name" | "description" | "app_url" | "category" | "created_at"
 > & {
   missions: Pick<MissionRow, "id" | "is_active">[] | null;
 };
@@ -17,7 +17,7 @@ export default async function ExploreProjectsPage() {
   const { data: raw } = await supabase
     .from("projects")
     .select(`
-      id, name, description, app_url, created_at,
+      id, name, description, app_url, category, created_at,
       missions (id, is_active)
     `)
     .is("flagged_at", null)
@@ -60,6 +60,7 @@ export default async function ExploreProjectsPage() {
         name:          p.name,
         description:   p.description,
         app_url:       p.app_url,
+        category:      p.category,
         created_at:    p.created_at,
         missionCount,
         feedbackCount,

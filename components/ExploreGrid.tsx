@@ -4,12 +4,14 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Search, ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
+import { UNCATEGORISED_LABEL } from "@/lib/vocabulary"
 
 export type ExploreProject = {
   id: string
   name: string
   description: string | null
   app_url: string | null
+  category: string | null
   created_at: string
   missionCount: number
   feedbackCount: number
@@ -52,6 +54,9 @@ const PAGE_SIZE = 6
 export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   const [filter,  setFilter]  = useState<Filter>("all")
   const [query,   setQuery]   = useState("")
+  // "" means every category. Only categories actually present are offered —
+  // listing all fourteen when eleven match nothing is eleven dead options.
+  const [category, setCategory] = useState("")
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   // Pagination resets whenever the filter or query changes. Adjusted during render
@@ -60,11 +65,19 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   // effect would paint one frame of the wrong thing, then correct it.
   const [lastFilter, setLastFilter] = useState(filter)
   const [lastQuery,  setLastQuery]  = useState(query)
-  if (filter !== lastFilter || query !== lastQuery) {
+  const [lastCategory, setLastCategory] = useState(category)
+  if (filter !== lastFilter || query !== lastQuery || category !== lastCategory) {
     setLastFilter(filter)
     setLastQuery(query)
+    setLastCategory(category)
     setVisible(PAGE_SIZE)
   }
+
+  const presentCategories = useMemo(
+    () =>
+      Array.from(new Set(projects.map((p) => p.category).filter((c): c is string => !!c))).sort(),
+    [projects],
+  )
 
   const displayed = useMemo(() => {
     let list = [...projects]
@@ -79,13 +92,18 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
       )
     }
 
+    /* Category */
+    if (category) {
+      list = list.filter((p) => p.category === category)
+    }
+
     /* Sort */
     if (filter === "recent") {
       list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     }
 
     return list
-  }, [projects, filter, query])
+  }, [projects, filter, query, category])
 
   /* No projects on the platform at all — distinct from a filter/search miss */
   if (projects.length === 0) {
@@ -106,7 +124,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   return (
     <div>
       {/* Filters + Search */}
-      <div id="tour-explore-filters" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+      <div id="tour-explore-filters" className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap justify-between gap-4 mb-8">
         {/* Pill filters */}
         <div className="flex items-center gap-2 flex-wrap">
           {FILTERS.map(({ key, label }) => {
@@ -136,6 +154,25 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
           })}
         </div>
 
+        {/* Category filter — a select rather than more pills: fourteen pills
+            would wrap to three rows and swamp the sort row above them. Only
+            categories present in the loaded set are offered. */}
+        {presentCategories.length > 0 && (
+          <select
+            aria-label="Filter by category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="h-9 w-full sm:w-auto shrink-0 bg-graphite border border-iron rounded-[8px] px-3 font-mono text-[13px] text-chalk focus:outline-none focus:border-voltage transition-colors duration-150"
+          >
+            <option value="">All categories</option>
+            {presentCategories.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        )}
+
         {/* Search */}
         <div className="relative w-full sm:w-[280px] shrink-0">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ash pointer-events-none" />
@@ -155,7 +192,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
           <p className="font-syne font-bold text-[24px] text-chalk mb-2">Nothing matches.</p>
           <p className="font-mono text-[14px] text-ash mb-6">Try a broader search or clear your filters.</p>
           <button
-            onClick={() => { setFilter("all"); setQuery("") }}
+            onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}
             className="h-10 px-4 bg-transparent text-chalk border border-iron rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
           >
             Clear filters
@@ -176,6 +213,22 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                     {project.name}
                   </h5>
                   <Badge variant={project.status} />
+                </div>
+
+                {/* Category chip. Design.md §5.4: the label carries the meaning,
+                    never the colour on its own — and an uncategorised project
+                    says so rather than being quietly folded into a real one. */}
+                <div className="mb-2">
+                  <span
+                    className={[
+                      "inline-block font-mono text-[12px] font-medium tracking-[0.5px] rounded-[4px] px-2 py-0.5 border",
+                      project.category
+                        ? "text-chalk border-iron bg-obsidian"
+                        : "text-ash border-iron/60 bg-transparent",
+                    ].join(" ")}
+                  >
+                    {project.category ?? UNCATEGORISED_LABEL}
+                  </span>
                 </div>
 
                 {/* @handle · time */}
