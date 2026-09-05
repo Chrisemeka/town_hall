@@ -2,7 +2,15 @@ import { z } from "zod"
 import { parsePhoneNumberFromString } from "libphonenumber-js"
 // Relative, with the extension: scripts/*.test.mts import this file under plain
 // node, which resolves neither the "@/" alias nor an extensionless specifier.
-import { COUNTRIES, PROJECT_CATEGORIES, SKILLS_MAX, SKILLS_MIN, TIMEZONES } from "../vocabulary.ts"
+import {
+  COUNTRIES,
+  DEVICE_TARGETS,
+  PROJECT_CATEGORIES,
+  SKILLS_MAX,
+  SKILLS_MIN,
+  TEST_CATEGORIES,
+  TIMEZONES,
+} from "../vocabulary.ts"
 // Relative with the extension, like the imports above: scripts/*.test.mts run
 // this file under plain node, which does not resolve the "@/" alias.
 import { countSentences } from "../sentences.ts"
@@ -87,6 +95,68 @@ export const missionIntentSchema = z.enum(["publish", "draft"], {
 export const MISSION_CATEGORY_MAX = 40
 export const MISSION_PAYOUT_MAX = 1000
 
+export const STEP_ACTION_MIN = 4
+export const STEP_ACTION_MAX = 200
+export const STEP_EXPECTED_MIN = 4
+export const STEP_EXPECTED_MAX = 200
+export const TEST_STEPS_MAX = 15
+
+/**
+ * One step of a test case: what the tester does, and what should happen.
+ *
+ * `id` is generated client-side when the step is added and must survive every
+ * edit and reorder. PR 4's audit entries reference it, so an id that changes
+ * silently detaches a tester's history from the step they answered. Nothing may
+ * derive it from the array index.
+ *
+ * The minimums are deliberately low. The job here is to reject blank and "x",
+ * not to police how a builder phrases an instruction.
+ */
+export const testStepSchema = z.object({
+  id: z.string().uuid("Each step needs a stable id."),
+  action: z
+    .string()
+    .trim()
+    .min(STEP_ACTION_MIN, "Say what the tester should do.")
+    .max(STEP_ACTION_MAX, `Keep the action under ${STEP_ACTION_MAX} characters.`),
+  expected_result: z
+    .string()
+    .trim()
+    .min(STEP_EXPECTED_MIN, "Say what should happen.")
+    .max(STEP_EXPECTED_MAX, `Keep the expected result under ${STEP_EXPECTED_MAX} characters.`),
+})
+
+export type TestStep = z.infer<typeof testStepSchema>
+
+export const testStepsSchema = z
+  .array(testStepSchema)
+  .min(1, "Add at least one step.")
+  .max(TEST_STEPS_MAX, `A test case can have at most ${TEST_STEPS_MAX} steps.`)
+  // Duplicate ids would let two audit histories merge into one step in PR 4,
+  // which reads as a tester answering something they never saw.
+  .refine((steps) => new Set(steps.map((s) => s.id)).size === steps.length, {
+    message: "Each step needs its own id.",
+  })
+
+/**
+ * Parses a `test_steps` payload that arrived as a JSON string on FormData.
+ *
+ * The JSON.parse is inside the schema rather than at the call site so a
+ * malformed body comes back as a field error on test_steps like any other
+ * validation failure, instead of throwing out of the action as a 500.
+ */
+export const testStepsJsonSchema = z
+  .string()
+  .transform((raw, ctx) => {
+    try {
+      return JSON.parse(raw) as unknown
+    } catch {
+      ctx.addIssue({ code: "custom", message: "The test case could not be read. Try again." })
+      return z.NEVER
+    }
+  })
+  .pipe(testStepsSchema)
+
 const missionFields = {
   title: z
     .string()
@@ -110,12 +180,12 @@ const missionFields = {
       .min(0, "Payout can't be negative.")
       .max(MISSION_PAYOUT_MAX, `Payout must be ${MISSION_PAYOUT_MAX} or less.`),
   ),
-  category: z
-    .string()
-    .trim()
-    .max(MISSION_CATEGORY_MAX, `Tag must be ${MISSION_CATEGORY_MAX} characters or fewer.`)
-    .optional()
-    .or(z.literal("")),
+  // Was a free-text tag capped at MISSION_CATEGORY_MAX. Since the test-case
+  // migration it is the test-category enum, and it is required: a mission
+  // without one cannot be filtered or explained to a tester.
+  category: z.enum(TEST_CATEGORIES, { message: "Pick what kind of testing this is." }),
+  device_target: z.enum(DEVICE_TARGETS, { message: "Pick where this should be tested." }),
+  test_steps: testStepsSchema,
 }
 
 /** Currency units off a form -> the integer cents the column stores. */
