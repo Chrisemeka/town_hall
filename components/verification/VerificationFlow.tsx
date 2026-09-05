@@ -56,7 +56,7 @@ const STEPS: Record<AccountType, readonly Step[]> = {
     {
       id: "identity",
       label: "Identity",
-      fields: ["fullName", "country", "phone"],
+      fields: ["fullName", "country", "phone", "timezone"],
       schema: builderStep1Schema,
     },
   ],
@@ -170,7 +170,7 @@ export function VerificationFlow({
 
         <div className="flex flex-col gap-6">
           {steps[step]?.id === "identity" && (
-            <IdentityStep role={role} values={values} errors={errors} set={set} />
+            <IdentityStep values={values} errors={errors} set={set} />
           )}
           {steps[step]?.id === "skills" && (
             <SkillsInput
@@ -213,7 +213,7 @@ type StepProps = {
   set: <K extends keyof VerificationValues>(key: K, value: VerificationValues[K]) => void
 }
 
-function IdentityStep({ role, values, errors, set }: StepProps & { role: AccountType }) {
+function IdentityStep({ values, errors, set }: StepProps) {
   function onPhoneChange(next: string) {
     // Deleting is left alone: re-formatting a shrinking value puts back the
     // separator the user just removed, so backspace looks like it does nothing.
@@ -276,29 +276,26 @@ function IdentityStep({ role, values, errors, set }: StepProps & { role: Account
         />
       </Field>
 
-      {/* Testers only: builders have no timezone-dependent surface yet. */}
-      {role === "tester" && (
-        <Field
-          label="Timezone"
-          htmlFor="timezone"
-          error={errors.timezone}
-          helper="Detected from your browser — change it if that's wrong."
+      <Field
+        label="Timezone"
+        htmlFor="timezone"
+        error={errors.timezone}
+        helper="Detected from your browser — change it if that's wrong."
+      >
+        <select
+          id="timezone"
+          value={values.timezone}
+          onChange={(e) => set("timezone", e.target.value)}
+          className={inputClass(!!errors.timezone?.length)}
         >
-          <select
-            id="timezone"
-            value={values.timezone}
-            onChange={(e) => set("timezone", e.target.value)}
-            className={inputClass(!!errors.timezone?.length)}
-          >
-            <option value="">Select your timezone</option>
-            {TIMEZONES.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone}
-              </option>
-            ))}
-          </select>
-        </Field>
-      )}
+          <option value="">Select your timezone</option>
+          {TIMEZONES.map((zone) => (
+            <option key={zone} value={zone}>
+              {zone}
+            </option>
+          ))}
+        </select>
+      </Field>
     </>
   )
 }
