@@ -108,6 +108,12 @@ RLS is on. Reads are policy-driven, writes are not. The pattern is deliberate.
 - **Ownership is checked in code, not by the database.** `requireProjectOwner()` in `lib/auth.ts`
   replaced the owner-scoped RLS policies those migrations removed. Service role bypasses RLS, so a
   write action that skips this guard has *no* ownership check at all. Call it.
+- **Reads need the same guard, and it is easy to forget.** `projects` and `missions` are readable by
+  anyone, so an owner-scoped *page* has to compare `owner_id` itself — `accessFor()` only proves the
+  caller is a builder, not which builder. Every `/dashboard/[projectId]` page does this and answers
+  `notFound()`, never a 403: distinguishing "not yours" from "no such project" confirms it exists.
+  On the mission pages the check is against the **mission's own project**, not the `projectId` in the
+  URL, or owning the project in the path would be enough to open someone else's mission through it.
 
 **Why writes are not left to RLS**, since the previous note here was wrong and cost a session to
 disprove: RLS cannot restrict *which columns* an update touches. The owner-scoped policies that used
