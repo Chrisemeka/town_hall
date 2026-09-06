@@ -14,18 +14,23 @@ for solo developers and small teams. Twnhall creates a community-driven
 alternative where testing is reciprocal — you test others to get tested.
 
 ## How it Works
-1. **Submit a project** — A developer submits their web application and 
-   creates a mission: a specific test case describing exactly what part 
-   of the application they want tested.
+1. **Submit a project** — A developer submits their web application under
+   a category, then creates a mission: a structured test case of
+   action/expected-result steps, built from scratch or from a template,
+   targeted at mobile, desktop, or both.
 
-2. **Test other projects** — Developers pick up missions from other 
-   projects, test them, and submit their results in the form of a 
-   screenshot and a written summary of what they did and found.
+2. **Test other projects** — Developers pick up missions from other
+   projects and work through the test case step by step. For each step
+   they see the builder's instruction verbatim and record what actually
+   happened, marking it pass, fail, or blocked — with a summary and
+   reproduction steps when it fails. Screenshots and a free-text note
+   round the submission off.
 
-3. **AI-powered insights** — Twnhall uses Gemini AI to analyse test 
-   results and generate a heuristic, user-friendly breakdown of the 
-   findings — making raw feedback actionable even for non-technical 
-   project owners.
+3. **AI-powered insights** — Twnhall uses Gemini AI to analyse the audit
+   log and generate a user-friendly breakdown of the findings. Because it
+   knows which steps failed and how, it leads with those rather than
+   paraphrasing a comment — making raw feedback actionable even for
+   non-technical project owners.
 
 ## Target Audience
 - Early-stage startups without a QA budget

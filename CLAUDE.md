@@ -25,10 +25,16 @@ app/
   (admin)/            Admin console (/admin/**)
   api/                Route Handlers (webhooks, auth callback)
 components/           React components
+  missions/           TestCaseEditor (authoring), TestCaseView (display)
+  submissions/        SubmissionBody — the one place audit-log vs legacy branches
+  tester/             AuditLogForm and the tester's own surfaces
 lib/
-  auth.ts             requireAccount(), requireAdmin() — auth checks used inside pages/actions
+  auth.ts             requireAccount(), requireAdmin(), requireProjectOwner()
   access.ts           accessFor() — the single pure function for route permissions
-  ai.ts               Gemini client
+  ai.ts               Gemini client + the analysis prompt
+  testTemplates.ts    Curated test-case templates (static, not a table)
+  sentences.ts        Sentence heuristic for the project summary rule
+  types/db.ts         Hand-written row types — the client has no Database generic
   validation/         Zod schemas
 emails/               React Email templates
 middleware.ts         URL-level auth gates, session refresh, no-store headers
@@ -37,23 +43,42 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Five live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Six live tables. Concepts match the UI except "feedback" — the table is `test_results`.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
            ├── projects        owned by profile
            └── test_results    tester's submission on a mission
-                    │
-missions ───────────┘          mission belongs to project
+                    │  │
+missions ───────────┘  └── test_result_entries   one row per test-case step
 ```
 
 | Table          | Key columns |
 |----------------|-------------|
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
 | `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`. Unique on `(user_id, type)`. |
-| `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `flagged_at`, `flag_reason`, `flagged_by` |
-| `missions`     | `id`, `project_id`, `title`, `task_description`, `is_active`, `payout_cents`, `category`, `load_test_at`, `testers_needed` |
-| `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment`, `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`\|`paid`), `rating`, `review_note`, `reviewed_at` |
+| `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
+| `missions`     | `id`, `project_id`, `title`, `task_description`, `is_active`, `payout_cents`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
+| `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`\|`paid`), `rating`, `review_note`, `reviewed_at` |
+| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result`, `expected_result` |
+
+**`missions.test_steps` is jsonb, `test_result_entries` is a table.** The asymmetry is deliberate:
+steps are read and written whole with their mission and never queried across missions, while entries
+are aggregated independently. Follow it rather than "fixing" it.
+
+**`test_result_entries.step_action` / `step_expected` are snapshots, not lookups.** They copy the
+builder's wording at submission time. A builder editing the mission afterwards must not rewrite what
+a tester appears to have been asked. `step_id` correlates; the snapshot is the record.
+
+**`test_results.tester_comment` is legacy and optional.** It was the whole submission before the
+audit log; it is now the free-text "anything else?" at the end. Twenty-four submissions predate the
+audit log and carry only this. Every surface that renders a submission must handle both shapes —
+`components/submissions/SubmissionBody.tsx` is the one place that branches, don't add a ninth
+conditional elsewhere.
+
+**Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
+CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
+`DEVICE_TARGETS`, `ENTRY_STATUSES`. `scripts/vocabulary.test.mts` covers each.
 
 ## Auth — the load-bearing patterns
 
@@ -74,17 +99,42 @@ The second exists so that if someone edits the middleware matcher, protection do
 
 ## Data Mutations — RLS + service role
 
-RLS is on with almost no policies. The pattern is deliberate.
+RLS is on. Reads are policy-driven, writes are not. The pattern is deliberate.
 
 - **Privileged reads** go through `createAdminClient()` (service role).
-- **The single anon-key RLS policy** is "tester can read their own submissions."
-- **Writes go through service role** because RLS cannot restrict *which columns* an update touches. A "builder can review submission" policy would also let a builder rewrite the tester's own comment. So builder reviews are performed server-side with the service-role client, which restricts the column set in code.
+- **Every write goes through service role** with an explicit column list, gated in code. As of
+  `20260906_01` and `20260906_02` there are **no anon write policies** on `projects`, `missions` or
+  `test_results` — the server actions are the only way in.
+- **Ownership is checked in code, not by the database.** `requireProjectOwner()` in `lib/auth.ts`
+  replaced the owner-scoped RLS policies those migrations removed. Service role bypasses RLS, so a
+  write action that skips this guard has *no* ownership check at all. Call it.
 
-Follow this. Do not add RLS policies to solve auth — solve it in the server action with `requireAccount()` + service-role client + explicit column list.
+**Why writes are not left to RLS**, since the previous note here was wrong and cost a session to
+disprove: RLS cannot restrict *which columns* an update touches. The owner-scoped policies that used
+to exist correctly stopped one builder writing another's rows — but let a builder write **any column
+on their own row** straight through PostgREST with the public anon key, including
+`projects.flagged_at` (un-flagging themselves after moderation), `projects.owner_id`,
+`missions.payout_cents`, and arbitrary JSON into `missions.test_steps`. All four were verified
+against the live database before being closed.
+
+**Read policies still exist and are not uniform.** `projects` and `missions` are readable by anyone
+(`using (true)` — the Explore feed depends on it, including logged out). `test_results` has a
+tester-own read *and* a project-ownership read that the builder feedback pages rely on through the
+anon client; its definition is not in this repo, so do not drop or "tidy" it without probing first.
+`test_result_entries` has RLS on with no policy at all — service role only.
+
+Follow this. Do not add RLS policies to solve auth — solve it in the server action with
+`requireAccount()` + `requireProjectOwner()` + service-role client + explicit column list.
 
 ## Atomicity — plpgsql, not ORM transactions
 
-There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring atomicity is a **plpgsql function** in `supabase/migrations/` called via `supabase.rpc('name', args)`. Examples: `commit_mission_credits`, `request_withdrawal` (both reverted, but the pattern remains).
+There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring atomicity is a **plpgsql function** in `supabase/migrations/` called via `supabase.rpc('name', args)`.
+
+- **`submit_audit_log`** — live. Writes one `test_results` row plus N `test_result_entries` in one
+  transaction. `SECURITY DEFINER` with a pinned `search_path`, and **execute is revoked from `anon`
+  and `authenticated`** — a definer-rights function callable from the browser is a wider hole than
+  any it closes. Grant new RPCs to `service_role` only, the same way.
+- `commit_mission_credits`, `request_withdrawal` — both reverted, but the pattern remains.
 
 When you need a transaction: write the SQL function in a new migration, invoke via `.rpc()`. Never simulate transactions with sequential `.from().update()` calls.
 
