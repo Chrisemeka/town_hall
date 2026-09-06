@@ -35,7 +35,7 @@ export default function TermsPage() {
         <p tabIndex={0} className="font-mono text-[13px] text-midnight/60 mb-6">Last updated: August 6, 2026</p>
 
         <p tabIndex={0} className="font-mono text-[14px] leading-7 text-midnight/70 mb-12">
-          Welcome to <span className="text-midnight">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback credit and, on some missions, payment. By using Twnhall, you agree to abide by the following terms and conditions.
+          Welcome to <span className="text-midnight">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
 
         <div className="flex flex-col gap-10">
@@ -59,30 +59,18 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="3" title="Missions, Payouts and Fees">
+          <Section number="3" title="Missions and Review">
             <p tabIndex={0}>
-              Builders may attach a payout amount to a mission. Where a mission states a payout, that amount is what a Tester is offered for a submission the Builder <span className="text-midnight">approves</span>.
+              <span className="text-midnight font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
             </p>
             <p tabIndex={0}>
-              <span className="text-midnight font-medium">Approval is a prerequisite for payout.</span> A submission moves from Pending Review to Approved, Needs Changes, or Paid. No payout becomes available on a submission that has not been approved. Once a submission is marked Paid it is final and cannot be reopened.
-            </p>
-            <p tabIndex={0}>
-              Builders are expected to review submissions in good faith and within a reasonable time. Requesting changes must be accompanied by a specific, actionable reason. Withholding approval from work that meets the mission brief, or requesting changes in order to avoid paying, is a violation of these terms.
-            </p>
-            <p tabIndex={0}>
-              Missions without a stated payout are unpaid. Picking up an unpaid mission earns feedback and reputation, not money, and you should not expect payment for it.
-            </p>
-            <p tabIndex={0}>
-              <span className="text-midnight font-medium">Payouts are not yet live.</span> Withdrawal is currently disabled, and an approved balance shown in your account is a record of what you have earned, not a promise of immediate payment. We will publish the withdrawal process, any applicable fees, minimum thresholds, and payment timelines before enabling withdrawals. Twnhall does not currently charge a fee on payouts; if that changes we will say so before it takes effect.
-            </p>
-            <p tabIndex={0}>
-              You are responsible for any taxes owed on amounts you earn through Twnhall.
+              A submission moves from Pending Review to Approved or Needs Changes. Builders are expected to review submissions in good faith and within a reasonable time. Requesting changes must be accompanied by a specific, actionable reason. Withholding approval from work that meets the mission brief is a violation of these terms.
             </p>
           </Section>
 
           <Section number="4" title="Ratings and Reputation">
             <p tabIndex={0}>
-              When a Builder approves a submission or requests changes, they rate the Tester&apos;s work from 1 to 5. These ratings are averaged into a rating shown on that Tester&apos;s account, alongside the number of missions they have completed and the rank those completions earn.
+              When a Builder approves a submission or requests changes, they rate the Tester&apos;s work from 1 to 5. Those ratings are recorded against the Tester&apos;s account. Twnhall does not currently display an aggregate rating or a rank to Testers; the underlying ratings are kept, and this section will be updated before any of it is surfaced.
             </p>
             <p tabIndex={0}>
               Ratings must reflect the quality of the work submitted. Rating a Tester down for reasons unrelated to their submission, coordinating ratings between accounts, or soliciting ratings in exchange for anything of value is prohibited.
@@ -119,7 +107,7 @@ export default function TermsPage() {
           <Section number="7" title="User Conduct">
             <p tabIndex={0}>Users are prohibited from engaging in activities that violate our Community Guidelines, including but not limited to harassment, hate speech, and illegal content sharing.</p>
             <p tabIndex={0}>
-              Submitting low-effort feedback to collect a payout, submitting feedback for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination and forfeiture of any unpaid balance.
+              Submitting low-effort feedback, submitting feedback for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
             </p>
           </Section>
 
@@ -127,7 +115,7 @@ export default function TermsPage() {
             <p tabIndex={0}>Twnhall is not liable for any damages or losses incurred while using the app.</p>
             <p tabIndex={0}>Users acknowledge that they use Twnhall at their own risk.</p>
             <p tabIndex={0}>
-              Twnhall provides the platform on which Builders and Testers transact. We do not guarantee the quality of any feedback, the availability of missions, or that any given Builder will approve a given submission.
+              Twnhall provides the platform on which Builders and Testers work together. We do not guarantee the quality of any feedback, the availability of missions, or that any given Builder will approve a given submission.
             </p>
           </Section>
 
@@ -136,15 +124,12 @@ export default function TermsPage() {
             <p tabIndex={0}>
               You may delete your account at any time from Settings. Where you hold both a Builder and a Tester account, deletion removes both, along with the projects, missions, submissions, and reputation attached to them.
             </p>
-            <p tabIndex={0}>
-              If we terminate an account for a violation involving payment — including gaming ratings or submitting work in bad faith — any unpaid balance on that account may be forfeited.
-            </p>
           </Section>
 
           <Section number="10" title="Updates and Changes">
             <p tabIndex={0}>We may update our terms and conditions from time to time. Users will be notified of any changes.</p>
             <p tabIndex={0}>
-              Changes that affect payouts, fees, or how earnings are calculated will be communicated before they take effect.
+              Changes that materially affect how missions, submissions, or reviews work will be communicated before they take effect.
             </p>
           </Section>
 

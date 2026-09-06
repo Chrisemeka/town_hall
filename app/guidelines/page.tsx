@@ -63,7 +63,7 @@ export default function GuidelinesPage() {
                 There are two account types: <span className="text-midnight">Builder</span> and <span className="text-midnight">Tester</span>. They are separate accounts, each with its own dashboard and its own history. One person can hold both — plenty do — but you are always acting as one or the other, never both at once.
               </p>
               <p tabIndex={0}>
-                Testing here is treated as work. Some missions carry a <span className="text-midnight">payout</span>; all of them build a <span className="text-midnight">rating and a rank</span> that follow your Tester account. That cuts both ways: testers are accountable for the quality of what they submit, and builders are accountable for reviewing it honestly.
+                Testing here is treated as work, and it is <span className="text-midnight">reciprocal and unpaid</span> — you test other people&apos;s products, and other people test yours. Nobody is paying for feedback, so the only thing holding it up is that both sides take it seriously: testers are accountable for the quality of what they submit, and builders are accountable for reviewing it honestly.
               </p>
               <p tabIndex={0}>
                 This isn&apos;t a SaaS tool. It&apos;s a shared workspace where builders and testers hold each other accountable. The energy here should feel collaborative and direct — developer to developer.
@@ -86,7 +86,7 @@ export default function GuidelinesPage() {
                 label="As a Builder"
                 steps={[
                   "Create a project — fill in the name, URL, and a brief summary of what you built.",
-                  "Create Missions — each mission defines one specific area for testers to focus on. Add a payout and a skill tag if you want to pay for the work.",
+                  "Create Missions — each mission defines one specific area for testers to focus on, as a set of steps a tester works through in order.",
                   "Wait for testers to pick up your missions and submit written feedback with screenshots.",
                   "Review each submission — approve it or request changes — and rate the tester's work from 1 to 5.",
                 ]}
@@ -97,7 +97,7 @@ export default function GuidelinesPage() {
                   "Browse available missions from your Tester home or the mission feed.",
                   "Pick a mission, visit the project URL, and follow the builder's instructions.",
                   "Submit written feedback and at least one screenshot as proof of visit, tied directly to that mission.",
-                  "Track the status on your Tester home. Approved work counts toward your rating, your rank, and your balance.",
+                  "Track the status on your Tester home. The builder either approves the work and rates it, or sends it back with a reason.",
                 ]}
               />
             </div>
@@ -112,38 +112,31 @@ export default function GuidelinesPage() {
             </h2>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70 mb-6">
               <p tabIndex={0}>
-                Every submission moves through the same four states. Testers see the current state on their home screen; builders move it.
+                Every submission moves through the same three states. Testers see the current state on their home screen; builders move it.
               </p>
             </div>
             <div className="flex flex-col gap-4">
               <Standard
                 title="Pending Review"
-                body="You've submitted. The builder hasn't looked at it yet. Nothing counts toward your rating or balance while a submission sits here."
+                body="You've submitted. The builder hasn't looked at it yet. Nothing is recorded against your work while a submission sits here."
               />
               <Standard
                 title="Approved"
-                body="The builder accepted the work and rated it. This counts toward your completed-mission count and your rank, and any payout on the mission becomes part of your available balance."
+                body="The builder accepted the work and rated it. It counts as a mission you completed, and the rating stays on the record against your account."
               />
               <Standard
                 title="Needs Changes"
                 body="The builder sent it back with a specific reason. Read the note, fix what they asked for, and the submission can still be approved afterwards."
               />
-              <Standard
-                title="Paid"
-                body="The payout has been settled. This is final — a paid submission can't be reopened, re-rated, or rejected."
-              />
             </div>
             <div className="flex flex-col gap-4 font-mono text-[14px] leading-7 text-midnight/70 mt-6">
               <p tabIndex={0}>
-                <span className="text-midnight">Approval is the gate on payment.</span> Nothing pays out that a builder hasn&apos;t approved first. Builders: review promptly and in good faith. If you request changes, say exactly what needs changing — &quot;not good enough&quot; is not a review.
+                <span className="text-midnight">Approval is the gate on a tester&apos;s record.</span> Nothing counts as completed work that a builder hasn&apos;t approved first. Builders: review promptly and in good faith. If you request changes, say exactly what needs changing — &quot;not good enough&quot; is not a review.
               </p>
               <p tabIndex={0}>
-                Withholding approval from work that meets the brief in order to avoid paying is a violation of our{" "}
+                Withholding approval from work that meets the brief is a violation of our{" "}
                 <Link tabIndex={0} href="/terms" className="text-forest underline hover:overline">Terms of Service</Link>
                 {" "}and will cost you your account.
-              </p>
-              <p tabIndex={0}>
-                <span className="text-midnight">Withdrawals aren&apos;t live yet.</span> Your approved balance is a record of what you&apos;ve earned. We&apos;ll publish the withdrawal process before enabling it.
               </p>
             </div>
           </div>
@@ -194,11 +187,11 @@ export default function GuidelinesPage() {
               />
               <Standard
                 title="Do the work before you submit"
-                body="Actually use the product. Submitting feedback for a mission you didn't attempt, padding a comment to clear the length minimum, or running an automated tool in place of real testing defeats the entire point of the platform — and on a paid mission, it's taking money for work you didn't do."
+                body="Actually use the product. Submitting feedback for a mission you didn't attempt, padding a comment to clear the length minimum, or running an automated tool in place of real testing defeats the entire point of the platform."
               />
               <Standard
                 title="Review honestly, rate fairly"
-                body="Builders: a rating reflects the quality of the submission in front of you, nothing else. Don't rate someone down because the feedback stung, and don't request changes to delay a payout. Testers: don't solicit ratings or trade them between accounts."
+                body="Builders: a rating reflects the quality of the submission in front of you, nothing else. Don't rate someone down because the feedback stung. Testers: don't solicit ratings or trade them between accounts."
               />
               <Standard
                 title="One account per role, per person"
@@ -302,7 +295,7 @@ export default function GuidelinesPage() {
                 Twnhall reserves the right to remove feedback, suspend missions, or terminate accounts that violate these guidelines. We don&apos;t issue warnings for serious violations — harassment, hate speech, and deliberate gaming of the system result in immediate removal.
               </p>
               <p tabIndex={0}>
-                Where a violation involves payment — bad-faith reviews, rating manipulation, or submitting work you didn&apos;t do — any unpaid balance on the account may be forfeited. Enforcement applies to the person, not just the account: if you hold both a Builder and a Tester account, a violation on one can cost you both.
+                Enforcement applies to the person, not just the account: if you hold both a Builder and a Tester account, a violation on one can cost you both.
               </p>
               <p tabIndex={0}>
                 If you encounter a violation — bad-faith feedback, abusive content, or a project that appears malicious — contact us at{" "}

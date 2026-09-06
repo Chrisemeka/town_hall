@@ -45,8 +45,7 @@ export default function PrivacyPolicyPage() {
             <p tabIndex={0}><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture. We sign you in through Google, and receive your name, email address, and profile picture from that sign-in.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — and when each was created. If you hold both, they are stored as two separate account records tied to the same sign-in.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Content You Submit:</span> Projects and mission briefs you create as a Builder, and the written feedback and screenshots you upload as a Tester. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Reputation Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, any note attached when changes are requested, and the aggregate rating, completed-mission count, and rank derived from them.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Earnings Information:</span> The payout amount attached to each mission you complete and the approval status that determines whether it counts toward your balance. We do not currently collect bank details or payment information, because withdrawals are not yet live. If you add a payout method in future, this policy will be updated before we collect it.</p>
+            <p tabIndex={0}><span className="text-midnight font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, and any note attached when changes are requested.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p tabIndex={0}><span className="text-midnight font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
           </Section>
@@ -71,7 +70,7 @@ export default function PrivacyPolicyPage() {
               <span className="text-midnight font-medium">Testers see:</span> their own submissions and the status, rating, and any change request a Builder left on them. Testers cannot see other testers&apos; submissions.
             </p>
             <p tabIndex={0}>
-              Your aggregate rating, completed-mission count, and rank are shown on your own Tester home. Project and mission details a Builder publishes are visible to testers browsing the platform.
+              Project and mission details a Builder publishes are visible to testers browsing the platform.
             </p>
           </Section>
 
