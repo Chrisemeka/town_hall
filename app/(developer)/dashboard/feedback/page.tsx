@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 import type { MissionRow, TestResultRow } from "@/lib/types/db";
 
 /** Exactly what the two selects below ask for. */
@@ -62,6 +64,27 @@ export default async function FeedbackReceivedPage() {
           .order("created_at", { ascending: true })
       : { data: [] as ResultLite[] };
 
+  /* 3b — entries, via service role: test_result_entries has RLS on with no
+     policy. Keyed off the ids the query above returned, so the caller's own
+     scoping carries over and this cannot widen what they see. */
+  const resultIds = (rawResults ?? []).map((r) => r.id)
+  const { data: entryRows } = resultIds.length
+    ? await createAdminClient()
+        .from("test_result_entries")
+        .select(
+          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
+        )
+        .in("test_result_id", resultIds)
+        .order("step_index", { ascending: true })
+    : { data: [] }
+
+  const entriesByResult = new Map<string, SubmissionEntry[]>()
+  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
+    const list = entriesByResult.get(row.test_result_id) ?? []
+    list.push(row)
+    entriesByResult.set(row.test_result_id, list)
+  }
+
   /* flatten into FeedbackEntry[] with mission context attached */
   const items: FeedbackEntry[] = (rawResults ?? [])
     .filter((r) => missionMeta[r.mission_id])
@@ -75,6 +98,7 @@ export default async function FeedbackReceivedPage() {
       screenshot_url: r.screenshot_url,
       screenshot_urls: r.screenshot_urls,
       created_at:    r.created_at,
+      entries:       entriesByResult.get(r.id) ?? null,
     }));
 
   /* sort by most recent first for display (newest feedback first) */

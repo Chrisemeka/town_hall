@@ -163,32 +163,47 @@ grant execute on function public.submit_audit_log(uuid, uuid, text[], text, json
 -- that looks complete and has no audit log, which is precisely the state the
 -- function above exists to make impossible.
 --
--- Reads are pinned first, exactly as in 20260906_01, so removing write policies
--- cannot take the tester's own-submission read with it. That policy is
--- "testers read own submissions" from 20260805_04.
+-- SELECT policies are deliberately untouched. Unlike projects and missions,
+-- reads here are not uniform and this repo does not hold their definitions:
+-- probing the live database showed a builder seeing exactly the submissions on
+-- their own missions while being the tester on none of them, so there is a
+-- project-ownership read policy in place that the builder feedback pages depend
+-- on through the anon client. Dropping it and guessing at a replacement would
+-- blank every builder's feedback view to save writing one WHERE clause.
+--
+-- So this drops write policies by command, not everything-but-a-list. If a
+-- permissive ALL policy exists it is reported rather than dropped, because
+-- dropping it would take reads with it — see the notice below.
 
 alter table public.test_results enable row level security;
-
-drop policy if exists "testers read own submissions" on public.test_results;
-create policy "testers read own submissions"
-  on public.test_results
-  for select
-  using (tester_id = auth.uid());
 
 do $$
 declare
   policy_row record;
+  all_policies int := 0;
 begin
   for policy_row in
-    select policyname
+    select policyname, cmd
       from pg_policies
      where schemaname = 'public'
        and tablename = 'test_results'
-       and policyname <> 'testers read own submissions'
+       and cmd in ('INSERT', 'UPDATE', 'DELETE')
   loop
-    raise notice 'dropping policy % on test_results', policy_row.policyname;
+    raise notice 'dropping % policy % on test_results', policy_row.cmd, policy_row.policyname;
     execute format('drop policy %I on public.test_results', policy_row.policyname);
   end loop;
+
+  select count(*) into all_policies
+    from pg_policies
+   where schemaname = 'public'
+     and tablename = 'test_results'
+     and cmd = 'ALL';
+
+  if all_policies > 0 then
+    raise warning
+      'test_results still has % ALL-command policy(ies). Those cover writes as well as reads, so the anon insert path is NOT fully closed. Left in place because dropping them would also remove read access. Review them by hand.',
+      all_policies;
+  end if;
 end
 $$;
 
@@ -204,6 +219,7 @@ $$;
 -- tester left the optional comment blank will then render as an empty
 -- submission. Check for null tester_comment before restoring the constraint.
 --
--- The dropped test_results write policy cannot be faithfully recreated — it was
--- created outside this repo. Restoring anon writes means writing a new policy
--- deliberately.
+-- The dropped test_results write policies cannot be faithfully recreated — they
+-- were created outside this repo. Restoring anon writes means writing a new
+-- policy deliberately. Read policies were never touched, so nothing needs
+-- restoring on that side.

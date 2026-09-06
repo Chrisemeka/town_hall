@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
 
@@ -34,6 +36,29 @@ export default async function DeveloperMissionDetailPage({
 
   const mission = missionRes.data;
   const results = resultsRes.data || [];
+
+  // Entries come through the service-role client because test_result_entries has
+  // RLS on with no policy. Scoping is inherited rather than re-derived: the ids
+  // come from the query above, which the caller's own RLS already limited to
+  // submissions they may see, so this cannot widen what they get.
+  const resultIds = results.map((r) => r.id)
+  const { data: entryRows } = resultIds.length
+    ? await createAdminClient()
+        .from("test_result_entries")
+        .select(
+          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
+        )
+        .in("test_result_id", resultIds)
+        .order("step_index", { ascending: true })
+    : { data: [] }
+
+  const entriesByResult = new Map<string, SubmissionEntry[]>()
+  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
+    const list = entriesByResult.get(row.test_result_id) ?? []
+    list.push(row)
+    entriesByResult.set(row.test_result_id, list)
+  }
+
   const project = one((mission as MissionWithProject).projects);
   const isActive = mission.is_active !== false;
 
@@ -143,6 +168,7 @@ export default async function DeveloperMissionDetailPage({
               {i > 0 && <div className="my-10 border-t border-iron" />}
               <MissionResultRow
                 result={result}
+                entries={entriesByResult.get(result.id) ?? null}
                 index={i}
                 appUrl={project?.app_url ?? null}
               />

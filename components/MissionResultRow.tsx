@@ -7,6 +7,7 @@ import { screenshotList } from "@/lib/utils/screenshots"
 import SubmissionReview from "@/components/SubmissionReview"
 import type { SubmissionStatus } from "@/lib/review"
 import type { TestResultRow } from "@/lib/types/db"
+import { SubmissionBody, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 
 type InsightItem = {
   status: "pass" | "warn" | "fail"
@@ -52,10 +53,13 @@ function formatDate(iso: string) {
  */
 export default function MissionResultRow({
   result,
+  entries,
   index,
   appUrl,
 }: {
   result: TestResultRow
+  /** Absent on the 24 submissions that predate the audit log. */
+  entries?: SubmissionEntry[] | null
   index: number
   appUrl: string | null
 }) {
@@ -143,12 +147,10 @@ export default function MissionResultRow({
         {/* WRITTEN FEEDBACK */}
         <div className="flex flex-col gap-3">
           <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
-            WRITTEN FEEDBACK
+            {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
           </p>
           <div className="bg-graphite border border-iron rounded-[12px] p-6 flex-1 flex flex-col justify-between">
-            <p className="font-mono text-[15px] leading-6 text-chalk italic">
-              &ldquo;{result.tester_comment}&rdquo;
-            </p>
+            <SubmissionBody entries={entries} comment={result.tester_comment} />
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-iron">
               <span className="font-mono text-[12px] text-ash">Developer #{developerNum}</span>
               <span className="font-mono text-[12px] text-ash">{date}</span>

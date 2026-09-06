@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
+import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 
 export type FeedbackEntry = {
   id: string
@@ -14,6 +15,7 @@ export type FeedbackEntry = {
   projectName: string
   // Optional since the audit log — a submission may carry entries instead.
   tester_comment: string | null
+  entries?: SubmissionEntry[] | null
   screenshot_url: string | null
   screenshot_urls: string[] | null
   created_at: string
@@ -83,9 +85,15 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                     <span className="font-mono text-[12px] text-ash/60">{relTime(item.created_at)}</span>
                   </div>
 
-                  <p className="font-mono text-[14px] text-chalk leading-5 line-clamp-3">
-                    {item.tester_comment}
-                  </p>
+                  {item.entries?.length ? (
+                    // A list preview, so the count only — the full log lives on
+                    // the mission page this links to.
+                    <PassRate entries={item.entries} />
+                  ) : (
+                    <p className="font-mono text-[14px] text-chalk leading-5 line-clamp-3">
+                      {item.tester_comment ?? "No written feedback."}
+                    </p>
+                  )}
 
                   <ScreenshotStrip urls={screenshotList(item)} />
 
