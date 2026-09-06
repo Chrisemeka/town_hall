@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Reorder } from "framer-motion"
 import { submitTestResult, type SubmissionFieldErrors } from "@/actions/submissions"
 import { Upload, ExternalLink, CheckCircle, X } from "lucide-react"
@@ -10,22 +10,38 @@ import {
   ALLOWED_SCREENSHOT_TYPES,
   MAX_SCREENSHOT_BYTES,
   MAX_SCREENSHOTS,
-  COMMENT_MIN,
   screenshotSchema,
-  submissionSchema,
+  type TestStep,
 } from "@/lib/validation/schemas"
+import {
+  AuditLogSteps,
+  draftFor,
+  draftIsComplete,
+  type DraftEntry,
+} from "@/components/tester/AuditLogSteps"
 
 // Each picked image is paired with its object URL so previews survive reordering
 // and each entry has a stable key.
 type Shot = { file: File; url: string }
 
-export default function TesterSubmissionForm({
+/** Where a half-finished log lives between visits. */
+const draftKey = (missionId: string) => `twnhall:audit-log:${missionId}`
+
+export default function AuditLogForm({
   missionId,
   appUrl,
+  steps,
 }: {
   missionId: string
   appUrl: string | null
+  /** Empty for every mission written before test cases existed — see hasSteps. */
+  steps: TestStep[]
 }) {
+  // A mission with no steps has nothing to file against, so it falls back to the
+  // comment-and-screenshots shape. Thirteen of the sixteen live missions are
+  // that, and without this they would all become untestable.
+  const hasSteps = steps.length > 0
+  const [entries, setEntries] = useState<DraftEntry[]>(() => draftFor(steps))
   const [unlocked,    setUnlocked]    = useState(false)
   const [feedback,    setFeedback]    = useState("")
   const [shots,       setShots]       = useState<Shot[]>([])
@@ -40,8 +56,45 @@ export default function TesterSubmissionForm({
 
   // Prompt on reload while the tester has work in progress that hasn't been sent.
   useUnsavedChangesWarning(
-    !isSuccess && (feedback.length > 0 || shots.length > 0),
+    !isSuccess && (feedback.length > 0 || shots.length > 0 || draftStarted(entries)),
   )
+
+  // Restore a half-finished log. A ten-step audit is a long form and losing it
+  // to a closed tab loses the tester — localStorage is enough for that, and a
+  // server-side draft store would be a feature of its own.
+  //
+  // Keyed by mission and reconciled against the current steps, so a builder
+  // editing the mission cannot resurrect answers to steps that no longer exist.
+  useEffect(() => {
+    if (!hasSteps) return
+    try {
+      const saved = window.localStorage.getItem(draftKey(missionId))
+      if (!saved) return
+      const parsed = JSON.parse(saved) as DraftEntry[]
+      const byStep = new Map(parsed.map((e) => [e.step_id, e]))
+      setEntries((current) =>
+        current.map((entry) => {
+          const restored = byStep.get(entry.step_id)
+          // Keep the live step text; restore only what the tester typed.
+          return restored ? { ...entry, ...restored, step_action: entry.step_action, step_expected: entry.step_expected } : entry
+        }),
+      )
+    } catch {
+      // A corrupt or unreadable draft is not worth surfacing — the form still
+      // works, it just starts empty.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (!hasSteps || isSuccess) return
+    try {
+      window.localStorage.setItem(draftKey(missionId), JSON.stringify(entries))
+    } catch {
+      // Private browsing, or storage full. Losing the draft is survivable;
+      // failing the form over it is not.
+    }
+  }, [entries, hasSteps, isSuccess, missionId])
 
   function addFiles(incoming: File[]) {
     const errors: string[] = []
@@ -80,14 +133,16 @@ export default function TesterSubmissionForm({
     if (isSubmitting) return
 
     // Client-side validate first so the user gets immediate feedback.
-    const localCheck = submissionSchema.safeParse({ missionId, comment: feedback })
-    if (!localCheck.success || shots.length === 0) {
-      setCommentError(
-        localCheck.success
-          ? null
-          : localCheck.error.issues.find((i) => i.path[0] === "comment")?.message ?? null,
-      )
-      if (shots.length === 0) setFileErrors(["At least one screenshot is required."])
+    if (shots.length === 0) {
+      setFileErrors(["At least one screenshot is required."])
+      return
+    }
+    if (hasSteps && !draftIsComplete(entries)) {
+      setSubmitError("Answer every step before submitting.")
+      return
+    }
+    if (!hasSteps && !feedback.trim()) {
+      setCommentError("Tell the builder what you found.")
       return
     }
 
@@ -100,10 +155,16 @@ export default function TesterSubmissionForm({
       const fd = new FormData()
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
+      fd.append("entries", JSON.stringify(hasSteps ? entries : []))
       for (const file of compressed) fd.append("screenshots", file)
       const result = await submitTestResult(fd)
       if (result.success) {
         setIsSuccess(true)
+        try {
+          window.localStorage.removeItem(draftKey(missionId))
+        } catch {
+          // Nothing to do — the submission already succeeded.
+        }
       } else {
         if (result.fieldErrors) applyServerErrors(result.fieldErrors)
         setSubmitError(result.error)
@@ -135,7 +196,10 @@ export default function TesterSubmissionForm({
     )
   }
 
-  const canSubmit = feedback.length >= COMMENT_MIN && shots.length > 0 && !isSubmitting
+  const canSubmit =
+    shots.length > 0 &&
+    !isSubmitting &&
+    (hasSteps ? draftIsComplete(entries) : feedback.trim().length > 0)
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const zoneBorder = fileErrors.length
@@ -190,12 +254,29 @@ export default function TesterSubmissionForm({
           </div>
         )}
 
+        {hasSteps && (
+          <>
+            <p
+              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              style={{ letterSpacing: "1px" }}
+            >
+              Work through the test case
+            </p>
+            <p className="font-mono text-[13px] text-ash leading-5 mb-4">
+              Each step shows what the builder asked for. Answer them in order.
+            </p>
+            <div className="mb-8">
+              <AuditLogSteps entries={entries} onChange={setEntries} />
+            </div>
+          </>
+        )}
+
         {/* YOUR FEEDBACK */}
         <p
           className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
           style={{ letterSpacing: "1px" }}
         >
-          Your Feedback
+          {hasSteps ? "Anything else?" : "Your Feedback"}
         </p>
 
         <textarea
@@ -204,7 +285,7 @@ export default function TesterSubmissionForm({
             setFeedback(e.target.value)
             if (commentError) setCommentError(null)
           }}
-          placeholder="Share what you found — be specific and constructive."
+          placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
           className={[
             "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
             commentError ? "border-ember" : "border-iron focus:border-voltage",
@@ -215,13 +296,9 @@ export default function TesterSubmissionForm({
           {commentError ? (
             <p className="font-mono text-[12px] text-ember">{commentError}</p>
           ) : (
-            <p
-              className={`font-mono text-[12px] ${
-                feedback.length > 0 && feedback.length < COMMENT_MIN ? "text-voltage" : "text-ash"
-              }`}
-            >
-              {feedback.length > 0 && feedback.length < COMMENT_MIN
-                ? `Great feedback is at least ${COMMENT_MIN} characters.`
+            <p className="font-mono text-[12px] text-ash">
+              {hasSteps
+                ? "Optional — anything that did not fit the steps above."
                 : "Be specific and constructive."}
             </p>
           )}
@@ -355,5 +432,12 @@ export default function TesterSubmissionForm({
         </div>
       </div>
     </div>
+  )
+}
+
+/** Whether the tester has typed anything into the log yet. */
+function draftStarted(entries: DraftEntry[]): boolean {
+  return entries.some(
+    (e) => e.status !== "" || e.actual_result.trim() !== "" || e.issue_summary.trim() !== "",
   )
 }

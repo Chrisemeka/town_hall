@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
+import { storedTestStepsSchema } from "@/lib/validation/schemas";
 import { ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getOwnerId, one } from "@/lib/utils/project";
@@ -8,7 +9,7 @@ import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
 
 /** `select("*, projects(*)")` — the whole mission with its whole project. */
 type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
-import TesterSubmissionForm from "@/components/TesterSubmissionForm";
+import AuditLogForm from "@/components/tester/AuditLogForm";
 
 export default async function MissionDetailPage({
   params,
@@ -29,6 +30,12 @@ export default async function MissionDetailPage({
   if (!mission) return notFound();
 
   const project = one((mission as MissionWithProject).projects);
+
+  // Read schema, not the write schema: a mission with no steps is the normal
+  // state for everything written before test cases, and the form falls back to
+  // comment-and-screenshots for those rather than refusing to render.
+  const parsedSteps = storedTestStepsSchema.safeParse(mission.test_steps);
+  const steps = parsedSteps.success ? parsedSteps.data : [];
   if (project?.flagged_at) return notFound();
   const isOwner = user?.id === getOwnerId(mission.projects);
 
@@ -127,9 +134,10 @@ export default async function MissionDetailPage({
         </div>
       ) : (
         <div id="tour-mission-submit-form">
-          <TesterSubmissionForm
+          <AuditLogForm
             missionId={mission.id}
             appUrl={project?.app_url ?? null}
+            steps={steps}
           />
         </div>
       )}
