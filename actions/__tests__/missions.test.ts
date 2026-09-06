@@ -36,7 +36,6 @@ const VALID: Record<string, string> = {
   title: "Sign-up walkthrough",
   task_description: "Walk through creating an account from scratch and report what snags.",
   intent: "publish",
-  payout: "0",
   category: "process_flow",
   device_target: "both",
   test_steps: JSON.stringify(STEPS),
@@ -145,6 +144,25 @@ describe("createMission", () => {
     expect(writes[0].values.test_steps).toEqual(STEPS)
     expect(writes[0].values.category).toBe("process_flow")
     expect(writes[0].values.device_target).toBe("both")
+  })
+
+  it("writes only the explicit column set", async () => {
+    const writes = fakeAdmin()
+
+    await expect(createMission(null, formData())).rejects.toThrow(/NEXT_REDIRECT/)
+
+    // The insert list, asserted in full for the same reason the update list is:
+    // a column silently added or dropped here is invisible until production.
+    expect(Object.keys(writes[0].values).sort()).toEqual([
+      "category",
+      "device_target",
+      "is_active",
+      "project_id",
+      "task_description",
+      "template_id",
+      "test_steps",
+      "title",
+    ])
   })
 
   it("records template provenance when one was used", async () => {
@@ -275,7 +293,6 @@ describe("updateMission", () => {
       "category",
       "device_target",
       "is_active",
-      "payout_cents",
       "task_description",
       "test_steps",
       "title",

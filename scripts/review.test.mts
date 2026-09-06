@@ -1,36 +1,39 @@
-// Approval-to-payout status flow, plus the tester aggregates that read off it.
-// The rule under test: nothing reaches `paid` without passing through
-// `approved` first. Run with: npm test
+// The submission review flow: pending -> approved or changes_requested, and
+// nothing after that. Payments were removed, and these assertions are what stop
+// `paid` or `mark_paid` coming back in by accident — the type union alone only
+// catches it where a literal is written down. Run with: npm test
 
 import assert from "node:assert/strict"
 import {
   SUBMISSION_STATUSES,
   isComplete,
-  isWithdrawable,
   nextStatus,
+  STATUS_LABEL,
   type ReviewAction,
   type SubmissionStatus,
 } from "../lib/review.ts"
-import {
-  averageRating,
-  earningsFrom,
-  formatMoney,
-  isNewMission,
-  rankFor,
-} from "../lib/tester.ts"
+import { reviewSchema } from "../lib/validation/schemas.ts"
+import { isNewMission } from "../lib/utils/mission.ts"
 
-const ACTIONS: ReviewAction[] = ["approve", "request_changes", "mark_paid"]
+const ACTIONS: ReviewAction[] = ["approve", "request_changes"]
 
-/* ── approval gates payout ───────────────────────────────────────────── */
+/* ── the vocabulary ──────────────────────────────────────────────────── */
 
-// The whole point of Task 3: a builder approving is the prerequisite for money
-// moving. Every non-approved status must refuse mark_paid.
+assert.deepEqual(SUBMISSION_STATUSES, ["pending", "approved", "changes_requested"])
+assert.deepEqual(Object.keys(STATUS_LABEL).sort(), [...SUBMISSION_STATUSES].sort())
+
+/* ── nothing reaches a paid state, from anywhere ─────────────────────── */
+
+// RM-01. The whole cross-product, not a sampled path: this is the assertion
+// that fails if someone reintroduces a payment transition later.
 for (const status of SUBMISSION_STATUSES) {
-  const result = nextStatus(status, "mark_paid")
-  if (status === "approved") {
-    assert.equal(result, "paid", "approved is the one status that can be paid")
-  } else {
-    assert.equal(result, null, `${status} must not be payable without approval`)
+  for (const action of ACTIONS) {
+    const result = nextStatus(status, action)
+    assert.notEqual(result, "paid", `${status} + ${action} must never reach paid`)
+    assert.ok(
+      result === null || SUBMISSION_STATUSES.includes(result),
+      `${status} + ${action} produced ${result}, which is not a status`,
+    )
   }
 }
 
@@ -38,87 +41,54 @@ for (const status of SUBMISSION_STATUSES) {
 
 const approved = nextStatus("pending", "approve")
 assert.equal(approved, "approved")
-assert.equal(nextStatus(approved!, "mark_paid"), "paid")
 
 /* ── request changes, then approve ───────────────────────────────────── */
 
 const needsChanges = nextStatus("pending", "request_changes")
 assert.equal(needsChanges, "changes_requested")
-assert.equal(nextStatus(needsChanges!, "mark_paid"), null, "changes_requested is not payable")
 assert.equal(nextStatus(needsChanges!, "approve"), "approved", "a fixed submission can still be approved")
 
-/* ── approved is reversible until it is paid ─────────────────────────── */
+/* ── approval is not terminal ────────────────────────────────────────── */
 
+// Deliberate, and worth an assertion rather than an absence: `paid` used to be
+// the terminal state, and removing it left approval reversible. If terminal
+// approval is ever wanted, this is the line that has to change first.
 assert.equal(nextStatus("approved", "request_changes"), "changes_requested")
 
-/* ── paid is terminal ────────────────────────────────────────────────── */
+/* ── completion ──────────────────────────────────────────────────────── */
 
-// Once money has moved the builder cannot reopen or reject the work it bought.
+assert.deepEqual(SUBMISSION_STATUSES.filter(isComplete), ["approved"])
+
+/* ── mark_paid is rejected at the boundary ───────────────────────────── */
+
+// RM-02. The union stops it compiling; this proves a hand-rolled POST carrying
+// action=mark_paid is a field error rather than an unhandled action.
+const RESULT_ID = "44444444-4444-4444-8444-444444444444"
+
+const stale = reviewSchema.safeParse({ resultId: RESULT_ID, action: "mark_paid", rating: 5 })
+assert.equal(stale.success, false, "mark_paid must not parse")
+assert.ok(
+  stale.error!.issues.some((i) => i.path[0] === "action"),
+  "the rejection has to land on the action field, not somewhere else",
+)
+
+assert.equal(
+  reviewSchema.safeParse({ resultId: RESULT_ID, action: "approve", rating: 5 }).success,
+  true,
+)
+
+// A rating is required on both remaining actions — there is no longer an action
+// exempt from it.
 for (const action of ACTIONS) {
-  assert.equal(nextStatus("paid", action), null, `paid must reject ${action}`)
+  const noRating = reviewSchema.safeParse({ resultId: RESULT_ID, action, note: "Fix the header." })
+  assert.equal(noRating.success, false, `${action} without a rating must be rejected`)
 }
 
-/* ── completion + withdrawability ────────────────────────────────────── */
-
-assert.deepEqual(SUBMISSION_STATUSES.filter(isComplete), ["approved", "paid"])
-assert.deepEqual(SUBMISSION_STATUSES.filter(isWithdrawable), ["approved"])
-
-/* ── earnings ────────────────────────────────────────────────────────── */
-
-const feed: { status: SubmissionStatus; payout_cents: number }[] = [
-  { status: "pending", payout_cents: 500 },
-  { status: "pending", payout_cents: 900 },
-  { status: "approved", payout_cents: 4700 },
-  { status: "changes_requested", payout_cents: 800 },
-  { status: "paid", payout_cents: 1400 },
-]
-
-const earnings = earningsFrom(feed)
-assert.equal(earnings.available, 4700, "only approved money is withdrawable")
-assert.equal(earnings.pendingApproval, 1400)
-assert.equal(earnings.lifetimePaid, 1400)
-assert.equal(earnings.completed, 2, "approved + paid count as completed")
-
-// A submission that was sent back earns nothing and counts for nothing.
-assert.equal(earningsFrom([{ status: "changes_requested", payout_cents: 9999 }]).available, 0)
-assert.equal(earningsFrom([{ status: "changes_requested", payout_cents: 9999 }]).completed, 0)
-
-// Unpaid missions (payout_cents defaults to 0) still count toward reputation.
-assert.equal(earningsFrom([{ status: "approved", payout_cents: 0 }]).completed, 1)
-
-assert.equal(earningsFrom([]).available, 0)
-assert.equal(formatMoney(4700), "$47.00")
-assert.equal(formatMoney(0), "$0.00")
-assert.equal(formatMoney(5), "$0.05")
-
-/* ── rank ────────────────────────────────────────────────────────────── */
-
-assert.equal(rankFor(0).current.name, "New Tester")
-assert.equal(rankFor(4).current.name, "New Tester")
-assert.equal(rankFor(5).current.name, "Rising Tester", "thresholds are inclusive")
-assert.equal(rankFor(15).current.name, "Trusted Tester")
-
-// The mockup's example: 12 completed, 3 more to Trusted Tester, 12/15.
-const at12 = rankFor(12)
-assert.equal(at12.current.name, "Rising Tester")
-assert.equal(at12.next!.name, "Trusted Tester")
-assert.equal(at12.toNext, 3)
-assert.equal(at12.progress, 12 / 15)
-
-// Top of the ladder has nowhere left to go and must not render a broken bar.
-const top = rankFor(999)
-assert.equal(top.current.name, "Veteran Tester")
-assert.equal(top.next, null)
-assert.equal(top.toNext, 0)
-assert.equal(top.progress, 1)
-
-/* ── average rating ──────────────────────────────────────────────────── */
-
-// Null, not 0 — an unrated tester must not render as 0.0 stars.
-assert.equal(averageRating([]), null)
-assert.equal(averageRating([null, null]), null)
-assert.equal(averageRating([5, 4, 5]), 14 / 3)
-assert.equal(averageRating([5, null, 4]), 4.5, "unrated submissions are excluded, not counted as zero")
+// "Needs changes" with no reason stays unactionable.
+assert.equal(
+  reviewSchema.safeParse({ resultId: RESULT_ID, action: "request_changes", rating: 3 }).success,
+  false,
+)
 
 /* ── new-mission window ──────────────────────────────────────────────── */
 
@@ -130,4 +100,4 @@ assert.equal(isNewMission(hoursAgo(23.9), now), true)
 assert.equal(isNewMission(hoursAgo(24.1), now), false)
 assert.equal(isNewMission(hoursAgo(48), now), false)
 
-console.log("review flow + tester aggregates: all assertions passed")
+console.log("review flow: all assertions passed")
