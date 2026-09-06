@@ -12,6 +12,7 @@ import {
   verifyPathFor,
   type AccountType,
 } from "../lib/access.ts"
+import { searchHref, type SearchTarget } from "../lib/searchHref.ts"
 
 const allowed = (path: string, account: AccountType | null) => accessFor(path, account).allow
 
@@ -202,5 +203,38 @@ for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/guidelines", "/terms-acc
 // No account yet: the picker still resolves first, and the gate stays out of it.
 assert.equal(settlesAt("/dashboard", null, false), CHOOSE_ACCOUNT_PATH)
 assert.equal(settlesAt(CHOOSE_ACCOUNT_PATH, null, false), CHOOSE_ACCOUNT_PATH)
+
+/* ── global search opens somewhere the account is allowed ────────────── */
+
+// The bug this covers: the search sent every result to /dashboard, so a tester
+// clicking one was denied by the rule above and bounced to /explore. Asserting
+// the strings would have passed just as happily — the invariant is that the
+// href survives accessFor for the account that produced it.
+const TARGETS: SearchTarget[] = [
+  { kind: "project", id: "11111111-1111-4111-8111-111111111111" },
+  { kind: "mission", id: "22222222-2222-4222-8222-222222222222", projectId: "33333333-3333-4333-8333-333333333333" },
+]
+
+for (const account of ["builder", "tester"] as AccountType[]) {
+  for (const target of TARGETS) {
+    const href = searchHref(account, target)
+    assert.ok(
+      allowed(href, account),
+      `a ${account} searching a ${target.kind} was sent to ${href}, which accessFor denies`,
+    )
+    assert.ok(
+      !allowed(href, account === "builder" ? "tester" : "builder"),
+      `${href} is meant to be ${account}-only, so the other role must not reach it`,
+    )
+  }
+}
+
+assert.equal(searchHref("tester", TARGETS[0]), "/explore/project/11111111-1111-4111-8111-111111111111")
+assert.equal(searchHref("tester", TARGETS[1]), "/mission/22222222-2222-4222-8222-222222222222")
+assert.equal(searchHref("builder", TARGETS[0]), "/dashboard/11111111-1111-4111-8111-111111111111")
+assert.equal(
+  searchHref("builder", TARGETS[1]),
+  "/dashboard/33333333-3333-4333-8333-333333333333/mission/22222222-2222-4222-8222-222222222222",
+)
 
 console.log("access gating: all assertions passed")
