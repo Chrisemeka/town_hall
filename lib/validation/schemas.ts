@@ -111,7 +111,6 @@ export const missionIntentSchema = z.enum(["publish", "draft"], {
 })
 
 export const MISSION_CATEGORY_MAX = 40
-export const MISSION_PAYOUT_MAX = 1000
 
 export const STEP_ACTION_MIN = 4
 export const STEP_ACTION_MAX = 200
@@ -200,15 +199,6 @@ const missionFields = {
       `Tell testers what to do — at least ${MISSION_DESCRIPTION_MIN} characters.`,
     ),
   intent: missionIntentSchema,
-  // Payout is entered in whole currency units and stored as cents. Blank means
-  // unpaid, which is what every mission created before this field existed is.
-  payout: z.preprocess(
-    (v) => (v === "" || v === null || v === undefined ? 0 : v),
-    z.coerce
-      .number()
-      .min(0, "Payout can't be negative.")
-      .max(MISSION_PAYOUT_MAX, `Payout must be ${MISSION_PAYOUT_MAX} or less.`),
-  ),
   // Was a free-text tag capped at MISSION_CATEGORY_MAX. Since the test-case
   // migration it is the test-category enum, and it is required: a mission
   // without one cannot be filtered or explained to a tester.
@@ -218,11 +208,6 @@ const missionFields = {
   // parsing it inside the schema keeps a malformed body a field error rather
   // than a throw out of the action.
   test_steps: testStepsJsonSchema,
-}
-
-/** Currency units off a form -> the integer cents the column stores. */
-export function toCents(payout: number): number {
-  return Math.round(payout * 100)
 }
 
 export const createMissionSchema = z.object({
@@ -367,8 +352,8 @@ export const REVIEW_NOTE_MAX = 500
 export const reviewSchema = z
   .object({
     resultId: z.string().uuid("Invalid submission id."),
-    action: z.enum(["approve", "request_changes", "mark_paid"], {
-      message: "Choose approve, request changes, or mark paid.",
+    action: z.enum(["approve", "request_changes"], {
+      message: "Choose approve or request changes.",
     }),
     rating: z.coerce
       .number()
@@ -378,9 +363,8 @@ export const reviewSchema = z
       .optional(),
     note: z.string().trim().max(REVIEW_NOTE_MAX).optional().or(z.literal("")),
   })
-  // A rating is what feeds the tester's aggregate on their home screen, so it's
-  // required on the two actions that are actually a judgement of the work.
-  .refine((d) => d.action === "mark_paid" || d.rating !== undefined, {
+  // Both remaining actions are a judgement of the work, so both carry a rating.
+  .refine((d) => d.rating !== undefined, {
     message: "Rate the tester from 1 to 5.",
     path: ["rating"],
   })

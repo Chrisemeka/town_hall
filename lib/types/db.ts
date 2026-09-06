@@ -69,7 +69,6 @@ export type MissionRow = {
   task_description: string
   created_at: string
   is_active: boolean | null
-  payout_cents: number | null
   /** A TEST_CATEGORIES value since the test-case migration. Null on older rows. */
   category: string | null
   /**

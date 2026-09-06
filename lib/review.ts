@@ -1,56 +1,51 @@
 // Submission review state machine (builder side).
 //
+// A submission arrives pending. The builder either approves it or sends it back
+// with a note, and that is the whole cycle — there is no terminal state and
+// nothing downstream of approval, because testing here is reciprocal and unpaid.
+//
 // Pure and import-free for the same reason lib/access.ts is: this is the rule
-// that stops money moving before a human approved the work, and it needs to be
-// checkable by scripts/review.test.mts as well as by the server action.
+// the server action enforces, and it needs to be checkable by
+// scripts/review.test.mts without a database or a Next.js runtime.
 
-export type SubmissionStatus = "pending" | "approved" | "changes_requested" | "paid"
+export type SubmissionStatus = "pending" | "approved" | "changes_requested"
 
-export type ReviewAction = "approve" | "request_changes" | "mark_paid"
+export type ReviewAction = "approve" | "request_changes"
 
 export const SUBMISSION_STATUSES: SubmissionStatus[] = [
   "pending",
   "approved",
   "changes_requested",
-  "paid",
 ]
 
 export const STATUS_LABEL: Record<SubmissionStatus, string> = {
   pending: "Pending Review",
   approved: "Approved",
   changes_requested: "Needs Changes",
-  paid: "Paid",
 }
 
 /**
  * The status `action` moves a submission to, or null if the transition isn't
  * allowed from `current`.
  *
- * The load-bearing rules:
- *   - `mark_paid` is reachable ONLY from `approved`. Approval is the gate on
- *     payout; nothing pays out straight from pending or changes_requested.
- *   - `paid` is terminal. Once money has moved, a builder can't retroactively
- *     reopen or reject the work it paid for.
+ * Nothing is currently disallowed. `paid` was the one terminal state, and with
+ * it gone every transition is legal from every status — a builder who approves
+ * too fast can reopen, and back again. Whether approval should now be terminal
+ * in its place is an open question, deliberately not answered here: the
+ * behaviour is exactly what it was before payments were removed. The null
+ * return stays because that is the shape the caller guards against, and because
+ * answering the question later should not mean changing this signature.
  */
 export function nextStatus(current: SubmissionStatus, action: ReviewAction): SubmissionStatus | null {
-  if (current === "paid") return null
-
   switch (action) {
     case "approve":
       return "approved"
     case "request_changes":
       return "changes_requested"
-    case "mark_paid":
-      return current === "approved" ? "paid" : null
   }
 }
 
-/** Statuses that count as work the tester finished, for rank and totals. */
+/** Statuses that count as work the tester finished. */
 export function isComplete(status: SubmissionStatus): boolean {
-  return status === "approved" || status === "paid"
-}
-
-/** Whether a payout for this submission is money the tester can draw on. */
-export function isWithdrawable(status: SubmissionStatus): boolean {
   return status === "approved"
 }
