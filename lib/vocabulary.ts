@@ -107,6 +107,29 @@ export function deviceTargetLabel(value: string): string {
   return DEVICE_TARGET_LABELS[value as DeviceTarget] ?? value
 }
 
+/**
+ * How a tester answers one test-case step.
+ *
+ * "blocked" is its own state rather than a kind of failure: a step nobody could
+ * reach — the previous step broke, the environment was down — tells the builder
+ * something different from a step that ran and gave the wrong answer, and
+ * collapsing the two would hide which it was.
+ */
+export const ENTRY_STATUSES = ["pass", "fail", "blocked"] as const
+
+export type EntryStatus = (typeof ENTRY_STATUSES)[number]
+
+const ENTRY_STATUS_LABELS: Record<EntryStatus, string> = {
+  pass: "Pass",
+  fail: "Fail",
+  blocked: "Blocked",
+}
+
+/** Human label for a stored entry status. Unknown values render as-is. */
+export function entryStatusLabel(value: string): string {
+  return ENTRY_STATUS_LABELS[value as EntryStatus] ?? value
+}
+
 export const SKILLS_MIN = 1
 export const SKILLS_MAX = 8
 

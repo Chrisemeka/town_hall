@@ -8,6 +8,7 @@ import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import { getActiveAccount } from "@/lib/auth"
 import {
+  storedTestStepsSchema,
   submissionSchema,
   screenshotsSchema,
   toFieldErrors,
@@ -45,6 +46,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     const parsed = submissionSchema.safeParse({
       missionId: formData.get("missionId"),
       comment: formData.get("comment"),
+      entries: formData.get("entries") ?? "[]",
     })
     const filesParsed = screenshotsSchema.safeParse(formData.getAll("screenshots"))
 
@@ -68,13 +70,14 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       }
     }
 
-    const { missionId, comment } = parsed.data
+    const { missionId, comment, entries } = parsed.data
     const files = filesParsed.data
 
     const { data: missionData } = await supabase
       .from("missions")
       .select(`
         project_id,
+        test_steps,
         projects (
           owner_id
         )
@@ -84,12 +87,36 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
 
     const mission = missionData as unknown as {
       project_id: string
+      test_steps: unknown
       projects: { owner_id: string } | { owner_id: string }[] | null
     } | null
 
     const projectOwnerId = getOwnerId(mission?.projects)
     if (projectOwnerId === user.id) {
       return { success: false, error: "Developers cannot submit a test for your own project." }
+    }
+
+    // The entries carry their own step text, because that snapshot is what the
+    // audit log records. That makes it worth checking against the live mission
+    // once, here: after the write nothing can falsify a snapshot, so a tester
+    // filing against steps that do not exist would be unanswerable later.
+    const liveSteps = storedTestStepsSchema.safeParse(mission?.test_steps)
+    const stepIds = new Set(liveSteps.success ? liveSteps.data.map((s) => s.id) : [])
+
+    if (entries.length > 0) {
+      if (entries.length !== stepIds.size) {
+        return {
+          success: false,
+          error: "This mission changed while you were testing. Reload and try again.",
+        }
+      }
+      const unknownStep = entries.find((e) => !stepIds.has(e.step_id))
+      if (unknownStep) {
+        return {
+          success: false,
+          error: "This mission changed while you were testing. Reload and try again.",
+        }
+      }
     }
 
     // Upload in parallel, preserving the tester's ordering in the result array.
@@ -100,32 +127,26 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       }),
     )
 
-    // Generate the row id up front so we can reference it in the background
-    // update without selecting it back — testers have INSERT but not SELECT
-    // rights on test_results under RLS, so a returning select would fail even
-    // though the insert succeeds.
-    const resultId = crypto.randomUUID()
+    // One row plus N entries, atomically. A plpgsql body is one transaction, so
+    // a failure partway through the entries rolls the parent back with it —
+    // sequential inserts would leave a submission that looks complete with half
+    // its audit log missing.
+    //
+    // Service role: the function is security definer and execution is granted
+    // to service_role alone, so it is not reachable from the browser.
+    //
+    // The RPC returns the new id, which is why this no longer mints one
+    // client-side to dodge a returning select.
+    const { data: resultId, error: dbError } = await createAdminClient().rpc("submit_audit_log", {
+      p_mission_id: missionId,
+      p_tester_id: user.id,
+      p_screenshot_urls: publicUrls,
+      p_tester_comment: comment ?? "",
+      p_entries: entries,
+    })
 
-    // Insert immediately with placeholder analysis so the tester gets a fast
-    // response. The AI summary is non-critical enrichment and is generated
-    // off the critical path below — see the after() block.
-    const { error: dbError } = await supabase
-      .from("test_results")
-      .insert({
-        id: resultId,
-        mission_id: missionId,
-        tester_id: user.id,
-        screenshot_urls: publicUrls,
-        // Keep the legacy single-URL column populated with the first image so
-        // anything still reading it (admin tooling, exports) keeps working.
-        screenshot_url: publicUrls[0],
-        tester_comment: comment,
-        ai_summary: "",
-        ai_sentiment: "NEUTRAL",
-      })
-
-    if (dbError) {
-      console.error("[submitTestResult] insert failed:", dbError)
+    if (dbError || !resultId) {
+      console.error("[submitTestResult] submit_audit_log failed:", dbError)
       return { success: false, error: "Failed to save your feedback. Please try again." }
     }
     // Read the screenshot bytes now (while the in-memory Files are in scope) so
@@ -138,7 +159,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     )
     after(async () => {
       try {
-        const { text } = await generateAnalysis(comment, images)
+        const { text } = await generateAnalysis({ comment: comment ?? "", entries }, images)
         const sentiment = parseSentiment(text)
         const aiSummary = text.replace(sentiment, "").replace(/[*#]/g, "").trim()
 

@@ -5,6 +5,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js"
 import {
   COUNTRIES,
   DEVICE_TARGETS,
+  ENTRY_STATUSES,
   PROJECT_CATEGORIES,
   SKILLS_MAX,
   SKILLS_MIN,
@@ -259,16 +260,85 @@ export const ALLOWED_SCREENSHOT_TYPES = [
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 export const MAX_SCREENSHOTS = 10
 
+export const ENTRY_TEXT_MIN = 4
+export const ENTRY_TEXT_MAX = 500
+
+/**
+ * One tester answer to one step.
+ *
+ * The step text is carried on the payload rather than looked up server-side so
+ * the snapshot records what was actually rendered to the tester. The action
+ * still checks step_id against the mission's live steps — the snapshot is the
+ * record, but it is not taken on trust.
+ */
+export const auditEntrySchema = z
+  .object({
+    step_id: z.string().uuid("Each entry must name a step."),
+    step_action: z.string().trim().min(1).max(STEP_ACTION_MAX),
+    step_expected: z.string().trim().min(1).max(STEP_EXPECTED_MAX),
+    status: z.enum(ENTRY_STATUSES, { message: "Mark this step pass, fail, or blocked." }),
+    actual_result: z
+      .string()
+      .trim()
+      .min(ENTRY_TEXT_MIN, "Say what actually happened.")
+      .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`),
+    expected_result: z
+      .string()
+      .trim()
+      .min(ENTRY_TEXT_MIN, "Say what should have happened.")
+      .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`),
+    issue_summary: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
+    steps_to_reproduce: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
+  })
+  // Conditional rather than a blanket requirement: a passing step has no issue
+  // and nothing to reproduce, and making a tester type "N/A" on every one of
+  // them is the friction that produces garbage data.
+  .refine((e) => e.status !== "fail" || !!e.issue_summary?.trim(), {
+    message: "Summarise the issue.",
+    path: ["issue_summary"],
+  })
+  .refine((e) => e.status !== "fail" || !!e.steps_to_reproduce?.trim(), {
+    message: "List the steps to reproduce it.",
+    path: ["steps_to_reproduce"],
+  })
+
+export type AuditEntryInput = z.infer<typeof auditEntrySchema>
+
+/**
+ * The whole log. Empty is legitimate: a mission written before test cases
+ * existed has no steps to file against, and the form falls back to comment plus
+ * screenshots for those. Thirteen of the sixteen live missions are that shape.
+ */
+export const auditLogSchema = z.array(auditEntrySchema)
+
+/** The JSON-string variant, parsed inside the schema so a malformed body is a
+ *  field error rather than a throw out of the action. Same shape as
+ *  testStepsJsonSchema. */
+export const auditLogJsonSchema = z
+  .string()
+  .transform((raw, ctx) => {
+    try {
+      return JSON.parse(raw) as unknown
+    } catch {
+      ctx.addIssue({ code: "custom", message: "Your answers could not be read. Try again." })
+      return z.NEVER
+    }
+  })
+  .pipe(auditLogSchema)
+
 export const submissionSchema = z.object({
   missionId: z.string().uuid("Invalid mission id."),
-  comment: z
-    .string()
-    .trim()
-    .min(
-      COMMENT_MIN,
-      `Feedback should be at least ${COMMENT_MIN} characters — be specific and constructive.`,
-    ),
+  // Optional since the audit log carries the substance. The entries are where
+  // the minimum lives now — COMMENT_MIN applied when this was the only field.
+  comment: z.string().trim().max(2000).optional().or(z.literal("")),
+  entries: auditLogJsonSchema,
 })
+  // A submission has to say something. Entries are the normal case; a comment
+  // alone is the fallback for a mission with no steps to file against.
+  .refine((v) => v.entries.length > 0 || !!v.comment?.trim(), {
+    message: "Add your answers, or leave a comment about what you found.",
+    path: ["comment"],
+  })
 export type SubmissionInput = z.infer<typeof submissionSchema>
 
 /** File validation is separate so the screenshot can be supplied as a Blob. */

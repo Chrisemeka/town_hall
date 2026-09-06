@@ -9,12 +9,14 @@ import assert from "node:assert/strict"
 import {
   COUNTRIES,
   DEVICE_TARGETS,
+  ENTRY_STATUSES,
   PROJECT_CATEGORIES,
   SKILLS,
   TEST_CATEGORIES,
   TIMEZONES,
   countryName,
   deviceTargetLabel,
+  entryStatusLabel,
   testCategoryLabel,
 } from "../lib/vocabulary.ts"
 
@@ -130,3 +132,22 @@ for (const value of ["process_flow", "component", "ui_design"]) {
 }
 
 console.log("test categories + device targets: all assertions passed")
+
+/* ── audit-log entry statuses ────────────────────────────────────────── */
+
+assert.ok(ENTRY_STATUSES.length > 0, "ENTRY_STATUSES is empty — z.enum would throw at import")
+noDuplicates(ENTRY_STATUSES, "ENTRY_STATUSES")
+
+for (const value of ENTRY_STATUSES) {
+  assert.match(value, /^[a-z][a-z_]*$/, `ENTRY_STATUSES value "${value}" is not snake_case`)
+  assert.notEqual(entryStatusLabel(value), value, `${value} has no human label`)
+}
+
+// "fail" is the value the conditional validation keys off — a rename without a
+// matching schema change would quietly stop requiring the issue fields.
+assert.ok(
+  (ENTRY_STATUSES as readonly string[]).includes("fail"),
+  "'fail' is what auditEntrySchema requires issue_summary and steps_to_reproduce for",
+)
+
+console.log("entry statuses: all assertions passed")
