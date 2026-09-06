@@ -46,6 +46,7 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
 
   return (
     <AppShell
+      userId={user?.id ?? null}
       avatarUrl={avatarUrl}
       displayName={displayName}
       seenTours={seenTours}

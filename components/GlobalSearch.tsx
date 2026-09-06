@@ -6,18 +6,35 @@ import { Search, LayoutDashboard, Target, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { one } from "@/lib/utils/project"
+import type { AccountType } from "@/lib/access"
+import { searchHref } from "@/lib/searchHref"
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db"
 
 /** Exactly what the mission half of the search asks for. */
 type MissionHit = Pick<MissionRow, "id" | "title" | "project_id"> & {
-  projects: Embedded<Pick<ProjectRow, "name" | "flagged_at">>
+  projects: Embedded<Pick<ProjectRow, "name" | "flagged_at" | "owner_id">>
 }
 
 type Result =
   | { kind: "project"; id: string; name: string; description: string | null }
   | { kind: "mission"; id: string; title: string; projectName: string; projectId: string }
 
-export function GlobalSearch() {
+/**
+ * The two roles search different things and land in different places.
+ *
+ * A tester searches the community — every unflagged project and active mission
+ * — and opens them on /explore and /mission. A builder searches their own work
+ * and opens it on /dashboard. Sending either one to the other's routes is a
+ * redirect at best: accessFor() bounces a tester off /dashboard straight to
+ * /explore, which is what this used to do to every result it showed them.
+ */
+export function GlobalSearch({
+  account = "builder",
+  userId = null,
+}: {
+  account?: AccountType
+  userId?: string | null
+}) {
   const router  = useRouter()
   const supabase = createClient()
 
@@ -41,21 +58,33 @@ export function GlobalSearch() {
   /* ── search ────────────────────────────────────────── */
   const search = useCallback(async (q: string) => {
     const pattern = `%${q}%`
+    const mine = account === "builder" && userId
+
+    let projectQuery = supabase
+      .from("projects")
+      .select("id, name, description")
+      .is("flagged_at", null)
+      .ilike("name", pattern)
+
+    // !inner is what makes the embedded project filterable from here.
+    let missionQuery = supabase
+      .from("missions")
+      .select("id, title, project_id, projects!inner(name, flagged_at, owner_id)")
+      .eq("is_active", true)
+      .is("projects.flagged_at", null)
+      .ilike("title", pattern)
+
+    // A builder's results have to be things they can actually open. Every
+    // /dashboard route is theirs alone, so handing them someone else's project
+    // id is offering a door they have no key to.
+    if (mine) {
+      projectQuery = projectQuery.eq("owner_id", userId)
+      missionQuery = missionQuery.eq("projects.owner_id", userId)
+    }
 
     const [projectRes, missionRes] = await Promise.all([
-      supabase
-        .from("projects")
-        .select("id, name, description")
-        .is("flagged_at", null)
-        .ilike("name", pattern)
-        .limit(5),
-      supabase
-        .from("missions")
-        .select("id, title, project_id, projects!inner(name, flagged_at)")
-        .eq("is_active", true)
-        .is("projects.flagged_at", null)
-        .ilike("title", pattern)
-        .limit(5),
+      projectQuery.limit(5),
+      missionQuery.limit(5),
     ])
 
     const items: Result[] = []
@@ -77,7 +106,7 @@ export function GlobalSearch() {
     setFetched(items)
     setFetchedFor(q)
     setCursor(-1)
-  }, [supabase])
+  }, [supabase, account, userId])
 
   /* debounce — schedules the search and nothing else */
   const longEnough = query.length >= 2
@@ -108,11 +137,11 @@ export function GlobalSearch() {
   function navigate(r: Result) {
     setOpen(false)
     setQuery("")
-    if (r.kind === "project") {
-      router.push(`/dashboard/${r.id}`)
-    } else {
-      router.push(`/dashboard/${r.projectId}/mission/${r.id}`)
-    }
+    router.push(
+      searchHref(account, r.kind === "project"
+        ? { kind: "project", id: r.id }
+        : { kind: "mission", id: r.id, projectId: r.projectId }),
+    )
   }
 
   /* keyboard navigation */
