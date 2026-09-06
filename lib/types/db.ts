@@ -95,7 +95,9 @@ export type TestResultRow = {
   tester_id: string
   screenshot_url: string | null
   screenshot_urls: string[] | null
-  tester_comment: string
+  /** Optional since the audit log — "anything else?" at the end of the form.
+   *  Every submission written before it carries this and nothing else. */
+  tester_comment: string | null
   ai_summary: string | null
   ai_sentiment: string | null
   created_at: string
@@ -103,6 +105,29 @@ export type TestResultRow = {
   rating: number | null
   review_note: string | null
   reviewed_at: string | null
+}
+
+/**
+ * One tester's answer to one of the builder's test-case steps.
+ *
+ * step_action and step_expected are snapshots of the builder's wording at
+ * submission time, not lookups. A builder editing the mission afterwards must
+ * not rewrite what the tester appears to have been asked — step_id is kept for
+ * correlation, but the snapshot is the record.
+ */
+export type TestResultEntryRow = {
+  id: string
+  test_result_id: string
+  step_id: string
+  step_index: number
+  step_action: string
+  step_expected: string
+  status: string
+  issue_summary: string | null
+  steps_to_reproduce: string | null
+  actual_result: string
+  expected_result: string
+  created_at: string
 }
 
 /** Public view. Exists so tester comments stay private while counts do not. */

@@ -12,7 +12,8 @@ export type FeedbackEntry = {
   missionTitle: string
   projectId: string
   projectName: string
-  tester_comment: string
+  // Optional since the audit log — a submission may carry entries instead.
+  tester_comment: string | null
   screenshot_url: string | null
   screenshot_urls: string[] | null
   created_at: string
