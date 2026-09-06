@@ -205,7 +205,7 @@ export default function MissionResultRow({
         </div>
       )}
 
-      {/* REVIEW — approve / request changes / rate, and the payout stub */}
+      {/* REVIEW — approve / request changes / rate */}
       <SubmissionReview
         resultId={result.id}
         status={(result.status ?? "pending") as SubmissionStatus}

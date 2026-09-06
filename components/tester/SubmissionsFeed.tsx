@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { FileText } from "lucide-react"
 import { STATUS_LABEL, type SubmissionStatus } from "@/lib/review"
-import { formatMoney } from "@/lib/tester"
 
 export type FeedSubmission = {
   id: string
@@ -13,7 +12,6 @@ export type FeedSubmission = {
   projectName: string
   status: SubmissionStatus
   createdAt: string
-  payoutCents: number
   screenshots: string[]
   reviewNote: string | null
 }
@@ -22,7 +20,6 @@ const FILTERS: { label: string; status: SubmissionStatus | null }[] = [
   { label: "All", status: null },
   { label: "Pending", status: "pending" },
   { label: "Approved", status: "approved" },
-  { label: "Paid", status: "paid" },
   { label: "Needs Changes", status: "changes_requested" },
 ]
 
@@ -30,7 +27,6 @@ const STATUS_STYLE: Record<SubmissionStatus, { color: string; bg: string; border
   pending: { color: "#E8FF47", bg: "rgba(232,255,71,0.10)", border: "rgba(232,255,71,0.30)" },
   approved: { color: "#3FFFA2", bg: "rgba(63,255,162,0.10)", border: "rgba(63,255,162,0.30)" },
   changes_requested: { color: "#FF4F4F", bg: "rgba(255,79,79,0.10)", border: "rgba(255,79,79,0.30)" },
-  paid: { color: "#0E0E10", bg: "#3FFFA2", border: "#3FFFA2" },
 }
 
 const PREVIEW_LIMIT = 3
@@ -148,14 +144,6 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                     >
                       {STATUS_LABEL[s.status]}
                     </span>
-                    {s.payoutCents > 0 && (
-                      <span
-                        className="font-mono font-bold text-[14px]"
-                        style={{ color: s.status === "paid" ? "#3FFFA2" : "#8A8A99" }}
-                      >
-                        {formatMoney(s.payoutCents)}
-                      </span>
-                    )}
                   </div>
                 </div>
               </Link>

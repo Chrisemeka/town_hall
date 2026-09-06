@@ -68,7 +68,6 @@ export default async function EditMissionPage({
         initialDeviceTarget={mission.device_target ?? "both"}
         initialSteps={initialSteps}
         initialTemplateId={mission.template_id ?? null}
-        initialPayoutCents={mission.payout_cents ?? 0}
         initialCategory={mission.category ?? ""}
         isActive={mission.is_active !== false}
       />

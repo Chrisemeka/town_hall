@@ -21,8 +21,8 @@ const ROLES = [
     type: "tester" as const,
     icon: FlaskConical,
     label: "I'm a Tester",
-    blurb: "Pick up missions, submit real feedback with proof, get paid, and build a reputation.",
-    bullets: ["Browse open missions", "Submit feedback + screenshots", "Earn and build a rank"],
+    blurb: "Pick up missions, work through the builder's test case step by step, and file feedback they have to answer.",
+    bullets: ["Browse open missions", "File a step-by-step audit log", "See what the builder did with it"],
   },
 ]
 

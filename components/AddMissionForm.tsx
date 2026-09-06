@@ -6,7 +6,6 @@ import { createMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
-import { MissionRewardFields } from "@/components/MissionRewardFields"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import {
   MISSION_TITLE_MAX,
@@ -38,7 +37,6 @@ export default function AddMissionForm({
       title: fd.get("title"),
       task_description: fd.get("task_description"),
       intent: fd.get("intent"),
-      payout: fd.get("payout"),
       category: fd.get("category"),
       device_target: fd.get("device_target"),
       test_steps: fd.get("test_steps"),
@@ -111,8 +109,6 @@ export default function AddMissionForm({
             </span>
           </div>
         </div>
-
-        <MissionRewardFields payoutError={fieldErrors.payout} />
 
         <TestCaseEditor
           initialCategory={null}

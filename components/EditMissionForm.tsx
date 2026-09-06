@@ -6,7 +6,6 @@ import { updateMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
-import { MissionRewardFields } from "@/components/MissionRewardFields"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import {
   MISSION_TITLE_MAX,
@@ -22,7 +21,6 @@ export default function EditMissionForm({
   projectName,
   initialTitle,
   initialDescription,
-  initialPayoutCents = 0,
   initialCategory = "",
   initialDeviceTarget = "both",
   initialSteps,
@@ -34,7 +32,6 @@ export default function EditMissionForm({
   projectName: string
   initialTitle: string
   initialDescription: string
-  initialPayoutCents?: number
   initialCategory?: string
   initialDeviceTarget?: string
   /** Already parsed by the page — an unparseable column renders as no steps. */
@@ -61,7 +58,6 @@ export default function EditMissionForm({
       title: fd.get("title"),
       task_description: fd.get("task_description"),
       intent: fd.get("intent"),
-      payout: fd.get("payout"),
       category: fd.get("category"),
       device_target: fd.get("device_target"),
       test_steps: fd.get("test_steps"),
@@ -128,11 +124,6 @@ export default function EditMissionForm({
             </span>
           </div>
         </div>
-
-        <MissionRewardFields
-          defaultPayout={initialPayoutCents > 0 ? initialPayoutCents / 100 : undefined}
-          payoutError={fieldErrors.payout}
-        />
 
         <TestCaseEditor
           initialCategory={initialCategory || null}

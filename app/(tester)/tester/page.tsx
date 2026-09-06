@@ -1,14 +1,13 @@
 import Link from "next/link"
-import { Compass, LineChart, UserCog } from "lucide-react"
+import { Compass, UserCog } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { requireAccount } from "@/lib/auth"
-import { averageRating, earningsFrom, isNewMission } from "@/lib/tester"
+import { isNewMission } from "@/lib/utils/mission"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { one } from "@/lib/utils/project"
 import type { SubmissionStatus } from "@/lib/review"
 import { MissionStrip, type StripMission } from "@/components/tester/MissionStrip"
 import { SubmissionsFeed, type FeedSubmission } from "@/components/tester/SubmissionsFeed"
-import { ProfilePanel } from "@/components/tester/ProfilePanel"
 
 export const metadata = { title: "Tester Home — Twnhall" }
 
@@ -20,14 +19,12 @@ type SubmissionRow = {
   id: string
   created_at: string
   status: string | null
-  rating: number | null
   review_note: string | null
   screenshot_url: string | null
   screenshot_urls: string[] | null
   mission_id: string
   missions: Embed<{
     title: string
-    payout_cents: number | null
     projects: Embed<{ name: string }>
   }>
 }
@@ -36,7 +33,6 @@ type MissionRow = {
   id: string
   title: string
   created_at: string
-  payout_cents: number | null
   category: string | null
   load_test_at: string | null
   testers_needed: number | null
@@ -47,7 +43,6 @@ const STRIP_LIMIT = 6
 
 const QUICK_ACTIONS = [
   { label: "Browse Missions", href: "/explore/missions", icon: Compass, primary: true },
-  { label: "Earnings History", href: "#earnings", icon: LineChart, primary: false },
   { label: "Update Profile", href: "/settings", icon: UserCog, primary: false },
 ]
 
@@ -61,8 +56,8 @@ export default async function TesterHomePage() {
     supabase
       .from("test_results")
       .select(`
-        id, created_at, status, rating, review_note, screenshot_url, screenshot_urls, mission_id,
-        missions ( title, payout_cents, projects ( name ) )
+        id, created_at, status, review_note, screenshot_url, screenshot_urls, mission_id,
+        missions ( title, projects ( name ) )
       `)
       .eq("tester_id", userId)
       .order("created_at", { ascending: false }),
@@ -70,7 +65,7 @@ export default async function TesterHomePage() {
     supabase
       .from("missions")
       .select(`
-        id, title, created_at, payout_cents, category, load_test_at, testers_needed,
+        id, title, created_at, category, load_test_at, testers_needed,
         projects ( name, owner_id, flagged_at )
       `)
       .order("created_at", { ascending: false }),
@@ -90,16 +85,10 @@ export default async function TesterHomePage() {
       projectName: project?.name ?? "Unknown project",
       status: (r.status ?? "pending") as SubmissionStatus,
       createdAt: r.created_at,
-      payoutCents: mission?.payout_cents ?? 0,
       screenshots: screenshotList(r),
       reviewNote: r.review_note ?? null,
     }
   })
-
-  /* ── Earnings & reputation — all derived off the feed ───────────────── */
-
-  const earnings = earningsFrom(submissions.map((s) => ({ status: s.status, payout_cents: s.payoutCents })))
-  const avgRating = averageRating(subRows.map((r) => r.rating ?? null))
 
   /* ── New missions strip ─────────────────────────────────────────────── */
 
@@ -122,7 +111,6 @@ export default async function TesterHomePage() {
         title: m.title,
         projectName: project?.name ?? "Unknown project",
         category: m.category ?? null,
-        payoutCents: m.payout_cents ?? 0,
         isNew: isNewMission(m.created_at),
         loadTestAt: m.load_test_at ?? null,
         testersNeeded: m.testers_needed ?? null,
@@ -190,23 +178,9 @@ export default async function TesterHomePage() {
         <MissionStrip missions={missions} />
       </section>
 
-      {/* Zones 2 + 3 — Submissions feed alongside earnings/reputation */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 items-start">
-        <SubmissionsFeed submissions={submissions} />
-        <div id="earnings" className="scroll-mt-20">
-          <ProfilePanel
-            earnings={earnings}
-            avgRating={avgRating}
-            signals={[
-              // Google is the only auth provider, so a session means a verified
-              // Google email. The rest have no backing feature yet and render
-              // as unearned prompts, exactly as the mockup shows them.
-              { label: "Email verified", earned: true },
-              { label: "Add payout method", earned: false },
-            ]}
-          />
-        </div>
-      </div>
+      {/* Zone 2 — Submissions feed. Full width since the earnings panel that
+          held the second column went with payments. */}
+      <SubmissionsFeed submissions={submissions} />
 
     </div>
   )

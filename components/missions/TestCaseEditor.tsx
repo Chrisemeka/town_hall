@@ -22,10 +22,9 @@ import {
 /**
  * The test-case half of both mission forms — category, template, steps, device.
  *
- * One component used by AddMissionForm and EditMissionForm, the way
- * MissionRewardFields already is. The two forms were near-duplicates before
- * this; giving each its own copy of a step editor is how they would have
- * genuinely diverged.
+ * One component used by both AddMissionForm and EditMissionForm. The two forms
+ * were near-duplicates before this; giving each its own copy of a step editor is
+ * how they would have genuinely diverged.
  *
  * Owns its state and mirrors it into hidden inputs, so the parent forms keep
  * submitting plain FormData and neither has to know how a step is shaped.

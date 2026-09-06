@@ -1,13 +1,11 @@
 import Link from "next/link"
 import { Clock, Compass, Users } from "lucide-react"
-import { formatMoney } from "@/lib/tester"
 
 export type StripMission = {
   id: string
   title: string
   projectName: string
   category: string | null
-  payoutCents: number
   isNew: boolean
   loadTestAt: string | null
   testersNeeded: number | null
@@ -86,11 +84,6 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                     {m.projectName}
                   </span>
                 </div>
-                {m.payoutCents > 0 && (
-                  <span className="font-mono font-bold text-[16px] text-voltage shrink-0">
-                    {formatMoney(m.payoutCents)}
-                  </span>
-                )}
               </div>
 
               <p className="font-mono text-[13px] leading-5 text-ash line-clamp-2">

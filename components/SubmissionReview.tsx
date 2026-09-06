@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useState } from "react"
-import { Check, RotateCcw, Star, Banknote } from "lucide-react"
+import { Check, RotateCcw, Star } from "lucide-react"
 import { reviewSubmission, type ReviewState } from "@/actions/review"
 import { STATUS_LABEL, type ReviewAction, type SubmissionStatus } from "@/lib/review"
 import { Button } from "@/components/ui/Button"
@@ -10,7 +10,6 @@ const STATUS_STYLE: Record<SubmissionStatus, { color: string; dot: string }> = {
   pending: { color: "#E8FF47", dot: "#E8FF47" },
   approved: { color: "#3FFFA2", dot: "#3FFFA2" },
   changes_requested: { color: "#FF4F4F", dot: "#FF4F4F" },
-  paid: { color: "#3FFFA2", dot: "#3FFFA2" },
 }
 
 function StatusPill({ status }: { status: SubmissionStatus }) {
@@ -71,7 +70,6 @@ export default function SubmissionReview({
   const [stars, setStars] = useState(rating ?? 0)
 
   const errors = state && !state.success ? state.fieldErrors : undefined
-  const isPaid = status === "paid"
 
   return (
     <div className="mt-6 pt-5 border-t border-iron flex flex-col gap-4">
@@ -88,7 +86,7 @@ export default function SubmissionReview({
           )}
         </div>
 
-        {!isPaid && !draft && (
+        {!draft && (
           <div className="flex items-center gap-2">
             {status !== "approved" && (
               <Button size="sm" onClick={() => setDraft("approve")} className="gap-1.5">
@@ -103,15 +101,6 @@ export default function SubmissionReview({
             >
               <RotateCcw className="w-3.5 h-3.5" /> Request Changes
             </Button>
-            {status === "approved" && (
-              <form action={formAction}>
-                <input type="hidden" name="resultId" value={resultId} />
-                <input type="hidden" name="action" value="mark_paid" />
-                <Button size="sm" type="submit" disabled={pending} className="gap-1.5">
-                  <Banknote className="w-3.5 h-3.5" /> Mark as Paid
-                </Button>
-              </form>
-            )}
           </div>
         )}
       </div>
