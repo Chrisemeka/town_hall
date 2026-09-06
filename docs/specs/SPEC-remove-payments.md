@@ -1,6 +1,8 @@
 # SPEC: Remove Payments
 
-**Status:** Awaiting approval — **and blocked on two data decisions, see "Live data" below**
+**Status:** Shipped — migration applied 2026-09-06. Both data decisions below were resolved: the
+accounts holding those payouts are beta testers, no payment rail was ever connected, and no real
+money was involved, so nothing needed settling or notifying before the column was dropped.
 **Branch:** `chore/remove-payments`
 **Base branch:** `main` (at `9df73cf`, after the four v2 PRs and the mobile fix)
 **Depends on:** Nothing.

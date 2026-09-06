@@ -16,6 +16,11 @@
 --    $6.00  Test functionality                    c352f3f1-9ab3-4b83-ba9e-fde7cab431a2
 --    $1.00  Inventory Tracking                    2a62095c-ed0d-4fb8-9a17-943edc9c1363
 --
+-- Those are beta test accounts and the figures were never backed by real money:
+-- no payment rail was ever connected, nothing was owed, and nobody was out of
+-- pocket when the column went. The amounts are recorded because they were real
+-- rows, not because anyone was paid or unpaid.
+--
 -- The other 12 were already at 0. One submission was marked paid —
 -- 6b3b7bbd-64e6-4f25-8dba-3f527ea22c27, on "Test functionality", reviewed
 -- 2026-06-30 — and one more sat approved-but-unsettled on the same mission.
