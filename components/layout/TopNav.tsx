@@ -42,7 +42,7 @@ export function TopNav({
       </div>
 
       {/* Center: Global Search */}
-      <div className="flex-1 max-w-[320px] mx-4 md:mx-6">
+      <div className="flex-1 max-w-[320px] mx-2 sm:mx-4 md:mx-6">
         <GlobalSearch />
       </div>
 

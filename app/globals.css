@@ -49,3 +49,27 @@
   /* Box Shadows */
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
 }
+/*
+ * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
+ *
+ * A keyframe rather than a transition on an always-mounted element. The form
+ * used to sit at opacity 0 while still taking up its full height, which left
+ * the tester mission page with roughly 2000px of dead scroll before the URL was
+ * opened — and the audit log is several times taller than the comment box it
+ * replaced, so it got worse rather than better. The form is now mounted only
+ * once unlocked, and a transition cannot animate an element that was display:
+ * none a frame ago.
+ */
+@keyframes th-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.th-fade-in {
+  animation: th-fade-in 300ms ease-out both;
+}
+
+/* Someone who asked for less motion gets the end state, not the animation. */
+@media (prefers-reduced-motion: reduce) {
+  .th-fade-in { animation: none; }
+}

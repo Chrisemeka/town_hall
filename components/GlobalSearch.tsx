@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, LayoutDashboard, Target, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { one } from "@/lib/utils/project"
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db"
 
@@ -30,6 +31,10 @@ export function GlobalSearch() {
   const [fetched,    setFetched]    = useState<Result[]>([])
   const [fetchedFor, setFetchedFor] = useState("")
 
+  // max-width, not !min-width: useMediaQuery answers false on the server, so
+  // this way the server renders the long placeholder and only narrow clients
+  // swap after hydration — rather than every desktop doing it.
+  const narrow = useMediaQuery("(max-width: 639px)")
   const containerRef  = useRef<HTMLDivElement>(null)
   const inputRef      = useRef<HTMLInputElement>(null)
 
@@ -152,7 +157,10 @@ export function GlobalSearch() {
           ref={inputRef}
           type="text"
           value={query}
-          placeholder="Search projects or missions..."
+          // Two placeholders rather than one truncated: at 480px the long
+          // version renders as "Search projects o", which reads as a bug.
+          // CSS cannot swap placeholder text, so the breakpoint is read here.
+          placeholder={narrow ? "Search…" : "Search projects or missions..."}
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}

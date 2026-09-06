@@ -237,14 +237,12 @@ export default function AuditLogForm({
         <ExternalLink className="w-4 h-4" />
       </button>
 
-      {/* Feedback form — fades in after unlock */}
-      <div
-        style={{
-          opacity: unlocked ? 1 : 0,
-          pointerEvents: unlocked ? "auto" : "none",
-          transition: "opacity 300ms ease-out",
-        }}
-      >
+      {/* Feedback form — mounted on unlock, not merely faded.
+          Keeping it mounted at opacity 0 left the page reserving its full
+          height before the tester had opened anything, which the audit log
+          made several screens' worth of dead scroll. */}
+      {unlocked && (
+      <div className="th-fade-in">
         {submitError && (
           <div
             className="mb-6 px-4 py-3 rounded-[8px]"
@@ -431,6 +429,7 @@ export default function AuditLogForm({
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }
