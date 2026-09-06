@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAccount } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -17,13 +18,22 @@ export default async function NewMissionPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/explore");
 
+  const { userId } = await requireAccount("builder");
+
   const { data: project } = await supabase
     .from("projects")
-    .select("id, name")
+    .select("id, name, owner_id")
     .eq("id", projectId)
     .single();
 
   if (!project) return notFound();
+
+  // Ownership, in the page as well as in middleware. accessFor() only proves
+  // the caller is a builder — every /dashboard/[projectId] route is one builder's
+  // alone, and nothing else was checking whose. notFound rather than a 403: a
+  // refusal that distinguishes "not yours" from "no such project" confirms the
+  // project exists.
+  if (project.owner_id !== userId) return notFound();
 
   return (
     <div className="max-w-[640px] mx-auto px-6 py-10">

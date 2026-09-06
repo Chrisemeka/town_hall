@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAccount } from "@/lib/auth";
+import { one } from "@/lib/utils/project";
+import type { Embedded, ProjectRow } from "@/lib/types/db";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -18,15 +21,28 @@ export default async function EditMissionPage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/explore");
 
+  const { userId } = await requireAccount("builder");
+
   const { data: mission } = await supabase
     .from("missions")
-    .select("*, projects(id, name)")
+    .select("*, projects(id, name, owner_id)")
     .eq("id", missionId)
     .single();
 
   if (!mission) return notFound();
 
-  const projectName = (mission.projects as { name: string } | null)?.name ?? "Project";
+  // Ownership, in the page as well as in middleware. accessFor() only proves the
+  // caller is a builder, and nothing here was checking whose mission this is.
+  // Checked against the mission's OWN project rather than the projectId in the
+  // URL — otherwise owning the project in the path would be enough to open
+  // someone else's mission through it. The project_id match is the other half:
+  // it keeps the breadcrumb honest. notFound rather than a 403, so a refusal
+  // does not confirm the mission exists.
+  const missionProject = one(mission.projects as Embedded<Pick<ProjectRow, "id" | "name" | "owner_id">>);
+  if (missionProject?.owner_id !== userId) return notFound();
+  if (mission.project_id !== projectId) return notFound();
+
+  const projectName = missionProject?.name ?? "Project";
 
   // Parsed here rather than in the form: test_steps is jsonb and nothing in the
   // database constrains its shape, so a row written before the schema existed —

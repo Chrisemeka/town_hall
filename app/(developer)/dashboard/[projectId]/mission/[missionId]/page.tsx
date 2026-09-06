@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 import { one } from "@/lib/utils/project";
@@ -21,6 +22,7 @@ export default async function DeveloperMissionDetailPage({
   params: Promise<{ projectId: string; missionId: string }>;
 }) {
   const supabase = await createClient();
+  const { userId } = await requireAccount("builder");
   const { projectId, missionId } = await params;
 
   const [missionRes, resultsRes] = await Promise.all([
@@ -33,6 +35,17 @@ export default async function DeveloperMissionDetailPage({
   ]);
 
   if (!missionRes.data) return notFound();
+
+  // Ownership, in the page as well as in middleware. accessFor() only proves the
+  // caller is a builder, and nothing here was checking whose mission this is.
+  // Checked against the mission's OWN project rather than the projectId in the
+  // URL — otherwise owning the project in the path would be enough to open
+  // someone else's mission through it. The project_id match is the other half:
+  // it keeps the breadcrumb honest. notFound rather than a 403, so a refusal
+  // does not confirm the mission exists.
+  const missionProject = one(missionRes.data.projects as Embedded<ProjectRow>);
+  if (missionProject?.owner_id !== userId) return notFound();
+  if (missionRes.data.project_id !== projectId) return notFound();
 
   const mission = missionRes.data;
   const results = resultsRes.data || [];

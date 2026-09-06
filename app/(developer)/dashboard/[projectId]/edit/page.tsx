@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAccount } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -10,6 +11,7 @@ export default async function EditProjectPage({
   params: Promise<{ projectId: string }>;
 }) {
   const supabase = await createClient();
+  const { userId } = await requireAccount("builder");
   const { projectId } = await params;
 
   const { data: project } = await supabase
@@ -19,6 +21,13 @@ export default async function EditProjectPage({
     .single();
 
   if (!project) return notFound();
+
+  // Ownership, in the page as well as in middleware. accessFor() only proves
+  // the caller is a builder — every /dashboard/[projectId] route is one builder's
+  // alone, and nothing else was checking whose. notFound rather than a 403: a
+  // refusal that distinguishes "not yours" from "no such project" confirms the
+  // project exists.
+  if (project.owner_id !== userId) return notFound();
 
   return (
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">

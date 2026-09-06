@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAccount } from "@/lib/auth";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, TestResultRow } from "@/lib/types/db";
 
@@ -34,6 +35,7 @@ export default async function ProjectDetailPage({
   params: Promise<{ projectId: string }>;
 }) {
   const supabase = await createClient();
+  const { userId } = await requireAccount("builder");
   const { projectId } = await params;
 
   const [projectRes, missionsRes, resultsRes] = await Promise.all([
@@ -51,6 +53,13 @@ export default async function ProjectDetailPage({
   ]);
 
   if (!projectRes.data) return notFound();
+
+  // Ownership, in the page as well as in middleware. accessFor() only proves
+  // the caller is a builder — every /dashboard/[projectId] route is one builder's
+  // alone, and nothing else was checking whose. notFound rather than a 403: a
+  // refusal that distinguishes "not yours" from "no such project" confirms the
+  // project exists.
+  if (projectRes.data.owner_id !== userId) return notFound();
 
   const project  = projectRes.data;
   const missions = (missionsRes.data ?? []) as ProjectMission[];
