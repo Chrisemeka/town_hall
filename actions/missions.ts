@@ -8,7 +8,6 @@ import { redirect } from "next/navigation"
 import {
   createMissionSchema,
   updateMissionSchema,
-  toCents,
   toFieldErrors,
   type CreateMissionInput,
   type UpdateMissionInput,
@@ -48,7 +47,6 @@ export async function createMission(
     title: formData.get("title"),
     task_description: formData.get("task_description"),
     intent: formData.get("intent"),
-    payout: formData.get("payout"),
     category: formData.get("category"),
     device_target: formData.get("device_target"),
     test_steps: formData.get("test_steps"),
@@ -61,7 +59,7 @@ export async function createMission(
     }
   }
 
-  const { projectId, template_id, title, task_description, intent, payout, category, device_target, test_steps } =
+  const { projectId, template_id, title, task_description, intent, category, device_target, test_steps } =
     parsed.data
   const is_active = intent === "publish"
 
@@ -76,7 +74,6 @@ export async function createMission(
       title,
       task_description,
       is_active,
-      payout_cents: toCents(payout),
       category,
       device_target,
       test_steps,
@@ -108,7 +105,6 @@ export async function updateMission(
     title: formData.get("title"),
     task_description: formData.get("task_description"),
     intent: formData.get("intent"),
-    payout: formData.get("payout"),
     category: formData.get("category"),
     device_target: formData.get("device_target"),
     test_steps: formData.get("test_steps"),
@@ -121,7 +117,7 @@ export async function updateMission(
     }
   }
 
-  const { missionId, projectId, title, task_description, intent, payout, category, device_target, test_steps } =
+  const { missionId, projectId, title, task_description, intent, category, device_target, test_steps } =
     parsed.data
   const is_active = intent === "publish"
 
@@ -135,7 +131,6 @@ export async function updateMission(
       title,
       task_description,
       is_active,
-      payout_cents: toCents(payout),
       category,
       device_target,
       test_steps,

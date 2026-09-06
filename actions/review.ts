@@ -79,14 +79,10 @@ export async function reviewSubmission(
   const current = (row.status ?? "pending") as SubmissionStatus
   const next = nextStatus(current, action)
 
+  // Unreachable while every transition is legal, and kept deliberately: it is
+  // the guard that catches the day nextStatus starts refusing one.
   if (next === null) {
-    return {
-      success: false,
-      error:
-        action === "mark_paid"
-          ? "A submission has to be approved before it can be paid."
-          : "This submission is already paid and can't be changed.",
-    }
+    return { success: false, error: "That review can't be applied to this submission." }
   }
 
   const patch: Record<string, unknown> = { status: next, reviewed_at: new Date().toISOString() }
@@ -106,7 +102,7 @@ export async function reviewSubmission(
 
   revalidatePath(`/dashboard/${mission?.project_id}/mission/${row.mission_id}`)
   revalidatePath("/dashboard/feedback")
-  // The tester's home reads status, payout, and rating straight off this row.
+  // The tester's home reads status and rating straight off this row.
   revalidatePath("/tester")
 
   return { success: true }
