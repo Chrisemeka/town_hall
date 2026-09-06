@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { one } from "@/lib/utils/project"
-import { nextStatus, type SubmissionStatus } from "@/lib/review"
+import { nextStatus, toStatus } from "@/lib/review"
 import {
   reviewSchema,
   toFieldErrors,
@@ -76,7 +76,7 @@ export async function reviewSubmission(
     return { success: false, error: "You can only review submissions on your own projects." }
   }
 
-  const current = (row.status ?? "pending") as SubmissionStatus
+  const current = toStatus(row.status)
   const next = nextStatus(current, action)
 
   // Unreachable while every transition is legal, and kept deliberately: it is

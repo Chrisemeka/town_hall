@@ -8,6 +8,7 @@ import {
   SUBMISSION_STATUSES,
   isComplete,
   nextStatus,
+  toStatus,
   STATUS_LABEL,
   type ReviewAction,
 } from "../lib/review.ts"
@@ -57,6 +58,24 @@ assert.equal(nextStatus("approved", "request_changes"), "changes_requested")
 /* ── completion ──────────────────────────────────────────────────────── */
 
 assert.deepEqual(SUBMISSION_STATUSES.filter(isComplete), ["approved"])
+
+/* ── the retired `paid` value off the database column ────────────────── */
+
+// The column is text and still holds `paid` on rows written before payments
+// were removed. It maps to `approved` — the same collapse the migration makes —
+// so the app is right in the window between deploy and migration, rather than
+// looking up a Record key that isn't there and throwing.
+assert.equal(toStatus("paid"), "approved")
+assert.equal(toStatus("pending"), "pending")
+assert.equal(toStatus("approved"), "approved")
+assert.equal(toStatus("changes_requested"), "changes_requested")
+assert.equal(toStatus(null), "pending")
+assert.equal(toStatus(undefined), "pending")
+assert.equal(toStatus("something nobody wrote"), "pending")
+
+for (const status of SUBMISSION_STATUSES) {
+  assert.ok(STATUS_LABEL[toStatus(status)], "every narrowed status has a label")
+}
 
 /* ── mark_paid is rejected at the boundary ───────────────────────────── */
 

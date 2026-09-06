@@ -5,7 +5,7 @@ import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertT
 import { Badge } from "@/components/ui/Badge"
 import { screenshotList } from "@/lib/utils/screenshots"
 import SubmissionReview from "@/components/SubmissionReview"
-import type { SubmissionStatus } from "@/lib/review"
+import { toStatus } from "@/lib/review"
 import type { TestResultRow } from "@/lib/types/db"
 import { SubmissionBody, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 
@@ -208,7 +208,7 @@ export default function MissionResultRow({
       {/* REVIEW — approve / request changes / rate */}
       <SubmissionReview
         resultId={result.id}
-        status={(result.status ?? "pending") as SubmissionStatus}
+        status={toStatus(result.status)}
         rating={result.rating ?? null}
         reviewNote={result.review_note ?? null}
       />

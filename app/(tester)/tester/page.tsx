@@ -5,7 +5,7 @@ import { requireAccount } from "@/lib/auth"
 import { isNewMission } from "@/lib/utils/mission"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { one } from "@/lib/utils/project"
-import type { SubmissionStatus } from "@/lib/review"
+import { toStatus } from "@/lib/review"
 import { MissionStrip, type StripMission } from "@/components/tester/MissionStrip"
 import { SubmissionsFeed, type FeedSubmission } from "@/components/tester/SubmissionsFeed"
 
@@ -83,7 +83,7 @@ export default async function TesterHomePage() {
       missionId: r.mission_id,
       missionTitle: mission?.title ?? "Untitled mission",
       projectName: project?.name ?? "Unknown project",
-      status: (r.status ?? "pending") as SubmissionStatus,
+      status: toStatus(r.status),
       createdAt: r.created_at,
       screenshots: screenshotList(r),
       reviewNote: r.review_note ?? null,
