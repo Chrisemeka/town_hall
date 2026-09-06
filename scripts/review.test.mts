@@ -10,7 +10,6 @@ import {
   nextStatus,
   STATUS_LABEL,
   type ReviewAction,
-  type SubmissionStatus,
 } from "../lib/review.ts"
 import { reviewSchema } from "../lib/validation/schemas.ts"
 import { isNewMission } from "../lib/utils/mission.ts"

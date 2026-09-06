@@ -58,8 +58,8 @@ missions ───────────┘  └── test_result_entries   o
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
 | `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`. Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
-| `missions`     | `id`, `project_id`, `title`, `task_description`, `is_active`, `payout_cents`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
-| `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`\|`paid`), `rating`, `review_note`, `reviewed_at` |
+| `missions`     | `id`, `project_id`, `title`, `task_description`, `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
+| `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
 | `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result`, `expected_result` |
 
 **`missions.test_steps` is jsonb, `test_result_entries` is a table.** The asymmetry is deliberate:
@@ -114,8 +114,9 @@ disprove: RLS cannot restrict *which columns* an update touches. The owner-scope
 to exist correctly stopped one builder writing another's rows — but let a builder write **any column
 on their own row** straight through PostgREST with the public anon key, including
 `projects.flagged_at` (un-flagging themselves after moderation), `projects.owner_id`,
-`missions.payout_cents`, and arbitrary JSON into `missions.test_steps`. All four were verified
-against the live database before being closed.
+`missions.payout_cents` and arbitrary JSON into `missions.test_steps`. All four were verified against
+the live database before being closed. (`payout_cents` has since been dropped — the hole was real
+when it was found.)
 
 **Read policies still exist and are not uniform.** `projects` and `missions` are readable by anyone
 (`using (true)` — the Explore feed depends on it, including logged out). `test_results` has a
@@ -134,7 +135,9 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
   transaction. `SECURITY DEFINER` with a pinned `search_path`, and **execute is revoked from `anon`
   and `authenticated`** — a definer-rights function callable from the browser is a wider hole than
   any it closes. Grant new RPCs to `service_role` only, the same way.
-- `commit_mission_credits`, `request_withdrawal` — both reverted, but the pattern remains.
+- `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments
+  were removed from the product entirely. Named here only because the pattern they used is the one
+  to follow; nothing in Twnhall moves money.
 
 When you need a transaction: write the SQL function in a new migration, invoke via `.rpc()`. Never simulate transactions with sequential `.from().update()` calls.
 
@@ -176,7 +179,7 @@ Canonical reference: `Test.md`. Every feature ships with:
 
 ## Do Not Touch
 
-- **`missions.payout_cents`** — the column exists but its payment machinery was reverted. Do not wire anything to it outside of the explicit paid-missions feature work.
+- **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a balance, or a `paid` state without that being the explicit ask.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).
