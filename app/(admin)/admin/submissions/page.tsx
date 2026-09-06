@@ -7,6 +7,7 @@ import {
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
 import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+import type { SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { screenshotList } from "@/lib/utils/screenshots"
 
 /** Exactly what the four selects below ask for. */
@@ -55,6 +56,24 @@ export default async function AdminSubmissionsPage() {
     ]),
   )
 
+  // Entries for the listed results. Same service-role read as the builder
+  // surfaces; admins already see every submission, so this widens nothing.
+  const resultIds = ((resultsRes.data ?? []) as ResultLite[]).map((r) => r.id)
+  const { data: entryRows } = resultIds.length
+    ? await admin
+        .from("test_result_entries")
+        .select("id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result")
+        .in("test_result_id", resultIds)
+        .order("step_index", { ascending: true })
+    : { data: [] }
+
+  const entriesByResult = new Map<string, SubmissionEntry[]>()
+  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
+    const list = entriesByResult.get(row.test_result_id) ?? []
+    list.push(row)
+    entriesByResult.set(row.test_result_id, list)
+  }
+
   const allSubmissions: SubmissionRow[] = ((resultsRes.data ?? []) as ResultLite[]).map((r) => {
     const mission = missionById.get(r.mission_id)
     const project = mission ? projectById.get(mission.projectId) : undefined
@@ -70,6 +89,7 @@ export default async function AdminSubmissionsPage() {
       mission: mission ? { id: r.mission_id, title: mission.title } : null,
       project: mission && project ? { id: mission.projectId, name: project.name } : null,
       tester,
+      entries: entriesByResult.get(r.id) ?? null,
     }
   })
 

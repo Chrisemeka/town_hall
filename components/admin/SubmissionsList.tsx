@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Smile, Meh, Frown, ExternalLink } from "lucide-react"
 import { SubmissionRowActions } from "./SubmissionRowActions"
+import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 
 export type Sentiment = "POSITIVE" | "NEUTRAL" | "FRUSTRATED" | "UNKNOWN"
 
@@ -8,6 +9,7 @@ export type SubmissionRow = {
   id: string
   createdAt: string
   testerComment: string
+  entries?: SubmissionEntry[] | null
   aiSummary: string | null
   aiSentiment: Sentiment
   screenshotUrls: string[]
@@ -136,6 +138,11 @@ export function SubmissionsList({
                 </div>
 
                 {/* Tester comment */}
+                {s.entries?.length ? (
+                  <div className="mb-2">
+                    <PassRate entries={s.entries} />
+                  </div>
+                ) : null}
                 {s.testerComment && (
                   <p className="font-mono text-[14px] text-chalk leading-5 whitespace-pre-wrap mb-3">
                     {s.testerComment}
