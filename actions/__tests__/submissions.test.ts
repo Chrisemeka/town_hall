@@ -1,0 +1,277 @@
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
+// after() normally defers to the response; run it inline so the AI path is
+// exercised rather than silently skipped.
+vi.mock("next/server", () => ({ after: vi.fn((fn: () => unknown) => fn()) }))
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(),
+  uploadToStorage: vi.fn(async (_c: unknown, file: File) => ({ path: `p/${file.name}` })),
+  getPublicUrl: vi.fn((_c: unknown, path: string) => `https://cdn.example/${path}`),
+}))
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+vi.mock("@/lib/auth", () => ({ getActiveAccount: vi.fn() }))
+vi.mock("@/lib/ai", () => ({
+  generateAnalysis: vi.fn(async () => ({ text: "Looks solid.\nPOSITIVE" })),
+  parseSentiment: vi.fn(() => "POSITIVE"),
+}))
+
+import { submitTestResult } from "@/actions/submissions"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { getActiveAccount } from "@/lib/auth"
+import { generateAnalysis } from "@/lib/ai"
+
+const TESTER_ID = "11111111-1111-4111-8111-111111111111"
+const OWNER_ID = "22222222-2222-4222-8222-222222222222"
+const MISSION_ID = "33333333-3333-4333-8333-333333333333"
+const RESULT_ID = "44444444-4444-4444-8444-444444444444"
+const STEP_A = "55555555-5555-4555-8555-555555555555"
+const STEP_B = "66666666-6666-4666-8666-666666666666"
+
+const MISSION_STEPS = [
+  { id: STEP_A, action: "Open the sign-up form", expected_result: "The form appears" },
+  { id: STEP_B, action: "Submit a valid email", expected_result: "A verification email arrives" },
+]
+
+const entry = (stepId: string, over: Record<string, unknown> = {}) => ({
+  step_id: stepId,
+  step_action: "Open the sign-up form",
+  step_expected: "The form appears",
+  status: "pass",
+  actual_result: "The form appeared straight away",
+  expected_result: "The form appears",
+  issue_summary: "",
+  steps_to_reproduce: "",
+  ...over,
+})
+
+function png(name = "shot.png") {
+  return new File([new Uint8Array([1, 2, 3])], name, { type: "image/png" })
+}
+
+function formData(over: { entries?: unknown; comment?: string; files?: File[] } = {}) {
+  const fd = new FormData()
+  fd.set("missionId", MISSION_ID)
+  fd.set("comment", over.comment ?? "")
+  fd.set(
+    "entries",
+    typeof over.entries === "string"
+      ? over.entries
+      : JSON.stringify(over.entries ?? [entry(STEP_A), entry(STEP_B)]),
+  )
+  for (const f of over.files ?? [png()]) fd.append("screenshots", f)
+  return fd
+}
+
+/** Records the rpc call; `rpcError` makes the write fail. */
+function mocks(opts: { ownerId?: string; steps?: unknown; rpcError?: { message: string } } = {}) {
+  const rpcCalls: { name: string; args: Record<string, unknown> }[] = []
+
+  vi.mocked(createClient).mockResolvedValue({
+    auth: { getUser: () => Promise.resolve({ data: { user: { id: TESTER_ID } } }) },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          single: () =>
+            Promise.resolve({
+              data: {
+                project_id: "p",
+                test_steps: opts.steps ?? MISSION_STEPS,
+                projects: { owner_id: opts.ownerId ?? OWNER_ID },
+              },
+            }),
+        }),
+      }),
+    }),
+  } as unknown as Awaited<ReturnType<typeof createClient>>)
+
+  vi.mocked(createAdminClient).mockReturnValue({
+    rpc: (name: string, args: Record<string, unknown>) => {
+      rpcCalls.push({ name, args })
+      return Promise.resolve({
+        data: opts.rpcError ? null : RESULT_ID,
+        error: opts.rpcError ?? null,
+      })
+    },
+    from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+  } as unknown as ReturnType<typeof createAdminClient>)
+
+  return rpcCalls
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.mocked(getActiveAccount).mockResolvedValue({
+    userId: TESTER_ID,
+    active: "tester",
+    types: ["tester"],
+    verified: true,
+  })
+})
+
+describe("submitTestResult", () => {
+  it("refuses an unauthenticated caller", async () => {
+    const rpc = mocks()
+    vi.mocked(createClient).mockResolvedValue({
+      auth: { getUser: () => Promise.resolve({ data: { user: null } }) },
+    } as unknown as Awaited<ReturnType<typeof createClient>>)
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses an account that is not acting as a tester", async () => {
+    const rpc = mocks()
+    vi.mocked(getActiveAccount).mockResolvedValue({
+      userId: TESTER_ID,
+      active: "builder",
+      types: ["builder"],
+      verified: true,
+    })
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses a tester submitting against their own project (SUB-02)", async () => {
+    const rpc = mocks({ ownerId: TESTER_ID })
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(false)
+    expect(result.success === false && result.error).toMatch(/own project/i)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("writes one row and its entries through the RPC", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+    expect(rpc[0].name).toBe("submit_audit_log")
+    expect(rpc[0].args.p_mission_id).toBe(MISSION_ID)
+    expect(rpc[0].args.p_tester_id).toBe(TESTER_ID)
+    expect((rpc[0].args.p_entries as unknown[]).length).toBe(2)
+  })
+
+  it("uploads screenshots before the write, so a failed upload persists nothing (SUB-03)", async () => {
+    const rpc = mocks()
+    const { uploadToStorage } = await import("@/lib/supabase/server")
+    vi.mocked(uploadToStorage).mockRejectedValueOnce(new Error("storage down"))
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("keeps the submission when AI analysis fails (SUB-04)", async () => {
+    const rpc = mocks()
+    vi.mocked(generateAnalysis).mockRejectedValueOnce(new Error("gemini down"))
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  it("rejects an entry naming a step the mission does not have", async () => {
+    // The snapshot makes this unfalsifiable after the write, so it has to be
+    // caught here.
+    const rpc = mocks()
+    const ghost = "77777777-7777-4777-8777-777777777777"
+
+    const result = await submitTestResult(formData({ entries: [entry(ghost), entry(STEP_B)] }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("rejects a log that does not cover every step", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ entries: [entry(STEP_A)] }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("rejects a failing step with no issue summary", async () => {
+    const rpc = mocks()
+    const entries = [
+      entry(STEP_A, { status: "fail", steps_to_reproduce: "1. Open it" }),
+      entry(STEP_B),
+    ]
+
+    const result = await submitTestResult(formData({ entries }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("rejects a failing step with no reproduction steps", async () => {
+    const rpc = mocks()
+    const entries = [entry(STEP_A, { status: "fail", issue_summary: "It broke" }), entry(STEP_B)]
+
+    const result = await submitTestResult(formData({ entries }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("accepts a passing step with neither", async () => {
+    // The whole reason the rule is conditional: "N/A" four times per passing
+    // step is how the data becomes worthless.
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  it("rejects malformed entries JSON as a field error rather than throwing", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ entries: "{not json" }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("accepts a comment-only submission on a mission with no steps", async () => {
+    // Thirteen of sixteen live missions are this shape.
+    const rpc = mocks({ steps: [] })
+
+    const result = await submitTestResult(
+      formData({ entries: [], comment: "Nothing structured to file against, but the nav is broken." }),
+    )
+
+    expect(result.success).toBe(true)
+    expect((rpc[0].args.p_entries as unknown[]).length).toBe(0)
+  })
+
+  it("refuses a submission that carries neither entries nor a comment", async () => {
+    const rpc = mocks({ steps: [] })
+
+    const result = await submitTestResult(formData({ entries: [], comment: "" }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("surfaces an RPC failure instead of reporting success", async () => {
+    mocks({ rpcError: { message: "deadlock detected" } })
+
+    const result = await submitTestResult(formData())
+
+    expect(result.success).toBe(false)
+  })
+})
