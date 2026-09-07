@@ -1,6 +1,6 @@
 # SPEC: Mission Notes, Conditional Audit Fields, and Screenshot Copy
 
-**Status:** Implemented, migration not yet applied — RPC-01 pending
+**Status:** Shipped — migration applied 2026-09-07, verified against the live database
 **Branch:** `feat/mission-notes-and-audit-fields`
 **Base branch:** `main`, with `feat/form-focus-and-errors` merged
 **Migration:** one — two column defaults and one function replacement
@@ -344,6 +344,26 @@ Per `CLAUDE.md`: migration → shared logic → server action → UI → tests.
    the lightbox alt describes the image.
 10. Only one button in the CTA row, and the line beneath it explains the auto-save. Reload
     mid-log — answers restored.
+
+## Verified against the live database, after the migration
+
+| Check | Result |
+|---|---|
+| `missions.task_description` default | `""` — and still `NOT NULL` |
+| `test_result_entries.actual_result` default | `""` — and still `NOT NULL` |
+| **RPC-01** — `submit_audit_log` with `actual_result` absent from the entry | accepted, row written |
+| What the column actually holds | `""`, not `null` — the `coalesce` is doing the work |
+| Cleanup | the verification row deleted, its entry cascaded, `0` of each remaining |
+| `anon` calling `submit_audit_log` | `401`, `42501 permission denied for function` |
+
+The entry sent carried exactly the keys `auditEntrySchema` produces for a pass —
+`step_id`, `step_action`, `step_expected`, `status`, `expected_result` — and no
+`actual_result` at all. Without the `coalesce` this is the insert that fails, so it
+is the one thing here that reading the definition could not have settled.
+
+The `anon` check is included because `create or replace` is exactly the operation
+where a `revoke` quietly stops applying. It did not, but the migration restates the
+grants rather than trusting that.
 
 ## Deviations from this spec, as built
 
