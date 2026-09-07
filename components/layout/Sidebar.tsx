@@ -60,6 +60,7 @@ function NavItem({
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 h-10 px-3 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian",
         isActive ? "text-voltage bg-[rgba(232,255,71,0.06)]" : "text-ash hover:text-chalk",
       )}
     >
@@ -125,7 +126,7 @@ export function Sidebar({
               <form action={switchAccount.bind(null, other)}>
                 <button
                   type="submit"
-                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 cursor-pointer"
+                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
                 >
                   <Repeat className="w-4 h-4 shrink-0" />
                   Switch to {other}
@@ -156,7 +157,7 @@ export function Sidebar({
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150"
+                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
                   style={{ paddingLeft: 12, paddingRight: 12 }}
                 >
                   <LogOut className="w-4 h-4 shrink-0" />

@@ -148,6 +148,7 @@ export function AuditLogSteps({
                     onClick={() => edit(index, { status })}
                     className={[
                       "h-10 px-4 rounded-[8px] border font-mono text-[13px] font-medium transition-colors duration-150",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite",
                       active
                         ? STATUS_ACTIVE[status]
                         : "border-iron text-ash bg-obsidian hover:border-ash hover:text-chalk",
