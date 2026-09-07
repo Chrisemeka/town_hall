@@ -550,7 +550,11 @@ User acting as **Submitter**. Managing their own submissions.
   - **Written Feedback** — textarea, min-height `160px`, placeholder: *"Share what you found — be specific and constructive."*
     - Helper: *"Great feedback is at least 100 characters."* (soft minimum with inline warning)
   - **Screenshot Upload** (required):
-    - Label: "PROOF OF VISIT" — same label style as above, `margin-top: 24px`
+    - Label: "SCREENSHOTS OF YOUR TEST" — same label style as above, `margin-top: 24px`.
+      Names the artefact, not its purpose: a first-time tester read "Proof of Visit"
+      and did not know a screenshot was wanted. The builder-side header is
+      "TEST SCREENSHOTS". The *reasoning* in §1 — that the screenshot is evidence
+      of a real visit as well as visual context — is unchanged and still the point.
     - Helper text (Body Small, Ash): *"Upload a screenshot from the project — this confirms you visited and provides visual context for your feedback."*
     - Upload zone: `background: #1A1A1F`, `border: 1px dashed #2C2C35`, `border-radius: 12px`, `padding: 32px`, min-height `140px`
     - Upload zone content (centered): upload icon (24px, Ash) + "Drop your screenshot here" (Body Small, Ash) + "or browse files" (Body Small, Voltage, clickable)

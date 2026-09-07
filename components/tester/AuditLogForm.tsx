@@ -334,12 +334,13 @@ export default function AuditLogForm({
           <span className="font-mono text-[12px] text-ash shrink-0">{feedback.length} chars</span>
         </div>
 
-        {/* PROOF OF VISIT */}
+        {/* Named for the artefact, not its purpose: a first-time tester read
+            "Proof of Visit" and did not know a screenshot was wanted. */}
         <p
           className="font-mono text-[11px] font-medium uppercase text-voltage mb-2"
           style={{ letterSpacing: "1px" }}
         >
-          Proof of Visit
+          Screenshots of Your Test
         </p>
         <p className="font-mono text-[13px] text-ash mb-4 leading-5">
           Upload screenshots from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB each, up to{" "}
@@ -471,6 +472,16 @@ export default function AuditLogForm({
                 : "Attach at least one screenshot to submit."}
             </p>
           )}
+          {/* The Save Draft button that used to sit beside Submit was the only
+              thing telling a tester their work was kept. It never kept it — it
+              wrote the comment box alone to a localStorage key nothing reads —
+              but the reassurance was real, and the auto-save above it
+              accidentally implied is real too. So it survives as a sentence.
+              "On this device" because that is the truth: nothing follows a
+              tester to another machine. */}
+          <p className="font-mono text-[12px] text-ash">
+            Your answers save on this device as you go.
+          </p>
         </div>
       </div>
       )}

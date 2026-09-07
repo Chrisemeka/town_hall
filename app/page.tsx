@@ -156,7 +156,7 @@ export default function LandingPage() {
                     num: "02",
                     icon: <Users className="w-5 h-5 text-voltage" />,
                     title: "Community developers test it",
-                    copy: "Real developers pick up your missions, visit your project, and submit written feedback with screenshot proof of visit.",
+                    copy: "Real developers pick up your missions, visit your project, and submit written feedback with screenshots of what they saw.",
                   },
                   {
                     num: "03",

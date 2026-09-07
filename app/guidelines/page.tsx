@@ -96,7 +96,7 @@ export default function GuidelinesPage() {
                 steps={[
                   "Browse available missions from your Tester home or the mission feed.",
                   "Pick a mission, visit the project URL, and follow the builder's instructions.",
-                  "Submit written feedback and at least one screenshot as proof of visit, tied directly to that mission.",
+                  "Submit written feedback and at least one screenshot of your test, tied directly to that mission.",
                   "Track the status on your Tester home. The builder either approves the work and rates it, or sends it back with a reason.",
                 ]}
               />
@@ -143,7 +143,7 @@ export default function GuidelinesPage() {
 
           <Divider />
 
-          {/* Proof of Visit */}
+          {/* The Screenshot Requirement */}
           <div>
             <h2 tabIndex={0} className="font-syne font-bold text-[28px] leading-[36px] text-midnight mb-4">
               The Screenshot Requirement
@@ -153,7 +153,7 @@ export default function GuidelinesPage() {
                 Every feedback submission requires two things: <span className="text-midnight">written feedback</span> and a <span className="text-midnight">screenshot from the project</span>.
               </p>
               <p tabIndex={0}>
-                The screenshot serves a dual purpose — it acts as proof of visit so submitters know you actually used their product, and it provides visual context that written feedback alone can&apos;t capture.
+Your screenshots do two jobs — they show the builder you actually used their product, and they carry the visual context written feedback can&apos;t. Capture the journey, not just the last screen.
               </p>
               <p tabIndex={0}>
                 This is not optional. Feedback without a screenshot cannot be submitted. This requirement is the trust layer that keeps the community honest.
