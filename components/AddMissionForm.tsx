@@ -9,9 +9,9 @@ import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
+import { MissionNotes } from "@/components/missions/MissionNotes"
 import {
   MISSION_TITLE_MAX,
-  MISSION_DESCRIPTION_MIN,
   createMissionSchema,
   toPathErrors,
 } from "@/lib/validation/schemas"
@@ -28,8 +28,15 @@ export default function AddMissionForm({
   const [description, setDescription] = useState("")
   const [clientErrors, setClientErrors] = useState<Record<string, string[]>>({})
   const banner = useRef<HTMLDivElement>(null)
-  const focusFirstError = useFocusFirstError({ fallback: banner })
+  const focusFirstError = useFocusFirstError({
+    fallback: banner,
+    // The notes live behind a disclosure; a field in a closed section
+    // cannot be focused, so open it and the hook retries.
+    reveal: (field) => { if (field === "task_description") setShowNotes(true) },
+  })
   const [stepsDirty, setStepsDirty] = useState(false)
+  // Unchecked by default: a new mission's brief is its test case.
+  const [showNotes, setShowNotes] = useState(false)
 
   useUnsavedChangesWarning(title.length > 0 || description.length > 0 || stepsDirty)
 
@@ -135,58 +142,13 @@ export default function AddMissionForm({
           onDirtyChange={setStepsDirty}
         />
 
-        {/* What to Test */}
-        <div className="flex flex-col gap-2">
-          <label htmlFor="task_description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
-            What to Test
-          </label>
-          <textarea
-            id="task_description"
-            name="task_description"
-            rows={8}
-            placeholder="Describe exactly what you want testers to do and what feedback you're looking for..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            {...fieldErrorProps("task_description", fieldErrors.task_description)}
-            className={[
-              "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
-              fieldErrors.task_description?.length ? "border-ember" : "border-iron focus:border-voltage",
-            ].join(" ")}
-          />
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <FieldError field="task_description" errors={fieldErrors.task_description} />
-              {!fieldErrors.task_description?.length && (
-                <p className={`font-mono text-[12px] ${description.length > 0 && description.length < MISSION_DESCRIPTION_MIN ? "text-voltage" : "text-ash"}`}>
-                  {description.length > 0 && description.length < MISSION_DESCRIPTION_MIN
-                    ? `${MISSION_DESCRIPTION_MIN - description.length} more characters needed.`
-                    : "Be specific — name the screens and the exact steps testers should follow."}
-                </p>
-              )}
-            </div>
-            <span className="font-mono text-[12px] text-ash shrink-0">
-              {description.length} chars
-            </span>
-          </div>
-        </div>
-
-        {/* Writing a Good Mission tip box */}
-        <div className="bg-obsidian border border-iron rounded-[12px] p-6">
-          <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
-            Writing a Good Mission
-          </p>
-          <div className="flex flex-col gap-3">
-            {[
-              'Start with a verb: "Navigate to…", "Click…", "Try to…"',
-              'Describe the exact flow, not just the feature.',
-              'Tell testers what to look for — friction, confusion, broken states.',
-            ].map((tip, i) => (
-              <p key={i} className="font-mono text-[13px] text-ash leading-5 italic">
-                {tip}
-              </p>
-            ))}
-          </div>
-        </div>
+        <MissionNotes
+          open={showNotes}
+          onOpenChange={setShowNotes}
+          value={description}
+          onChange={setDescription}
+          errors={fieldErrors.task_description}
+        />
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 pt-2">

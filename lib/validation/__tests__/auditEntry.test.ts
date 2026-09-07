@@ -40,7 +40,8 @@ describe("auditEntrySchema by status", () => {
   it("ENT-01b accepts a pass with the key absent entirely", () => {
     // What .optional() actually produces on the way back out, and what
     // submit_audit_log then has to coalesce.
-    const { actual_result: _omitted, ...rest } = draft()
+    const rest: Record<string, unknown> = { ...draft() }
+    delete rest.actual_result
     expect(auditEntrySchema.safeParse(rest).success).toBe(true)
   })
 

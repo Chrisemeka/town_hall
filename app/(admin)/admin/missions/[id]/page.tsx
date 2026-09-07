@@ -167,7 +167,7 @@ export default async function AdminMissionDetailPage({
 
       {/* Task description */}
       <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-3">Task</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-3">Notes</p>
         <div
           className="rounded-[12px] p-5"
           style={{
@@ -177,7 +177,7 @@ export default async function AdminMissionDetailPage({
           }}
         >
           <p className="font-mono text-[15px] text-chalk leading-6 whitespace-pre-wrap">
-            {mission.task_description || <span className="text-ash italic">No task description.</span>}
+            {mission.task_description || <span className="text-ash italic">No notes.</span>}
           </p>
         </div>
       </div>

@@ -145,12 +145,18 @@ export default async function DeveloperMissionDetailPage({
             {mission.title}
           </h1>
         </div>
-        <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mb-2">
-          EXECUTION PARAMETERS
-        </p>
-        <p className="font-mono text-[15px] leading-6 text-ash max-w-3xl">
-          {mission.task_description}
-        </p>
+        {/* Optional since 20260907_01 — omitted entirely rather than left as a
+            heading over blank space. */}
+        {mission.task_description && (
+          <>
+            <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mb-2">
+              NOTES FOR TESTERS
+            </p>
+            <p className="font-mono text-[15px] leading-6 text-ash max-w-3xl whitespace-pre-wrap">
+              {mission.task_description}
+            </p>
+          </>
+        )}
 
         <MissionChips
           category={mission.category}

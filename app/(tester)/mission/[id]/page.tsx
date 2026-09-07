@@ -84,37 +84,46 @@ export default async function MissionDetailPage({
         )}
       </div>
 
-      {/* YOUR MISSION callout */}
-      <div id="tour-mission-brief" className="mb-8">
-        <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
-          style={{ letterSpacing: "1px" }}
-        >
-          Your Mission
-        </p>
-        <div
-          style={{
-            background: "rgba(232,255,71,0.05)",
-            borderLeft: "3px solid #E8FF47",
-            borderRadius: "0 8px 8px 0",
-            padding: "16px 20px",
-          }}
-        >
-          <p className="font-mono text-[16px] text-chalk leading-6 whitespace-pre-wrap">
-            {mission.task_description}
-          </p>
-        </div>
+      <div className="mb-8">
+        {/* Optional since 20260907_01. Omitted rather than empty-stated: the
+            test case is directly below, so an absent notes block is a missing
+            block, not a screen with nothing on it (Design.md §8). */}
+        {mission.task_description && (
+          <div className="mb-6">
+            <p
+              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              style={{ letterSpacing: "1px" }}
+            >
+              Notes from the Builder
+            </p>
+            <div
+              style={{
+                background: "rgba(232,255,71,0.05)",
+                borderLeft: "3px solid #E8FF47",
+                borderRadius: "0 8px 8px 0",
+                padding: "16px 20px",
+              }}
+            >
+              <p className="font-mono text-[16px] text-chalk leading-6 whitespace-pre-wrap">
+                {mission.task_description}
+              </p>
+            </div>
+          </div>
+        )}
 
         <MissionChips
           category={mission.category}
           deviceTarget={mission.device_target}
-          className="mt-4"
         />
 
-        <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mt-6 mb-3">
-          Test steps
-        </p>
-        <TestCaseView steps={mission.test_steps} />
+        {/* The tour's first step anchors here rather than on the notes above,
+            which a mission need not have. */}
+        <div id="tour-mission-testcase">
+          <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mt-6 mb-3">
+            Test steps
+          </p>
+          <TestCaseView steps={mission.test_steps} />
+        </div>
       </div>
 
       {/* Submission section */}
