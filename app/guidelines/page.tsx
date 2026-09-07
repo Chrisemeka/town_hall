@@ -95,7 +95,7 @@ export default function GuidelinesPage() {
                 label="As a Tester"
                 steps={[
                   "Browse available missions from your Tester home or the mission feed.",
-                  "Pick a mission, visit the project URL, and follow the builder's instructions.",
+                  "Pick a mission, visit the project URL, and work through the test case step by step.",
                   "Submit written feedback and at least one screenshot of your test, tied directly to that mission.",
                   "Track the status on your Tester home. The builder either approves the work and rates it, or sends it back with a reason.",
                 ]}
