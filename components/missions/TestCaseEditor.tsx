@@ -18,6 +18,7 @@ import {
   TEST_STEPS_MAX,
   type TestStep,
 } from "@/lib/validation/schemas"
+import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
 
 /**
  * The test-case half of both mission forms — category, template, steps, device.
@@ -122,11 +123,15 @@ export function TestCaseEditor({
           What kind of testing is this?
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {TEST_CATEGORIES.map((option) => {
+          {TEST_CATEGORIES.map((option, i) => {
             const active = category === option
             return (
               <button
                 key={option}
+                // The hook resolves "category" to a control it can move to. The
+                // hidden input of that name is not one, so the group's first
+                // button answers to it instead.
+                id={i === 0 ? "category" : undefined}
                 type="button"
                 onClick={() => chooseCategory(option)}
                 aria-pressed={active}
@@ -152,7 +157,7 @@ export function TestCaseEditor({
             )
           })}
         </div>
-        <FieldError errors={errors.category} />
+        <FieldError field="category" errors={errors.category} />
       </section>
 
       {/* ── 2. Start from ───────────────────────────────────────────── */}
@@ -195,7 +200,11 @@ export function TestCaseEditor({
       )}
 
       {/* ── 3. Steps ────────────────────────────────────────────────── */}
-      <section className="flex flex-col gap-3">
+      {/* id + tabIndex so the focus hook can land the builder here on an
+          array-level error — too few steps, too many, duplicate ids. There is
+          no single input those belong to. tabIndex -1 takes focus
+          programmatically without joining the tab order. */}
+      <section id="test_steps" tabIndex={-1} className="flex flex-col gap-3 focus:outline-none">
         <div className="flex items-center justify-between gap-4">
           <p className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">Test steps</p>
           <span className="font-mono text-[12px] text-ash">
@@ -255,6 +264,7 @@ export function TestCaseEditor({
                 </div>
 
                 <StepField
+                  field={`test_steps.${index}.action`}
                   label="What the tester does"
                   value={step.action}
                   max={STEP_ACTION_MAX}
@@ -263,6 +273,7 @@ export function TestCaseEditor({
                   errors={errors[`test_steps.${index}.action`]}
                 />
                 <StepField
+                  field={`test_steps.${index}.expected_result`}
                   label="What should happen"
                   value={step.expected_result}
                   max={STEP_EXPECTED_MAX}
@@ -287,7 +298,7 @@ export function TestCaseEditor({
         )}
 
         {/* The array-level errors — too few, too many, duplicate ids. */}
-        <FieldError errors={errors.test_steps} />
+        <FieldError field="test_steps" errors={errors.test_steps} />
       </section>
 
       {/* ── 4. Device target ────────────────────────────────────────── */}
@@ -296,11 +307,12 @@ export function TestCaseEditor({
           Where should this be tested?
         </p>
         <div className="flex flex-wrap gap-2">
-          {DEVICE_TARGETS.map((option) => {
+          {DEVICE_TARGETS.map((option, i) => {
             const active = deviceTarget === option
             return (
               <button
                 key={option}
+                id={i === 0 ? "device_target" : undefined}
                 type="button"
                 onClick={() => {
                   setDeviceTarget(option)
@@ -319,13 +331,14 @@ export function TestCaseEditor({
             )
           })}
         </div>
-        <FieldError errors={errors.device_target} />
+        <FieldError field="device_target" errors={errors.device_target} />
       </section>
     </div>
   )
 }
 
 function StepField({
+  field,
   label,
   value,
   max,
@@ -333,6 +346,8 @@ function StepField({
   onChange,
   errors,
 }: {
+  /** The dotted path this input answers to — "test_steps.2.action". */
+  field: string
   label: string
   value: string
   max: number
@@ -344,16 +359,22 @@ function StepField({
     <label className="flex flex-col gap-1.5">
       <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px]">{label}</span>
       <input
+        id={field}
+        // Not submitted — the parent form sends the whole step array as one
+        // hidden JSON field. The name is here so toPathErrors' dotted keys have
+        // something to resolve against.
+        name={field}
         value={value}
         maxLength={max}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
+        {...fieldErrorProps(field, errors)}
         className={[
-          "h-10 w-full bg-graphite border rounded-[8px] px-3 font-mono text-[13px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
+          "h-10 w-full bg-graphite border rounded-[8px] px-3 font-mono text-[13px] text-chalk placeholder:text-ash focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite transition-colors duration-150",
           errors?.length ? "border-ember" : "border-iron focus:border-voltage",
         ].join(" ")}
       />
-      <FieldError errors={errors} />
+      <FieldError field={field} errors={errors} />
     </label>
   )
 }
@@ -382,7 +403,3 @@ function IconButton({
   )
 }
 
-function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors || errors.length === 0) return null
-  return <p className="font-mono text-[12px] text-ember">{errors[0]}</p>
-}

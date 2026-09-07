@@ -17,8 +17,11 @@ import {
   AuditLogSteps,
   draftFor,
   draftIsComplete,
+  entryFieldName,
+  firstIncompleteEntry,
   type DraftEntry,
 } from "@/components/tester/AuditLogSteps"
+import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 
 // Each picked image is paired with its object URL so previews survive reordering
 // and each entry has a stable key.
@@ -52,7 +55,10 @@ export default function AuditLogForm({
   const [isSubmitting,setIsSubmitting]= useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSuccess,   setIsSuccess]   = useState(false)
+  // Which step the last submit attempt stopped on, so its card can say so.
+  const [errorIndex,  setErrorIndex]  = useState<number | undefined>(undefined)
   const fileRef = useRef<HTMLInputElement>(null)
+  const focusFirstError = useFocusFirstError()
 
   // Prompt on reload while the tester has work in progress that hasn't been sent.
   useUnsavedChangesWarning(
@@ -127,22 +133,39 @@ export default function AuditLogForm({
   function applyServerErrors(errors: SubmissionFieldErrors) {
     setCommentError(errors.comment?.[0] ?? null)
     setFileErrors(errors.screenshots ?? [])
+    focusFirstError(errors)
   }
 
   async function handleSubmit() {
     if (isSubmitting) return
 
-    // Client-side validate first so the user gets immediate feedback.
-    if (shots.length === 0) {
-      setFileErrors(["At least one screenshot is required."])
-      return
-    }
-    if (hasSteps && !draftIsComplete(entries)) {
-      setSubmitError("Answer every step before submitting.")
-      return
+    // Client-side validation, and the button is live so that this can run. A
+    // button disabled until the form is complete cannot tell anyone what is
+    // missing — which was the state this form was in, with three error messages
+    // behind a control that never fired them.
+    if (hasSteps) {
+      const missing = firstIncompleteEntry(entries)
+      if (missing) {
+        setErrorIndex(missing.index)
+        // Named, not "answer every step". On a ten-step log that sentence is
+        // the whole problem: it is true and it is useless.
+        setSubmitError(`Step ${missing.index + 1} needs an answer.`)
+        focusFirstError({ [entryFieldName(missing.index, missing.field)]: true })
+        return
+      }
+      setErrorIndex(undefined)
     }
     if (!hasSteps && !feedback.trim()) {
       setCommentError("Tell the builder what you found.")
+      focusFirstError({ comment: true })
+      return
+    }
+    // Last, because a tester who has answered every step and forgotten the
+    // screenshots should be sent to the thing furthest down the page, not have
+    // it checked before the work above it.
+    if (shots.length === 0) {
+      setFileErrors(["At least one screenshot is required."])
+      focusFirstError({ screenshots: true })
       return
     }
 
@@ -150,6 +173,7 @@ export default function AuditLogForm({
     setSubmitError(null)
     setCommentError(null)
     setFileErrors([])
+    setErrorIndex(undefined)
     try {
       const compressed = await Promise.all(shots.map((s) => compressImage(s.file)))
       const fd = new FormData()
@@ -196,10 +220,11 @@ export default function AuditLogForm({
     )
   }
 
-  const canSubmit =
-    shots.length > 0 &&
-    !isSubmitting &&
-    (hasSteps ? draftIsComplete(entries) : feedback.trim().length > 0)
+  // Complete enough to send. Not a disabled state any more — it drives the
+  // hint under the button, so an incomplete form says what it is waiting for
+  // instead of presenting a control that silently refuses.
+  const isReady =
+    shots.length > 0 && (hasSteps ? draftIsComplete(entries) : feedback.trim().length > 0)
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const zoneBorder = fileErrors.length
@@ -264,7 +289,11 @@ export default function AuditLogForm({
               Each step shows what the builder asked for. Answer them in order.
             </p>
             <div className="mb-8">
-              <AuditLogSteps entries={entries} onChange={setEntries} />
+              <AuditLogSteps
+                entries={entries}
+                onChange={setEntries}
+                errorIndex={errorIndex}
+              />
             </div>
           </>
         )}
@@ -278,6 +307,8 @@ export default function AuditLogForm({
         </p>
 
         <textarea
+          id="comment"
+          name="comment"
           value={feedback}
           onChange={(e) => {
             setFeedback(e.target.value)
@@ -356,6 +387,21 @@ export default function AuditLogForm({
         {/* Drop zone — hidden once the cap is reached */}
         {!isFull && (
           <div
+            // Named for the key the action reports upload errors under, so a
+            // server-side screenshot error lands here too.
+            id="screenshots"
+            // A div with an onClick is not reachable by keyboard, which
+            // Design.md §10 names directly. role + tabIndex + the key handler
+            // make it a button in every way that matters.
+            role="button"
+            tabIndex={0}
+            aria-label="Add screenshots"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                fileRef.current?.click()
+              }
+            }}
             onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
             onDragLeave={() => setIsDragOver(false)}
             onDrop={(e) => {
@@ -375,7 +421,7 @@ export default function AuditLogForm({
               cursor: "pointer",
               transition: "border-color 150ms ease, background 150ms ease",
             }}
-            className="flex flex-col items-center justify-center"
+            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
           >
             <input
               ref={fileRef}
@@ -408,25 +454,23 @@ export default function AuditLogForm({
         ))}
 
         {/* CTAs */}
-        <div className="flex items-center gap-3 mt-8">
+        <div className="flex flex-col gap-2 mt-8">
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] transition-colors duration-150"
-            style={!canSubmit ? { opacity: 0.4, cursor: "not-allowed" } : {}}
+            disabled={isSubmitting}
+            aria-describedby={isReady ? undefined : "submit-hint"}
+            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
           >
             {isSubmitting ? "Submitting…" : "Submit Feedback"}
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.setItem(`draft:${missionId}`, feedback)
-            }}
-            className="h-12 px-6 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150"
-          >
-            Save Draft
-          </button>
+          {!isReady && (
+            <p id="submit-hint" className="font-mono text-[12px] text-ash">
+              {hasSteps && !draftIsComplete(entries)
+                ? "Answer every step and attach a screenshot to submit."
+                : "Attach at least one screenshot to submit."}
+            </p>
+          )}
         </div>
       </div>
       )}

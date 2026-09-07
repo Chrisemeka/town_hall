@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import type { z } from "zod"
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { Button } from "@/components/ui/Button"
 import { Field, inputClass } from "@/components/ui/Field"
+import { fieldErrorProps } from "@/components/ui/FieldError"
+import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
 import { formatPhoneAsYouType, isAllowedPhoneKey, phoneForCountryChange } from "@/lib/phone"
@@ -88,6 +90,21 @@ export function VerificationFlow({
   // `pending` goes false the moment the action resolves, which is before the
   // destination route has fetched anything — that gap is what this covers.
   const [navigating, setNavigating] = useState(false)
+  const banner = useRef<HTMLDivElement>(null)
+
+  // A field on an earlier step is not mounted, so the hook cannot focus it
+  // until this puts its step on screen. Same shape as the disclosure case:
+  // reveal, then it retries on the next frame.
+  const revealStep = useCallback(
+    (field: string) => {
+      const owner = steps.findIndex((s) =>
+        (s.fields as readonly string[]).includes(field),
+      )
+      if (owner !== -1) setStep(owner)
+    },
+    [steps],
+  )
+  const focusFirstError = useFocusFirstError({ reveal: revealStep, fallback: banner })
 
   // Detected client-side and only as a default — filling it during render would
   // not match what the server rendered, and overwriting a saved choice would
@@ -114,7 +131,9 @@ export function VerificationFlow({
     const current = steps[step]
     const parsed = current.schema.safeParse(slice(step))
     if (!parsed.success) {
-      setErrors(toFieldErrors<VerificationValues>(parsed.error))
+      const next = toFieldErrors<VerificationValues>(parsed.error)
+      setErrors(next)
+      focusFirstError(next)
       return
     }
 
@@ -125,6 +144,7 @@ export function VerificationFlow({
       if (!result.success) {
         setErrors(result.fieldErrors ?? {})
         setFormError(result.error)
+        if (result.fieldErrors) focusFirstError(result.fieldErrors)
         return
       }
       setStep(step + 1)
@@ -137,9 +157,12 @@ export function VerificationFlow({
       if (!result.success) {
         setErrors(result.fieldErrors ?? {})
         setFormError(result.error)
-        // The missing field lives on an earlier step — send them to it.
+        // The missing field lives on an earlier step — send them to it. The
+        // findIndex stays because the server can refuse without naming a field,
+        // and then there is nothing for the hook to resolve.
         const broken = steps.findIndex((s, i) => !s.schema.safeParse(slice(i)).success)
         if (broken !== -1) setStep(broken)
+        if (result.fieldErrors) focusFirstError(result.fieldErrors)
         return
       }
       if (result.redirectTo) {
@@ -176,7 +199,7 @@ export function VerificationFlow({
 
       <div className="bg-graphite border border-iron rounded-[16px] p-10">
         {formError && (
-          <div className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
+          <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
             <p className="font-mono text-[14px] text-ember">{formError}</p>
           </div>
         )}
@@ -250,6 +273,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
           value={values.fullName}
           maxLength={FULL_NAME_MAX}
           onChange={(e) => set("fullName", e.target.value)}
+          {...fieldErrorProps("fullName", errors.fullName)}
           className={inputClass(!!errors.fullName?.length)}
         />
       </Field>
@@ -259,6 +283,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="country"
           value={values.country}
           onChange={(e) => onCountryChange(e.target.value)}
+          {...fieldErrorProps("country", errors.country)}
           className={inputClass(!!errors.country?.length)}
         >
           <option value="">Select your country</option>
@@ -286,6 +311,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
             if (!isAllowedPhoneKey(e)) e.preventDefault()
           }}
           onChange={(e) => onPhoneChange(e.target.value)}
+          {...fieldErrorProps("phone", errors.phone)}
           className={inputClass(!!errors.phone?.length)}
         />
       </Field>
@@ -300,6 +326,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="timezone"
           value={values.timezone}
           onChange={(e) => set("timezone", e.target.value)}
+          {...fieldErrorProps("timezone", errors.timezone)}
           className={inputClass(!!errors.timezone?.length)}
         >
           <option value="">Select your timezone</option>

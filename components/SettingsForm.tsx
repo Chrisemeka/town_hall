@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { deleteAccountAction } from "@/actions/auth"
 import { updateProfile } from "@/actions/profile"
 import { Field, inputClass, textareaClass } from "@/components/ui/Field"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
+import { fieldErrorProps } from "@/components/ui/FieldError"
 import { formatPhoneAsYouType, isAllowedPhoneKey } from "@/lib/phone"
 import { COUNTRIES, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
@@ -72,6 +74,8 @@ export function SettingsForm({
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const banner = useRef<HTMLDivElement>(null)
+  const focusFirstError = useFocusFirstError({ fallback: banner })
 
   // `saved` is not redundant with the value comparison. The phone is stored E.164
   // but displayed grouped, so a successful save leaves the field looking different
@@ -115,7 +119,8 @@ export function SettingsForm({
         setErrors(result.fieldErrors ?? {})
         // Field errors are shown against their fields; the banner is for the
         // rest, which the user cannot fix by editing one input.
-        if (!result.fieldErrors) setFormError(result.error)
+        if (result.fieldErrors) focusFirstError(result.fieldErrors)
+        else setFormError(result.error)
         return
       }
       setSaved(true)
@@ -148,14 +153,15 @@ export function SettingsForm({
         <h5 className="font-syne font-bold text-[20px] text-chalk mb-6">Profile</h5>
 
         <div className="flex flex-col gap-5">
-          <Field label="Display Name" htmlFor="display-name" error={errors.full_name}>
+          <Field label="Display Name" htmlFor="full_name" error={errors.full_name}>
             <input
-              id="display-name"
+              id="full_name"
               type="text"
               maxLength={FULL_NAME_MAX}
               value={values.full_name}
               onChange={(e) => set("full_name", e.target.value)}
               placeholder="Your name"
+              {...fieldErrorProps("full_name", errors.full_name)}
               className={inputClass(!!errors.full_name?.length)}
             />
           </Field>
@@ -165,6 +171,7 @@ export function SettingsForm({
               id="country"
               value={values.country}
               onChange={(e) => onCountryChange(e.target.value)}
+              {...fieldErrorProps("country", errors.country)}
               className={inputClass(!!errors.country?.length)}
             >
               <option value="">Select your country</option>
@@ -192,6 +199,7 @@ export function SettingsForm({
                 if (!isAllowedPhoneKey(e)) e.preventDefault()
               }}
               onChange={(e) => onPhoneChange(e.target.value)}
+              {...fieldErrorProps("phone", errors.phone)}
               className={inputClass(!!errors.phone?.length)}
             />
           </Field>
@@ -201,6 +209,7 @@ export function SettingsForm({
               id="timezone"
               value={values.timezone}
               onChange={(e) => set("timezone", e.target.value)}
+              {...fieldErrorProps("timezone", errors.timezone)}
               className={inputClass(!!errors.timezone?.length)}
             >
               <option value="">Select your timezone</option>
@@ -220,6 +229,7 @@ export function SettingsForm({
               rows={5}
               onChange={(e) => set("bio", e.target.value)}
               placeholder="A line or two about yourself. Optional."
+              {...fieldErrorProps("bio", errors.bio)}
               className={textareaClass(!!errors.bio?.length)}
             />
             {/* §5.2 character counter: DM Mono 12px, Ash, right-aligned. */}
@@ -254,7 +264,7 @@ export function SettingsForm({
         </div>
 
         {formError && (
-          <div className="mt-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
+          <div ref={banner} className="mt-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
             <p className="font-mono text-[14px] text-ember">{formError}</p>
           </div>
         )}

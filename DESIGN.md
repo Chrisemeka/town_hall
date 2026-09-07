@@ -264,6 +264,22 @@ Used in: New Project form, New Mission form, Feedback submission form.
 | Error text | DM Mono 12px, `#FF4F4F`, 4px below input |
 | Character counter | DM Mono 12px, `#8A8A99`, right-aligned below textarea |
 
+**Errors are announced, not just coloured.** Use `components/ui/FieldError` — it
+gives the message `id={field}-error` — and spread `fieldErrorProps(field, errors)`
+onto the control, which sets `aria-invalid` and `aria-describedby`. Do not write a
+bare `<p>`: a red sentence with no relationship to its input is one only sighted
+users receive. `components/ui/Field` does the same thing for the flows that use it.
+
+**The control's `name` (or `id`, where there is no form) must equal the schema key
+its error arrives under.** That is what lets `useFocusFirstError` find it.
+
+**A failed submit moves the user to the first error.** Call the callback from
+`useFocusFirstError()` with the same errors object the form renders — from the
+submit handler on a client parse failure, and from an effect on the action state
+for a server one. It resolves to the field that is *first in the document*, which
+is not the first key of the errors object. A field inside a collapsed section
+passes a `reveal` callback so the section opens before the focus lands.
+
 ---
 
 ### 5.3 Cards
@@ -609,7 +625,11 @@ No infinite animations. No looping effects. Motion nudges attention once, then s
 
 - [ ] Body text ≥ **7:1** contrast — verify at [WebAim](https://webaim.org/resources/contrastchecker/)
 - [ ] UI labels and large headings ≥ **4.5:1** contrast
-- [ ] All interactive elements have `:focus-visible` — `outline: 2px solid #E8FF47; outline-offset: 2px`
+- [x] All interactive elements have `:focus-visible` — `outline: 2px solid #E8FF47; outline-offset: 2px`
+      Spelled as a ring in Tailwind, per `components/ui/Button.tsx`:
+      `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-<surface>`.
+      The offset colour follows the surface behind the control — `obsidian` in the
+      sidebar and on page ground, `graphite` inside a card.
 - [ ] All form inputs have visible, associated `<label>` elements
 - [ ] All icon-only buttons have `aria-label`
 - [ ] Status badges always pair color with a text label — color alone never conveys state

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { errorId } from "@/lib/focus"
 
 /**
  * Label, control, and one line of either an error or a helper — the form field
@@ -11,6 +12,11 @@ import type { ReactNode } from "react"
  * Error wins over helper when both are present. A field showing "enter a valid
  * phone number" does not also need to be told what a phone number looks like,
  * and stacking both pushes every field below it down by a line.
+ *
+ * The error carries errorId(htmlFor) so the control can point at it with
+ * aria-describedby — same convention as components/ui/FieldError, which is the
+ * other spelling of this chrome. `htmlFor` therefore has to match the schema key
+ * the error arrives under, or the focus hook cannot find the field either.
  */
 export function Field({
   label,
@@ -32,7 +38,7 @@ export function Field({
       </label>
       {children}
       {error?.length ? (
-        <p className="font-mono text-[12px] text-ember">{error[0]}</p>
+        <p id={errorId(htmlFor)} className="font-mono text-[12px] text-ember">{error[0]}</p>
       ) : helper ? (
         <p className="font-mono text-[12px] text-ash leading-5">{helper}</p>
       ) : null}

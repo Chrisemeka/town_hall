@@ -151,6 +151,20 @@ When you need a transaction: write the SQL function in a new migration, invoke v
 
 All input validated with Zod at the boundary (`lib/validation/schemas.ts`). Server actions parse `FormData` or JSON through a schema before touching the database. Do not skip. Do not scatter validation through helper functions — it lives at the entry point.
 
+**A form's control names must match its schema keys.** `useFocusFirstError` resolves
+an errored field to its element by `name`, then `id`, and `components/ui/FieldError`
+derives the message id from the same string. A control called `display-name` against
+a schema key `full_name` is invisible to both — that mismatch existed in
+`SettingsForm` and is why the rule is written down. Where a field has no single
+control (a button group, an array-level error), give the group's first button or
+the section that `name`/`id` so there is still something to move to.
+
+**Never disable a submit button to express "not finished yet."** A disabled control
+cannot say what is missing, and the message written for it becomes unreachable —
+which is exactly what happened in `AuditLogForm`, where three error strings sat
+behind a button that never fired them. Keep it live, validate on click, and say
+which field is outstanding.
+
 ## Design System
 
 Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor without re-reading the file:
