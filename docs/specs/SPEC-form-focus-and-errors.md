@@ -321,6 +321,31 @@ Per `CLAUDE.md` — no migration, so the chain starts at shared logic.
 - `npx tsc --noEmit` clean · `npm run lint` with no new `as any` · `npm run build` clean ·
   `npm test` green.
 
+## Verified in a real browser
+
+Nine checks driven over CDP against system Chrome and the dev server, signed in as
+a verified builder. The suite covers the two pure decisions; this covers the DOM
+between them, which is the part no test in this repo can reach.
+
+| Check | Result |
+|---|---|
+| Empty project form focuses the first field | `document.activeElement` = `name` |
+| Errored input is marked and described | `aria-invalid="true"`, `aria-describedby="name-error"` |
+| The error message carries that id | `#name-error` present |
+| **Document order beats schema order** | Both `task_description` and `test_steps` in error; Zod reports `task_description` first, the page renders the test case above it — focus went to `test_steps` |
+| The focused field is scrolled into view | bounding rect inside the viewport |
+| A second identical submit moves the user again | blurred, scrolled to top, resubmitted — focus returned |
+| Sidebar nav carries the ring class | present on `NavItem` |
+| **Tabbing into the sidebar paints it** | `:focus-visible` matched after real Tab keys; computed `box-shadow` = `rgb(14,14,16) 0 0 0 2px, rgb(232,255,71) 0 0 0 4px` — the 2px offset and the voltage ring §10 asks for |
+
+Two things that first read as failures were the harness, not the code: the initial
+run clicked the sidebar's Sign Out, which is the first `button[type=submit]` in the
+document, and the ring check truncated `box-shadow` before the layer the ring
+occupies. Both are recorded because they are the two ways this check can lie.
+
+Still to do by hand, since it needs a person: the full tab order through every form
+against both `obsidian` and `graphite` grounds, and a screen-reader pass.
+
 ## Manual test plan
 
 1. `/dashboard/new` — submit empty. Lands on Project Name, page scrolled to it.
