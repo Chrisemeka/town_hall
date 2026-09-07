@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useActionState } from "react"
+import { useState, useActionState, useEffect, useRef } from "react"
 import { useFormStatus } from "react-dom"
 import { updateProject } from "@/actions/project"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { PROJECT_CATEGORIES } from "@/lib/vocabulary"
 import {
   PROJECT_NAME_MAX,
@@ -38,6 +40,8 @@ export default function EditProjectForm({
   // placeholder rather than on whichever option happens to be first.
   const [category, setCategory] = useState(initialCategory ?? "")
   const [clientErrors, setClientErrors] = useState<FieldErrors<ProjectInput>>({})
+  const banner = useRef<HTMLDivElement>(null)
+  const focusFirstError = useFocusFirstError({ fallback: banner })
 
   useUnsavedChangesWarning(
     name !== initialName ||
@@ -56,11 +60,20 @@ export default function EditProjectForm({
     })
     if (!parsed.success) {
       e.preventDefault()
-      setClientErrors(toFieldErrors<ProjectInput>(parsed.error))
+      const errors = toFieldErrors<ProjectInput>(parsed.error)
+      setClientErrors(errors)
+      focusFirstError(errors)
       return
     }
     setClientErrors({})
   }
+  // The other half of the same job: a field error that came back from the
+  // action rather than from the parse above. Keyed on the state object, whose
+  // identity changes on every return, so a second identical failure moves the
+  // user a second time.
+  useEffect(() => {
+    if (state?.fieldErrors) focusFirstError(state.fieldErrors)
+  }, [state, focusFirstError])
 
   const fieldErrors: FieldErrors<ProjectInput> = {
     ...(state?.fieldErrors ?? {}),
@@ -74,7 +87,7 @@ export default function EditProjectForm({
       </h2>
 
       {state?.error && (
-        <div className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
           <p className="font-mono text-[14px] text-ember">{state.error}</p>
         </div>
       )}
@@ -91,12 +104,13 @@ export default function EditProjectForm({
             maxLength={PROJECT_NAME_MAX}
             value={name}
             onChange={(e) => setName(e.target.value)}
+            {...fieldErrorProps("name", fieldErrors.name)}
             className={[
               "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
               fieldErrors.name?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
-          <FieldError errors={fieldErrors.name} />
+          <FieldError field="name" errors={fieldErrors.name} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -110,12 +124,13 @@ export default function EditProjectForm({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://yourapp.com"
+            {...fieldErrorProps("app_url", fieldErrors.app_url)}
             className={[
               "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
               fieldErrors.app_url?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
-          <FieldError errors={fieldErrors.app_url} />
+          <FieldError field="app_url" errors={fieldErrors.app_url} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -127,6 +142,7 @@ export default function EditProjectForm({
             name="category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
+            {...fieldErrorProps("category", fieldErrors.category)}
             className={[
               "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk focus:outline-none transition-colors duration-150",
               fieldErrors.category?.length ? "border-ember" : "border-iron focus:border-voltage",
@@ -139,7 +155,7 @@ export default function EditProjectForm({
               </option>
             ))}
           </select>
-          <FieldError errors={fieldErrors.category} />
+          <FieldError field="category" errors={fieldErrors.category} />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -152,13 +168,14 @@ export default function EditProjectForm({
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            {...fieldErrorProps("description", fieldErrors.description)}
             className={[
               "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
               fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
           <div className="flex items-start justify-between gap-3">
-            <FieldError errors={fieldErrors.description} />
+            <FieldError field="description" errors={fieldErrors.description} />
             {/* No maxLength on the textarea: a project written before the cap
                 dropped to 200 has to be readable and editable, and maxLength
                 would leave the builder unable to see what they are trimming. */}
@@ -177,11 +194,6 @@ export default function EditProjectForm({
       </form>
     </div>
   )
-}
-
-function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors || errors.length === 0) return null
-  return <p className="font-mono text-[12px] text-ember mt-1">{errors[0]}</p>
 }
 
 function SaveButton() {

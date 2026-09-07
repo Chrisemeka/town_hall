@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { focusFirstError, type FocusFirstErrorOptions } from "@/lib/focus"
 
 /**
@@ -18,9 +18,13 @@ export function useFocusFirstError(
   options: FocusFirstErrorOptions = {},
 ): (fieldErrors: Record<string, unknown>) => void {
   // Held in a ref so a caller can pass an inline object literal without the
-  // returned callback changing identity on every render.
+  // returned callback changing identity on every render. Written in an effect
+  // rather than during render — the callback only ever fires from a submit, so
+  // it is never reading a value the commit has not caught up with.
   const latest = useRef(options)
-  latest.current = options
+  useEffect(() => {
+    latest.current = options
+  })
 
   return useCallback((fieldErrors: Record<string, unknown>) => {
     focusFirstError(fieldErrors, latest.current)

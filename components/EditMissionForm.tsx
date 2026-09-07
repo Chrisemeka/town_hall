@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useActionState } from "react"
+import { useState, useActionState, useEffect, useRef } from "react"
 import { useFormStatus } from "react-dom"
 import { updateMission } from "@/actions/missions"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
+import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import {
   MISSION_TITLE_MAX,
@@ -43,6 +45,8 @@ export default function EditMissionForm({
   const [title, setTitle] = useState(initialTitle)
   const [description, setDescription] = useState(initialDescription)
   const [clientErrors, setClientErrors] = useState<Record<string, string[]>>({})
+  const banner = useRef<HTMLDivElement>(null)
+  const focusFirstError = useFocusFirstError({ fallback: banner })
   const [stepsDirty, setStepsDirty] = useState(false)
 
   useUnsavedChangesWarning(
@@ -64,12 +68,24 @@ export default function EditMissionForm({
     })
     if (!parsed.success) {
       e.preventDefault()
-      // Path-keyed, not flattened: a bad step three has to land on step three.
-      setClientErrors(toPathErrors(parsed.error))
+      // Path-keyed, not flattened: a bad step three has to land on step three,
+      // and the focus hook resolves those same dotted keys against the step
+      // inputs' names.
+      const errors = toPathErrors(parsed.error)
+      setClientErrors(errors)
+      focusFirstError(errors)
       return
     }
     setClientErrors({})
   }
+
+  // The other half of the same job: a field error that came back from the
+  // action rather than from the parse above. Keyed on the state object, whose
+  // identity changes on every return, so a second identical failure moves the
+  // user a second time.
+  useEffect(() => {
+    if (state?.fieldErrors) focusFirstError(state.fieldErrors)
+  }, [state, focusFirstError])
 
   // Server errors are flat (top-level fields only); client errors carry the
   // full path, so a per-step message can reach the row that caused it.
@@ -92,7 +108,7 @@ export default function EditMissionForm({
       </p>
 
       {state?.error && (
-        <div className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
           <p className="font-mono text-[14px] text-ember">{state.error}</p>
         </div>
       )}
@@ -112,13 +128,14 @@ export default function EditMissionForm({
             maxLength={MISSION_TITLE_MAX}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            {...fieldErrorProps("title", fieldErrors.title)}
             className={[
               "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
               fieldErrors.title?.length ? "border-ember" : "border-iron focus:border-voltage",
             ].join(" ")}
           />
           <div className="flex items-center justify-between gap-3">
-            <FieldError errors={fieldErrors.title} />
+            <FieldError field="title" errors={fieldErrors.title} />
             <span className={`font-mono text-[12px] ml-auto ${title.length >= MISSION_TITLE_MAX ? "text-ember" : "text-ash"}`}>
               {title.length} / {MISSION_TITLE_MAX}
             </span>
@@ -144,6 +161,7 @@ export default function EditMissionForm({
             rows={8}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            {...fieldErrorProps("task_description", fieldErrors.task_description)}
             className={[
               "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
               fieldErrors.task_description?.length ? "border-ember" : "border-iron focus:border-voltage",
@@ -151,7 +169,7 @@ export default function EditMissionForm({
           />
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <FieldError errors={fieldErrors.task_description} />
+              <FieldError field="task_description" errors={fieldErrors.task_description} />
               {!fieldErrors.task_description?.length && (
                 <p className={`font-mono text-[12px] ${description.length > 0 && description.length < MISSION_DESCRIPTION_MIN ? "text-voltage" : "text-ash"}`}>
                   {description.length > 0 && description.length < MISSION_DESCRIPTION_MIN
@@ -182,11 +200,6 @@ export default function EditMissionForm({
       </form>
     </div>
   )
-}
-
-function FieldError({ errors }: { errors?: string[] }) {
-  if (!errors || errors.length === 0) return null
-  return <p className="font-mono text-[12px] text-ember mt-1">{errors[0]}</p>
 }
 
 function PublishButton() {

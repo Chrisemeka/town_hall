@@ -10,8 +10,6 @@
 type Box<T> = { current: T | null }
 
 export type FocusFirstErrorOptions = {
-  /** Scope lookups to one form. Defaults to the whole document. */
-  root?: Box<HTMLElement>
   /**
    * Reveal a collapsed section holding `field`, after which this retries.
    * A field inside a closed disclosure cannot be focused.
@@ -74,20 +72,26 @@ function hasError(value: unknown): boolean {
  * getElementsByName / getElementById rather than querySelector: audit-log field
  * names contain dots — `entries.3.actual_result` — which a CSS selector reads
  * as a class chain.
+ *
+ * Anything with no layout box is skipped. The test-case editor mirrors its
+ * state into `<input type="hidden" name="category">` and two more like it, and
+ * those win the name lookup — scrolling to a hidden input moves nothing and
+ * focusing one does nothing, so the user would be told there is an error and
+ * then left where they were.
  */
-function elementFor(field: string, root: HTMLElement | null): HTMLElement | null {
+function elementFor(field: string): HTMLElement | null {
   const named = Array.from(document.getElementsByName(field)) as HTMLElement[]
   const byId = document.getElementById(field)
   for (const el of byId ? [...named, byId] : named) {
-    if (!root || root.contains(el)) return el
+    if (el.getClientRects().length > 0) return el
   }
   return null
 }
 
-function resolve(fields: string[], root: HTMLElement | null): HTMLElement | null {
+function resolve(fields: string[]): HTMLElement | null {
   const found: HTMLElement[] = []
   for (const field of fields) {
-    const el = elementFor(field, root)
+    const el = elementFor(field)
     if (el) found.push(el)
   }
   return firstInDocumentOrder(found)
@@ -118,12 +122,12 @@ function moveTo(el: HTMLElement) {
  */
 export function focusFirstError(
   fieldErrors: Record<string, unknown>,
-  { root, reveal, fallback }: FocusFirstErrorOptions = {},
+  { reveal, fallback }: FocusFirstErrorOptions = {},
 ): void {
   const fields = Object.keys(fieldErrors).filter((key) => hasError(fieldErrors[key]))
   if (fields.length === 0) return
 
-  const target = resolve(fields, root?.current ?? null)
+  const target = resolve(fields)
   if (target) {
     moveTo(target)
     return
@@ -135,7 +139,7 @@ export function focusFirstError(
     // committed. flushSync would also do it, and is the heavier tool for a path
     // that runs once per failed submit.
     requestAnimationFrame(() => {
-      const revealed = resolve(fields, root?.current ?? null)
+      const revealed = resolve(fields)
       if (revealed) moveTo(revealed)
       else if (fallback?.current) scrollTo(fallback.current)
     })
