@@ -1,6 +1,6 @@
 # SPEC: Form Error Focus and Focus Indicators
 
-**Status:** Awaiting approval
+**Status:** Approved — open questions resolved below, in progress
 **Branch:** `feat/form-focus-and-errors`
 **Base branch:** `main`
 **Migration:** none
@@ -66,7 +66,7 @@ rendered at all.
 unhelpful sentence. They get a dead button, no message, and no indication that anything is wrong —
 which is exactly the state DESIGN.md §10's last checklist item exists to forbid.
 
-**This needs a decision (see Open questions).** The proposal: the submit button stops being disabled
+**Resolved (1 below): the button is enabled.** It stops being disabled
 by completeness and is disabled only while a submission is in flight. `handleSubmit` becomes the
 validator, and the click is what carries the tester to the missing step. There is no way to satisfy
 1.1 on this form while the button refuses the click.
@@ -86,7 +86,7 @@ than teaching the hook a translation table. `VerificationFlow` already matches (
 
 `components/ui/Button.tsx`, `ui/Input.tsx`, `ui/Textarea.tsx`. Everything hand-rolled — every
 `NavItem`, the sign-out button, `ReplayTourButton`, the audit-log status buttons, the screenshot drop
-zone, every submit button written as a raw `<button>` — has none. See Open questions.
+zone, every submit button written as a raw `<button>` — has none. Resolved (2 below): they all get it.
 
 ## The hook — `lib/hooks/useFocusFirstError.ts`
 
@@ -262,8 +262,14 @@ Applied to:
 - `NavItem` (`Sidebar.tsx:58`) — because the slot at line 124 renders the switch button **or** an
   `Add {other} account` NavItem depending on whether the user holds both accounts. A ring that
   appears and disappears with account state is worse than one that is simply absent.
+- the sign-out button (`Sidebar.tsx:157`) and `ReplayTourButton`, which sit in the same nav column
+- the audit-log status buttons (`AuditLogSteps.tsx:102`) and the screenshot drop zone
+  (`AuditLogForm.tsx:358`), which the tester has to reach by keyboard to file a log at all
+- the raw `<button type="submit">` in each form's CTA row
 
-Nothing else in this PR. The rest of the sidebar is in Open questions.
+The drop zone is a `<div onClick>` today, so it also gains `role="button"`, `tabIndex={0}`, an
+`aria-label`, and Enter/Space handling — it is not focusable at all until then, which DESIGN.md §10
+names directly ("Screenshot upload zone is keyboard accessible and has clear `aria-label`").
 
 ## Tests
 
@@ -285,7 +291,7 @@ vitest suite where a schema is involved.
 | AUD-21 | steps 1 and 3 both incomplete | reports step 1 |
 | AUD-22 | `draftIsComplete` agrees with `firstIncompleteEntry` across the same fixtures | one definition, no drift |
 
-Manual keyboard pass (recorded in the PR, not automated): tab the sidebar and every form in the
+Manual keyboard pass (recorded in the PR, not automated — see resolved question 3): tab the sidebar and every form in the
 wiring table, confirming the ring is visible against `obsidian` (`#0E0E10`) and `graphite`
 (`#1A1A1F`).
 
@@ -333,22 +339,21 @@ Per `CLAUDE.md` — no migration, so the chain starts at shared logic.
 10. VoiceOver/NVDA on `/dashboard/new`: submit empty, confirm the error text is announced with the
     field rather than sitting silent.
 
-## Open questions — answer before implementation starts
+## Resolved questions
 
-1. **The audit-log submit button.** Enabling it (so the click can explain itself) is the only way
-   this form can carry a tester anywhere. Confirmed?
-2. **The rest of the sidebar.** `NavItem` and the switch are in scope. Also missing focus styles, and
-   *not* currently in scope: the sign-out button (`Sidebar.tsx:157`), `ReplayTourButton`, the mobile
-   close control, and — beyond the sidebar — the audit-log status buttons, the screenshot drop zone,
-   and every raw `<button>` submit in the forms. Three options: leave them (ship the ask), add them
-   to this PR (roughly 8 more one-line class additions, no new risk), or file them as their own PR.
-   My recommendation is **add them to this PR** — a focus ring on one sidebar control implies the
-   others are not focusable, which is a worse lie than uniform absence.
-3. **DOM-level tests.** The hook's actual scroll-and-focus behaviour is not covered by FOC-01…07,
-   which test its two decisions in isolation. Covering the real thing needs `jsdom` +
-   `@testing-library/react` — two devDependencies and a per-file `@vitest-environment` docblock, in a
-   repo that has deliberately stayed on `environment: "node"`. Add them, or accept the pure-function
-   tests plus the manual pass?
+1. **The audit-log submit button is enabled.** It is disabled only while a submission is in flight.
+   `handleSubmit` becomes the validator and the click is what carries the tester to the missing step.
+   There is no way to satisfy 1.1 on a form whose button refuses the click.
+2. **Every focusable control this PR can see gets the ring.** Not just the switch: `NavItem`, the
+   sign-out button, `ReplayTourButton`, the audit-log status buttons, the screenshot drop zone, and
+   the raw `<button>` submits in the forms. A ring on one control in a sidebar implies the others are
+   not focusable, which is a worse lie than uniform absence. All of them are one class string; none
+   changes behaviour.
+3. **No jsdom, no `@testing-library`.** The repo stays on `environment: "node"`. The two decisions
+   worth testing — document-order resolution and the reduced-motion read — are pure functions and are
+   tested as such (FOC-01…07). The scroll-and-focus plumbing between them is four lines of DOM API
+   calls with no branching left in it, and is covered by the manual pass rather than by two
+   devDependencies and a second test environment.
 
 ## Reference
 

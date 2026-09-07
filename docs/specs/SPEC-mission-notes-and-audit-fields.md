@@ -1,6 +1,6 @@
 # SPEC: Mission Notes, Conditional Audit Fields, and Screenshot Copy
 
-**Status:** Awaiting approval
+**Status:** Approved — open questions resolved below, blocked on PR 1
 **Branch:** `feat/mission-notes-and-audit-fields`
 **Base branch:** `main`, with `feat/form-focus-and-errors` merged
 **Migration:** one — two column defaults and one function replacement
@@ -357,20 +357,21 @@ created and this PR does not drop that. A default of `''` means a row can never 
 distinguished between "no notes" and "notes cleared". Nothing in the product needs that distinction
 today, and it is the price of not auditing every read site for `null`.
 
-## Open questions — answer before implementation starts
+## Resolved questions
 
-1. **Tip-box and helper copy.** The three replacement tips, the new placeholder, the helper line, the
-   guidelines paragraph and the auto-save line are all proposed above. Approve as written, or edit?
-2. **"Screenshots of Your Test"** — approve, or a different name? The builder-side header is proposed
-   as `TEST SCREENSHOTS` to match the caps style already there.
-3. **`MISSION_DESCRIPTION_MAX = 2000`.** The field currently has no ceiling. Adding one is implied by
-   the brief's schema sketch. Confirm the number, or drop the `.max` and keep it unbounded.
-4. **Render tests.** ENT-01…08 and MISS-13…16 cover the schemas and the predicates without a DOM.
-   "Renders without an empty heading" needs `jsdom` + `@testing-library/react` — the same two
-   devDependencies PR 1 raises. One answer covers both PRs.
-5. **RPC-01 against the live database.** Verifying the replaced function accepts an absent key means
-   one real insert, on a real mission, by a real tester account. Run it and delete the row, or verify
-   by reading the function definition only?
+1. **Copy approved as written** — the three tips, the placeholder, the helper line, the rewritten
+   guidelines paragraph and the auto-save reassurance all ship as drafted above.
+2. **"Screenshots of Your Test"** on the tester side, **`TEST SCREENSHOTS`** on the builder side, to
+   match the caps style already in `MissionResultRow`.
+3. **`MISSION_DESCRIPTION_MAX = 2000`** is added. Every other text field in `schemas.ts` has a
+   ceiling; a `text` column with a floor and no ceiling is the one shape that lets a paste bomb
+   through.
+4. **No render tests, no jsdom** — same answer as PR 1. ENT-01…08 and MISS-13…16 carry the load, and
+   ENT-08 (the drift guard between `draftIsComplete` and the schema) is the test that actually
+   matters here. Empty-heading rendering is covered by the manual pass.
+5. **RPC-01 runs against the live function**, insert then delete, using the service role. A `not null`
+   violation on an absent JSON key is exactly the failure that reading the definition talks you out
+   of seeing; `coalesce` either fires or it does not, and one row proves which.
 
 ## Reference
 
