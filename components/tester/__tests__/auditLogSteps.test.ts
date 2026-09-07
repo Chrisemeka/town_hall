@@ -46,35 +46,62 @@ describe("firstIncompleteEntry", () => {
 
   it("AUD-20 asks a failure for its issue detail, in rendered order", () => {
     expect(
-      firstIncompleteEntry([entry(), entry({ status: "fail", steps_to_reproduce: "1. x" })]),
+      firstIncompleteEntry([
+        entry(),
+        entry({ status: "fail", actual_result: "Nothing", steps_to_reproduce: "1. x" }),
+      ]),
     ).toEqual({ index: 1, field: "issue_summary" })
 
-    expect(firstIncompleteEntry([entry({ status: "fail", issue_summary: "Broken" })])).toEqual({
-      index: 0,
-      field: "steps_to_reproduce",
-    })
+    expect(
+      firstIncompleteEntry([
+        entry({ status: "fail", actual_result: "Nothing", issue_summary: "Broken" }),
+      ]),
+    ).toEqual({ index: 0, field: "steps_to_reproduce" })
   })
 
-  it("never asks a pass for issue detail", () => {
-    // Asking anyway is how the column fills up with "N/A".
-    expect(firstIncompleteEntry([entry({ issue_summary: "", steps_to_reproduce: "" })])).toBeNull()
-  })
-
-  it("does not accept whitespace as an answer", () => {
-    expect(firstIncompleteEntry([entry({ actual_result: "   " })])).toEqual({
+  it("asks a BLOCKED step for the same detail as a failure", () => {
+    // The change in 20260907_01. Blocked used to collect none of this, so the
+    // one status meaning "something stopped me" reached the builder with
+    // nothing to act on.
+    expect(firstIncompleteEntry([entry({ status: "blocked", actual_result: "" })])).toEqual({
       index: 0,
       field: "actual_result",
     })
+    expect(
+      firstIncompleteEntry([entry({ status: "blocked", actual_result: "Could not reach it" })]),
+    ).toEqual({ index: 0, field: "issue_summary" })
+    expect(
+      firstIncompleteEntry([
+        entry({ status: "blocked", actual_result: "Could not reach it", issue_summary: "Step 2" }),
+      ]),
+    ).toEqual({ index: 0, field: "steps_to_reproduce" })
+  })
+
+  it("never asks a pass for anything but what it expected", () => {
+    // A pass has already said what happened, in expected_result. Asking again
+    // is how the column fills up with "as expected" and "N/A".
+    expect(
+      firstIncompleteEntry([
+        entry({ actual_result: "", issue_summary: "", steps_to_reproduce: "" }),
+      ]),
+    ).toBeNull()
+    expect(firstIncompleteEntry([entry({ actual_result: "   " })])).toBeNull()
+  })
+
+  it("does not accept whitespace as an answer", () => {
     expect(firstIncompleteEntry([entry({ expected_result: "" })])).toEqual({
       index: 0,
       field: "expected_result",
     })
+    expect(
+      firstIncompleteEntry([entry({ status: "fail", actual_result: "   " })]),
+    ).toEqual({ index: 0, field: "actual_result" })
   })
 
   it("AUD-21 reports the first incomplete step, not the last", () => {
     // The tester is sent to the one they reach first by scrolling.
     expect(
-      firstIncompleteEntry([entry({ status: "" }), entry({ actual_result: "" })]),
+      firstIncompleteEntry([entry({ status: "" }), entry({ expected_result: "" })]),
     ).toEqual({ index: 0, field: "status" })
   })
 })
@@ -94,6 +121,10 @@ describe("draftIsComplete", () => {
       [entry({ status: "fail" })],
       [entry({ status: "fail", issue_summary: "x" })],
       [entry({ status: "blocked" })],
+      [entry({ status: "blocked", actual_result: "Could not reach it" })],
+      [entry({ status: "blocked", actual_result: "x", issue_summary: "y" })],
+      [entry({ status: "blocked", actual_result: "x", issue_summary: "y", steps_to_reproduce: "z" })],
+      [entry({ actual_result: "" })],
       [failing, entry({ status: "" }), entry()],
     ]
     for (const fixture of fixtures) {

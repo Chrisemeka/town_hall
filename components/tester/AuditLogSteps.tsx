@@ -1,7 +1,7 @@
 "use client"
 
 import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabulary"
-import { ENTRY_TEXT_MAX } from "@/lib/validation/schemas"
+import { ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
 /**
@@ -62,13 +62,24 @@ export const entryFieldName = (index: number, field: EntryField) =>
  * draftIsComplete is now this asking whether it found anything.
  */
 export function firstIncompleteEntry(entries: DraftEntry[]): Incomplete | null {
+  // ENTRY_TEXT_MIN rather than "not blank", because auditEntrySchema is the
+  // authority and that is what it asks for. Checking only for non-empty let a
+  // two-character answer through the form and into a server rejection the
+  // tester never sees clearly.
+  const given = (v: string) => v.trim().length >= ENTRY_TEXT_MIN
+
   for (const [index, e] of entries.entries()) {
     if (e.status === "") return { index, field: "status" }
-    if (!e.actual_result.trim()) return { index, field: "actual_result" }
-    if (!e.expected_result.trim()) return { index, field: "expected_result" }
-    if (e.status === "fail") {
-      if (!e.issue_summary.trim()) return { index, field: "issue_summary" }
-      if (!e.steps_to_reproduce.trim()) return { index, field: "steps_to_reproduce" }
+    // expected_result is the one field asked of every status — it is what a
+    // pass is actually confirming.
+    if (!given(e.expected_result)) return { index, field: "expected_result" }
+    // Everything below mirrors auditEntrySchema's refines. These two
+    // definitions of "complete" drifting apart is the failure this file is
+    // most exposed to, and components/tester/__tests__ crosses them directly.
+    if (e.status !== "pass") {
+      if (!given(e.actual_result)) return { index, field: "actual_result" }
+      if (!given(e.issue_summary)) return { index, field: "issue_summary" }
+      if (!given(e.steps_to_reproduce)) return { index, field: "steps_to_reproduce" }
     }
   }
   return null
@@ -162,14 +173,6 @@ export function AuditLogSteps({
           </div>
 
           <Field
-            name={entryFieldName(index, "actual_result")}
-            label="What actually happened"
-            value={entry.actual_result}
-            onChange={(v) => edit(index, { actual_result: v })}
-            placeholder="The form submitted but nothing appeared to happen"
-          />
-
-          <Field
             name={entryFieldName(index, "expected_result")}
             label="What you expected"
             value={entry.expected_result}
@@ -178,16 +181,43 @@ export function AuditLogSteps({
             helper="Prefilled from the builder — change it if you expected something else."
           />
 
-          {/* Only for a failure: a passing step has no issue and nothing to
-              reproduce, and asking anyway is how the data becomes "N/A". */}
-          {entry.status === "fail" && (
+          {/*
+            Everything below is asked of a failure and of a blocked step, and of
+            neither a pass nor an unanswered one.
+
+            A pass has already said what happened — it happened as expected —
+            and has no issue and nothing to reproduce; asking anyway is how the
+            data becomes "N/A". Blocked is the case this used to get wrong: it
+            collected none of this, so the one status meaning "something stopped
+            me" reached the builder with nothing to act on. What stopped the
+            tester is the whole report.
+
+            Mirrors auditEntrySchema, which is the authority. If these disagree
+            the form refuses valid work or sends work the server rejects.
+          */}
+          {entry.status !== "" && entry.status !== "pass" && (
             <>
+              <Field
+                name={entryFieldName(index, "actual_result")}
+                label="What actually happened"
+                value={entry.actual_result}
+                onChange={(v) => edit(index, { actual_result: v })}
+                placeholder={
+                  entry.status === "blocked"
+                    ? "Could not reach this step — step 2 never completed"
+                    : "The form submitted but nothing appeared to happen"
+                }
+              />
               <Field
                 name={entryFieldName(index, "issue_summary")}
                 label="Summary of the issue"
                 value={entry.issue_summary}
                 onChange={(v) => edit(index, { issue_summary: v })}
-                placeholder="Submit button does nothing on the first click"
+                placeholder={
+                  entry.status === "blocked"
+                    ? "Blocked by the broken sign-up on step 2"
+                    : "Submit button does nothing on the first click"
+                }
               />
               <Field
                 name={entryFieldName(index, "steps_to_reproduce")}

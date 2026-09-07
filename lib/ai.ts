@@ -14,7 +14,9 @@ export type AnalysisInput = {
     step_action: string
     step_expected: string
     status: string
-    actual_result: string
+    // Absent on a passing step since 20260907_01 — a pass has already said what
+    // happened in expected_result.
+    actual_result?: string
     expected_result: string
     issue_summary?: string
     steps_to_reproduce?: string
@@ -30,8 +32,10 @@ function renderEntries(entries: AnalysisInput["entries"]): string {
         `  Asked to: ${e.step_action}`,
         `  Builder expected: ${e.step_expected}`,
         `  Tester expected: ${e.expected_result}`,
-        `  What happened: ${e.actual_result}`,
       ]
+      // Conditional like the two below it: "What happened: undefined" in the
+      // prompt is worse than the line being absent.
+      if (e.actual_result) lines.push(`  What happened: ${e.actual_result}`)
       if (e.issue_summary) lines.push(`  Issue: ${e.issue_summary}`)
       if (e.steps_to_reproduce) lines.push(`  Reproduce: ${e.steps_to_reproduce}`)
       return lines.join("\n")

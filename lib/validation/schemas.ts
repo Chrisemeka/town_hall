@@ -105,6 +105,9 @@ export type ProjectInput = z.infer<typeof projectSchema>
 
 export const MISSION_TITLE_MAX = 100
 export const MISSION_DESCRIPTION_MIN = 20
+// The field had a floor and no ceiling. A text column with a minimum and no
+// maximum is the one shape that lets a paste bomb straight through.
+export const MISSION_DESCRIPTION_MAX = 2000
 
 export const missionIntentSchema = z.enum(["publish", "draft"], {
   message: "Choose publish or draft.",
@@ -191,13 +194,20 @@ const missionFields = {
     .trim()
     .min(1, "Mission title is required.")
     .max(MISSION_TITLE_MAX, `Title must be ${MISSION_TITLE_MAX} characters or fewer.`),
+  // Optional since the test case became the brief. Empty passes; short does
+  // not, and the message names both ways out rather than only the one that
+  // involves typing more.
+  //
+  // Not .optional(): FormData.get() yields a string when the textarea is
+  // mounted and the form sends "" when it is not, so an undefined would be a
+  // shape the column, the row type and every read site carry for nothing.
   task_description: z
     .string()
     .trim()
-    .min(
-      MISSION_DESCRIPTION_MIN,
-      `Tell testers what to do — at least ${MISSION_DESCRIPTION_MIN} characters.`,
-    ),
+    .max(MISSION_DESCRIPTION_MAX, `Keep the notes under ${MISSION_DESCRIPTION_MAX} characters.`)
+    .refine((v) => v === "" || v.length >= MISSION_DESCRIPTION_MIN, {
+      message: `Add at least ${MISSION_DESCRIPTION_MIN} characters, or leave the notes off.`,
+    }),
   intent: missionIntentSchema,
   // Was a free-text tag capped at MISSION_CATEGORY_MAX. Since the test-case
   // migration it is the test-category enum, and it is required: a mission
@@ -262,11 +272,16 @@ export const auditEntrySchema = z
     step_action: z.string().trim().min(1).max(STEP_ACTION_MAX),
     step_expected: z.string().trim().min(1).max(STEP_EXPECTED_MAX),
     status: z.enum(ENTRY_STATUSES, { message: "Mark this step pass, fail, or blocked." }),
+    // Asked of a failure and of a blocked step, not of a pass — see the
+    // refines below. A passing step has already said what happened, in
+    // expected_result, and asking twice is how the column fills with "as
+    // expected".
     actual_result: z
       .string()
       .trim()
-      .min(ENTRY_TEXT_MIN, "Say what actually happened.")
-      .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`),
+      .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`)
+      .optional()
+      .or(z.literal("")),
     expected_result: z
       .string()
       .trim()
@@ -275,14 +290,26 @@ export const auditEntrySchema = z
     issue_summary: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
     steps_to_reproduce: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
   })
-  // Conditional rather than a blanket requirement: a passing step has no issue
-  // and nothing to reproduce, and making a tester type "N/A" on every one of
-  // them is the friction that produces garbage data.
-  .refine((e) => e.status !== "fail" || !!e.issue_summary?.trim(), {
+  // Conditional rather than blanket, and the condition is "not a pass" rather
+  // than "a failure".
+  //
+  // A passing step has no issue and nothing to reproduce, and making a tester
+  // type "N/A" on every one is the friction that produces garbage data. But a
+  // BLOCKED step has both: something stopped the tester, and that something is
+  // the entire content of the report. Blocked used to collect neither, which
+  // meant the one status that means "I could not get there" reached the builder
+  // with nothing they could act on.
+  //
+  // Every path is set so the focus hook can move the tester to the field.
+  .refine((e) => e.status === "pass" || !!e.actual_result?.trim(), {
+    message: "Say what actually happened.",
+    path: ["actual_result"],
+  })
+  .refine((e) => e.status === "pass" || !!e.issue_summary?.trim(), {
     message: "Summarise the issue.",
     path: ["issue_summary"],
   })
-  .refine((e) => e.status !== "fail" || !!e.steps_to_reproduce?.trim(), {
+  .refine((e) => e.status === "pass" || !!e.steps_to_reproduce?.trim(), {
     message: "List the steps to reproduce it.",
     path: ["steps_to_reproduce"],
   })

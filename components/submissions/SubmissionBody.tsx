@@ -67,7 +67,10 @@ export function SubmissionBody({
               </p>
 
               <Row label="Expected" value={entry.expected_result} />
-              <Row label="Actual" value={entry.actual_result} />
+              {/* Empty on a passing step since 20260907_01 — the same guard the
+                  two rows below have always had. Every row written before that
+                  carries a value and renders unchanged. */}
+              {entry.actual_result && <Row label="Actual" value={entry.actual_result} />}
               {entry.issue_summary && <Row label="Issue" value={entry.issue_summary} />}
               {entry.steps_to_reproduce && (
                 <Row label="Reproduce" value={entry.steps_to_reproduce} />
