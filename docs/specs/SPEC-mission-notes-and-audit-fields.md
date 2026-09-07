@@ -1,6 +1,6 @@
 # SPEC: Mission Notes, Conditional Audit Fields, and Screenshot Copy
 
-**Status:** Approved — open questions resolved below, blocked on PR 1
+**Status:** Implemented, migration not yet applied — RPC-01 pending
 **Branch:** `feat/mission-notes-and-audit-fields`
 **Base branch:** `main`, with `feat/form-focus-and-errors` merged
 **Migration:** one — two column defaults and one function replacement
@@ -344,6 +344,26 @@ Per `CLAUDE.md`: migration → shared logic → server action → UI → tests.
    the lightbox alt describes the image.
 10. Only one button in the CTA row, and the line beneath it explains the auto-save. Reload
     mid-log — answers restored.
+
+## Deviations from this spec, as built
+
+- **2.4 (Save Draft) already landed in PR 1.** Rewriting the CTA row to enable the submit button
+  removed the button in `c3a63ef`, on the previous branch, and that commit message did not say so.
+  Nothing is missing — `draft:${missionId}` has no remaining reference — but the removal is recorded
+  in the wrong PR. The reassurance line proposed here is what arrived on this branch.
+- **The disclosure is one shared component**, `components/missions/MissionNotes.tsx`, rather than the
+  same block written into both forms. Same reasoning `TestCaseEditor` carries.
+- **`firstIncompleteEntry` now uses `ENTRY_TEXT_MIN`**, not "not blank". Writing ENT-08 found that
+  the form and the schema had always disagreed about short answers: a two-character `expected_result`
+  passed the form and was refused by the server. Not in the brief, fixed because the test that the
+  brief did ask for is what exposed it.
+- **`lib/ai.ts` needed a change nobody listed.** It rendered `What happened: ${e.actual_result}`
+  unconditionally, so every passing step would have put `What happened: undefined` into the Gemini
+  prompt. The line is now conditional like the two beside it.
+- **The tester page's notes heading is "Notes from the Builder"**, not "Notes for Testers" — the
+  builder-facing label reads wrong to the person reading them.
+- **The builder mission page gained `whitespace-pre-wrap`.** It never had it while the tester page
+  did, so the same text rendered differently on the two sides.
 
 ## To raise in the PR description
 

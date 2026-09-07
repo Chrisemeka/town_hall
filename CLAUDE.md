@@ -58,9 +58,25 @@ missions ───────────┘  └── test_result_entries   o
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
 | `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`. Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
-| `missions`     | `id`, `project_id`, `title`, `task_description`, `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
+| `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
-| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result`, `expected_result` |
+| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''`**), `expected_result` |
+
+**`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
+`20260907_01` the column is optional with a `''` default and the form calls it "Notes for Testers"
+behind a disclosure — do not make it required again, and do not rename the column: the admin console,
+both mission detail pages and the server action all read it by name. Every surface that renders it
+omits the block when it is empty rather than showing an empty state, because the test case is
+directly below it.
+
+**Which audit-log fields a status owes is decided in one place**, `auditEntrySchema` in
+`lib/validation/schemas.ts`, and mirrored by `firstIncompleteEntry` in
+`components/tester/AuditLogSteps.tsx`. A **pass** owes only `expected_result` — it has already said
+what happened. A **fail** and a **blocked** step owe `actual_result`, `issue_summary` and
+`steps_to_reproduce`; blocked is not a lighter kind of failure, and collecting nothing for it meant
+the one status meaning "something stopped me" reached the builder with nothing actionable. If you
+change either definition, change both — `lib/validation/__tests__/auditEntry.test.ts` crosses all
+108 combinations and will tell you.
 
 **`missions.test_steps` is jsonb, `test_result_entries` is a table.** The asymmetry is deliberate:
 steps are read and written whole with their mission and never queried across missions, while entries
@@ -140,7 +156,11 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
 - **`submit_audit_log`** — live. Writes one `test_results` row plus N `test_result_entries` in one
   transaction. `SECURITY DEFINER` with a pinned `search_path`, and **execute is revoked from `anon`
   and `authenticated`** — a definer-rights function callable from the browser is a wider hole than
-  any it closes. Grant new RPCs to `service_role` only, the same way.
+  any it closes. Grant new RPCs to `service_role` only, the same way. Replaced in `20260907_01` to
+  `coalesce` an absent `actual_result`: `->>` on a missing JSON key returns `NULL`, and a column
+  default does **not** fire for an explicit `NULL`. Any optional field added to the entry payload
+  needs the same treatment, and the `revoke`/`grant` lines restated with it — never assume they
+  survived a `create or replace`.
 - `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments
   were removed from the product entirely. Named here only because the pattern they used is the one
   to follow; nothing in Twnhall moves money.
