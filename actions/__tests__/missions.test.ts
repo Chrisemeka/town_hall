@@ -165,6 +165,30 @@ describe("createMission", () => {
     ])
   })
 
+  it("MISS-13 accepts empty notes and writes them as empty", async () => {
+    // task_description stopped being the brief when test_steps became it. A
+    // mission with no notes is now the ordinary case, not a validation failure.
+    const writes = fakeAdmin()
+
+    await expect(createMission(null, formData({ task_description: "" }))).rejects.toThrow(
+      /NEXT_REDIRECT/,
+    )
+
+    expect(writes[0].values.task_description).toBe("")
+  })
+
+  it("MISS-14 rejects notes that are present but too short", async () => {
+    // Empty is a decision. Five characters is an unfinished sentence, and the
+    // message has to name both ways out — not just the one that means typing
+    // more.
+    const writes = fakeAdmin()
+
+    const result = await createMission(null, formData({ task_description: "short" }))
+
+    expect(writes).toHaveLength(0)
+    expect(result?.fieldErrors?.task_description?.[0]).toMatch(/leave the notes off/)
+  })
+
   it("records template provenance when one was used", async () => {
     const writes = fakeAdmin()
 
@@ -297,6 +321,17 @@ describe("updateMission", () => {
       "test_steps",
       "title",
     ])
+  })
+
+  it("MISS-15 accepts empty notes on an edit", async () => {
+    // Clearing the box is how a builder removes notes they no longer want.
+    const writes = fakeAdmin()
+
+    await expect(updateMission(null, formData({ task_description: "" }))).rejects.toThrow(
+      /NEXT_REDIRECT/,
+    )
+
+    expect(writes[0].values.task_description).toBe("")
   })
 
   it("scopes the write to the owned project as well as the mission", async () => {
