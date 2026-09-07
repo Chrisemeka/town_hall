@@ -155,17 +155,19 @@ export default function AuditLogForm({
       }
       setErrorIndex(undefined)
     }
-    if (!hasSteps && !feedback.trim()) {
-      setCommentError("Tell the builder what you found.")
-      focusFirstError({ comment: true })
-      return
-    }
-    // Last, because a tester who has answered every step and forgotten the
-    // screenshots should be sent to the thing furthest down the page, not have
-    // it checked before the work above it.
+    // These run in the order the page renders them — steps, screenshots, then
+    // the comment box — so the first complaint is always about the first gap a
+    // tester would reach by scrolling. Checking screenshots first, as this once
+    // did, sent someone who had answered ten steps to the bottom of the page
+    // before mentioning the step they had missed.
     if (shots.length === 0) {
       setFileErrors(["At least one screenshot is required."])
       focusFirstError({ screenshots: true })
+      return
+    }
+    if (!hasSteps && !feedback.trim()) {
+      setCommentError("Tell the builder what you found.")
+      focusFirstError({ comment: true })
       return
     }
 
@@ -252,15 +254,35 @@ export default function AuditLogForm({
           if (appUrl) window.open(appUrl, "_blank", "noopener,noreferrer")
           setUnlocked(true)
         }}
-        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 mb-8 ${
+        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian ${
           unlocked
-            ? "border border-iron text-chalk hover:border-ash"
-            : "bg-voltage text-obsidian hover:bg-[#C8E000]"
+            ? "mb-8 border border-iron text-chalk hover:border-ash"
+            : "mb-3 bg-voltage text-obsidian hover:bg-[#C8E000]"
         }`}
       >
         {unlocked ? "Open Again in New Tab" : "Open Project in New Tab"}
         <ExternalLink className="w-4 h-4" />
       </button>
+
+      {/*
+        The screenshot requirement, said before the tester leaves rather than
+        after they come back.
+
+        The whole form below is gated on `unlocked`, so until this button is
+        clicked the word "screenshot" appears nowhere on the page. A tester
+        learned they needed one only after the journey was over, when the only
+        way to get it was to do the journey again.
+
+        Only before unlock: afterwards the form itself says it, and someone
+        clicking "Open Again" has already found out.
+      */}
+      {!unlocked && (
+        <p className="font-mono text-[13px] text-ash leading-5 mb-8">
+          <span className="text-chalk">Screenshot as you go.</span>{" "}
+          You&apos;ll need at least one to
+          submit, and the whole journey tells the builder more than the last screen does.
+        </p>
+      )}
 
       {/* Feedback form — mounted on unlock, not merely faded.
           Keeping it mounted at opacity 0 left the page reserving its full
@@ -297,42 +319,6 @@ export default function AuditLogForm({
             </div>
           </>
         )}
-
-        {/* YOUR FEEDBACK */}
-        <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
-          style={{ letterSpacing: "1px" }}
-        >
-          {hasSteps ? "Anything else?" : "Your Feedback"}
-        </p>
-
-        <textarea
-          id="comment"
-          name="comment"
-          value={feedback}
-          onChange={(e) => {
-            setFeedback(e.target.value)
-            if (commentError) setCommentError(null)
-          }}
-          placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
-          className={[
-            "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
-            commentError ? "border-ember" : "border-iron focus:border-voltage",
-          ].join(" ")}
-          style={{ minHeight: 160 }}
-        />
-        <div className="flex items-center justify-between mt-2 mb-8 gap-3">
-          {commentError ? (
-            <p className="font-mono text-[12px] text-ember">{commentError}</p>
-          ) : (
-            <p className="font-mono text-[12px] text-ash">
-              {hasSteps
-                ? "Optional — anything that did not fit the steps above."
-                : "Be specific and constructive."}
-            </p>
-          )}
-          <span className="font-mono text-[12px] text-ash shrink-0">{feedback.length} chars</span>
-        </div>
 
         {/* Named for the artefact, not its purpose: a first-time tester read
             "Proof of Visit" and did not know a screenshot was wanted. */}
@@ -453,6 +439,42 @@ export default function AuditLogForm({
         {fileErrors.map((msg) => (
           <p key={msg} className="font-mono text-[12px] text-ember mt-2">{msg}</p>
         ))}
+
+        {/* YOUR FEEDBACK */}
+        <p
+          className="font-mono text-[11px] font-medium uppercase text-voltage mt-8 mb-3"
+          style={{ letterSpacing: "1px" }}
+        >
+          {hasSteps ? "Anything else?" : "Your Feedback"}
+        </p>
+
+        <textarea
+          id="comment"
+          name="comment"
+          value={feedback}
+          onChange={(e) => {
+            setFeedback(e.target.value)
+            if (commentError) setCommentError(null)
+          }}
+          placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
+          className={[
+            "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
+            commentError ? "border-ember" : "border-iron focus:border-voltage",
+          ].join(" ")}
+          style={{ minHeight: 160 }}
+        />
+        <div className="flex items-center justify-between mt-2 mb-8 gap-3">
+          {commentError ? (
+            <p className="font-mono text-[12px] text-ember">{commentError}</p>
+          ) : (
+            <p className="font-mono text-[12px] text-ash">
+              {hasSteps
+                ? "Optional — anything that did not fit the steps above."
+                : "Be specific and constructive."}
+            </p>
+          )}
+          <span className="font-mono text-[12px] text-ash shrink-0">{feedback.length} chars</span>
+        </div>
 
         {/* CTAs */}
         <div className="flex flex-col gap-2 mt-8">
