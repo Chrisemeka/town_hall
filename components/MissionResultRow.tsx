@@ -82,10 +82,10 @@ export default function MissionResultRow({
       {/* Two-column grid (stacks on mobile) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* PROOF OF VISIT */}
+        {/* TEST SCREENSHOTS */}
         <div className="flex flex-col gap-3">
           <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
-            PROOF OF VISIT
+            TEST SCREENSHOTS
             {shots.length > 1 && (
               <span className="text-ash normal-case tracking-normal">
                 {" "}· {active + 1} of {shots.length}
@@ -100,7 +100,10 @@ export default function MissionResultRow({
               // eslint-disable-next-line @next/next/no-img-element -- see note above
               <img
                 src={current}
-                alt={`Proof of visit ${active + 1}`}
+                // Describes the image, not its role in the process — a screen
+                // reader user was being told "proof of visit 1", which is
+                // paperwork, not a picture. Design.md §10.
+                alt={`Test screenshot ${active + 1} of ${shots.length}`}
                 className="w-full object-cover"
               />
             ) : (
@@ -252,7 +255,7 @@ export default function MissionResultRow({
             {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
             <img
               src={current}
-              alt={`Full proof of visit ${active + 1}`}
+              alt={`Test screenshot ${active + 1} of ${shots.length}, full size`}
               className="w-full max-h-[85vh] object-contain rounded-xl"
             />
             {shots.length > 1 && (

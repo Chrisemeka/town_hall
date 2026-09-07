@@ -133,9 +133,11 @@ export const TOURS: Tour[] = [
     steps: [
       {
         icon: "📝",
-        title: "Read the brief first",
-        content: <>The submitter wrote this to tell you exactly what to test. Read it carefully — staying on brief is what makes feedback useful.</>,
-        selector: "#tour-mission-brief",
+        // Was anchored on the task description, which a mission need not have
+        // since 20260907_01 — and "the brief" is the test case now anyway.
+        title: "Work through the test case",
+        content: <>Each step says what to do and what should happen. Answer them in order — that is what makes feedback the builder can act on.</>,
+        selector: "#tour-mission-testcase",
         side: "bottom",
         showControls: true,
         pointerPadding: 10,

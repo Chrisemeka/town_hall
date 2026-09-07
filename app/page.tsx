@@ -156,7 +156,7 @@ export default function LandingPage() {
                     num: "02",
                     icon: <Users className="w-5 h-5 text-voltage" />,
                     title: "Community developers test it",
-                    copy: "Real developers pick up your missions, visit your project, and submit written feedback with screenshot proof of visit.",
+                    copy: "Real developers pick up your missions, visit your project, and submit written feedback with screenshots of what they saw.",
                   },
                   {
                     num: "03",
@@ -268,7 +268,7 @@ export default function LandingPage() {
                   Frictionless testing.
                 </motion.h2>
                 <motion.p tabIndex={0} variants={fadeUp} className="font-mono text-[16px] leading-8 text-midnight/70 max-w-md">
-                  Browse the community feed, pick a mission, and jump in. Clear instructions tell you exactly what to test — no guessing, no wasted time. Every mission ships with focus areas and a brief from the builder, so the few minutes you spend testing turn into feedback that actually moves the project forward.
+                  Browse the community feed, pick a mission, and jump in. Clear instructions tell you exactly what to test — no guessing, no wasted time. Every mission ships with a test case — ordered steps and what each one should do — so the few minutes you spend testing turn into feedback that actually moves the project forward.
                 </motion.p>
               </motion.div>
 
