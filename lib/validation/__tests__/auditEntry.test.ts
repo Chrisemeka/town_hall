@@ -19,7 +19,6 @@ function draft(over: Partial<DraftEntry> = {}): DraftEntry {
     step_expected: "A confirmation email arrives",
     status: "pass",
     actual_result: "The email arrived",
-    expected_result: "A confirmation email arrives",
     issue_summary: "",
     steps_to_reproduce: "",
     ...over,
@@ -101,20 +100,37 @@ describe("auditEntrySchema by status", () => {
     expect(auditEntrySchema.safeParse(payload(draft())).success).toBe(true)
   })
 
-  it("ENT-07 requires expected_result on every status", () => {
-    // The one field a pass is actually confirming.
+  it("ENT-09 accepts an entry that carries no expected_result at all", () => {
+    // The field left the schema in 20260908_01 — it was prefilled from the
+    // builder's step_expected and ten of the first eleven testers sent it back
+    // unchanged.
     for (const status of ENTRY_STATUSES) {
       const parsed = auditEntrySchema.safeParse(
         payload(draft({
           status,
-          expected_result: "",
           actual_result: "Something else entirely",
           issue_summary: "It went wrong",
           steps_to_reproduce: "1. Do the thing",
         })),
       )
-      expect(parsed.success, `${status} accepted a blank expected_result`).toBe(false)
+      expect(parsed.success, `${status} was rejected`).toBe(true)
     }
+  })
+
+  it("ENT-10 strips a stale expected_result rather than failing on it", () => {
+    // A localStorage draft written before this still carries the key, and the
+    // action passes the PARSED entries to the RPC — so it must not survive.
+    const stale = { ...payload(draft()), expected_result: "left over from an old draft" }
+    const parsed = auditEntrySchema.safeParse(stale)
+    expect(parsed.success).toBe(true)
+    expect(parsed.data).not.toHaveProperty("expected_result")
+  })
+
+  it("ENT-11 accepts a pass carrying nothing but its status", () => {
+    const parsed = auditEntrySchema.safeParse(
+      payload(draft({ actual_result: "", issue_summary: "", steps_to_reproduce: "" })),
+    )
+    expect(parsed.success).toBe(true)
   })
 
   it("every refine names its own field, so the focus hook can reach it", () => {

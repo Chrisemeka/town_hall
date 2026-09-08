@@ -1,6 +1,12 @@
 "use client"
 
-import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabulary"
+import {
+  ENTRY_STATUSES,
+  ENTRY_STATUS_HINTS,
+  entryStatusLabel,
+  type EntryStatus,
+} from "@/lib/vocabulary"
+import { InfoTip } from "@/components/ui/InfoTip"
 import { ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
@@ -15,22 +21,20 @@ export type DraftEntry = {
   step_expected: string
   status: EntryStatus | ""
   actual_result: string
-  expected_result: string
   issue_summary: string
   steps_to_reproduce: string
 }
 
-/** A blank log for a mission's steps, with expected_result seeded from the step. */
+/** A blank log for a mission's steps. */
 export function draftFor(steps: TestStep[]): DraftEntry[] {
   return steps.map((step) => ({
     step_id: step.id,
+    // The builder's wording, snapshotted and shown back verbatim. It is a
+    // label, not a field: it used to be prefilled into an editable box and ten
+    // of the first eleven testers submitted it unchanged.
     step_action: step.action,
     step_expected: step.expected_result,
     status: "",
-    // Prefilled and editable. It makes the common case one click, and a tester
-    // who disagrees about what should have happened is exactly the signal the
-    // builder wants — so it has to be a field, not a label.
-    expected_result: step.expected_result,
     actual_result: "",
     issue_summary: "",
     steps_to_reproduce: "",
@@ -41,7 +45,6 @@ export function draftFor(steps: TestStep[]): DraftEntry[] {
 export type EntryField =
   | "status"
   | "actual_result"
-  | "expected_result"
   | "issue_summary"
   | "steps_to_reproduce"
 
@@ -70,9 +73,8 @@ export function firstIncompleteEntry(entries: DraftEntry[]): Incomplete | null {
 
   for (const [index, e] of entries.entries()) {
     if (e.status === "") return { index, field: "status" }
-    // expected_result is the one field asked of every status — it is what a
-    // pass is actually confirming.
-    if (!given(e.expected_result)) return { index, field: "expected_result" }
+    // A pass is complete here — its status is the whole answer, and what it
+    // confirms is the builder's step_expected, already on the row.
     // Everything below mirrors auditEntrySchema's refines. These two
     // definitions of "complete" drifting apart is the failure this file is
     // most exposed to, and components/tester/__tests__ crosses them directly.
@@ -142,8 +144,22 @@ export function AuditLogSteps({
 
           {/* Status. Text-labelled, never colour alone — Design.md §5.4. */}
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px]">
+            <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] flex items-center gap-2">
               How did it go?
+              {/* Per step rather than once at the top: the choice is made per
+                  step, and the icon costs no vertical space on a form that is
+                  already several screens tall. */}
+              <InfoTip label="What do Pass, Fail and Blocked mean?">
+                <span className="flex flex-col gap-2 normal-case tracking-normal">
+                  {ENTRY_STATUSES.map((s) => (
+                    <span key={s} className="font-mono text-[12px] leading-5 text-ash">
+                      <span className={STATUS_HINT_TONE[s]}>{entryStatusLabel(s)}</span>
+                      {" — "}
+                      {ENTRY_STATUS_HINTS[s]}
+                    </span>
+                  ))}
+                </span>
+              </InfoTip>
             </span>
             <div className="flex flex-wrap gap-2">
               {ENTRY_STATUSES.map((status, i) => {
@@ -171,15 +187,6 @@ export function AuditLogSteps({
               })}
             </div>
           </div>
-
-          <Field
-            name={entryFieldName(index, "expected_result")}
-            label="What you expected"
-            value={entry.expected_result}
-            onChange={(v) => edit(index, { expected_result: v })}
-            placeholder="A confirmation message"
-            helper="Prefilled from the builder — change it if you expected something else."
-          />
 
           {/*
             Everything below is asked of a failure and of a blocked step, and of
@@ -232,6 +239,13 @@ export function AuditLogSteps({
       ))}
     </div>
   )
+}
+
+/** The tooltip's labels, toned to match the buttons they describe. */
+const STATUS_HINT_TONE: Record<EntryStatus, string> = {
+  pass: "text-[#3FFFA2]",
+  fail: "text-ember",
+  blocked: "text-sky",
 }
 
 const STATUS_ACTIVE: Record<EntryStatus, string> = {

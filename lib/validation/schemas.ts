@@ -265,6 +265,13 @@ export const ENTRY_TEXT_MAX = 500
  * the snapshot records what was actually rendered to the tester. The action
  * still checks step_id against the mission's live steps — the snapshot is the
  * record, but it is not taken on trust.
+ *
+ * There is no expected_result. It was prefilled from the builder's own
+ * step_expected and ten of the first eleven entries left it exactly as it
+ * arrived, so it asked a tester to retype a sentence already on the row.
+ * Removed rather than made optional: a field nothing sends and nothing renders
+ * is one a later reader has to work out the status of. The column keeps its
+ * eleven historical values — see 20260908_01.
  */
 export const auditEntrySchema = z
   .object({
@@ -282,11 +289,6 @@ export const auditEntrySchema = z
       .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`)
       .optional()
       .or(z.literal("")),
-    expected_result: z
-      .string()
-      .trim()
-      .min(ENTRY_TEXT_MIN, "Say what should have happened.")
-      .max(ENTRY_TEXT_MAX, `Keep it under ${ENTRY_TEXT_MAX} characters.`),
     issue_summary: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
     steps_to_reproduce: z.string().trim().max(ENTRY_TEXT_MAX).optional().or(z.literal("")),
   })

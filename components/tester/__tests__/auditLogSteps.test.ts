@@ -19,7 +19,6 @@ function entry(over: Partial<DraftEntry> = {}): DraftEntry {
     step_expected: "The thing happens",
     status: "pass",
     actual_result: "It happened",
-    expected_result: "The thing happens",
     issue_summary: "",
     steps_to_reproduce: "",
     ...over,
@@ -89,19 +88,25 @@ describe("firstIncompleteEntry", () => {
   })
 
   it("does not accept whitespace as an answer", () => {
-    expect(firstIncompleteEntry([entry({ expected_result: "" })])).toEqual({
-      index: 0,
-      field: "expected_result",
-    })
     expect(
       firstIncompleteEntry([entry({ status: "fail", actual_result: "   " })]),
     ).toEqual({ index: 0, field: "actual_result" })
   })
 
+  it("AUD-23 treats a pass as complete once its status is set", () => {
+    // Since 20260908_01 the status is the whole answer on a pass. What it
+    // confirms is the builder's step_expected, which is already on the row.
+    expect(
+      firstIncompleteEntry([
+        entry({ actual_result: "", issue_summary: "", steps_to_reproduce: "" }),
+      ]),
+    ).toBeNull()
+  })
+
   it("AUD-21 reports the first incomplete step, not the last", () => {
     // The tester is sent to the one they reach first by scrolling.
     expect(
-      firstIncompleteEntry([entry({ status: "" }), entry({ expected_result: "" })]),
+      firstIncompleteEntry([entry({ status: "" }), entry({ status: "fail" })]),
     ).toEqual({ index: 0, field: "status" })
   })
 })
@@ -117,7 +122,6 @@ describe("draftIsComplete", () => {
       [entry(), failing],
       [entry({ status: "" })],
       [entry({ actual_result: "" })],
-      [entry({ expected_result: " " })],
       [entry({ status: "fail" })],
       [entry({ status: "fail", issue_summary: "x" })],
       [entry({ status: "blocked" })],

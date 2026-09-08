@@ -125,6 +125,19 @@ const ENTRY_STATUS_LABELS: Record<EntryStatus, string> = {
   blocked: "Blocked",
 }
 
+/**
+ * One line explaining each status, shown beside the choice.
+ *
+ * The distinction above was written for developers, in a comment. Nothing in
+ * the product has ever told a tester what these three mean, which is how a
+ * blocked step gets marked Fail — reporting a bug in a feature nobody reached.
+ */
+export const ENTRY_STATUS_HINTS: Record<EntryStatus, string> = {
+  pass: "It did what the builder said it would.",
+  fail: "It ran, and did something else.",
+  blocked: "You could not get to this step at all.",
+}
+
 /** Human label for a stored entry status. Unknown values render as-is. */
 export function entryStatusLabel(value: string): string {
   return ENTRY_STATUS_LABELS[value as EntryStatus] ?? value

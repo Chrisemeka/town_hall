@@ -66,7 +66,16 @@ export function SubmissionBody({
                 {entry.step_action}
               </p>
 
-              <Row label="Expected" value={entry.expected_result} />
+              {/* The builder's own wording, snapshotted at submission time.
+                  This was reading expected_result — the tester's copy of the
+                  same sentence — until the form stopped asking for it. */}
+              <Row label="Expected" value={entry.step_expected} />
+              {/* Only entries written before 20260908_01, and only the ones
+                  where the tester actually disagreed. Dropping the field must
+                  not silently delete what it did collect. */}
+              {testerDisagreed(entry) && (
+                <Row label="Tester expected" value={entry.expected_result} />
+              )}
               {/* Empty on a passing step since 20260907_01 — the same guard the
                   two rows below have always had. Every row written before that
                   carries a value and renders unchanged. */}
@@ -137,6 +146,16 @@ function StatusPill({ status, count }: { status: string; count?: number }) {
       {entryStatusLabel(status)}
     </span>
   )
+}
+
+/**
+ * Whether this entry's tester wrote their own expectation rather than sending
+ * back the builder's. True for one of the eleven entries that predate
+ * 20260908_01, and never for anything written after it.
+ */
+function testerDisagreed(entry: SubmissionEntry): boolean {
+  const norm = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase()
+  return !!entry.expected_result && norm(entry.expected_result) !== norm(entry.step_expected)
 }
 
 function Row({ label, value }: { label: string; value: string }) {
