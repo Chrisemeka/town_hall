@@ -10,6 +10,7 @@ import {
   COUNTRIES,
   DEVICE_TARGETS,
   ENTRY_STATUSES,
+  ENTRY_STATUS_HINTS,
   PROJECT_CATEGORIES,
   SKILLS,
   TEST_CATEGORIES,
@@ -148,6 +149,23 @@ for (const value of ENTRY_STATUSES) {
 assert.ok(
   (ENTRY_STATUSES as readonly string[]).includes("fail"),
   "'fail' is what auditEntrySchema requires issue_summary and steps_to_reproduce for",
+)
+
+
+/* ── entry status hints ──────────────────────────────────────────────── */
+
+// Shown to the tester in the tooltip beside the choice. A status with no hint
+// renders as a blank line next to its label, which reads as a bug rather than
+// as missing copy.
+for (const status of ENTRY_STATUSES) {
+  const hint = ENTRY_STATUS_HINTS[status]
+  assert.ok(hint && hint.trim().length > 0, `${status} has no hint`)
+  assert.ok(hint.length < 80, `${status}'s hint is too long for a tooltip line`)
+}
+assert.equal(
+  Object.keys(ENTRY_STATUS_HINTS).length,
+  ENTRY_STATUSES.length,
+  "ENTRY_STATUS_HINTS has an entry for a status that does not exist",
 )
 
 console.log("entry statuses: all assertions passed")

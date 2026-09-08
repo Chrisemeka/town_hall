@@ -1,6 +1,12 @@
 "use client"
 
-import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabulary"
+import {
+  ENTRY_STATUSES,
+  ENTRY_STATUS_HINTS,
+  entryStatusLabel,
+  type EntryStatus,
+} from "@/lib/vocabulary"
+import { InfoTip } from "@/components/ui/InfoTip"
 import { ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
@@ -138,8 +144,22 @@ export function AuditLogSteps({
 
           {/* Status. Text-labelled, never colour alone — Design.md §5.4. */}
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px]">
+            <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] flex items-center gap-2">
               How did it go?
+              {/* Per step rather than once at the top: the choice is made per
+                  step, and the icon costs no vertical space on a form that is
+                  already several screens tall. */}
+              <InfoTip label="What do Pass, Fail and Blocked mean?">
+                <span className="flex flex-col gap-2 normal-case tracking-normal">
+                  {ENTRY_STATUSES.map((s) => (
+                    <span key={s} className="font-mono text-[12px] leading-5 text-ash">
+                      <span className={STATUS_HINT_TONE[s]}>{entryStatusLabel(s)}</span>
+                      {" — "}
+                      {ENTRY_STATUS_HINTS[s]}
+                    </span>
+                  ))}
+                </span>
+              </InfoTip>
             </span>
             <div className="flex flex-wrap gap-2">
               {ENTRY_STATUSES.map((status, i) => {
@@ -219,6 +239,13 @@ export function AuditLogSteps({
       ))}
     </div>
   )
+}
+
+/** The tooltip's labels, toned to match the buttons they describe. */
+const STATUS_HINT_TONE: Record<EntryStatus, string> = {
+  pass: "text-[#3FFFA2]",
+  fail: "text-ember",
+  blocked: "text-sky",
 }
 
 const STATUS_ACTIVE: Record<EntryStatus, string> = {
