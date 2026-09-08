@@ -511,7 +511,7 @@ export default function AuditLogForm({
   )
 }
 
-/** Whether the tester has typed anything into the log yet. */
+/** Whether the tester has answered anything yet. */
 function draftStarted(entries: DraftEntry[]): boolean {
   return entries.some(
     (e) => e.status !== "" || e.actual_result.trim() !== "" || e.issue_summary.trim() !== "",

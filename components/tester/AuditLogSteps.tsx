@@ -15,22 +15,20 @@ export type DraftEntry = {
   step_expected: string
   status: EntryStatus | ""
   actual_result: string
-  expected_result: string
   issue_summary: string
   steps_to_reproduce: string
 }
 
-/** A blank log for a mission's steps, with expected_result seeded from the step. */
+/** A blank log for a mission's steps. */
 export function draftFor(steps: TestStep[]): DraftEntry[] {
   return steps.map((step) => ({
     step_id: step.id,
+    // The builder's wording, snapshotted and shown back verbatim. It is a
+    // label, not a field: it used to be prefilled into an editable box and ten
+    // of the first eleven testers submitted it unchanged.
     step_action: step.action,
     step_expected: step.expected_result,
     status: "",
-    // Prefilled and editable. It makes the common case one click, and a tester
-    // who disagrees about what should have happened is exactly the signal the
-    // builder wants — so it has to be a field, not a label.
-    expected_result: step.expected_result,
     actual_result: "",
     issue_summary: "",
     steps_to_reproduce: "",
@@ -41,7 +39,6 @@ export function draftFor(steps: TestStep[]): DraftEntry[] {
 export type EntryField =
   | "status"
   | "actual_result"
-  | "expected_result"
   | "issue_summary"
   | "steps_to_reproduce"
 
@@ -70,9 +67,8 @@ export function firstIncompleteEntry(entries: DraftEntry[]): Incomplete | null {
 
   for (const [index, e] of entries.entries()) {
     if (e.status === "") return { index, field: "status" }
-    // expected_result is the one field asked of every status — it is what a
-    // pass is actually confirming.
-    if (!given(e.expected_result)) return { index, field: "expected_result" }
+    // A pass is complete here — its status is the whole answer, and what it
+    // confirms is the builder's step_expected, already on the row.
     // Everything below mirrors auditEntrySchema's refines. These two
     // definitions of "complete" drifting apart is the failure this file is
     // most exposed to, and components/tester/__tests__ crosses them directly.
@@ -171,15 +167,6 @@ export function AuditLogSteps({
               })}
             </div>
           </div>
-
-          <Field
-            name={entryFieldName(index, "expected_result")}
-            label="What you expected"
-            value={entry.expected_result}
-            onChange={(v) => edit(index, { expected_result: v })}
-            placeholder="A confirmation message"
-            helper="Prefilled from the builder — change it if you expected something else."
-          />
 
           {/*
             Everything below is asked of a failure and of a blocked step, and of
