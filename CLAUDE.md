@@ -60,7 +60,7 @@ missions ───────────┘  └── test_result_entries   o
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
-| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''`**), `expected_result` |
+| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''`**), `expected_result` (**no longer collected, defaults `''`**) |
 
 **`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
 `20260907_01` the column is optional with a `''` default and the form calls it "Notes for Testers"
@@ -71,12 +71,18 @@ directly below it.
 
 **Which audit-log fields a status owes is decided in one place**, `auditEntrySchema` in
 `lib/validation/schemas.ts`, and mirrored by `firstIncompleteEntry` in
-`components/tester/AuditLogSteps.tsx`. A **pass** owes only `expected_result` — it has already said
-what happened. A **fail** and a **blocked** step owe `actual_result`, `issue_summary` and
-`steps_to_reproduce`; blocked is not a lighter kind of failure, and collecting nothing for it meant
-the one status meaning "something stopped me" reached the builder with nothing actionable. If you
-change either definition, change both — `lib/validation/__tests__/auditEntry.test.ts` crosses all
-108 combinations and will tell you.
+`components/tester/AuditLogSteps.tsx`. A **pass** owes nothing but its status — what it confirms is
+the builder's `step_expected`, already snapshotted on the row. A **fail** and a **blocked** step owe
+`actual_result`, `issue_summary` and `steps_to_reproduce`; blocked is not a lighter kind of failure,
+and collecting nothing for it meant the one status meaning "something stopped me" reached the
+builder with nothing actionable. If you change either definition, change both —
+`lib/validation/__tests__/auditEntry.test.ts` crosses every combination and will tell you.
+
+**`test_result_entries.expected_result` is history, not a field.** `20260908_01` took it off the
+form: it was prefilled from the builder's own `step_expected` and ten of the first eleven testers
+submitted it unchanged. The column keeps those eleven values — one tester did write their own — so
+`SubmissionBody` renders `step_expected` as "Expected" and shows `expected_result` only where the
+two differ. Do not reintroduce it as an input.
 
 **`missions.test_steps` is jsonb, `test_result_entries` is a table.** The asymmetry is deliberate:
 steps are read and written whole with their mission and never queried across missions, while entries

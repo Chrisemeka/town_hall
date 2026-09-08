@@ -1,6 +1,6 @@
 # SPEC: Drop the Tester's Expected Result, Explain the Statuses
 
-**Status:** In progress
+**Status:** Implemented, migration not yet applied — RPC-02 pending
 **Branch:** `feat/audit-log-simplify`
 **Base branch:** `main`
 **Migration:** one — a column default and a function replacement
@@ -134,6 +134,16 @@ text rather than a bare "?".
 | AUD-23 | `firstIncompleteEntry` on a pass with only a status | `null` |
 | AUD-24 | ENT-08's cross-product, rebuilt without the field | form and server still agree everywhere |
 | RPC-02 | `submit_audit_log` with `expected_result` absent | row written, column `''` — against the live function |
+
+## As built
+
+- The tooltip **opens upward**. Below the trigger it landed on top of the three buttons it was
+  explaining — readable, or the choice visible, not both.
+- Side effect worth noting: an unanswered step card is now the builder's instruction plus three
+  buttons, with no text inputs at all. On a ten-step mission that is most of the form's height gone,
+  which is the same page-length problem the screenshot-prompt PR ran into from the other end.
+- `lib/ai.ts` lost its `Tester expected:` prompt line, which would otherwise have rendered
+  `undefined` on every step.
 
 ## Acceptance criteria
 
