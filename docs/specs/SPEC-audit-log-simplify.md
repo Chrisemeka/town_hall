@@ -1,6 +1,6 @@
 # SPEC: Drop the Tester's Expected Result, Explain the Statuses
 
-**Status:** Implemented, migration not yet applied — RPC-02 pending
+**Status:** Shipped — migration applied 2026-09-08, verified against the live database
 **Branch:** `feat/audit-log-simplify`
 **Base branch:** `main`
 **Migration:** one — a column default and a function replacement
@@ -134,6 +134,26 @@ text rather than a bare "?".
 | AUD-23 | `firstIncompleteEntry` on a pass with only a status | `null` |
 | AUD-24 | ENT-08's cross-product, rebuilt without the field | form and server still agree everywhere |
 | RPC-02 | `submit_audit_log` with `expected_result` absent | row written, column `''` — against the live function |
+
+## Verified against the live database, after the migration
+
+| Check | Result |
+|---|---|
+| `expected_result` default | `""` — and still `NOT NULL` |
+| `actual_result` default | still `""` — `20260907_01` survived the `create or replace` |
+| **RPC-02** — the payload a pass actually sends now | accepted, row written |
+| What the columns hold | both `""`, not `null` |
+| Cleanup | verification row deleted, its entry cascaded, `0` of each remaining |
+| `anon` calling `submit_audit_log` | `401`, `42501 permission denied for function` |
+| The eleven historical entries | all 11 keep their `expected_result`; 1 still disagrees with the builder |
+
+The entry sent carried four keys — `step_id`, `step_action`, `step_expected`, `status` — and two of
+those are the builder's own snapshot. That is a pass in its entirety now, and it is the insert that
+fails without both coalesces.
+
+Checking `actual_result`'s default is the point of the second row: `create or replace` is where a
+previous migration's work quietly stops applying, and this is the second function replacement in two
+days.
 
 ## As built
 
