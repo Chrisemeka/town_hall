@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Syne, DM_Mono } from "next/font/google"; 
+import { Syne, DM_Mono, DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const syne = Syne({
@@ -10,6 +10,16 @@ const syne = Syne({
 
 const dmMono = DM_Mono({
   variable: "--font-dm-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
+// Long-form prose on PUBLIC pages only — pricing, about, the guides. DM Mono
+// stays the body font on every app surface (Design.md §4.2). DM Sans is DM
+// Mono's own superfamily, so a paragraph set in it sits on the same vertical
+// metrics as the labels and buttons around it.
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
   weight: ["400", "500"],
 });
@@ -60,7 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${syne.variable} ${dmMono.variable} h-full antialiased`}
+      className={`${syne.variable} ${dmMono.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-mono bg-obsidian text-chalk">
         <script

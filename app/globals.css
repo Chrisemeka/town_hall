@@ -7,6 +7,8 @@
   /* Font Families */
   --font-syne: var(--font-syne);
   --font-mono: var(--font-dm-mono);
+  /* Public-surface prose only — see app/layout.tsx. */
+  --font-sans: var(--font-dm-sans);
 
   /* Color Palette (Design.md) */
   --color-obsidian: #0E0E10;
