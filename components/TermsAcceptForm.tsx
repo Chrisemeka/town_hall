@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { acceptTerms } from "@/actions/onboarding";
 
@@ -20,10 +20,22 @@ export function TermsAcceptForm() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const checkbox = useRef<HTMLInputElement>(null);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!agreed || isPending) return;
+    if (isPending) return;
+
+    // The button stays live when the box is unticked. CLAUDE.md is explicit:
+    // a disabled control cannot say what is missing, and the message written
+    // for it becomes unreachable — which is exactly what happened here, where
+    // the only way to learn what was wanted was to notice a greyed button.
+    if (!agreed) {
+      setError("Tick the box above to continue.");
+      checkbox.current?.focus();
+      return;
+    }
+
     setError(null);
     startTransition(async () => {
       try {
@@ -36,23 +48,38 @@ export function TermsAcceptForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
-
+    <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
       <label className="flex items-start gap-3 cursor-pointer select-none group">
         <input
+          ref={checkbox}
           type="checkbox"
           checked={agreed}
-          onChange={(e) => setAgreed(e.target.checked)}
-          className="mt-1 w-4 h-4 accent-voltage shrink-0 cursor-pointer"
-          aria-describedby="terms-agreement-text"
+          onChange={(e) => {
+            setAgreed(e.target.checked);
+            if (e.target.checked) setError(null);
+          }}
+          className="mt-1 w-4 h-4 accent-accent shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          aria-describedby={error ? "terms-error" : "terms-agreement-text"}
+          {...(error ? { "aria-invalid": true as const } : {})}
         />
-        <span id="terms-agreement-text" className="font-mono text-[14px] leading-6 text-midnight/70 group-hover:text-midnight transition-colors duration-150">
+        <span
+          id="terms-agreement-text"
+          className="font-sans text-[14px] leading-6 text-ink"
+        >
           I agree to Twnhall&apos;s{" "}
-          <Link href="/terms" target="_blank" className="text-forest hover:underline">
+          <Link
+            href="/terms"
+            target="_blank"
+            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          >
             Terms of Service
-          </Link>
-          {" "}and{" "}
-          <Link href="/guides" target="_blank" className="text-forest hover:underline">
+          </Link>{" "}
+          and{" "}
+          <Link
+            href="/guides"
+            target="_blank"
+            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          >
             Guides
           </Link>
           .
@@ -60,19 +87,24 @@ export function TermsAcceptForm() {
       </label>
 
       {error && (
-        <p className="font-mono text-[13px] text-red-700" role="alert">
+        <p
+          id="terms-error"
+          role="alert"
+          className="font-mono text-[12px] text-danger-ink"
+        >
           {error}
         </p>
       )}
 
       <button
         type="submit"
-        disabled={!agreed || isPending}
-        className="h-11 px-5 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:bg-midnight/10 disabled:text-midnight/40 disabled:cursor-not-allowed cursor-pointer"
+        // Disabled only while the action is in flight, which is a different
+        // claim from "you have not finished" — and the label says which.
+        disabled={isPending}
+        className="h-11 px-5 self-start bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
       >
-        {isPending ? "Saving..." : "Continue"}
+        {isPending ? "Saving…" : "Continue"}
       </button>
-
     </form>
   );
 }

@@ -1,12 +1,17 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import type { z } from "zod"
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
-import { Button } from "@/components/ui/Button"
-import { Field, inputClass } from "@/components/ui/Field"
 import { fieldErrorProps } from "@/components/ui/FieldError"
+import { SetupCard, SetupField, setupInputClass } from "@/components/setup/chrome"
+import { StepIndicator } from "@/components/setup/StepIndicator"
+import {
+  completionHeadlineFor,
+  nextStepsFor,
+  setupStages,
+} from "@/lib/setup"
+import { ArrowRight, Check } from "lucide-react"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
@@ -64,21 +69,22 @@ const STEPS: Record<AccountType, readonly Step[]> = {
   ],
 }
 
-const BANNER_COPY: Record<AccountType, string> = {
-  tester: "Twnhall now requires a completed profile before you can test missions. This takes about a minute.",
-  builder: "Twnhall now requires a completed profile before you can manage projects. This takes about a minute.",
-}
-
 export function VerificationFlow({
   role,
   initialValues,
   initialStep,
+  gates,
 }: {
   role: AccountType
   initialValues: VerificationValues
   initialStep: number
+  /**
+   * What the earlier gates say, so the indicator reports the chain rather than
+   * this wizard's position. Someone adding a second role passed terms and the
+   * picker months ago and must not be shown them as pending — see lib/setup.ts.
+   */
+  gates: { termsAcceptedAt: string | null; hasAccount: boolean }
 }) {
-  const router = useRouter()
   const steps = STEPS[role]
   const reviewStep = steps.length
 
@@ -87,9 +93,9 @@ export function VerificationFlow({
   const [errors, setErrors] = useState<Errors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
-  // `pending` goes false the moment the action resolves, which is before the
-  // destination route has fetched anything — that gap is what this covers.
-  const [navigating, setNavigating] = useState(false)
+  // Set once the gate is open. Terminal: the flow is finished and what is on
+  // screen is the hand-off, not a step.
+  const [done, setDone] = useState<string | null>(null)
   const banner = useRef<HTMLDivElement>(null)
 
   // A field on an earlier step is not mounted, so the hook cannot focus it
@@ -166,41 +172,57 @@ export function VerificationFlow({
         return
       }
       if (result.redirectTo) {
-        // Set, never cleared. This component is on its way out, and turning it
-        // back off would flash the review step for a frame before the
-        // destination paints.
-        setNavigating(true)
-        router.push(result.redirectTo)
+        // Set, never cleared. The flow is over; turning this back off would
+        // flash the review step behind the completion screen.
+        setDone(result.redirectTo)
       }
     })
   }
 
   const onReview = step === reviewStep
 
-  // Terminal. Returning early is what guarantees no field, button or step
-  // indicator is left on screen to be clicked while the route is in flight.
-  if (navigating) return <NavigatingPanel role={role} />
+  const bar = setupStages({
+    termsAcceptedAt: gates.termsAcceptedAt,
+    role,
+    hasAccount: gates.hasAccount,
+    verified: !!done,
+    profileStep: step,
+  })
+
+  // Terminal. Returning early is what guarantees no field, button or step is
+  // left on screen to be clicked once the gate is open.
+  if (done) {
+    return (
+      <>
+        <StepIndicator bar={bar} />
+        <CompletionPanel role={role} href={done} />
+      </>
+    )
+  }
 
   return (
     <>
-      <p className="font-mono text-[12px] text-voltage uppercase tracking-[1.5px] mb-3">
-        Complete your profile
-      </p>
-      <h1 className="font-syne font-bold text-[32px] leading-[40px] tracking-[-0.5px] text-chalk mb-3">
-        {role === "tester" ? "Set up your tester profile" : "Set up your builder profile"}
-      </h1>
+      <StepIndicator bar={bar} />
 
-      {/* Rollout note — Mission Instructions block styling, Design.md §6.7 */}
-      <div className="bg-voltage/5 border-l-[3px] border-voltage rounded-r-[8px] px-5 py-4 mb-8">
-        <p className="font-mono text-[14px] leading-6 text-ash">{BANNER_COPY[role]}</p>
-      </div>
-
-      <StepIndicator labels={[...steps.map((s) => s.label), "Review"]} current={step} />
-
-      <div className="bg-graphite border border-iron rounded-[16px] p-10">
+      <SetupCard
+        title={
+          role === "tester"
+            ? "Set up your tester profile"
+            : "Set up your builder profile"
+        }
+        subhead={
+          role === "tester"
+            ? "Builders see your name and skills on every report you file."
+            : "This takes about a minute, and it is the last thing before your dashboard."
+        }
+      >
         {formError && (
-          <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-            <p className="font-mono text-[14px] text-ember">{formError}</p>
+          <div
+            ref={banner}
+            role="alert"
+            className="mb-6 px-4 py-3 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08]"
+          >
+            <p className="font-mono text-[13px] leading-5 text-danger-ink">{formError}</p>
           </div>
         )}
 
@@ -210,6 +232,7 @@ export function VerificationFlow({
           )}
           {steps[step]?.id === "skills" && (
             <SkillsInput
+              surface="setup"
               value={values.skills}
               onChange={(skills) => set("skills", skills)}
               error={errors.skills}
@@ -220,23 +243,36 @@ export function VerificationFlow({
           )}
         </div>
 
-        <div className="flex items-center gap-3 pt-8">
-          {onReview ? (
-            <Button size="lg" onClick={onComplete} disabled={pending}>
-              {pending ? "Completing…" : "Complete verification"}
-            </Button>
-          ) : (
-            <Button size="default" onClick={onContinue} disabled={pending}>
-              {pending ? "Saving…" : "Continue"}
-            </Button>
-          )}
+        <div className="flex flex-wrap items-center gap-3 pt-8">
+          {/* Live whatever the form holds — validated on click, naming the
+              outstanding field. Disabled only while the action is in flight,
+              which the label says. */}
+          <button
+            type="button"
+            onClick={onReview ? onComplete : onContinue}
+            disabled={pending}
+            className="h-11 px-6 inline-flex items-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          >
+            {pending
+              ? onReview
+                ? "Finishing…"
+                : "Saving…"
+              : onReview
+                ? "Finish setup"
+                : "Continue"}
+          </button>
           {step > 0 && (
-            <Button variant="ghost" size={onReview ? "lg" : "default"} onClick={() => setStep(step - 1)} disabled={pending}>
+            <button
+              type="button"
+              onClick={() => setStep(step - 1)}
+              disabled={pending}
+              className="h-11 px-6 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            >
               Back
-            </Button>
+            </button>
           )}
         </div>
-      </div>
+      </SetupCard>
     </>
   )
 }
@@ -267,24 +303,24 @@ function IdentityStep({ values, errors, set }: StepProps) {
 
   return (
     <>
-      <Field label="Full name" htmlFor="fullName" error={errors.fullName}>
+      <SetupField label="Full name" htmlFor="fullName" error={errors.fullName}>
         <input
           id="fullName"
           value={values.fullName}
           maxLength={FULL_NAME_MAX}
           onChange={(e) => set("fullName", e.target.value)}
           {...fieldErrorProps("fullName", errors.fullName)}
-          className={inputClass(!!errors.fullName?.length)}
+          className={setupInputClass(!!errors.fullName?.length)}
         />
-      </Field>
+      </SetupField>
 
-      <Field label="Country" htmlFor="country" error={errors.country}>
+      <SetupField label="Country" htmlFor="country" error={errors.country}>
         <select
           id="country"
           value={values.country}
           onChange={(e) => onCountryChange(e.target.value)}
           {...fieldErrorProps("country", errors.country)}
-          className={inputClass(!!errors.country?.length)}
+          className={setupInputClass(!!errors.country?.length)}
         >
           <option value="">Select your country</option>
           {COUNTRIES.map((code) => (
@@ -293,9 +329,9 @@ function IdentityStep({ values, errors, set }: StepProps) {
             </option>
           ))}
         </select>
-      </Field>
+      </SetupField>
 
-      <Field
+      <SetupField
         label="Phone"
         htmlFor="phone"
         error={errors.phone}
@@ -312,11 +348,11 @@ function IdentityStep({ values, errors, set }: StepProps) {
           }}
           onChange={(e) => onPhoneChange(e.target.value)}
           {...fieldErrorProps("phone", errors.phone)}
-          className={inputClass(!!errors.phone?.length)}
+          className={setupInputClass(!!errors.phone?.length)}
         />
-      </Field>
+      </SetupField>
 
-      <Field
+      <SetupField
         label="Timezone"
         htmlFor="timezone"
         error={errors.timezone}
@@ -327,7 +363,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
           value={values.timezone}
           onChange={(e) => set("timezone", e.target.value)}
           {...fieldErrorProps("timezone", errors.timezone)}
-          className={inputClass(!!errors.timezone?.length)}
+          className={setupInputClass(!!errors.timezone?.length)}
         >
           <option value="">Select your timezone</option>
           {TIMEZONES.map((zone) => (
@@ -336,7 +372,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
             </option>
           ))}
         </select>
-      </Field>
+      </SetupField>
     </>
   )
 }
@@ -368,20 +404,20 @@ function ReviewStep({
 
   return (
     <>
-      <p className="font-mono text-[14px] leading-6 text-ash">
+      <p className="font-sans text-[14px] leading-6 text-ink">
         {role === "tester"
           ? "Check this over — builders see your name and skills when they review your feedback."
           : "Check this over before we open up your dashboard."}
       </p>
 
       {steps.map((s, index) => (
-        <div key={s.label} className="border border-iron rounded-[12px] p-6">
+        <div key={s.label} className="border border-line rounded-[12px] p-6">
           <div className="flex items-center justify-between gap-4 mb-4">
-            <p className="font-mono text-[11px] text-voltage uppercase tracking-[1px]">{s.label}</p>
+            <p className="font-mono text-[12px] text-accent-ink uppercase tracking-[1px]">{s.label}</p>
             <button
               type="button"
               onClick={() => onEdit(index)}
-              className="font-mono text-[12px] text-ash hover:text-voltage transition-colors duration-150"
+              className="font-mono text-[12px] text-ink-muted hover:text-accent-ink underline underline-offset-2 rounded-[4px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
             >
               Edit
             </button>
@@ -389,8 +425,8 @@ function ReviewStep({
           <dl className="flex flex-col gap-3">
             {s.fields.map((field) => (
               <div key={field} className="flex items-start justify-between gap-6">
-                <dt className="font-mono text-[12px] text-ash shrink-0">{LABELS[field]}</dt>
-                <dd className="font-mono text-[13px] text-chalk text-right break-words min-w-0">
+                <dt className="font-mono text-[12px] text-ink-muted shrink-0">{LABELS[field]}</dt>
+                <dd className="font-mono text-[13px] text-ink text-right break-words min-w-0">
                   {display(field)}
                 </dd>
               </div>
@@ -405,64 +441,57 @@ function ReviewStep({
 /* ── shared bits ─────────────────────────────────────────────────────── */
 
 /**
- * What the user looks at between "Complete verification" resolving and the
- * dashboard painting.
+ * The hand-off, once the gate is open.
  *
- * Keeps the page heading so the surface does not visually collapse, and drops
- * everything interactive. Naming the destination is the point — "Loading…"
- * would not tell the user that the thing they just asked for is what is
- * arriving.
+ * A terminal state of this flow rather than a route of its own: a fourth
+ * gated route is exactly what the three-routes decision says not to add, and
+ * the gate has just closed behind the user. Refreshing here lands on the
+ * dashboard, because /verify/[role] redirects a verified account away — which
+ * is right for a hand-off and is why it needs no route.
+ *
+ * The next steps are data in lib/setup.ts, sourced from the guides, so they
+ * can be asserted without rendering anything and cannot promise a feature
+ * that does not exist.
  */
-function NavigatingPanel({ role }: { role: AccountType }) {
-  return (
-    <>
-      <p className="font-mono text-[12px] text-voltage uppercase tracking-[1.5px] mb-3">
-        Complete your profile
-      </p>
-      <h1 className="font-syne font-bold text-[32px] leading-[40px] tracking-[-0.5px] text-chalk mb-8">
-        {role === "tester" ? "Set up your tester profile" : "Set up your builder profile"}
-      </h1>
+function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
+  const steps = nextStepsFor(role)
 
-      <div className="bg-graphite border border-iron rounded-[16px] p-10">
-        <div
-          className="flex flex-col items-center justify-center gap-4 py-12"
-          role="status"
-          aria-live="polite"
+  return (
+    <SetupCard
+      title={completionHeadlineFor(role)}
+      subhead="Your profile is saved and your account is open."
+    >
+      <ol className="flex flex-col gap-6">
+        {steps.map((s, i) => (
+          <li key={s.title} className="flex gap-4">
+            <span
+              aria-hidden="true"
+              className="h-6 w-6 shrink-0 rounded-full border border-accent-ink text-accent-ink inline-flex items-center justify-center font-mono text-[12px]"
+            >
+              {i + 1}
+            </span>
+            <div className="flex flex-col gap-1 min-w-0">
+              <p className="font-mono font-medium text-[14px] text-ink">{s.title}</p>
+              <p className="font-sans text-[14px] leading-6 text-ink">{s.detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-10 flex flex-col gap-4">
+        <a
+          href={href}
+          className="h-11 px-6 self-start inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
         >
-          {/* The one rotation Design.md §9 allows: it reports ongoing work
-              rather than decorating. */}
-          <span
-            aria-hidden="true"
-            className="w-8 h-8 rounded-full border-2 border-iron border-t-voltage animate-spin"
-          />
-          <p className="font-mono text-[14px] text-ash">
-            Setting up your {role} dashboard…
-          </p>
-        </div>
+          {role === "tester" ? "Find a mission" : "Go to your dashboard"}
+          <ArrowRight size={14} aria-hidden="true" />
+        </a>
+        {/* Written now, inert until the welcome email ships. */}
+        <p className="font-mono text-[12px] leading-5 text-ink-muted inline-flex items-start gap-2">
+          <Check size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-ink" />
+          We&apos;ve sent you a note with these steps, so you have them later.
+        </p>
       </div>
-    </>
+    </SetupCard>
   )
 }
-
-function StepIndicator({ labels, current }: { labels: string[]; current: number }) {
-  return (
-    <ol className="flex flex-wrap items-center gap-2 mb-6">
-      {labels.map((label, index) => (
-        <li key={label} className="flex items-center gap-2">
-          <span
-            className={[
-              "h-8 px-3 inline-flex items-center rounded-[8px] font-mono text-[12px] font-medium border",
-              index === current
-                ? "bg-voltage/10 border-voltage text-voltage"
-                : "border-iron text-ash",
-            ].join(" ")}
-            aria-current={index === current ? "step" : undefined}
-          >
-            {index + 1}. {label}
-          </span>
-        </li>
-      ))}
-    </ol>
-  )
-}
-

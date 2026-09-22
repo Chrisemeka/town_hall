@@ -464,7 +464,39 @@ horizontally at 360px.
 
 ---
 
-### 5.7 Auth Card
+### 5.7 Setup Shell
+
+`/terms-accept`, `/choose-account`, `/verify/[role]` —
+`components/setup/SetupShell.tsx` and `components/setup/chrome.tsx`.
+
+Three routes that stay three routes, wearing one shell: a 64px top bar with
+the wordmark and a context line, the step indicator, then a card. Card is
+`surface-raised` on `surface`, 16px radius, 40px padding (24px below 640px).
+Column is **640px**, or **760px** on the role picker, which needs two cards
+side by side. The bar and indicator are identical across all three — that is
+what carries the continuity, not a single width.
+
+**Step indicator.** Two presentations of one model, because a tester's chain is
+six stages and six pills do not fit 360px:
+
+| Width | Form |
+|---|---|
+| ≥640px | Pills. Current is `accent-ink` on an 8% tint; completed carries a tick; upcoming is `ink-muted`. |
+| <640px | One line — `Step 3 of 6 · Identity`. |
+
+> **The status comes from the gates, not from a step counter**, so someone
+> entering mid-chain sees what they actually completed. And where the tail is
+> not yet knowable — the profile portion is three stages for a builder and four
+> for a tester, and the role does not exist until the picker is answered — the
+> bar renders a trailing `…` rather than a total that is wrong for half of all
+> users.
+
+Colour is never the only signal (§10): completed pills carry a tick, and both
+the live and completed states are named for screen readers.
+
+---
+
+### 5.8 Auth Card
 
 `/signup`, `/login`, `/forgot-password`, `/reset-password`, `/confirm-email` —
 `components/public/AuthCard.tsx`.
@@ -488,7 +520,7 @@ would render a dark form inside a light page.
 
 ---
 
-### 5.8 Public Shell
+### 5.9 Public Shell
 
 `components/public/` — the header, footer and theme toggle the `(public)` layout
 renders around every public page. Public pages do not render their own nav.

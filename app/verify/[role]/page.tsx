@@ -1,6 +1,9 @@
 import { notFound, redirect } from "next/navigation"
 import type { Metadata } from "next"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { accountTypesFor } from "@/lib/auth"
+import { SetupShell } from "@/components/setup/SetupShell"
+import { firstIncompleteStep } from "@/lib/setup"
 // requireAccountForVerification, NOT requireAccount: this is the page that
 // lifts the gate, so gating it would redirect it to itself forever. See the
 // comment on that function in lib/auth.ts.
@@ -22,16 +25,14 @@ const COLLECTING_STEPS = {
 } as const
 
 /**
- * Where to drop someone who left mid-flow: the first step that does not yet
- * hold valid data, or the review step if they all do.
+ * Whether a collecting step already holds valid data.
  *
- * Derived from the same per-step schemas the form validates with, so "complete"
- * cannot mean one thing on the way in and another on the way through.
+ * The per-step schemas the form validates with, so "complete" cannot mean one
+ * thing on the way in and another on the way through. lib/setup.ts turns this
+ * into a position; the schemas stay here.
  */
-function firstIncompleteStep(role: AccountType, values: VerificationValues): number {
-  const steps = COLLECTING_STEPS[role]
-  const at = steps.findIndex((schema) => !schema.safeParse(values).success)
-  return at === -1 ? steps.length : at
+function stepComplete(role: AccountType, values: VerificationValues) {
+  return (index: number) => COLLECTING_STEPS[role][index].safeParse(values).success
 }
 
 export default async function VerifyPage({
@@ -52,9 +53,13 @@ export default async function VerifyPage({
   const admin = createAdminClient()
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, country, phone, timezone, skills")
+    .select("full_name, country, phone, timezone, skills, accepted_terms_at")
     .eq("id", userId)
     .maybeSingle()
+
+  // The indicator reports the chain, not this wizard's position — somebody
+  // adding a second role cleared these months ago. See lib/setup.ts.
+  const held = await accountTypesFor(userId)
 
   const values: VerificationValues = {
     fullName: profile?.full_name ?? "",
@@ -65,14 +70,16 @@ export default async function VerifyPage({
   }
 
   return (
-    <div className="min-h-screen bg-obsidian text-chalk font-mono selection:bg-voltage selection:text-obsidian">
-      <main className="mx-auto w-full max-w-[640px] px-6 py-16">
-        <VerificationFlow
-          role={role}
-          initialValues={values}
-          initialStep={firstIncompleteStep(role, values)}
-        />
-      </main>
-    </div>
+    <SetupShell context="Setting up your account">
+      <VerificationFlow
+        role={role}
+        initialValues={values}
+        initialStep={firstIncompleteStep(role, stepComplete(role, values))}
+        gates={{
+          termsAcceptedAt: profile?.accepted_terms_at ?? null,
+          hasAccount: held.includes(role),
+        }}
+      />
+    </SetupShell>
   )
 }
