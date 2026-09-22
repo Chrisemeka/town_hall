@@ -182,6 +182,17 @@ for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guides"
 
 /* ── email gate: the first link in the chain ─────────────────────────── */
 
+// /confirm-email must be reachable with NO session. With "Confirm email" on,
+// signUp() returns a user and no session, so the person landing here out of
+// signup is anonymous — protecting the page bounces them to the landing page
+// at the exact moment it is meant to help. This caught a real bug.
+assert.equal(allowed(CONFIRM_EMAIL_PATH, null), true, "signup lands here with no session")
+assert.equal(allowed(RESET_PASSWORD_PATH, null), true, "a recovery link may open logged out")
+for (const path of ["/login", "/signup", "/forgot-password"]) {
+  assert.equal(allowed(path, null), true, `${path} must be reachable anonymously`)
+}
+
+
 // The email gate runs before terms, before the account picker, before
 // verification. Two pages have to survive it, and for different reasons.
 assert.equal(isEmailGateExempt(CONFIRM_EMAIL_PATH), true, "the gate must not gate its own page")

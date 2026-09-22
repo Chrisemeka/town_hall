@@ -61,11 +61,16 @@ export async function middleware(request: NextRequest) {
   const protectedPrefixes = [
     '/dashboard', '/settings', '/admin', '/mission', '/explore',
     '/terms-accept', '/tester', VERIFY_PREFIX, CHOOSE_ACCOUNT_PATH,
-    // Needs a session to say anything useful. /login, /signup,
-    // /forgot-password and /reset-password are deliberately absent — an
-    // anonymous user has to reach all four.
-    CONFIRM_EMAIL_PATH,
   ]
+
+  // /confirm-email is deliberately NOT protected, and this is the subtle one.
+  // With "Confirm email" on, signUp() returns a user and NO session — so the
+  // person landing on /confirm-email straight out of signup is anonymous, and
+  // protecting the page would bounce them to the landing page at exactly the
+  // moment it is supposed to help. The page renders from the ?email query in
+  // that state and from the session when there is one. /login, /signup,
+  // /forgot-password and /reset-password are absent for the same reason: an
+  // anonymous user has to reach all of them.
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
   )
@@ -111,7 +116,10 @@ export async function middleware(request: NextRequest) {
   // their profile and account records to decide where they belong. One embedded
   // read covers both — service-role so RLS on `profiles` / `accounts` can't
   // block it.
-  if (user && (isProtected || pathname === '/' || isAuthPage)) {
+  if (
+    user &&
+    (isProtected || pathname === '/' || isAuthPage || pathname === CONFIRM_EMAIL_PATH)
+  ) {
     const admin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -155,7 +163,8 @@ export async function middleware(request: NextRequest) {
       const verified = !!rows.find((a) => a.type === active)?.verification_completed_at
 
       // Confirmed and signed in, so none of these are somewhere to be: the
-      // landing page, a login form, or the gate they have already cleared.
+      // landing page, a login form, or a gate already cleared. Listed here
+      // rather than relying on isProtected, since two of them are public.
       if (pathname === '/' || isAuthPage || pathname === CONFIRM_EMAIL_PATH) {
         const target = isAdmin ? '/admin' : active ? homeFor(active) : CHOOSE_ACCOUNT_PATH
         return noStore(NextResponse.redirect(new URL(target, request.url)))
