@@ -8,6 +8,7 @@ import FeedbackNotification, {
 import AdminBroadcast, {
   type AdminBroadcastProps,
 } from "@/emails/admin-broadcast"
+import Welcome, { type WelcomeProps } from "@/emails/welcome"
 
 // Until a custom Twnhall domain is verified in Resend, fall back to the
 // shared sandbox sender. Override per-env with MAIL_FROM_* if needed.
@@ -53,6 +54,49 @@ export async function sendFeedbackNotification(
     }
   } catch (err) {
     console.error("[mail.sendFeedbackNotification] unexpected error:", err)
+  }
+}
+
+/**
+ * Sent once, when someone finishes setup and their account opens.
+ *
+ * Swallows everything — a missing key, a render failure, a Resend error, an
+ * unexpected throw — and returns void, exactly like sendFeedbackNotification.
+ * The non-fatal contract lives HERE rather than at the call site, so no future
+ * caller has to remember to wrap it: the gate is already open by the time this
+ * runs, and a welcome email is not worth failing that over.
+ */
+export async function sendWelcomeEmail(
+  props: WelcomeProps & { to: string },
+): Promise<void> {
+  const resend = getResend()
+  if (!resend) return
+
+  try {
+    const { to, ...rest } = props
+    const html = await render(Welcome(rest))
+    // A text part on every send. HTML-only is one of the cheapest spam
+    // signals there is, and this is a first-contact email.
+    const text = await render(Welcome(rest), { plainText: true })
+
+    const { error } = await resend.emails.send({
+      // The existing verified sender. A fresh address or subdomain has no
+      // reputation, and first contact is the worst place to spend that.
+      from: FROM_NOTIFICATIONS,
+      to,
+      subject:
+        rest.role === "tester"
+          ? "You're set up — here's how to pick up your first mission"
+          : "You're set up on Twnhall",
+      html,
+      text,
+    })
+
+    if (error) {
+      console.error("[mail.sendWelcomeEmail] Resend error:", error)
+    }
+  } catch (err) {
+    console.error("[mail.sendWelcomeEmail] unexpected error:", err)
   }
 }
 

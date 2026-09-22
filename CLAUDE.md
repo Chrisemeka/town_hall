@@ -185,6 +185,24 @@ is how an existing verified user adds or switches a role, so the shell shows
 the indicator and the "Setting up your account" line **only when
 `isFirstChoice`**. Anything added to that page has to hold for both modes.
 
+**Opening a gate must be idempotent if anything hangs off it.**
+`completeVerification` writes `verification_completed_at` with
+`.is("verification_completed_at", null)` and `.select()`, so
+`UPDATE … WHERE … IS NULL … RETURNING` tells it whether *this* call opened the
+gate. That row is what authorises the welcome email. The action cannot refuse a
+repeat call on its own — `requireAccountForVerification()` deliberately skips
+the verified check — and the UI is not an enforcement layer, so the database is.
+Anything else that should happen once per gate hangs off the same row.
+
+**The welcome email is ours; the auth mail is not.** `emails/welcome.tsx` sends
+through `lib/mail.ts` and fires from `completeVerification` inside `after()`, so
+the completion screen does not wait on SMTP. Its content comes from
+`lib/setup.ts`, the same source the completion screen renders — change the copy
+there, not in the template. It is non-fatal by construction: `sendWelcomeEmail`
+swallows every failure and returns `void`, so no caller has to remember to wrap
+it. Confirmation and password-reset mail come from Supabase Auth's own
+dashboard templates and **cannot be changed from `emails/`**.
+
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 
 ## Data Mutations — RLS + service role

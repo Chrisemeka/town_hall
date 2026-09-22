@@ -5,10 +5,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ requireAccountForVerification: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+// lib/mail.ts imports "server-only", which does not resolve in the node test
+// environment — and a test has no business reaching Resend anyway.
+vi.mock("@/lib/mail", () => ({ sendWelcomeEmail: vi.fn() }))
+// after() defers to the end of the response. Running it inline is what makes
+// the send observable here without the test knowing about scheduling — and
+// swallowing the result mirrors the real thing, which awaits the callback and
+// whose callee swallows its own failures. Without the catch, the throwing-send
+// case would pass on a floating rejection rather than on the behaviour.
+vi.mock("next/server", () => ({
+  after: (fn: () => unknown) => {
+    void Promise.resolve(fn()).catch(() => {})
+  },
+}))
 
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { requireAccountForVerification } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendWelcomeEmail } from "@/lib/mail"
+import { completionHeadlineFor, nextStepsFor } from "@/lib/setup"
 import { builderStep1Schema, testerStep1Schema } from "@/lib/validation/schemas"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
@@ -41,6 +56,8 @@ function fakeAdmin(opts: {
   profile?: Record<string, unknown> | null
   readError?: { message: string } | null
   writeError?: { message: string } | null
+  /** Rows the guarded update returns. Empty means the gate was already open. */
+  updated?: { id: string }[]
 } = {}) {
   const writes: Write[] = []
 
@@ -58,6 +75,11 @@ function fakeAdmin(opts: {
         state.filters[column] = value
         return chain
       },
+      // The fire-once guard: .is("verification_completed_at", null).
+      is(column: string, value: unknown) {
+        state.filters[`is:${column}`] = value
+        return chain
+      },
       maybeSingle() {
         return Promise.resolve({
           data: opts.profile ?? null,
@@ -65,9 +87,15 @@ function fakeAdmin(opts: {
         })
       },
       // Awaiting the chain is what runs an update in PostgREST.
-      then(resolve: (r: { error: unknown }) => unknown) {
+      then(resolve: (r: { data: unknown; error: unknown }) => unknown) {
         writes.push({ ...state, filters: { ...state.filters } })
-        return Promise.resolve(resolve({ error: opts.writeError ?? null }))
+        return Promise.resolve(
+          resolve({
+            // One row by default: the common case is the call that opens it.
+            data: opts.updated ?? [{ id: "account-1" }],
+            error: opts.writeError ?? null,
+          }),
+        )
       },
     }
     return chain
@@ -327,7 +355,13 @@ describe("completeVerification", () => {
 
     // Without the type filter this UPDATE would verify the same person's
     // builder account too — the whole point of the gate living on `accounts`.
-    expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "tester" })
+    expect(writes[0].filters).toEqual({
+      user_id: USER_ID,
+      type: "tester",
+      // The fire-once guard travels with the write, so it cannot be
+      // dropped without a test noticing.
+      "is:verification_completed_at": null,
+    })
   })
 
   it("holds a builder to four fields and sends them to /dashboard", async () => {
@@ -336,7 +370,13 @@ describe("completeVerification", () => {
     const result = await completeVerification("builder")
 
     expect(result).toEqual({ success: true, redirectTo: "/dashboard" })
-    expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "builder" })
+    expect(writes[0].filters).toEqual({
+      user_id: USER_ID,
+      type: "builder",
+      // The fire-once guard travels with the write, so it cannot be
+      // dropped without a test noticing.
+      "is:verification_completed_at": null,
+    })
   })
 
   it("refuses to open a builder's gate without a timezone", async () => {
@@ -379,5 +419,78 @@ describe("step 1 schemas", () => {
     // would be a builder rejected at the gate for a field their own form never
     // rendered.
     expect(builderStep1Schema).toBe(testerStep1Schema)
+  })
+})
+
+describe("the welcome email", () => {
+  const withEmail = { ...COMPLETE_TESTER, email: "ada@twnhall.com" }
+
+  it("goes out once, to the address on the profile", async () => {
+    useAdmin({ profile: withEmail })
+
+    const result = await completeVerification("tester")
+
+    expect(result.success).toBe(true)
+    expect(sendWelcomeEmail).toHaveBeenCalledTimes(1)
+    expect(sendWelcomeEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "ada@twnhall.com",
+        role: "tester",
+        name: "Ada Lovelace",
+      }),
+    )
+  })
+
+  it("carries that role's three next steps, so the mail matches the screen", async () => {
+    useAdmin({ profile: withEmail })
+    await completeVerification("tester")
+
+    const sent = vi.mocked(sendWelcomeEmail).mock.calls[0][0]
+    expect(sent.nextSteps).toEqual(nextStepsFor("tester"))
+    expect(sent.headline).toBe(completionHeadlineFor("tester"))
+  })
+
+  it("sends nothing when the gate was already open", async () => {
+    // The guarded UPDATE returns no rows, which is how a second call announces
+    // itself. Nothing in the UI prevents this — a server action is an
+    // addressable endpoint — so the database is what has to.
+    useAdmin({ profile: withEmail, updated: [] })
+
+    const result = await completeVerification("tester")
+
+    expect(sendWelcomeEmail).not.toHaveBeenCalled()
+    // Still a success: the caller asked for an open gate and has one.
+    expect(result).toEqual({ success: true, redirectTo: "/explore" })
+  })
+
+  it("survives a send that throws", async () => {
+    // Non-fatal means the gate does not care. lib/mail.ts swallows its own
+    // failures, but the call site must not depend on that to stay correct.
+    vi.mocked(sendWelcomeEmail).mockRejectedValueOnce(new Error("Resend down"))
+    const writes = useAdmin({ profile: withEmail })
+
+    const result = await completeVerification("tester")
+
+    expect(result).toEqual({ success: true, redirectTo: "/explore" })
+    expect(writes[0].values).toHaveProperty("verification_completed_at")
+  })
+
+  it("still opens the gate when there is no address to send to", async () => {
+    const writes = useAdmin({ profile: { ...COMPLETE_TESTER, email: null } })
+
+    const result = await completeVerification("tester")
+
+    expect(sendWelcomeEmail).not.toHaveBeenCalled()
+    expect(result).toEqual({ success: true, redirectTo: "/explore" })
+    expect(writes[0].values).toHaveProperty("verification_completed_at")
+  })
+
+  it("sends nothing when the profile fails revalidation", async () => {
+    useAdmin({ profile: { ...withEmail, phone: null } })
+
+    const result = await completeVerification("tester")
+
+    expect(result.success).toBe(false)
+    expect(sendWelcomeEmail).not.toHaveBeenCalled()
   })
 })

@@ -1,10 +1,12 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccountForVerification } from "@/lib/auth"
 import { homeFor, type AccountType } from "@/lib/access"
 import { normalizeSkills } from "@/lib/vocabulary"
+import { sendWelcomeEmail } from "@/lib/mail"
+import { completionHeadlineFor, nextStepsFor } from "@/lib/setup"
 import {
   toFieldErrors,
   verificationSchemaFor,
@@ -108,7 +110,9 @@ export async function completeVerification(role: AccountType): Promise<Verificat
   const admin = createAdminClient()
   const { data: profile, error: readError } = await admin
     .from("profiles")
-    .select("full_name, country, phone, timezone, skills")
+    // `email` rides along on a read that already happens — the welcome mail
+    // costs no extra query.
+    .select("full_name, country, phone, timezone, skills, email")
     .eq("id", userId)
     .maybeSingle()
 
@@ -139,19 +143,80 @@ export async function completeVerification(role: AccountType): Promise<Verificat
   // `.eq("type", role)` is what keeps this per-role: a person holding both
   // accounts who verifies as a tester must not have their builder account
   // opened by the same call.
-  const { error: writeError } = await admin
+  //
+  // `.is(..., null)` is what keeps it once. This action does NOT refuse a
+  // second call on its own: requireAccountForVerification deliberately skips
+  // the verification check — that is what stops the flow redirecting to the
+  // page it is already on — so nothing above here notices that the gate is
+  // already open. Without this filter a repeat call overwrites the timestamp
+  // with a fresh one, so "when did this account verify" quietly becomes "when
+  // was this last called".
+  //
+  // UPDATE ... WHERE ... IS NULL ... RETURNING is atomic in Postgres: run it
+  // twice concurrently and exactly one of them gets the row back. That row is
+  // the permission to send the welcome email, which is the side effect that
+  // must not repeat. The UI never calls this twice, but a server action is an
+  // addressable endpoint and the UI is not what enforces this.
+  const { data: opened, error: writeError } = await admin
     .from("accounts")
     .update({ verification_completed_at: new Date().toISOString() })
     .eq("user_id", userId)
     .eq("type", role)
+    .is("verification_completed_at", null)
+    .select("id")
 
   if (writeError) {
     console.error("[completeVerification] update failed:", writeError.message)
     return { success: false, error: "Could not complete verification. Please try again." }
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/explore")
+  /** True only for the call that actually opened the gate. */
+  const justOpened = (opened?.length ?? 0) > 0
 
+  if (justOpened && profile?.email) {
+    // after() rather than await: the completion screen is the reward for
+    // finishing setup and should not wait on an SMTP round trip. It is also
+    // not a bare floating promise — an un-awaited send can be dropped when a
+    // serverless response ends, and after() is the supported way to say "run
+    // this, but not before I answer".
+    //
+    // The send swallows its own failures (see lib/mail.ts), so nothing here
+    // can turn a mail problem into a gate problem.
+    //
+    // Content comes from lib/setup.ts, which is what the completion screen
+    // renders too, so the email cannot say something different from the page
+    // the person just read.
+    const email = profile.email as string
+    const name = (profile.full_name as string | null) ?? ""
+    after(() =>
+      sendWelcomeEmail({
+        to: email,
+        name,
+        role,
+        headline: completionHeadlineFor(role),
+        nextSteps: nextStepsFor(role),
+        ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}${homeFor(role)}`,
+        ctaLabel: role === "tester" ? "Find a mission" : "Go to your dashboard",
+      }),
+    )
+  } else if (justOpened) {
+    // No address on the row. Worth a line in the log, never worth a failure.
+    console.error("[completeVerification] no email on profile; welcome mail skipped")
+  }
+
+  // No revalidatePath here, and that is the fix rather than an omission.
+  //
+  // Calling it in a Server Action makes Next refresh the CURRENT route as part
+  // of the action response. The current route is /verify/[role], whose page
+  // re-runs, sees verification_completed_at set, and calls redirect(homeFor()).
+  // The completion screen was being yanked off the screen a few milliseconds
+  // after it appeared.
+  //
+  // Nothing is lost by dropping them: both /dashboard and /explore are
+  // dynamic (server-rendered on demand), so there is no Full Route Cache to
+  // bust, and the completion screen hands off with a full document navigation
+  // that bypasses the client router cache anyway. If either route is ever made
+  // static, revalidate it from somewhere that is not the page the user is
+  // still looking at.
   return { success: true, redirectTo: homeFor(role) }
 }
