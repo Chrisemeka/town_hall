@@ -57,8 +57,19 @@ export default async function ConfirmEmailPage({
         <strong className="font-mono text-ink">{email}</strong>. Open it and
         you&apos;re in.
       </p>
-      <p className="font-mono text-[12px] text-ink-muted leading-5 mb-8">
+      <p className="font-mono text-[12px] text-ink-muted leading-5 mb-4">
         It can take a minute. Check spam before asking for another.
+      </p>
+      {/*
+        The one moment this is worth saying: the person is deciding whether to
+        bother confirming. If they skip it and sign in with Google later, the
+        password they just chose is discarded — GoTrue drops an unproven
+        credential when a verified one claims the address — and nothing tells
+        them until it next fails.
+      */}
+      <p className="font-mono text-[12px] text-ink-muted leading-5 mb-8">
+        Confirming is what keeps your password working. Skip it and sign in
+        with Google instead, and you&apos;ll need the Google button from then on.
       </p>
 
       <ResendConfirmation email={email} />

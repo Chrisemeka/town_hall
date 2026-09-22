@@ -1,6 +1,6 @@
 # SPEC: Email and Password Auth
 
-**Status:** Awaiting approval — **two items blocked, see §0**
+**Status:** Ready to build — **§0's three blockers are all cleared**
 **Branch:** `feat/email-password-auth`
 **Base:** `main` with `feat/public-theme` and `feat/public-pages` merged
 **Depends on:** PR 1 (tokens, shell), PR 2 (public pages, footer)
@@ -15,76 +15,52 @@ Add email + password as a second way in, alongside Google. Four new pages
 (`/confirm-email`), an email-confirmation gate inserted at the front of the
 existing chain, and an initials avatar everywhere `avatar_url` is null.
 
-## §0 — What is blocked, and what it blocks
+## §0 — What was blocked, and how it resolved
 
-Two things this spec cannot close from inside the repo. **Neither blocks
-writing the code; both block merging it.**
+Three things this spec could not close from inside the repo. **All three are
+now answered**; each entry records what came back.
 
-### 0.1 — The existing users' confirmation state (brief §3.2) — **still open**
-
-The brief says the 36 existing Google users are unaffected because OAuth sets
-`email_confirmed_at` at first sign-in, and asks that this be verified against
-the live database. The sandbox refused the production read; it was not routed
-around.
-
-**Answered so far:** `multiIdentity: 0` — no existing user holds more than one
-identity. Useful on its own: it means automatic linking has never actually
-fired in this project, so §5's behaviour is untested here rather than
-established.
-
-**Still needed: the `unconfirmed` count.** That is the number this gate turns
-on. Anything above zero and the user in question is locked out of the product
-on deploy until they confirm — permanently, if the address is stale.
+### 0.1 — The existing users' confirmation state — **CLEAR**
 
 ```
-! node -e 'const u=process.env.NEXT_PUBLIC_SUPABASE_URL,k=process.env.SUPABASE_SERVICE_ROLE_KEY;fetch(u+"/auth/v1/admin/users?per_page=200",{headers:{apikey:k,Authorization:"Bearer "+k}}).then(r=>r.json()).then(d=>{const us=d.users||[];console.log({total:us.length,confirmed:us.filter(x=>x.email_confirmed_at).length,unconfirmed:us.filter(x=>!x.email_confirmed_at).length})})'
+total: 41   confirmed: 41   unconfirmed: 0
 ```
 
-`unconfirmed: 0` → ship the gate as specified. Above zero → the gate needs a
-grandfather clause, and that clause is a decision, not an implementation
-detail.
+**Ship the gate as specified. No grandfather clause**, because there is nobody
+to grandfather: every existing user already has `email_confirmed_at` set, which
+is what OAuth does at first sign-in. Nobody is locked out on deploy.
 
-### 0.2 — The Supabase Auth settings (brief §3.3) — **answered**
+(The brief said 36 existing users. It is 41 — the number grew between the brief
+being written and this being built. It does not change the answer.)
+
+### 0.2 — The Supabase Auth settings — **CLEAR**
 
 | Setting | Required | Actual | |
 |---|---|---|---|
 | Confirm email | On | **On** | ✓ |
-| Minimum password length | ≤ 8 | **8** | ✓ exactly — our Zod minimum is the project minimum, so neither is looser than the other |
-| Per-user min interval between emails | ≥ 60s | **60s** (GoTrue default, not overridden) | ✓ §6.2's cooldown stands |
-| Automatic identity linking | link only on a confirmed email | **not answered — see below** | ⚠ |
+| Minimum password length | ≤ 8 | **8** | ✓ exactly — the project minimum is our Zod minimum, so neither is looser |
+| Per-user min interval between emails | ≥ 60s | **60s** (GoTrue default) | ✓ §6.2's cooldown stands on this |
+| Automatic identity linking | link only on a confirmed email | **verified by hand — see §5** | ✓ better than required |
 
-**Two things that came back need separating, because they are different
-settings and only one of them was asked about.**
+One correction that mattered while this was open: *"allow manual linking"* is
+`GOTRUE_SECURITY_MANUAL_LINKING_ENABLED`, which enables `linkIdentity()` for an
+**already signed-in** user to attach another provider to their own account.
+That is a different setting from automatic linking, that direction is safe, and
+**Twnhall does not call it** — nor should it without a separate decision.
 
-*"Allow manual linking is on"* is `GOTRUE_SECURITY_MANUAL_LINKING_ENABLED`. It
-enables the `supabase.auth.linkIdentity()` API for an **already signed-in**
-user to attach another provider to their own account. That direction is safe
-and **Twnhall does not call it** — no code in this PR uses `linkIdentity()`,
-and none should without a separate decision.
+Automatic linking is not a dashboard toggle at all, so §0.2 could never have
+been closed by reading a setting. §5 closed it by test.
 
-*Automatic* linking — what §5 is about — is not a dashboard toggle at all. It
-is GoTrue behaviour: an OAuth sign-in whose email matches an existing user
-either attaches to that user or does not, and the condition is whether the
-existing user's email is confirmed. **So §0.2 cannot be closed by reading a
-setting; §5 case 2 has to be tried by hand.** With `multiIdentity: 0` it has
-demonstrably never happened in this project, so there is no existing evidence
-either way.
+### 0.3 — Email throughput — **CLEAR, configured**
 
-### 0.3 — Email throughput: the built-in SMTP cannot ship this — **merge gate**
+The built-in sender caps a project at **2 emails per hour across all users**,
+which is a queue rather than a signup flow: the third person to sign up in an
+hour gets nothing, and cannot tell that apart from a typo'd address.
 
-Not asked for, and the most important thing that came back:
-
-| Limit | Built-in SMTP | With custom SMTP (Resend) |
-|---|---|---|
-| Project email rate | **2 / hour** | 30 / hour, and the field unlocks |
-
-**Two confirmation emails an hour, project-wide, is not a signup flow** — it is
-a queue. The third person to sign up in an hour gets nothing and has no way to
-tell the difference between that and a typo'd address.
-
-**Custom SMTP → Resend is therefore a merge gate, not a polish step.** It is
-configuration in the Supabase dashboard; nothing in this repo changes for it.
-§11 covers it and §10 puts it in the README's setup section.
+**Custom SMTP → Resend is configured.** The cap no longer applies. It remains a
+setup step for any fresh environment, which is why it is in the README rather
+than only here — and the confirmation and reset copy lives in the Supabase
+dashboard templates, not in `emails/`.
 
 ### 0.4 — Signup rate limiting: 30 per 5 minutes per IP
 
@@ -232,31 +208,61 @@ read:
 This also fixes a case that exists today: a Google sign-in on an account whose
 profile was created some other way never backfills the avatar.
 
-## §5 — Identity linking
+## §5 — Identity linking — **verified, and case 2 is closed by GoTrue**
 
 The scenario: someone signs up with `alice@gmail.com` and a password, then later
 clicks "Continue with Google" with the same address.
 
-**What must happen in each of the four cases.** §0.2 is about confirming the
-project actually does this:
+**Case 2 was tested by hand against the project and characterised.** The result
+is better than the spec asked for — GoTrue does not merely decline to link an
+unproven credential, it **invalidates it**:
 
-| Case | Required behaviour | Why |
+| Observed | |
+|---|---|
+| 13:25:15 | Unconfirmed password signup on the address |
+| 13:26:42 | Google sign-in on the same address takes over the existing row |
+| After | `email_confirmed_at` set by the OAuth login; the email identity **removed** (`identity_count: 1`, `providers: ["google"]`); `encrypted_password` **cleared** (`has_password: false`); the original password rejected at `/login` |
+
+So the takeover path is shut by design, not by anything in this repo. An
+attacker who types someone else's address at signup does not gain a credential
+that survives the real owner arriving — it is destroyed by their arrival.
+
+| Case | Behaviour | Status |
 |---|---|---|
-| Password first, **confirmed**, then Google | Link into one `auth.users` row. Two identities, one profile, one set of `accounts`. | The address was proven by both parties. This is the case linking exists for. |
-| Password first, **unconfirmed**, then Google | **Must not link.** | **Account takeover.** Anyone can type anyone's address at signup. If an unconfirmed password identity links to the real owner's Google account, the attacker's password opens the victim's account — and the email gate will not catch it, because after linking the user *is* confirmed, by Google. |
-| Google first, then password signup, same address | No second identity, no working password, and **no disclosure** that the address is taken. | Enumeration. The legitimate route to a password on a Google account is the reset flow, not signup. |
-| Google first, then password **reset** | Sets a password on the existing user. | The intended path for case 3. |
+| Password first, **confirmed**, then Google | Links into one row: two identities, one profile, one set of `accounts`. | As specified |
+| Password first, **unconfirmed**, then Google | Google takes the row. The password identity and the password itself are discarded. | **Verified — closed by GoTrue** |
+| Google first, then password signup, same address | No second identity, no working password, no disclosure that the address is taken. | As specified |
+| Google first, then password **reset** | Sets a password on the existing user. The intended route for the case above. | As specified |
 
-**`CLAUDE.md`'s invariant — "one person cannot hold two identities" — rests on
-Supabase's unique email constraint.** Email/password preserves it only in the
-sense that it cannot create a second row with the same address. Case 2 is the
-one that breaks the *spirit* of it, by letting the wrong person into the one
-row. That is why case 2 is the only one flagged in bold.
+`CLAUDE.md`'s invariant — "one person cannot hold two identities" — holds
+throughout: there is never more than one `auth.users` row for an address.
 
-**This deserves its own test, and it is a test we cannot write.** Every branch
-depends on GoTrue's behaviour, not on our code — mocking Supabase would only
-assert our mock. §8 says what is testable instead, and case 2 is verified by
-hand against a staging project before merge.
+### 5.1 — The consequence, which is a real one
+
+**A legitimate user who signs up with a password, skips confirmation, then
+signs in with Google silently loses their password.** Nothing tells them. They
+find out the next time they try to use it, possibly months later, and the
+symptom — "my password stopped working" — points at nothing.
+
+This cannot be prevented in our code; it is GoTrue discarding an unproven
+credential, which is the correct thing for it to do. So it is handled by saying
+so, in the two places it is about to matter:
+
+1. **A standing line under the sign-in form:** *"Signed up with Google? Use the
+   Google button above."* **Standing, not conditional** — a message that appears
+   only when the address happens to be a Google account is an enumeration
+   oracle, and the generic failure message stays generic.
+2. **A line on `/confirm-email`**, which is the moment someone is deciding
+   whether to bother: confirming is what keeps the password working.
+
+**Not in `/guides/builder` or `/guides/tester`.** Those are about writing test
+cases and filing audit logs; a paragraph on credential lifecycle in the middle
+of one would be noise to every reader who has not hit it. The two placements
+above are where the person is standing when it becomes relevant.
+
+**No automated test.** Every branch is GoTrue behaviour, so a mocked Supabase
+client would assert the mock and nothing else. It was verified by hand and the
+transcript is above; the standing line is static copy.
 
 ## §6 — The pages
 

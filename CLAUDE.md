@@ -143,12 +143,27 @@ this state. `isEmailGateExempt()` in `lib/access.ts` lists the only two
 exemptions and says why each one is there. Admins are *not* exempt, unlike the
 terms gate.
 
-**Identity linking is GoTrue's behaviour, not ours, and one case is a takeover
-path.** An unconfirmed password signup must never link to a Google account with
-the same address — anyone can type anyone's address at signup, and after
-linking the user reads as confirmed, so the email gate will not catch it. Twnhall
-does not call `linkIdentity()` and should not start without a separate decision.
-The four cases are in `docs/specs/SPEC-email-password-auth.md` §5.
+**Identity linking is GoTrue's behaviour, not ours, and it is stronger than it
+looks — verified against the project, not assumed.** When a Google sign-in
+claims an address held by an **unconfirmed** password signup, GoTrue does not
+link the two: it takes the row, removes the email identity, and **clears
+`encrypted_password`**. The unproven credential is destroyed rather than
+inherited, so typing someone else's address at signup buys nothing that
+survives the real owner arriving.
+
+**The consequence is a support problem, not a security one.** A legitimate user
+who signs up with a password, skips confirmation, then uses Google silently
+loses that password and finds out the next time it fails. Nothing in our code
+can prevent it. It is handled by saying so in the two places it is about to
+matter: a **standing** line under the sign-in form ("Signed up with Google? Use
+the Google button above") and a line on `/confirm-email`. **Standing, never
+conditional** — a message that appears only for addresses that turn out to be
+Google accounts is an enumeration oracle, and the sign-in failure message stays
+generic.
+
+Twnhall does not call `linkIdentity()` and should not start without a separate
+decision. All four cases and the test transcript are in
+`docs/specs/SPEC-email-password-auth.md` §5.
 
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 

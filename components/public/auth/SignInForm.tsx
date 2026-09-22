@@ -87,6 +87,22 @@ export function SignInForm() {
           </Link>
         </p>
       )}
+
+      {/*
+        Standing, never conditional.
+
+        Someone who signed up with a password, skipped confirmation, then used
+        Google has no password any more: GoTrue discards an unproven credential
+        when the address is claimed by a verified one. They cannot know that
+        from "email and password do not match", and we cannot tell them
+        specifically — a message that appears only for addresses that turn out
+        to be Google accounts answers "does this person have an account here?"
+        for anyone who asks. So it is always on screen, for everyone.
+      */}
+      <p className="mt-4 font-mono text-[13px] text-ink-muted">
+        Signed up with Google? Use the Google button above.
+      </p>
+
       <p className="mt-6 font-mono text-[13px] text-ink-muted">
         New here?{" "}
         <Link href="/signup" className={AUTH_LINK}>
