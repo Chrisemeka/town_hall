@@ -1,10 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getActiveAccount } from "@/lib/auth";
+import { accountTypesFor, getActiveAccount } from "@/lib/auth";
 import { CHOOSE_ACCOUNT_PATH, homeFor } from "@/lib/access";
 import { redirect } from "next/navigation";
-import { Logo } from "@/components/Logo";
+import { SetupCard, SetupShell } from "@/components/setup/SetupShell";
+import { StepIndicator } from "@/components/setup/StepIndicator";
 import { TermsAcceptForm } from "@/components/TermsAcceptForm";
+import { setupStages } from "@/lib/setup";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Accept Terms — Twnhall" };
@@ -40,55 +42,40 @@ export default async function TermsAcceptPage() {
 
   const email = profile?.email ?? user.email ?? "";
 
+  // Read rather than assumed. Almost everyone here has no account yet, but the
+  // bar reports what the gates say — see lib/setup.ts on why it is never a
+  // step counter.
+  const held = await accountTypesFor(user.id);
+  const bar = setupStages({
+    termsAcceptedAt: profile?.accepted_terms_at ?? null,
+    role: null,
+    hasAccount: held.length > 0,
+    verified: false,
+  });
+
   return (
-    <div className="min-h-screen bg-bone text-midnight font-mono flex flex-col selection:bg-voltage selection:text-obsidian">
-
-      {/* Nav */}
-      <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
-        <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center">
-          <div className="flex items-center gap-2">
-            <Logo size={40} />
-            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
-          </div>
+    <SetupShell
+      context="Setting up your account"
+      indicator={<StepIndicator bar={bar} />}
+    >
+      <SetupCard
+        title="Accept our terms to continue"
+        subhead="Have a read of the Terms of Service and the Guides, then tick the box below."
+      >
+        <div className="rounded-[12px] border border-line p-5 mb-8">
+          <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[1px] mb-3">
+            Signing in as
+          </p>
+          <p className="font-mono text-[15px] text-ink mb-1">{displayName || "—"}</p>
+          <p className="font-mono text-[13px] text-ink-muted">{email}</p>
         </div>
-      </header>
 
-      {/* Content */}
-      <main className="flex-1 flex items-center justify-center px-6 py-16">
-        <div className="w-full max-w-[520px]">
+        <TermsAcceptForm />
 
-          <p className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-3">
-            One last step
-          </p>
-          <h1 className="font-syne font-bold text-[32px] leading-[40px] tracking-[-0.5px] text-midnight mb-3">
-            Accept our terms to continue
-          </h1>
-          <p className="font-mono text-[14px] leading-7 text-midnight/70 mb-8">
-            Before joining the community, please review and accept the Terms of Service and Community Guidelines.
-          </p>
-
-          {/* Identity card — who's signing */}
-          <div className="bg-white border border-midnight/10 rounded-[12px] p-5 mb-8">
-            <p className="font-mono text-[11px] text-forest uppercase tracking-[1px] mb-3">
-              Signing in as
-            </p>
-            <p className="font-mono text-[15px] text-midnight mb-1">
-              {displayName || "—"}
-            </p>
-            <p className="font-mono text-[13px] text-midnight/60">
-              {email}
-            </p>
-          </div>
-
-          <TermsAcceptForm />
-
-          <p className="font-mono text-[12px] text-midnight/60 mt-8 leading-6">
-            By continuing you confirm that you have read and accepted Twnhall&apos;s policies. Your acceptance is recorded against your account.
-          </p>
-
-        </div>
-      </main>
-
-    </div>
+        <p className="font-mono text-[12px] text-ink-muted mt-8 leading-6">
+          Your acceptance is recorded against your account.
+        </p>
+      </SetupCard>
+    </SetupShell>
   );
 }
