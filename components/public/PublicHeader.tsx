@@ -1,17 +1,22 @@
 import Link from "next/link";
 import { signInWithGoogle } from "@/actions/auth";
 import { Logo } from "@/components/Logo";
+import { MobileNav } from "@/components/public/MobileNav";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
 import type { Theme } from "@/lib/theme";
 
 /**
- * Marketing nav. Empty until PR 2 creates somewhere to point it.
+ * Marketing nav, desktop and sheet both.
  *
  * Never add an entry here before its page exists — a nav link to a 404 is the
- * one thing the revamp brief calls out by name. Adding Pricing / Guides /
- * About is a one-line change in the PR that creates each page.
+ * one thing the revamp brief calls out by name. "Get started" joins this list
+ * in the PR that creates /signup.
  */
-const NAV: { href: string; label: string }[] = [];
+const NAV: { href: string; label: string }[] = [
+  { href: "/pricing", label: "Pricing" },
+  { href: "/guides", label: "Guides" },
+  { href: "/about", label: "About" },
+];
 
 export function PublicHeader({ theme }: { theme: Theme }) {
   return (
@@ -25,19 +30,17 @@ export function PublicHeader({ theme }: { theme: Theme }) {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          {NAV.length > 0 && (
-            <nav className="hidden md:flex items-center gap-8">
-              {NAV.map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          )}
+          <nav className="hidden md:flex items-center gap-8">
+            {NAV.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
           <ThemeToggle theme={theme} />
 
@@ -58,6 +61,8 @@ export function PublicHeader({ theme }: { theme: Theme }) {
               <span className="hidden sm:inline">Continue with Google</span>
             </button>
           </form>
+
+          <MobileNav links={NAV} />
         </div>
       </div>
     </header>
