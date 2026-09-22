@@ -1,5 +1,6 @@
 import { cookies } from "next/headers"
 import { Logo } from "@/components/Logo"
+import { ThemeToggle } from "@/components/public/ThemeToggle"
 import { THEME_COOKIE, readTheme } from "@/lib/theme"
 
 /**
@@ -17,8 +18,11 @@ import { THEME_COOKIE, readTheme } from "@/lib/theme"
  * surface, not the dark app surface. Reading the cookie here rather than in
  * the root layout keeps the dynamic rendering on the routes that need it.
  *
- * No theme toggle: the setting arrives from the public site, and a second
- * thing to decide in the middle of a task is not a kindness.
+ * It carries the theme toggle. The setting does arrive from the public site —
+ * one cookie at path=/, read here and in the public layout by the same
+ * readTheme() — but this chain is gated, so somebody who lands in a theme they
+ * dislike has no way back to a control until setup is finished. Being stuck in
+ * it is worse than the small distraction of offering the switch.
  */
 export async function SetupShell({
   context,
@@ -47,7 +51,15 @@ export async function SetupShell({
             <Logo size={32} />
             <span className="font-syne font-bold text-[18px] text-ink">Twnhall</span>
           </div>
-          <p className="font-mono text-[13px] text-ink-muted">{context}</p>
+          <div className="flex items-center gap-4">
+            {/* Hidden below 640px: the mark, this line and a 44px control come
+                to ~364px against the 312px a 360px viewport leaves. The line is
+                orientation; the toggle is a control, so the line gives way. */}
+            <p className="hidden sm:block font-mono text-[13px] text-ink-muted">
+              {context}
+            </p>
+            <ThemeToggle theme={theme} />
+          </div>
         </div>
       </header>
 
