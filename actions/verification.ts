@@ -139,16 +139,35 @@ export async function completeVerification(role: AccountType): Promise<Verificat
   // `.eq("type", role)` is what keeps this per-role: a person holding both
   // accounts who verifies as a tester must not have their builder account
   // opened by the same call.
-  const { error: writeError } = await admin
+  //
+  // `.is(..., null)` is what keeps it once. This action does NOT refuse a
+  // second call on its own: requireAccountForVerification deliberately skips
+  // the verification check — that is what stops the flow redirecting to the
+  // page it is already on — so nothing above here notices that the gate is
+  // already open. Without this filter a repeat call overwrites the timestamp
+  // with a fresh one, so "when did this account verify" quietly becomes "when
+  // was this last called".
+  //
+  // UPDATE ... WHERE ... IS NULL ... RETURNING is atomic in Postgres: run it
+  // twice concurrently and exactly one of them gets the row back. That row is
+  // the permission to send the welcome email, which is the side effect that
+  // must not repeat. The UI never calls this twice, but a server action is an
+  // addressable endpoint and the UI is not what enforces this.
+  const { data: opened, error: writeError } = await admin
     .from("accounts")
     .update({ verification_completed_at: new Date().toISOString() })
     .eq("user_id", userId)
     .eq("type", role)
+    .is("verification_completed_at", null)
+    .select("id")
 
   if (writeError) {
     console.error("[completeVerification] update failed:", writeError.message)
     return { success: false, error: "Could not complete verification. Please try again." }
   }
+
+  /** True only for the call that actually opened the gate. */
+  const justOpened = (opened?.length ?? 0) > 0
 
   revalidatePath("/dashboard")
   revalidatePath("/explore")

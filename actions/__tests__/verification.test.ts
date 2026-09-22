@@ -41,6 +41,8 @@ function fakeAdmin(opts: {
   profile?: Record<string, unknown> | null
   readError?: { message: string } | null
   writeError?: { message: string } | null
+  /** Rows the guarded update returns. Empty means the gate was already open. */
+  updated?: { id: string }[]
 } = {}) {
   const writes: Write[] = []
 
@@ -58,6 +60,11 @@ function fakeAdmin(opts: {
         state.filters[column] = value
         return chain
       },
+      // The fire-once guard: .is("verification_completed_at", null).
+      is(column: string, value: unknown) {
+        state.filters[`is:${column}`] = value
+        return chain
+      },
       maybeSingle() {
         return Promise.resolve({
           data: opts.profile ?? null,
@@ -65,9 +72,15 @@ function fakeAdmin(opts: {
         })
       },
       // Awaiting the chain is what runs an update in PostgREST.
-      then(resolve: (r: { error: unknown }) => unknown) {
+      then(resolve: (r: { data: unknown; error: unknown }) => unknown) {
         writes.push({ ...state, filters: { ...state.filters } })
-        return Promise.resolve(resolve({ error: opts.writeError ?? null }))
+        return Promise.resolve(
+          resolve({
+            // One row by default: the common case is the call that opens it.
+            data: opts.updated ?? [{ id: "account-1" }],
+            error: opts.writeError ?? null,
+          }),
+        )
       },
     }
     return chain
@@ -327,7 +340,13 @@ describe("completeVerification", () => {
 
     // Without the type filter this UPDATE would verify the same person's
     // builder account too — the whole point of the gate living on `accounts`.
-    expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "tester" })
+    expect(writes[0].filters).toEqual({
+      user_id: USER_ID,
+      type: "tester",
+      // The fire-once guard travels with the write, so it cannot be
+      // dropped without a test noticing.
+      "is:verification_completed_at": null,
+    })
   })
 
   it("holds a builder to four fields and sends them to /dashboard", async () => {
@@ -336,7 +355,13 @@ describe("completeVerification", () => {
     const result = await completeVerification("builder")
 
     expect(result).toEqual({ success: true, redirectTo: "/dashboard" })
-    expect(writes[0].filters).toEqual({ user_id: USER_ID, type: "builder" })
+    expect(writes[0].filters).toEqual({
+      user_id: USER_ID,
+      type: "builder",
+      // The fire-once guard travels with the write, so it cannot be
+      // dropped without a test noticing.
+      "is:verification_completed_at": null,
+    })
   })
 
   it("refuses to open a builder's gate without a timezone", async () => {
