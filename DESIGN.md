@@ -431,7 +431,34 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 
 ---
 
-### 5.6 Public Shell
+### 5.6 Comparison Tables
+
+Used on `/pricing`, and by anything else that compares options side by side.
+
+A real `<table>`, never a grid of divs. A screen reader moving cell by cell
+through a grid gets values with nothing to attach them to; a table announces
+"Tester reports per month, Pro, 20".
+
+| Property | Value |
+|----------|-------|
+| Row header | `<th scope="row">`, DM Sans 14px, `ink` |
+| Column header | `<th scope="col">`, DM Mono 14px Medium, `ink` |
+| Cell | DM Mono 14px, `ink` |
+| Row divider | 1px `line`, bottom only |
+| Caption | `<caption class="sr-only">` naming what is compared |
+| Overflow | wrapped in `overflow-x-auto` with `min-w-[520px]` on the table |
+
+**An absent feature is an em dash plus its row header, never an empty cell and
+never a colour.** Per §10, colour alone never conveys state — "—" in the
+*Shareable report* row reads correctly; a red dot does not. The same rule is
+why a tick renders as the word "Included".
+
+The table scrolls inside its own container so the page body never scrolls
+horizontally at 360px.
+
+---
+
+### 5.7 Public Shell
 
 `components/public/` — the header, footer and theme toggle the `(public)` layout
 renders around every public page. Public pages do not render their own nav.
@@ -451,7 +478,14 @@ border `line`, 64px top / 48px bottom padding.
 
 | Brand | Product | Guides | Company & legal |
 |---|---|---|---|
-| Logo, tagline, "Made in Nigeria 🇳🇬" | Pricing, About | For builders, For testers, Get started | Contact, Privacy policy, Terms of service, Sign in |
+| Logo, tagline, "Made in Nigeria 🇳🇬", X | Pricing, About | For builders, For testers | Contact, Privacy policy, Terms of service, Sign in |
+
+"Get started" joins the Guides column when `/signup` exists.
+
+**Mobile sheet:** a native `<dialog>` opened with `showModal()`. The platform
+gives the focus trap, `Esc` to close and focus restored to the trigger — do not
+hand-roll those. The theme toggle and the sign-in CTA stay in the bar at every
+width rather than moving into the sheet.
 
 > **Never add a nav or footer entry before its page exists.** A column whose
 > pages have not shipped is omitted, not stubbed — no `href="#"`, no "coming
