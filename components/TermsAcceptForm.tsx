@@ -52,8 +52,8 @@ export function TermsAcceptForm() {
             Terms of Service
           </Link>
           {" "}and{" "}
-          <Link href="/guidelines" target="_blank" className="text-forest hover:underline">
-            Guidelines
+          <Link href="/guides" target="_blank" className="text-forest hover:underline">
+            Guides
           </Link>
           .
         </span>

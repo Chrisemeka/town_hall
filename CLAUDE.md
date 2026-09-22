@@ -20,7 +20,8 @@ Twnhall is a Next.js app where developers submit projects to be tested by other 
 ```
 actions/              Server actions for all mutations (auth, projects, missions, submissions, admin)
 app/
-  (public)/           Public, theme-switchable routes (/, /terms, /privacy) + the shell
+  (public)/           Public, theme-switchable routes + the shell
+                      /, /pricing, /guides/**, /about, /contact, /terms, /privacy
   (developer)/        Builder-facing routes (/dashboard/**)
   (tester)/           Tester-facing routes (/explore/**, /mission/[id])
   (admin)/            Admin console (/admin/**)
@@ -37,6 +38,7 @@ lib/
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
   theme.ts            readTheme() — the public theme cookie, resolved in one place
+  contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
   types/db.ts         Hand-written row types — the client has no Database generic
   validation/         Zod schemas
 emails/               React Email templates
@@ -247,6 +249,15 @@ Canonical reference: `Test.md`. Every feature ships with:
 
 ## Do Not Touch
 
+- **The pricing page's honesty.** `/pricing` describes tiers that **no code
+  enforces** — there is no report counter, no per-mission tester ceiling, no
+  active-mission limit. That is the monetisation plan's Phase 2 on purpose, and
+  it binds the page: it describes the shape of the offer, never the state of an
+  account (no "you're on Community", no usage meter), the Pro call to action
+  opens a conversation at `/contact` and is never a Subscribe or Upgrade
+  button, and nothing unshipped is listed. When tier enforcement lands, the
+  page changes with it — until then, do not add a control implying a
+  transaction that does not exist.
 - **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a balance, or a `paid` state without that being the explicit ask.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.

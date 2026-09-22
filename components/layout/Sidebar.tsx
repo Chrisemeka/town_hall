@@ -145,14 +145,14 @@ export function Sidebar({
             {/* Settings — desktop only */}
             <div className="hidden md:block">
               <NavItem href="/settings" name="Settings" icon={Settings} isActive={isActive("/settings")} />
-              <NavItem href="/guidelines" name="How it works" icon={BookOpen} isActive={isActive("/guidelines")} />
+              <NavItem href="/guides" name="How it works" icon={BookOpen} isActive={isActive("/guides")} />
               <ReplayTourButton onClick={onClose} />
             </div>
 
             {/* Profile + Sign Out — mobile only */}
             <div className="md:hidden flex flex-col gap-0.5">
               <NavItem href="/settings" name="Profile" icon={User} isActive={isActive("/settings")} onClick={onClose} />
-              <NavItem href="/guidelines" name="How it works" icon={BookOpen} isActive={isActive("/guidelines")} onClick={onClose} />
+              <NavItem href="/guides" name="How it works" icon={BookOpen} isActive={isActive("/guides")} onClick={onClose} />
               <ReplayTourButton onClick={onClose} />
               <form action={signOutAction}>
                 <button
