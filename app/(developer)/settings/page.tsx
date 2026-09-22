@@ -31,10 +31,10 @@ export default async function SettingsPage() {
 
       {/* Page header */}
       <div className="mb-10">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
           Settings
         </h1>
-        <p className="font-mono text-[14px] text-ash mt-1">
+        <p className="font-mono text-[14px] text-ink-muted mt-1">
           Manage your profile and preferences.
         </p>
       </div>

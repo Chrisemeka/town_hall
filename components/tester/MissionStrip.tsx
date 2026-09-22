@@ -38,10 +38,10 @@ function loadTestWindow(iso: string): string {
 export function MissionStrip({ missions }: { missions: StripMission[] }) {
   if (missions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 border border-dashed border-iron rounded-[12px] text-center px-6">
-        <Compass className="w-10 h-10 text-ash mb-3 opacity-40" />
-        <p className="font-syne font-bold text-[18px] text-chalk mb-1">No open missions right now.</p>
-        <p className="font-mono text-[13px] text-ash">
+      <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+        <Compass className="w-10 h-10 text-ink-muted mb-3 opacity-40" />
+        <p className="font-syne font-bold text-[18px] text-ink mb-1">No open missions right now.</p>
+        <p className="font-mono text-[13px] text-ink-muted">
           New missions land here as builders publish them.
         </p>
       </div>
@@ -64,10 +64,10 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
           >
             <div
               className={[
-                "bg-graphite border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] transition-colors duration-150",
+                "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] transition-colors duration-150",
                 isLoadTest
                   ? "border-sky/40 group-hover:border-sky"
-                  : "border-iron group-hover:border-voltage/30",
+                  : "border-line group-hover:border-voltage/30",
               ].join(" ")}
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
@@ -80,19 +80,19 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                       aria-label="New"
                     />
                   )}
-                  <span className="font-syne font-bold text-[16px] text-chalk truncate group-hover:text-voltage transition-colors duration-150">
+                  <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-voltage transition-colors duration-150">
                     {m.projectName}
                   </span>
                 </div>
               </div>
 
-              <p className="font-mono text-[13px] leading-5 text-ash line-clamp-2">
+              <p className="font-mono text-[13px] leading-5 text-ink-muted line-clamp-2">
                 {m.title}
               </p>
 
               <div className="flex items-center gap-2 flex-wrap">
                 {m.category && (
-                  <span className="font-mono text-[11px] tracking-[0.5px] text-chalk/80 border border-iron bg-obsidian px-2.5 py-1 rounded-[6px]">
+                  <span className="font-mono text-[11px] tracking-[0.5px] text-ink/80 border border-line bg-surface px-2.5 py-1 rounded-[6px]">
                     {m.category}
                   </span>
                 )}
@@ -104,18 +104,18 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                 )}
               </div>
 
-              <div className="mt-auto pt-1 flex items-center justify-between font-mono text-[12px] text-ash">
+              <div className="mt-auto pt-1 flex items-center justify-between font-mono text-[12px] text-ink-muted">
                 <span className="flex items-center gap-1.5 truncate">
                   Posted {timeAgo(m.createdAt)}
                   {isLoadTest && m.testersNeeded ? (
                     <>
-                      <span className="text-iron">·</span>
+                      <span className="text-line">·</span>
                       <Users className="w-3 h-3 shrink-0" />
                       {m.testersNeeded} needed
                     </>
                   ) : null}
                 </span>
-                <span className="text-chalk/70 group-hover:text-chalk transition-colors duration-150 shrink-0">
+                <span className="text-ink/70 group-hover:text-ink transition-colors duration-150 shrink-0">
                   View →
                 </span>
               </div>

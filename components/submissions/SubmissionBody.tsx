@@ -38,11 +38,11 @@ export function SubmissionBody({
 
   if (log.length === 0) {
     return comment?.trim() ? (
-      <p className="font-mono text-[14px] leading-6 text-ash whitespace-pre-wrap break-words">
+      <p className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap break-words">
         {comment}
       </p>
     ) : (
-      <p className="font-mono text-[13px] text-ash italic">No written feedback.</p>
+      <p className="font-mono text-[13px] text-ink-muted italic">No written feedback.</p>
     )
   }
 
@@ -54,7 +54,7 @@ export function SubmissionBody({
         {[...log]
           .sort((a, b) => a.step_index - b.step_index)
           .map((entry) => (
-            <li key={entry.id} className="border-l-[3px] border-iron pl-4">
+            <li key={entry.id} className="border-l-[3px] border-line pl-4">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="font-mono text-[12px] font-medium text-voltage">
                   {String(entry.step_index + 1).padStart(2, "0")}
@@ -62,7 +62,7 @@ export function SubmissionBody({
                 <StatusPill status={entry.status} />
               </div>
 
-              <p className="font-mono text-[13px] leading-5 text-chalk break-words mb-2">
+              <p className="font-mono text-[13px] leading-5 text-ink break-words mb-2">
                 {entry.step_action}
               </p>
 
@@ -89,11 +89,11 @@ export function SubmissionBody({
       </ol>
 
       {comment?.trim() && (
-        <div className="pt-3 border-t border-iron">
-          <p className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] mb-1">
+        <div className="pt-3 border-t border-line">
+          <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
             Anything else
           </p>
-          <p className="font-mono text-[14px] leading-6 text-ash whitespace-pre-wrap break-words">
+          <p className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap break-words">
             {comment}
           </p>
         </div>
@@ -118,7 +118,7 @@ export function PassRate({ entries }: { entries: SubmissionEntry[] }) {
       <span
         className={[
           "font-mono text-[13px] font-medium",
-          failed > 0 ? "text-ember" : "text-chalk",
+          failed > 0 ? "text-ember" : "text-ink",
         ].join(" ")}
       >
         {passed} of {entries.length} steps passed
@@ -160,8 +160,8 @@ function testerDisagreed(entry: SubmissionEntry): boolean {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <p className="font-mono text-[13px] leading-5 text-ash break-words">
-      <span className="text-ash/70">{label}: </span>
+    <p className="font-mono text-[13px] leading-5 text-ink-muted break-words">
+      <span className="text-ink-muted/70">{label}: </span>
       {value}
     </p>
   )

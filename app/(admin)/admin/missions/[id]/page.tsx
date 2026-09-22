@@ -119,17 +119,17 @@ export default async function AdminMissionDetailPage({
       </div>
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-6">
-        <Link href="/admin/missions" className="hover:text-chalk transition-colors duration-150">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-6">
+        <Link href="/admin/missions" className="hover:text-ink transition-colors duration-150">
           Missions
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
-        <span className="text-chalk truncate max-w-[480px]">{mission.title}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <span className="text-ink truncate max-w-[480px]">{mission.title}</span>
       </div>
 
       {/* Title + status */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
-        <h1 className="font-syne font-bold text-[32px] leading-[36px] tracking-[-0.5px] text-chalk break-words max-w-3xl">
+        <h1 className="font-syne font-bold text-[32px] leading-[36px] tracking-[-0.5px] text-ink break-words max-w-3xl">
           {mission.title}
         </h1>
         <span
@@ -141,7 +141,7 @@ export default async function AdminMissionDetailPage({
         </span>
       </div>
 
-      <p className="font-mono text-[13px] text-ash mb-8">
+      <p className="font-mono text-[13px] text-ink-muted mb-8">
         Created {formatDate(mission.created_at)}
       </p>
 
@@ -157,7 +157,7 @@ export default async function AdminMissionDetailPage({
               Parent project is flagged
             </p>
             {project.flag_reason && (
-              <p className="font-mono text-[13px] text-ash leading-5 mt-1 whitespace-pre-wrap">
+              <p className="font-mono text-[13px] text-ink-muted leading-5 mt-1 whitespace-pre-wrap">
                 {project.flag_reason}
               </p>
             )}
@@ -176,8 +176,8 @@ export default async function AdminMissionDetailPage({
             borderRadius: "0 12px 12px 0",
           }}
         >
-          <p className="font-mono text-[15px] text-chalk leading-6 whitespace-pre-wrap">
-            {mission.task_description || <span className="text-ash italic">No notes.</span>}
+          <p className="font-mono text-[15px] text-ink leading-6 whitespace-pre-wrap">
+            {mission.task_description || <span className="text-ink-muted italic">No notes.</span>}
           </p>
         </div>
       </div>
@@ -194,14 +194,14 @@ export default async function AdminMissionDetailPage({
       </div>
 
       {/* Project context card */}
-      <div className="bg-graphite border border-iron rounded-[12px] p-5 mb-10" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash mb-3">Project</p>
+      <div className="bg-surface-raised border border-line rounded-[12px] p-5 mb-10" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-3">Project</p>
         {project ? (
           <div className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <Link
                 href="/admin/projects"
-                className="font-syne font-bold text-[18px] text-chalk hover:text-voltage transition-colors duration-150"
+                className="font-syne font-bold text-[18px] text-ink hover:text-voltage transition-colors duration-150"
               >
                 {project.name}
               </Link>
@@ -218,16 +218,16 @@ export default async function AdminMissionDetailPage({
               )}
             </div>
             {project.description && (
-              <p className="font-mono text-[13px] text-ash leading-5">{project.description}</p>
+              <p className="font-mono text-[13px] text-ink-muted leading-5">{project.description}</p>
             )}
             {ownerProfile && (
-              <div className="flex items-center gap-2 pt-2 border-t border-iron/60">
-                <User className="w-3.5 h-3.5 text-ash" />
-                <span className="font-mono text-[13px] text-chalk">
+              <div className="flex items-center gap-2 pt-2 border-t border-line/60">
+                <User className="w-3.5 h-3.5 text-ink-muted" />
+                <span className="font-mono text-[13px] text-ink">
                   {ownerProfile.full_name || ownerProfile.email}
                 </span>
                 {ownerProfile.full_name && (
-                  <span className="font-mono text-[12px] text-ash">· {ownerProfile.email}</span>
+                  <span className="font-mono text-[12px] text-ink-muted">· {ownerProfile.email}</span>
                 )}
               </div>
             )}
@@ -238,10 +238,10 @@ export default async function AdminMissionDetailPage({
       </div>
 
       {/* Submissions */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">Submissions</h2>
-          <span className="font-mono text-[12px] text-ash">{submissions.length} total</span>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">Submissions</h2>
+          <span className="font-mono text-[12px] text-ink-muted">{submissions.length} total</span>
         </div>
         <SubmissionsList
           submissions={submissions}

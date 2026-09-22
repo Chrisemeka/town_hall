@@ -15,7 +15,7 @@
 
 /** A single placeholder line. Caller sets the height and width. */
 export function Bar({ className }: { className: string }) {
-  return <div className={`bg-iron rounded-[4px] ${className}`} />
+  return <div className={`bg-line rounded-[4px] ${className}`} />
 }
 
 /**
@@ -24,7 +24,7 @@ export function Bar({ className }: { className: string }) {
  */
 export function ProjectCardSkeleton() {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col gap-4">
+    <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col gap-4">
       {/* Title + status badge */}
       <div className="flex items-start justify-between gap-4">
         <Bar className="h-7 w-1/2" />
@@ -38,7 +38,7 @@ export function ProjectCardSkeleton() {
       {/* URL */}
       <Bar className="h-4 w-2/5" />
       {/* Footer counts + action */}
-      <div className="pt-4 border-t border-iron flex items-center justify-between gap-4">
+      <div className="pt-4 border-t border-line flex items-center justify-between gap-4">
         <Bar className="h-4 w-32" />
         <Bar className="h-4 w-16" />
       </div>

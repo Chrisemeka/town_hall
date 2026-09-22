@@ -18,7 +18,7 @@ export function OnbordaCard({
 
   return (
     <div
-      className="w-[min(340px,calc(100vw-24px))] bg-graphite border border-iron rounded-[12px] p-4 sm:p-5 text-chalk font-mono"
+      className="w-[min(340px,calc(100vw-24px))] bg-surface-raised border border-line rounded-[12px] p-4 sm:p-5 text-ink font-mono"
       style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.6)" }}
     >
       {/* Header */}
@@ -29,7 +29,7 @@ export function OnbordaCard({
               {step.icon}
             </span>
           )}
-          <h3 className="font-syne font-bold text-[16px] leading-[22px] text-chalk break-words">
+          <h3 className="font-syne font-bold text-[16px] leading-[22px] text-ink break-words">
             {step.title}
           </h3>
         </div>
@@ -37,20 +37,20 @@ export function OnbordaCard({
           type="button"
           onClick={closeOnborda}
           aria-label="Close tour"
-          className="p-1 -m-1 text-ash hover:text-chalk transition-colors duration-150 shrink-0"
+          className="p-1 -m-1 text-ink-muted hover:text-ink transition-colors duration-150 shrink-0"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
       {/* Body */}
-      <div className="font-mono text-[13px] leading-6 text-ash mb-5">
+      <div className="font-mono text-[13px] leading-6 text-ink-muted mb-5">
         {step.content}
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-[11px] text-ash uppercase tracking-[1px]">
+        <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[1px]">
           {currentStep + 1} / {totalSteps}
         </span>
 
@@ -59,7 +59,7 @@ export function OnbordaCard({
             <button
               type="button"
               onClick={prevStep}
-              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-[8px] border border-iron text-ash hover:text-chalk hover:border-ash transition-colors duration-150 font-mono text-[12px]"
+              className="h-8 px-3 inline-flex items-center gap-1.5 rounded-[8px] border border-line text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 font-mono text-[12px]"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back
             </button>

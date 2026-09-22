@@ -22,9 +22,9 @@ export function SignupsChart({
   subtitle?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-      <h3 className="font-syne font-bold text-[16px] text-chalk mb-1">{title}</h3>
-      <p className="font-mono text-[12px] text-ash mb-4">{subtitle}</p>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+      <h3 className="font-syne font-bold text-[16px] text-ink mb-1">{title}</h3>
+      <p className="font-mono text-[12px] text-ink-muted mb-4">{subtitle}</p>
 
       <div className="h-[220px] w-full">
         <ResponsiveContainer width="100%" height="100%">

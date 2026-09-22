@@ -110,19 +110,19 @@ export default async function FeedbackReceivedPage() {
     <div className="max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       <div id="tour-feedback-header" className="mb-8">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
           Feedback Received
         </h1>
-        <p className="font-mono text-[14px] text-ash mt-1">
+        <p className="font-mono text-[14px] text-ink-muted mt-1">
           All feedback from your active missions.
         </p>
       </div>
 
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px] text-center px-6">
-          <MessageSquare className="w-12 h-12 text-ash mb-4 opacity-40" />
-          <h3 className="font-syne font-bold text-[24px] text-chalk mb-2">No feedback yet.</h3>
-          <p className="font-mono text-[14px] text-ash mb-6 max-w-[340px]">
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px] text-center px-6">
+          <MessageSquare className="w-12 h-12 text-ink-muted mb-4 opacity-40" />
+          <h3 className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</h3>
+          <p className="font-mono text-[14px] text-ink-muted mb-6 max-w-[340px]">
             Share your project in the community to start receiving feedback.
           </p>
           <Button variant="ghost" asChild>

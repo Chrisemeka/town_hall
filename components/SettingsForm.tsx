@@ -150,7 +150,7 @@ export function SettingsForm({
 
       {/* ── Profile ─────────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-chalk mb-6">Profile</h5>
+        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Profile</h5>
 
         <div className="flex flex-col gap-5">
           <Field label="Display Name" htmlFor="full_name" error={errors.full_name}>
@@ -233,7 +233,7 @@ export function SettingsForm({
               className={textareaClass(!!errors.bio?.length)}
             />
             {/* §5.2 character counter: DM Mono 12px, Ash, right-aligned. */}
-            <span className="font-mono text-[12px] text-ash text-right">
+            <span className="font-mono text-[12px] text-ink-muted text-right">
               {values.bio.length}/{BIO_MAX}
             </span>
           </Field>
@@ -251,13 +251,13 @@ export function SettingsForm({
 
           {/* Email (read-only) */}
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+            <label className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
               Email
             </label>
-            <div className="h-10 w-full bg-obsidian border border-iron rounded-[8px] px-4 font-mono text-[14px] text-ash flex items-center opacity-60 cursor-not-allowed">
+            <div className="h-10 w-full bg-surface border border-line rounded-[8px] px-4 font-mono text-[14px] text-ink-muted flex items-center opacity-60 cursor-not-allowed">
               {initialEmail}
             </div>
-            <p className="font-mono text-[12px] text-ash/60">
+            <p className="font-mono text-[12px] text-ink-muted/60">
               Email cannot be changed here.
             </p>
           </div>
@@ -278,7 +278,7 @@ export function SettingsForm({
             {saving ? "Saving…" : "Save Profile"}
           </button>
           {saveMsg && (
-            <p className="font-mono text-[13px] text-ash">{saveMsg}</p>
+            <p className="font-mono text-[13px] text-ink-muted">{saveMsg}</p>
           )}
         </div>
       </div>
@@ -287,16 +287,16 @@ export function SettingsForm({
 
       {/* ── Account ─────────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-chalk mb-6">Account</h5>
+        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h5>
 
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="font-mono text-[14px] text-chalk">Linked Accounts</p>
-            <p className="font-mono text-[13px] text-ash mt-0.5">
+            <p className="font-mono text-[14px] text-ink">Linked Accounts</p>
+            <p className="font-mono text-[13px] text-ink-muted mt-0.5">
               GitHub, Google, and other OAuth providers.
             </p>
           </div>
-          <button className="h-9 px-4 border border-iron text-chalk rounded-[8px] font-mono text-[13px] hover:border-ash transition-colors duration-150 shrink-0">
+          <button className="h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 shrink-0">
             Manage
           </button>
         </div>
@@ -312,7 +312,7 @@ export function SettingsForm({
         <h5 className="font-syne font-bold text-[20px]" style={{ color: "#FF4F4F" }}>
           Danger Zone
         </h5>
-        <p className="font-mono text-[14px] text-ash mt-2 mb-6">
+        <p className="font-mono text-[14px] text-ink-muted mt-2 mb-6">
           Destructive actions that cannot be undone.
         </p>
 
@@ -322,8 +322,8 @@ export function SettingsForm({
         >
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="font-mono text-[14px] text-chalk">Delete Account</p>
-              <p className="font-mono text-[13px] text-ash mt-0.5">
+              <p className="font-mono text-[14px] text-ink">Delete Account</p>
+              <p className="font-mono text-[13px] text-ink-muted mt-0.5">
                 Permanently removes your account, projects, missions, and all feedback.
               </p>
             </div>
@@ -342,7 +342,7 @@ export function SettingsForm({
 
           {deleteStep === "confirm" && (
             <div className="border-t pt-4" style={{ borderColor: "rgba(255,79,79,0.2)" }}>
-              <p className="font-mono text-[13px] text-chalk mb-4">
+              <p className="font-mono text-[13px] text-ink mb-4">
                 This cannot be undone. All your data will be permanently deleted. Are you sure?
               </p>
               <div className="flex items-center gap-3">
@@ -357,7 +357,7 @@ export function SettingsForm({
                 <button
                   onClick={() => { setDeleteStep("idle"); setDeleteError(null) }}
                   disabled={deleting}
-                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Cancel
                 </button>

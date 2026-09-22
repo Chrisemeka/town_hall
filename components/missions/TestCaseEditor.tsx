@@ -119,7 +119,7 @@ export function TestCaseEditor({
 
       {/* ── 1. Category ─────────────────────────────────────────────── */}
       <section className="flex flex-col gap-3">
-        <p className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+        <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           What kind of testing is this?
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -139,18 +139,18 @@ export function TestCaseEditor({
                   "text-left rounded-[12px] border p-4 transition-colors duration-150",
                   active
                     ? "border-voltage bg-voltage/5"
-                    : "border-iron bg-obsidian hover:border-ash",
+                    : "border-line bg-surface hover:border-ink-muted",
                 ].join(" ")}
               >
                 <span
                   className={[
                     "block font-mono text-[13px] font-medium mb-1",
-                    active ? "text-voltage" : "text-chalk",
+                    active ? "text-voltage" : "text-ink",
                   ].join(" ")}
                 >
                   {testCategoryLabel(option)}
                 </span>
-                <span className="block font-mono text-[12px] leading-5 text-ash">
+                <span className="block font-mono text-[12px] leading-5 text-ink-muted">
                   {TEST_CATEGORY_BLURBS[option]}
                 </span>
               </button>
@@ -163,15 +163,15 @@ export function TestCaseEditor({
       {/* ── 2. Start from ───────────────────────────────────────────── */}
       {category && (
         <section className="flex flex-col gap-3">
-          <p className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">Start from</p>
+          <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">Start from</p>
           <div className="flex flex-col gap-2">
             <button
               type="button"
               onClick={startBlank}
-              className="text-left rounded-[8px] border border-iron bg-obsidian px-4 py-3 font-mono text-[13px] text-chalk hover:border-ash transition-colors duration-150"
+              className="text-left rounded-[8px] border border-line bg-surface px-4 py-3 font-mono text-[13px] text-ink hover:border-ink-muted transition-colors duration-150"
             >
               Blank test case
-              <span className="block text-[12px] text-ash mt-0.5">Write every step yourself.</span>
+              <span className="block text-[12px] text-ink-muted mt-0.5">Write every step yourself.</span>
             </button>
             {available.map((template) => (
               <button
@@ -182,17 +182,17 @@ export function TestCaseEditor({
                   "text-left rounded-[8px] border px-4 py-3 font-mono text-[13px] transition-colors duration-150",
                   templateId === template.id
                     ? "border-voltage text-voltage bg-voltage/5"
-                    : "border-iron text-chalk bg-obsidian hover:border-ash",
+                    : "border-line text-ink bg-surface hover:border-ink-muted",
                 ].join(" ")}
               >
                 {template.name}
-                <span className="block text-[12px] text-ash mt-0.5">
+                <span className="block text-[12px] text-ink-muted mt-0.5">
                   {template.description} · {template.steps.length} steps
                 </span>
               </button>
             ))}
           </div>
-          <p className="font-mono text-[12px] text-ash leading-5">
+          <p className="font-mono text-[12px] text-ink-muted leading-5">
             Templates are a starting point — every step stays editable, and picking one replaces
             whatever is below.
           </p>
@@ -206,23 +206,23 @@ export function TestCaseEditor({
           programmatically without joining the tab order. */}
       <section id="test_steps" tabIndex={-1} className="flex flex-col gap-3 focus:outline-none">
         <div className="flex items-center justify-between gap-4">
-          <p className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">Test steps</p>
-          <span className="font-mono text-[12px] text-ash">
+          <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">Test steps</p>
+          <span className="font-mono text-[12px] text-ink-muted">
             {steps.length} / {TEST_STEPS_MAX}
           </span>
         </div>
 
         {steps.length === 0 ? (
           /* Every mission written before test cases existed lands here. */
-          <div className="flex flex-col items-center justify-center py-12 border border-dashed border-iron rounded-[12px] text-center px-6">
-            <p className="font-syne font-bold text-[20px] text-chalk mb-2">No steps yet.</p>
-            <p className="font-mono text-[13px] text-ash mb-6 leading-5">
+          <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+            <p className="font-syne font-bold text-[20px] text-ink mb-2">No steps yet.</p>
+            <p className="font-mono text-[13px] text-ink-muted mb-6 leading-5">
               Add the first thing a tester should do, and what should happen when they do it.
             </p>
             <button
               type="button"
               onClick={addStep}
-              className="h-10 px-4 border border-iron text-chalk rounded-[8px] font-mono text-[13px] hover:border-ash transition-colors duration-150 flex items-center gap-2"
+              className="h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
               Add first step
@@ -233,7 +233,7 @@ export function TestCaseEditor({
             {steps.map((step, index) => (
               <div
                 key={step.id}
-                className="bg-obsidian border border-iron rounded-[12px] p-4 flex flex-col gap-3"
+                className="bg-surface border border-line rounded-[12px] p-4 flex flex-col gap-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-mono text-[12px] font-medium text-voltage">
@@ -288,7 +288,7 @@ export function TestCaseEditor({
               <button
                 type="button"
                 onClick={addStep}
-                className="h-10 px-4 self-start border border-iron text-chalk rounded-[8px] font-mono text-[13px] hover:border-ash transition-colors duration-150 flex items-center gap-2"
+                className="h-10 px-4 self-start border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add step
@@ -303,7 +303,7 @@ export function TestCaseEditor({
 
       {/* ── 4. Device target ────────────────────────────────────────── */}
       <section className="flex flex-col gap-3">
-        <p className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+        <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           Where should this be tested?
         </p>
         <div className="flex flex-wrap gap-2">
@@ -323,7 +323,7 @@ export function TestCaseEditor({
                   "h-10 px-4 rounded-[8px] border font-mono text-[13px] transition-colors duration-150",
                   active
                     ? "border-voltage text-voltage bg-voltage/5"
-                    : "border-iron text-ash bg-obsidian hover:border-ash hover:text-chalk",
+                    : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
                 ].join(" ")}
               >
                 {deviceTargetLabel(option)}
@@ -357,7 +357,7 @@ function StepField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px]">{label}</span>
+      <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
       <input
         id={field}
         // Not submitted — the parent form sends the whole step array as one
@@ -370,8 +370,8 @@ function StepField({
         onChange={(e) => onChange(e.target.value)}
         {...fieldErrorProps(field, errors)}
         className={[
-          "h-10 w-full bg-graphite border rounded-[8px] px-3 font-mono text-[13px] text-chalk placeholder:text-ash focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite transition-colors duration-150",
-          errors?.length ? "border-ember" : "border-iron focus:border-voltage",
+          "h-10 w-full bg-surface-raised border rounded-[8px] px-3 font-mono text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150",
+          errors?.length ? "border-ember" : "border-line focus:border-voltage",
         ].join(" ")}
       />
       <FieldError field={field} errors={errors} />
@@ -396,7 +396,7 @@ function IconButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="w-7 h-7 flex items-center justify-center rounded-[6px] border border-iron text-ash hover:text-chalk hover:border-ash transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none"
+      className="w-7 h-7 flex items-center justify-center rounded-[6px] border border-line text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none"
     >
       {children}
     </button>

@@ -77,7 +77,7 @@ export function ProjectRowActions({
           rows={2}
           autoFocus
           disabled={isPending}
-          className="w-full md:w-[280px] bg-obsidian border border-iron rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
+          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
         />
         <div className="flex items-center gap-2 justify-end">
           {error && (
@@ -85,7 +85,7 @@ export function ProjectRowActions({
               {error}
             </span>
           )}
-          <span className="font-mono text-[10px] text-ash/60 tabular-nums">
+          <span className="font-mono text-[10px] text-ink-muted/60 tabular-nums">
             {reason.trim().length}/{MAX_REASON}
           </span>
           <button
@@ -101,7 +101,7 @@ export function ProjectRowActions({
             type="button"
             onClick={reset}
             disabled={isPending}
-            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
           >
             Cancel
           </button>
@@ -130,7 +130,7 @@ export function ProjectRowActions({
           type="button"
           onClick={reset}
           disabled={isPending}
-          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
         >
           Cancel
         </button>

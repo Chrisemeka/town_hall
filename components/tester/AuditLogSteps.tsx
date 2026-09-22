@@ -112,11 +112,11 @@ export function AuditLogSteps({
         <div
           key={entry.step_id}
           className={[
-            "bg-graphite border rounded-[12px] p-5 flex flex-col gap-4",
+            "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-4",
             // Never colour alone — Design.md §5.4. The message above the submit
             // button names this step by number; the border is how the tester
             // finds it once they have been scrolled to it.
-            errorIndex === index ? "border-ember" : "border-iron",
+            errorIndex === index ? "border-ember" : "border-line",
           ].join(" ")}
         >
           {/*
@@ -126,25 +126,25 @@ export function AuditLogSteps({
             it sits in its own darker panel, visually distinct from the fields
             below that are the tester's to fill in.
           */}
-          <div className="bg-obsidian border border-iron rounded-[8px] p-4">
+          <div className="bg-surface border border-line rounded-[8px] p-4">
             <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px] mb-3">
               Step {String(index + 1).padStart(2, "0")}
             </p>
-            <p className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] mb-1">Do</p>
-            <p className="font-mono text-[14px] leading-5 text-chalk mb-3 break-words">
+            <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">Do</p>
+            <p className="font-mono text-[14px] leading-5 text-ink mb-3 break-words">
               {entry.step_action}
             </p>
-            <p className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] mb-1">
+            <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
               Builder expects
             </p>
-            <p className="font-mono text-[14px] leading-5 text-ash break-words">
+            <p className="font-mono text-[14px] leading-5 text-ink-muted break-words">
               {entry.step_expected}
             </p>
           </div>
 
           {/* Status. Text-labelled, never colour alone — Design.md §5.4. */}
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] flex items-center gap-2">
+            <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] flex items-center gap-2">
               How did it go?
               {/* Per step rather than once at the top: the choice is made per
                   step, and the icon costs no vertical space on a form that is
@@ -152,7 +152,7 @@ export function AuditLogSteps({
               <InfoTip label="What do Pass, Fail and Blocked mean?">
                 <span className="flex flex-col gap-2 normal-case tracking-normal">
                   {ENTRY_STATUSES.map((s) => (
-                    <span key={s} className="font-mono text-[12px] leading-5 text-ash">
+                    <span key={s} className="font-mono text-[12px] leading-5 text-ink-muted">
                       <span className={STATUS_HINT_TONE[s]}>{entryStatusLabel(s)}</span>
                       {" — "}
                       {ENTRY_STATUS_HINTS[s]}
@@ -175,10 +175,10 @@ export function AuditLogSteps({
                     onClick={() => edit(index, { status })}
                     className={[
                       "h-10 px-4 rounded-[8px] border font-mono text-[13px] font-medium transition-colors duration-150",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
                       active
                         ? STATUS_ACTIVE[status]
-                        : "border-iron text-ash bg-obsidian hover:border-ash hover:text-chalk",
+                        : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
                     ].join(" ")}
                   >
                     {entryStatusLabel(status)}
@@ -272,7 +272,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] text-ash uppercase tracking-[0.5px]">{label}</span>
+      <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
       <textarea
         id={name}
         // Not submitted — the whole log goes as one JSON field. The name exists
@@ -283,9 +283,9 @@ function Field({
         maxLength={ENTRY_TEXT_MAX}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-obsidian border border-iron rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-chalk placeholder:text-ash focus:outline-none focus:border-voltage focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite transition-colors duration-150 resize-none"
+        className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none"
       />
-      {helper && <span className="font-mono text-[11px] text-ash">{helper}</span>}
+      {helper && <span className="font-mono text-[11px] text-ink-muted">{helper}</span>}
     </label>
   )
 }

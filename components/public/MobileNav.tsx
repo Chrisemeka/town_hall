@@ -50,7 +50,7 @@ export function MobileNav({
         aria-label="Site menu"
         // A dialog is centred and auto-sized by default; these pin it to the
         // right as a full-height sheet. backdrop:bg-* styles ::backdrop.
-        className="m-0 ml-auto h-full max-h-full w-[min(20rem,85vw)] max-w-none bg-surface p-0 text-ink backdrop:bg-obsidian/60"
+        className="m-0 ml-auto h-full max-h-full w-[min(20rem,85vw)] max-w-none bg-surface p-0 text-ink backdrop:bg-surface/60"
       >
         <div className="flex h-full flex-col p-6">
           <div className="flex justify-end">

@@ -31,7 +31,7 @@ export function InfoTip({
         type="button"
         aria-label={label}
         aria-describedby={id}
-        className="w-4 h-4 shrink-0 rounded-full border border-iron text-ash font-mono text-[10px] leading-none flex items-center justify-center transition-colors duration-150 hover:border-ash hover:text-chalk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite"
+        className="w-4 h-4 shrink-0 rounded-full border border-line text-ink-muted font-mono text-[10px] leading-none flex items-center justify-center transition-colors duration-150 hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
       >
         ?
       </button>
@@ -44,7 +44,7 @@ export function InfoTip({
         //
         // Invisible rather than unmounted, and pointer-events-none so it never
         // swallows a click meant for what is underneath it.
-        className="pointer-events-none invisible absolute left-0 bottom-full mb-2 z-30 w-[280px] max-w-[70vw] rounded-[8px] border border-iron bg-obsidian p-3 opacity-0 shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
+        className="pointer-events-none invisible absolute left-0 bottom-full mb-2 z-30 w-[280px] max-w-[70vw] rounded-[8px] border border-line bg-surface p-3 opacity-0 shadow-[0_2px_12px_rgba(0,0,0,0.4)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100"
       >
         {children}
       </span>

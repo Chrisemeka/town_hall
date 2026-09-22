@@ -47,10 +47,10 @@ export function SkillsInput({
   const boxClass = themed ? setupInputClass : inputClass
   const DROPDOWN = themed
     ? "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
-    : "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-graphite border border-iron rounded-[12px] py-2"
+    : "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
   const OPTION = themed
     ? "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
-    : "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-chalk hover:bg-white/[0.04] transition-colors duration-150"
+    : "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink hover:bg-white/[0.04] transition-colors duration-150"
   // On a light ground a 12% Voltage tint with Voltage text is invisible, so
   // the themed pill is an accent-ink outline instead of an accent fill.
   const PILL = themed

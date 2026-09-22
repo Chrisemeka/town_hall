@@ -16,7 +16,7 @@ function StatusPill({ status }: { status: SubmissionStatus }) {
   const style = STATUS_STYLE[status]
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-iron"
+      className="inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-line"
       style={{ color: style.color }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: style.dot }} />
@@ -72,14 +72,14 @@ export default function SubmissionReview({
   const errors = state && !state.success ? state.fieldErrors : undefined
 
   return (
-    <div className="mt-6 pt-5 border-t border-iron flex flex-col gap-4">
+    <div className="mt-6 pt-5 border-t border-line flex flex-col gap-4">
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">Review</p>
           <StatusPill status={status} />
           {rating !== null && (
-            <span className="font-mono text-[12px] text-ash flex items-center gap-1">
+            <span className="font-mono text-[12px] text-ink-muted flex items-center gap-1">
               <Star className="w-3 h-3" style={{ fill: "#E8FF47", color: "#E8FF47" }} />
               {rating}/5 given
             </span>
@@ -106,7 +106,7 @@ export default function SubmissionReview({
       </div>
 
       {reviewNote && status === "changes_requested" && (
-        <p className="font-mono text-[13px] leading-5 text-ash bg-ember/5 border-l-2 border-ember rounded-r-[6px] px-3 py-2">
+        <p className="font-mono text-[13px] leading-5 text-ink-muted bg-ember/5 border-l-2 border-ember rounded-r-[6px] px-3 py-2">
           {reviewNote}
         </p>
       )}
@@ -114,12 +114,12 @@ export default function SubmissionReview({
       {/* Rating prompt — opens after the builder picks a decision, because a
           decision without a rating leaves the tester's reputation unmoved. */}
       {draft && (
-        <form action={formAction} className="bg-graphite border border-iron rounded-[12px] p-5 flex flex-col gap-4">
+        <form action={formAction} className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4">
           <input type="hidden" name="resultId" value={resultId} />
           <input type="hidden" name="action" value={draft} />
 
           <div>
-            <p className="font-mono text-[13px] text-chalk mb-2">
+            <p className="font-mono text-[13px] text-ink mb-2">
               {draft === "approve" ? "Approving this submission." : "Sending this back for changes."}
               {" "}How was the tester&apos;s work?
             </p>
@@ -131,7 +131,7 @@ export default function SubmissionReview({
 
           {draft === "request_changes" && (
             <div>
-              <label htmlFor={`note-${resultId}`} className="font-mono text-[12px] text-ash block mb-1.5">
+              <label htmlFor={`note-${resultId}`} className="font-mono text-[12px] text-ink-muted block mb-1.5">
                 What needs changing?
               </label>
               <textarea
@@ -140,7 +140,7 @@ export default function SubmissionReview({
                 rows={3}
                 defaultValue={reviewNote ?? ""}
                 placeholder="e.g. The repro steps aren't clear — which screen were you on?"
-                className="w-full bg-obsidian border border-iron rounded-[8px] px-3 py-2 font-mono text-[13px] text-chalk placeholder:text-ash/60 focus:outline-none focus:border-voltage transition-colors duration-150"
+                className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-voltage transition-colors duration-150"
               />
               {errors?.note && (
                 <p className="font-mono text-[12px] text-ember mt-1">{errors.note[0]}</p>

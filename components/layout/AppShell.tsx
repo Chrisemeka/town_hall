@@ -27,7 +27,7 @@ export function AppShell({
 
   return (
     <TourProvider seenTours={seenTours ?? []}>
-      <div className="min-h-screen bg-obsidian flex text-chalk">
+      <div className="min-h-screen bg-surface flex text-ink">
         <TopNav
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}

@@ -65,10 +65,10 @@ export default async function BrowseMissionsPage() {
 
       {/* Page header */}
       <div id="tour-browse-missions-header" className="mb-8">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
           Browse Missions
         </h1>
-        <p className="font-mono text-[14px] text-ash mt-1">
+        <p className="font-mono text-[14px] text-ink-muted mt-1">
           Pick a mission and start testing.
         </p>
       </div>

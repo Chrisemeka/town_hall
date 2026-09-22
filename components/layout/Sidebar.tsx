@@ -60,8 +60,8 @@ function NavItem({
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 h-10 px-3 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian",
-        isActive ? "text-voltage bg-[rgba(232,255,71,0.06)]" : "text-ash hover:text-chalk",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+        isActive ? "text-voltage bg-[rgba(232,255,71,0.06)]" : "text-ink-muted hover:text-ink",
       )}
     >
       <Icon className="w-4 h-4 shrink-0" />
@@ -94,7 +94,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 w-[240px] bg-obsidian border-r border-iron flex flex-col z-40 pt-[56px] transition-transform duration-200",
+        "fixed inset-y-0 left-0 w-[240px] bg-surface border-r border-line flex flex-col z-40 pt-[56px] transition-transform duration-200",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
       )}
     >
@@ -102,7 +102,7 @@ export function Sidebar({
 
         {NAV[account].map((section) => (
           <div key={section.heading}>
-            <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+            <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
               {section.heading}
             </p>
             <div className="flex flex-col gap-0.5">
@@ -114,8 +114,8 @@ export function Sidebar({
         ))}
 
         {/* ACCOUNT */}
-        <div className="mt-auto pt-6 border-t border-iron">
-          <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px] mb-3 px-3">
+        <div className="mt-auto pt-6 border-t border-line">
+          <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
             Account · {account}
           </p>
           <div className="flex flex-col gap-0.5">
@@ -126,7 +126,7 @@ export function Sidebar({
               <form action={switchAccount.bind(null, other)}>
                 <button
                   type="submit"
-                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
+                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 >
                   <Repeat className="w-4 h-4 shrink-0" />
                   Switch to {other}
@@ -157,7 +157,7 @@ export function Sidebar({
               <form action={signOutAction}>
                 <button
                   type="submit"
-                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ash hover:text-chalk transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
+                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                   style={{ paddingLeft: 12, paddingRight: 12 }}
                 >
                   <LogOut className="w-4 h-4 shrink-0" />

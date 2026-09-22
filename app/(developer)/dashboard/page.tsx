@@ -61,10 +61,10 @@ export default async function MyProjectsPage() {
       {/* Page header */}
       <div id="tour-my-projects-header" className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
+          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink">
             My Projects
           </h1>
-          <p className="font-mono text-[14px] text-ash mt-1">
+          <p className="font-mono text-[14px] text-ink-muted mt-1">
             Manage your submissions and review incoming feedback.
           </p>
         </div>
@@ -79,19 +79,19 @@ export default async function MyProjectsPage() {
               className="group block"
             >
               <div
-                className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-voltage/30"
+                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-voltage/30"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
                 {/* Card header row */}
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-chalk group-hover:text-voltage transition-colors duration-150 truncate">
+                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink group-hover:text-voltage transition-colors duration-150 truncate">
                     {project.name}
                   </h5>
                   <Badge variant={project.status} />
                 </div>
 
                 {/* Description */}
-                <p className="font-mono text-[14px] leading-5 text-ash line-clamp-2 mb-4">
+                <p className="font-mono text-[14px] leading-5 text-ink-muted line-clamp-2 mb-4">
                   {project.description || "No description provided."}
                 </p>
 
@@ -103,13 +103,13 @@ export default async function MyProjectsPage() {
                 )}
 
                 {/* Footer row */}
-                <div className="mt-auto pt-4 border-t border-iron flex items-center justify-between">
-                  <span className="font-mono text-[12px] text-ash">
+                <div className="mt-auto pt-4 border-t border-line flex items-center justify-between">
+                  <span className="font-mono text-[12px] text-ink-muted">
                     {project.missionCount} Mission{project.missionCount !== 1 ? "s" : ""}
                     {" · "}
                     {project.feedbackCount} Feedback{project.feedbackCount !== 1 ? "s" : ""}
                   </span>
-                  <span className="font-mono text-[13px] font-medium text-ash group-hover:text-chalk transition-colors duration-150 flex items-center gap-1">
+                  <span className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1">
                     Open <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
@@ -119,10 +119,10 @@ export default async function MyProjectsPage() {
         </div>
       ) : (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px] bg-graphite/30">
-          <FolderOpen className="w-12 h-12 text-ash mb-4" strokeWidth={1.5} />
-          <h4 className="font-syne font-bold text-[24px] text-chalk mb-2">Nothing here yet.</h4>
-          <p className="font-mono text-[14px] text-ash mb-6 text-center max-w-xs">
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px] bg-surface-raised/30">
+          <FolderOpen className="w-12 h-12 text-ink-muted mb-4" strokeWidth={1.5} />
+          <h4 className="font-syne font-bold text-[24px] text-ink mb-2">Nothing here yet.</h4>
+          <p className="font-mono text-[14px] text-ink-muted mb-6 text-center max-w-xs">
             Submit your first project and let the community test it.
           </p>
           <Button variant="ghost" asChild>

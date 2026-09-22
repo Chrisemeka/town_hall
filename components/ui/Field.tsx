@@ -33,14 +33,14 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={htmlFor} className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+      <label htmlFor={htmlFor} className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
         {label}
       </label>
       {children}
       {error?.length ? (
         <p id={errorId(htmlFor)} className="font-mono text-[12px] text-ember">{error[0]}</p>
       ) : helper ? (
-        <p className="font-mono text-[12px] text-ash leading-5">{helper}</p>
+        <p className="font-mono text-[12px] text-ink-muted leading-5">{helper}</p>
       ) : null}
     </div>
   )
@@ -49,15 +49,15 @@ export function Field({
 /** The §5.2 input box, in its resting and its errored state. */
 export function inputClass(hasError: boolean): string {
   return [
-    "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-    hasError ? "border-ember" : "border-iron focus:border-voltage",
+    "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+    hasError ? "border-ember" : "border-line focus:border-voltage",
   ].join(" ")
 }
 
 /** The same box as a textarea: §5.2 gives it 120px of height and 12px/16px padding. */
 export function textareaClass(hasError: boolean): string {
   return [
-    "min-h-[120px] w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-y",
-    hasError ? "border-ember" : "border-iron focus:border-voltage",
+    "min-h-[120px] w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-y",
+    hasError ? "border-ember" : "border-line focus:border-voltage",
   ].join(" ")
 }

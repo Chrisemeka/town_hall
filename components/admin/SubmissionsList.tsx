@@ -53,19 +53,19 @@ export function SubmissionsList({
 }) {
   if (submissions.length === 0) {
     return (
-      <div className="px-5 py-16 text-center font-mono text-[13px] text-ash">
+      <div className="px-5 py-16 text-center font-mono text-[13px] text-ink-muted">
         {emptyMessage}
       </div>
     )
   }
 
   return (
-    <ul className="divide-y divide-iron/60">
+    <ul className="divide-y divide-line/60">
       {submissions.map((s) => {
         const sentiment = sentimentStyle(s.aiSentiment)
         const SentimentIcon = sentiment.Icon
         return (
-          <li key={s.id} className="p-5 hover:bg-obsidian/20 transition-colors duration-150">
+          <li key={s.id} className="p-5 hover:bg-surface/20 transition-colors duration-150">
             <div className="flex items-start gap-4">
               {/* Avatar */}
               <Avatar
@@ -80,11 +80,11 @@ export function SubmissionsList({
                 {/* Header line */}
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1 justify-between">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0">
-                    <span className="font-mono text-[13px] text-chalk truncate">
+                    <span className="font-mono text-[13px] text-ink truncate">
                       {s.tester.fullName || s.tester.email || "Unknown tester"}
                     </span>
-                    <span className="font-mono text-[12px] text-ash">·</span>
-                    <span className="font-mono text-[12px] text-ash whitespace-nowrap">
+                    <span className="font-mono text-[12px] text-ink-muted">·</span>
+                    <span className="font-mono text-[12px] text-ink-muted whitespace-nowrap">
                       {formatDateTime(s.createdAt)}
                     </span>
                   </div>
@@ -92,11 +92,11 @@ export function SubmissionsList({
                 </div>
 
                 {/* Context (project › mission) + sentiment */}
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 font-mono text-[12px] text-ash">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 font-mono text-[12px] text-ink-muted">
                   {showContext && (
                     <>
                       {s.project ? (
-                        <span className="text-chalk truncate max-w-[200px]">{s.project.name}</span>
+                        <span className="text-ink truncate max-w-[200px]">{s.project.name}</span>
                       ) : (
                         <span className="text-ember">project missing</span>
                       )}
@@ -104,7 +104,7 @@ export function SubmissionsList({
                       {s.mission ? (
                         <Link
                           href={`/admin/missions/${s.mission.id}`}
-                          className="text-ash hover:text-voltage transition-colors duration-150 truncate max-w-[260px]"
+                          className="text-ink-muted hover:text-voltage transition-colors duration-150 truncate max-w-[260px]"
                         >
                           {s.mission.title}
                         </Link>
@@ -129,7 +129,7 @@ export function SubmissionsList({
                   </div>
                 ) : null}
                 {s.testerComment && (
-                  <p className="font-mono text-[14px] text-chalk leading-5 whitespace-pre-wrap mb-3">
+                  <p className="font-mono text-[14px] text-ink leading-5 whitespace-pre-wrap mb-3">
                     {s.testerComment}
                   </p>
                 )}
@@ -141,7 +141,7 @@ export function SubmissionsList({
                     style={{ background: "rgba(232,255,71,0.04)", border: "1px solid rgba(232,255,71,0.15)" }}
                   >
                     <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-1">AI Summary</p>
-                    <p className="font-mono text-[13px] text-ash leading-5">{s.aiSummary}</p>
+                    <p className="font-mono text-[13px] text-ink-muted leading-5">{s.aiSummary}</p>
                   </div>
                 )}
 
@@ -161,11 +161,11 @@ export function SubmissionsList({
                         <img
                           src={url}
                           alt={`Tester screenshot ${i + 1}`}
-                          className="w-32 h-20 object-cover rounded-[6px] border border-iron group-hover:border-voltage/40 transition-colors duration-150"
+                          className="w-32 h-20 object-cover rounded-[6px] border border-line group-hover:border-voltage/40 transition-colors duration-150"
                         />
                       </Link>
                     ))}
-                    <span className="font-mono text-[12px] text-ash inline-flex items-center gap-1 mt-1">
+                    <span className="font-mono text-[12px] text-ink-muted inline-flex items-center gap-1 mt-1">
                       {s.screenshotUrls.length} screenshot{s.screenshotUrls.length !== 1 ? "s" : ""}
                       <ExternalLink className="w-3 h-3" />
                     </span>

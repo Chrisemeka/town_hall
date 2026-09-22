@@ -19,24 +19,24 @@ export default async function AdminEmailPage() {
           Admin · Email
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Send a broadcast
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Compose a message to a single user or every account on Twnhall. Sent
         via Resend from the Twnhall admin sender.
       </p>
 
       <div
-        className="bg-graphite border border-iron rounded-[12px] overflow-hidden"
+        className="bg-surface-raised border border-line rounded-[12px] overflow-hidden"
         style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
       >
-        <div className="px-5 py-4 border-b border-iron flex items-center gap-2">
+        <div className="px-5 py-4 border-b border-line flex items-center gap-2">
           <Mail className="w-4 h-4 text-voltage" />
-          <h2 className="font-syne font-bold text-[16px] text-chalk">
+          <h2 className="font-syne font-bold text-[16px] text-ink">
             Compose
           </h2>
-          <span className="ml-auto font-mono text-[11px] text-ash">
+          <span className="ml-auto font-mono text-[11px] text-ink-muted">
             {count ?? 0} reachable user{count === 1 ? "" : "s"}
           </span>
         </div>

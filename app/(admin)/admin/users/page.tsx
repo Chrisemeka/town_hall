@@ -177,10 +177,10 @@ export default async function AdminUsersPage() {
           Admin · Users
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-ink mb-1">
         User Management
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Every account, with signups, projects submitted, and missions completed. Suspend or ban users who violate policies.
       </p>
 
@@ -201,16 +201,16 @@ export default async function AdminUsersPage() {
       </div>
 
       {/* Users table */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">All Users</h2>
-          <span className="font-mono text-[12px] text-ash">{users.length} total</span>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">All Users</h2>
+          <span className="font-mono text-[12px] text-ink-muted">{users.length} total</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-obsidian/40">
-              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ash">
+            <thead className="bg-surface/40">
+              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">
                 <th className="px-5 py-3 font-medium">User</th>
                 <th className="px-5 py-3 font-medium">Role / Status</th>
                 <th className="px-5 py-3 font-medium">Joined</th>
@@ -222,13 +222,13 @@ export default async function AdminUsersPage() {
             <tbody>
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ash">
+                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
                     No users yet.
                   </td>
                 </tr>
               )}
               {users.map((u) => (
-                <tr key={u.id} className="border-t border-iron/60 hover:bg-obsidian/30 transition-colors duration-150 align-top">
+                <tr key={u.id} className="border-t border-line/60 hover:bg-surface/30 transition-colors duration-150 align-top">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar
@@ -238,11 +238,11 @@ export default async function AdminUsersPage() {
                         size={9}
                       />
                       <div className="min-w-0">
-                        <p className="font-mono text-[13px] text-chalk truncate">
+                        <p className="font-mono text-[13px] text-ink truncate">
                           {u.fullName || u.email || "—"}
                         </p>
                         {u.fullName && (
-                          <p className="font-mono text-[12px] text-ash truncate">{u.email}</p>
+                          <p className="font-mono text-[12px] text-ink-muted truncate">{u.email}</p>
                         )}
                       </div>
                     </div>
@@ -264,13 +264,13 @@ export default async function AdminUsersPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-ash whitespace-nowrap">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink-muted whitespace-nowrap">
                     {formatDate(u.createdAt)}
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                     {u.projectsSubmitted}
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                     {u.missionsCompleted}
                   </td>
                   <td className="px-5 py-4">
@@ -328,12 +328,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
+    <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center gap-1.5 mb-1.5">
         <Icon className="w-3 h-3" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ash">{label}</p>
+        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[22px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

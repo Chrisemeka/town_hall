@@ -29,7 +29,7 @@ export function UserRowActions({
   // Admins are not moderable from the UI
   if (role === "admin") {
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ash">
+      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ink-muted">
         <ShieldCheck className="w-3 h-3 text-voltage" />
         Admin
       </span>
@@ -94,12 +94,12 @@ export function UserRowActions({
           rows={2}
           autoFocus
           disabled={isPending}
-          className="w-full md:w-[280px] bg-obsidian border border-iron rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
+          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
         />
 
         {isSuspend && (
           <div className="flex items-center gap-1">
-            <span className="font-mono text-[10px] text-ash mr-1 uppercase tracking-[0.5px]">Duration:</span>
+            <span className="font-mono text-[10px] text-ink-muted mr-1 uppercase tracking-[0.5px]">Duration:</span>
             {DURATIONS.map((d) => (
               <button
                 key={d}
@@ -123,7 +123,7 @@ export function UserRowActions({
           {error && (
             <span className="font-mono text-[11px] text-ember truncate max-w-[160px]" title={error}>{error}</span>
           )}
-          <span className="font-mono text-[10px] text-ash/60 tabular-nums">
+          <span className="font-mono text-[10px] text-ink-muted/60 tabular-nums">
             {reason.trim().length}/{MAX_REASON}
           </span>
           <button
@@ -143,7 +143,7 @@ export function UserRowActions({
             type="button"
             onClick={reset}
             disabled={isPending}
-            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
           >
             Cancel
           </button>
@@ -155,7 +155,7 @@ export function UserRowActions({
   if (mode === "reactivate-confirm") {
     return (
       <div className="flex items-center gap-2 justify-end">
-        <span className="font-mono text-[11px] text-ash inline-flex items-center gap-1">
+        <span className="font-mono text-[11px] text-ink-muted inline-flex items-center gap-1">
           <AlertTriangle className="w-3 h-3" />
           Reactivate?
         </span>
@@ -172,7 +172,7 @@ export function UserRowActions({
           type="button"
           onClick={reset}
           disabled={isPending}
-          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
         >
           Cancel
         </button>

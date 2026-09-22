@@ -76,12 +76,12 @@ export default async function ProjectDetailPage({
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8 min-w-0">
-        <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150 shrink-0">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 min-w-0">
+        <Link href="/dashboard" className="hover:text-ink transition-colors duration-150 shrink-0">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
-        <span className="text-chalk truncate max-w-[160px] sm:max-w-[240px]">{project.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <span className="text-ink truncate max-w-[160px] sm:max-w-[240px]">{project.name}</span>
       </div>
 
       {/* Flag warning banner (shown to owner when an admin has flagged this project) */}
@@ -103,13 +103,13 @@ export default async function ProjectDetailPage({
             <p className="font-syne font-bold text-[16px]" style={{ color: "#FF4F4F" }}>
               This project has been flagged by an admin.
             </p>
-            <p className="font-mono text-[13px] text-ash mt-1 leading-5">
+            <p className="font-mono text-[13px] text-ink-muted mt-1 leading-5">
               Your project is hidden from public discovery (Explore, Browse Missions, search) until the issue is resolved.
             </p>
             {project.flag_reason && (
               <div className="mt-3 rounded-[8px] p-3" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,79,79,0.2)" }}>
-                <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash mb-1">Reason</p>
-                <p className="font-mono text-[13px] text-chalk leading-5 whitespace-pre-wrap">
+                <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Reason</p>
+                <p className="font-mono text-[13px] text-ink leading-5 whitespace-pre-wrap">
                   {project.flag_reason}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default async function ProjectDetailPage({
         <div className="flex flex-col gap-3 min-w-0">
           {/* Name + badge */}
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-            <h1 className="font-syne font-bold text-[32px] leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[48px] md:leading-[52px] tracking-[-0.5px] text-chalk break-words min-w-0">
+            <h1 className="font-syne font-bold text-[32px] leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[48px] md:leading-[52px] tracking-[-0.5px] text-ink break-words min-w-0">
               {project.name}
             </h1>
             <Badge variant={status} />
@@ -143,7 +143,7 @@ export default async function ProjectDetailPage({
 
           {/* Summary */}
           {project.description && (
-            <p className="font-mono text-[16px] leading-6 text-ash max-w-2xl">
+            <p className="font-mono text-[16px] leading-6 text-ink-muted max-w-2xl">
               {project.description}
             </p>
           )}
@@ -152,7 +152,7 @@ export default async function ProjectDetailPage({
         {/* Edit button */}
         <Link
           href={`/dashboard/${projectId}/edit`}
-          className="h-9 px-4 border border-iron text-ash rounded-[8px] font-mono text-[14px] hover:text-chalk hover:border-ash transition-colors duration-150 flex items-center gap-2 shrink-0"
+          className="h-9 px-4 border border-line text-ink-muted rounded-[8px] font-mono text-[14px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-2 shrink-0"
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit

@@ -76,10 +76,10 @@ export default async function ExploreProjectsPage() {
 
       {/* Page header */}
       <div id="tour-explore-header" className="mb-8">
-        <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink">
           Explore Projects
         </h1>
-        <p className="font-mono text-[14px] text-ash mt-1">
+        <p className="font-mono text-[14px] text-ink-muted mt-1">
           Find something to test.
         </p>
       </div>

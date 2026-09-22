@@ -96,10 +96,10 @@ export default async function AdminMissionsPage() {
           Admin · Missions
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Mission Activity
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Every mission across the platform — drafts, active testing, and finished.
       </p>
 
@@ -112,16 +112,16 @@ export default async function AdminMissionsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">All Missions</h2>
-          <span className="font-mono text-[12px] text-ash">{totalMissions} total</span>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">All Missions</h2>
+          <span className="font-mono text-[12px] text-ink-muted">{totalMissions} total</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-obsidian/40">
-              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ash">
+            <thead className="bg-surface/40">
+              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">
                 <th className="px-5 py-3 font-medium">Mission</th>
                 <th className="px-5 py-3 font-medium">Project</th>
                 <th className="px-5 py-3 font-medium">Owner</th>
@@ -133,7 +133,7 @@ export default async function AdminMissionsPage() {
             <tbody>
               {missions.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ash">
+                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
                     No missions yet.
                   </td>
                 </tr>
@@ -142,35 +142,35 @@ export default async function AdminMissionsPage() {
                 const style = statusStyle(m.status, m.projectFlagged)
                 const label = m.projectFlagged ? "project flagged" : m.status
                 return (
-                  <tr key={m.id} className="border-t border-iron/60 hover:bg-obsidian/30 transition-colors duration-150 align-top">
+                  <tr key={m.id} className="border-t border-line/60 hover:bg-surface/30 transition-colors duration-150 align-top">
                     <td className="px-5 py-4 max-w-[280px]">
                       <div className="flex flex-col gap-1 min-w-0">
                         <Link
                           href={`/admin/missions/${m.id}`}
-                          className="font-mono text-[13px] text-chalk hover:text-voltage transition-colors duration-150 truncate"
+                          className="font-mono text-[13px] text-ink hover:text-voltage transition-colors duration-150 truncate"
                           title={m.title}
                         >
                           {m.title}
                         </Link>
                         {m.taskDescription && (
-                          <p className="font-mono text-[12px] text-ash line-clamp-2">{m.taskDescription}</p>
+                          <p className="font-mono text-[12px] text-ink-muted line-clamp-2">{m.taskDescription}</p>
                         )}
                       </div>
                     </td>
                     <td className="px-5 py-4">
                       <Link
                         href={`/admin/projects`}
-                        className="font-mono text-[13px] text-chalk hover:text-voltage transition-colors duration-150 truncate"
+                        className="font-mono text-[13px] text-ink hover:text-voltage transition-colors duration-150 truncate"
                       >
                         {m.projectName}
                       </Link>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="font-mono text-[13px] text-chalk truncate">
+                        <span className="font-mono text-[13px] text-ink truncate">
                           {m.owner.fullName || "—"}
                         </span>
-                        <span className="font-mono text-[12px] text-ash truncate">
+                        <span className="font-mono text-[12px] text-ink-muted truncate">
                           {m.owner.email}
                         </span>
                       </div>
@@ -183,10 +183,10 @@ export default async function AdminMissionsPage() {
                         {label}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                    <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                       {m.feedbackCount}
                     </td>
-                    <td className="px-5 py-4 font-mono text-[13px] text-ash whitespace-nowrap">
+                    <td className="px-5 py-4 font-mono text-[13px] text-ink-muted whitespace-nowrap">
                       {formatDate(m.createdAt)}
                     </td>
                   </tr>
@@ -212,12 +212,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash">{label}</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[28px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

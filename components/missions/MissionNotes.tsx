@@ -41,9 +41,9 @@ export function MissionNotes({
           type="checkbox"
           checked={open}
           onChange={(e) => onOpenChange(e.target.checked)}
-          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite"
+          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
         />
-        <span className="font-mono text-[14px] text-chalk">Add notes for testers</span>
+        <span className="font-mono text-[14px] text-ink">Add notes for testers</span>
       </label>
 
       {/* Closed still has to submit the field. FormData.get returns null for an
@@ -56,7 +56,7 @@ export function MissionNotes({
           <div className="flex flex-col gap-2">
             <label
               htmlFor="task_description"
-              className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]"
+              className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]"
             >
               Notes for Testers
             </label>
@@ -69,29 +69,29 @@ export function MissionNotes({
               onChange={(e) => onChange(e.target.value)}
               {...fieldErrorProps("task_description", errors)}
               className={[
-                "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite transition-colors duration-150 resize-none",
-                errors?.length ? "border-ember" : "border-iron focus:border-voltage",
+                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
+                errors?.length ? "border-ember" : "border-line focus:border-voltage",
               ].join(" ")}
             />
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <FieldError field="task_description" errors={errors} />
                 {!errors?.length && (
-                  <p className={`font-mono text-[12px] ${short ? "text-voltage" : "text-ash"}`}>
+                  <p className={`font-mono text-[12px] ${short ? "text-voltage" : "text-ink-muted"}`}>
                     {short
                       ? `${MISSION_DESCRIPTION_MIN - value.length} more characters needed.`
                       : "Optional. The steps say what to do; this says what to know first."}
                   </p>
                 )}
               </div>
-              <span className="font-mono text-[12px] text-ash shrink-0">{value.length} chars</span>
+              <span className="font-mono text-[12px] text-ink-muted shrink-0">{value.length} chars</span>
             </div>
           </div>
 
           {/* The old tips ("Start with a verb…", "Describe the exact flow…")
               were instructions for writing a brief. The test case does that job
               now, so these are about the context the steps cannot carry. */}
-          <div className="bg-obsidian border border-iron rounded-[12px] p-6">
+          <div className="bg-surface border border-line rounded-[12px] p-6">
             <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
               Writing Useful Notes
             </p>
@@ -101,7 +101,7 @@ export function MissionNotes({
                 "What state it's in: seeded data, half-built screens, anything already known broken.",
                 "Logins, test cards, or sample data they'll need — and anything they should not touch.",
               ].map((tip) => (
-                <p key={tip} className="font-mono text-[13px] text-ash leading-5 italic">
+                <p key={tip} className="font-mono text-[13px] text-ink-muted leading-5 italic">
                   {tip}
                 </p>
               ))}

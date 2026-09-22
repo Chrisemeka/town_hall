@@ -39,7 +39,7 @@ export default function Loading() {
           {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
-              className="bg-graphite border border-iron rounded-[12px] p-5 flex flex-col gap-4 min-h-[160px]"
+              className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4 min-h-[160px]"
             >
               <Bar className="h-6 w-3/4" />
               <Bar className="h-4 w-1/2" />
@@ -61,7 +61,7 @@ export default function Loading() {
           {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
-              className="bg-graphite border border-iron rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+              className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4"
             >
               <Bar className="h-12 w-16 rounded-[8px] shrink-0" />
               <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -72,7 +72,7 @@ export default function Loading() {
           ))}
         </div>
 
-        <div className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col gap-4">
+        <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col gap-4">
           <Bar className="h-6 w-32" />
           <Bar className="h-16 w-full rounded-[8px]" />
           <Bar className="h-5 w-full" />

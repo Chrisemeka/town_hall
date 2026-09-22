@@ -108,12 +108,12 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   /* No projects on the platform at all — distinct from a filter/search miss */
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
-        <p className="font-syne font-bold text-[24px] text-chalk mb-2">Nothing to test yet.</p>
-        <p className="font-mono text-[14px] text-ash mb-6">Be the first to put your work in front of the community.</p>
+      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+        <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing to test yet.</p>
+        <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
         <Link
           href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-chalk text-chalk rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
         >
           New Project
         </Link>
@@ -162,7 +162,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 w-full sm:w-auto shrink-0 bg-graphite border border-iron rounded-[8px] px-3 font-mono text-[13px] text-chalk focus:outline-none focus:border-voltage transition-colors duration-150"
+            className="h-9 w-full sm:w-auto shrink-0 bg-surface-raised border border-line rounded-[8px] px-3 font-mono text-[13px] text-ink focus:outline-none focus:border-voltage transition-colors duration-150"
           >
             <option value="">All categories</option>
             {presentCategories.map((option) => (
@@ -175,25 +175,25 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
 
         {/* Search */}
         <div className="relative w-full sm:w-[280px] shrink-0">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ash pointer-events-none" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
           <input
             type="text"
             placeholder="Search projects…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-9 pl-9 pr-4 bg-graphite border border-iron rounded-[8px] font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+            className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150"
           />
         </div>
       </div>
 
       {/* Grid */}
       {displayed.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
-          <p className="font-syne font-bold text-[24px] text-chalk mb-2">Nothing matches.</p>
-          <p className="font-mono text-[14px] text-ash mb-6">Try a broader search or clear your filters.</p>
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+          <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing matches.</p>
+          <p className="font-mono text-[14px] text-ink-muted mb-6">Try a broader search or clear your filters.</p>
           <button
             onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}
-            className="h-10 px-4 bg-transparent text-chalk border border-iron rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
           >
             Clear filters
           </button>
@@ -204,12 +204,12 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             {displayed.slice(0, visible).map((project) => (
               <div
                 key={project.id}
-                className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-voltage/30"
+                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-voltage/30"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
                 {/* Name + badge */}
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-chalk truncate">
+                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
                     {project.name}
                   </h5>
                   <Badge variant={project.status} />
@@ -223,8 +223,8 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                     className={[
                       "inline-block font-mono text-[12px] font-medium tracking-[0.5px] rounded-[4px] px-2 py-0.5 border",
                       project.category
-                        ? "text-chalk border-iron bg-obsidian"
-                        : "text-ash border-iron/60 bg-transparent",
+                        ? "text-ink border-line bg-surface"
+                        : "text-ink-muted border-line/60 bg-transparent",
                     ].join(" ")}
                   >
                     {project.category ?? UNCATEGORISED_LABEL}
@@ -232,14 +232,14 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                 </div>
 
                 {/* @handle · time */}
-                <p className="font-mono text-[12px] text-ash mb-3">
+                <p className="font-mono text-[12px] text-ink-muted mb-3">
                   {handleFromUrl(project.app_url, project.name)}
                   {" · "}
                   {relativeTime(project.created_at)}
                 </p>
 
                 {/* Description */}
-                <p className="font-mono text-[14px] leading-5 text-ash line-clamp-2 mb-4 flex-1">
+                <p className="font-mono text-[14px] leading-5 text-ink-muted line-clamp-2 mb-4 flex-1">
                   {project.description || "No description provided."}
                 </p>
 
@@ -251,8 +251,8 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                 )}
 
                 {/* Footer */}
-                <div className="pt-4 border-t border-iron flex items-center justify-between">
-                  <span className="font-mono text-[12px] text-ash">
+                <div className="pt-4 border-t border-line flex items-center justify-between">
+                  <span className="font-mono text-[12px] text-ink-muted">
                     {project.missionCount} Mission{project.missionCount !== 1 ? "s" : ""}
                     {" · "}
                     {project.feedbackCount} Feedback{project.feedbackCount !== 1 ? "s" : ""}
@@ -261,12 +261,12 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                   {project.missionCount > 0 ? (
                     <Link
                       href={`/explore/project/${project.id}`}
-                      className="font-mono text-[13px] font-medium text-ash hover:text-chalk transition-colors duration-150 flex items-center gap-1"
+                      className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
                     >
                       Test it <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   ) : (
-                    <span className="font-mono text-[12px] text-ash/50 italic">No missions yet</span>
+                    <span className="font-mono text-[12px] text-ink-muted/50 italic">No missions yet</span>
                   )}
                 </div>
               </div>
@@ -278,7 +278,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             <div className="flex justify-center mt-10">
               <button
                 onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="h-10 px-6 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:bg-graphite transition-colors duration-150"
+                className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
               >
                 Load More
               </button>

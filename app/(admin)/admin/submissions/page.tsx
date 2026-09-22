@@ -126,10 +126,10 @@ export default async function AdminSubmissionsPage() {
           Admin · Submissions
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Test Submissions
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Every test result submitted by a tester, with their comment, AI summary, and screenshot proof.
       </p>
 
@@ -151,10 +151,10 @@ export default async function AdminSubmissionsPage() {
       </div>
 
       {/* Submissions list */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">Recent Submissions</h2>
-          <span className="font-mono text-[12px] text-ash">
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">Recent Submissions</h2>
+          <span className="font-mono text-[12px] text-ink-muted">
             {submissions.length === total
               ? `${total} total`
               : `showing ${submissions.length} of ${total}`}
@@ -179,12 +179,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash">{label}</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[28px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

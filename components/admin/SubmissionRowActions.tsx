@@ -42,7 +42,7 @@ export function SubmissionRowActions({ submissionId }: { submissionId: string })
           type="button"
           onClick={() => setConfirm(false)}
           disabled={isPending}
-          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
         >
           Cancel
         </button>

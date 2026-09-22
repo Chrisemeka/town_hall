@@ -10,9 +10,9 @@ export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
   const total = data.reduce((sum, d) => sum + d.count, 0)
 
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-      <h3 className="font-syne font-bold text-[16px] text-chalk mb-1">Roles</h3>
-      <p className="font-mono text-[12px] text-ash mb-4">Distribution of all accounts.</p>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+      <h3 className="font-syne font-bold text-[16px] text-ink mb-1">Roles</h3>
+      <p className="font-mono text-[12px] text-ink-muted mb-4">Distribution of all accounts.</p>
 
       <div className="flex items-center gap-6">
         <div className="h-[220px] w-[220px] shrink-0 relative">
@@ -46,8 +46,8 @@ export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
             </PieChart>
           </ResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="font-syne font-bold text-[28px] text-chalk leading-none">{total}</span>
-            <span className="font-mono text-[11px] text-ash uppercase tracking-[1px] mt-1">total</span>
+            <span className="font-syne font-bold text-[28px] text-ink leading-none">{total}</span>
+            <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[1px] mt-1">total</span>
           </div>
         </div>
 
@@ -60,8 +60,8 @@ export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
                   className="w-3 h-3 rounded-sm shrink-0"
                   style={{ background: COLORS[i % COLORS.length] }}
                 />
-                <span className="font-mono text-[13px] text-chalk capitalize flex-1">{d.role}</span>
-                <span className="font-mono text-[13px] text-ash tabular-nums">
+                <span className="font-mono text-[13px] text-ink capitalize flex-1">{d.role}</span>
+                <span className="font-mono text-[13px] text-ink-muted tabular-nums">
                   {d.count} · {pct}%
                 </span>
               </li>

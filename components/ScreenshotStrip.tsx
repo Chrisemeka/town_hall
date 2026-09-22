@@ -14,11 +14,11 @@ export function ScreenshotStrip({ urls }: { urls: string[] }) {
             key={url}
             src={url}
             alt=""
-            className="w-8 h-8 rounded-[6px] object-cover border border-iron"
+            className="w-8 h-8 rounded-[6px] object-cover border border-line"
           />
         ))}
       </div>
-      <span className="font-mono text-[12px] text-ash">
+      <span className="font-mono text-[12px] text-ink-muted">
         {urls.length} screenshot{urls.length !== 1 ? "s" : ""}
       </span>
     </div>

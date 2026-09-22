@@ -18,12 +18,12 @@ export default async function NewProjectPage() {
     <div className="max-w-[640px] mx-auto px-6 py-10">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8">
-        <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8">
+        <Link href="/dashboard" className="hover:text-ink transition-colors duration-150">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron" />
-        <span className="text-chalk">New Project</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line" />
+        <span className="text-ink">New Project</span>
       </div>
 
       <CreateProjectForm />

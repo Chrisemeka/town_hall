@@ -33,13 +33,13 @@ export function TopNav({
   const CtaIcon = cta.icon
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[56px] bg-obsidian border-b border-iron z-50 flex items-center px-4 md:px-6 justify-between">
+    <header className="fixed top-0 left-0 right-0 h-[56px] bg-surface border-b border-line z-50 flex items-center px-4 md:px-6 justify-between">
 
       {/* Left: Logo */}
       <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
         <Link href={homeFor(account)} className="flex items-center gap-2">
           <Logo size={40} onDark />
-          <span className="font-syne font-bold text-[18px] text-chalk tracking-tight">Twnhall</span>
+          <span className="font-syne font-bold text-[18px] text-ink tracking-tight">Twnhall</span>
         </Link>
       </div>
 
@@ -81,7 +81,7 @@ export function TopNav({
           <button
             type="submit"
             aria-label="Sign out"
-            className="p-2 text-ash hover:text-chalk transition-colors duration-150 flex items-center justify-center"
+            className="p-2 text-ink-muted hover:text-ink transition-colors duration-150 flex items-center justify-center"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -100,7 +100,7 @@ export function TopNav({
         </Link>
 
         <button
-          className="p-2 text-ash hover:text-chalk transition-colors duration-150"
+          className="p-2 text-ink-muted hover:text-ink transition-colors duration-150"
           onClick={onToggleSidebar}
           aria-label="Toggle menu"
         >

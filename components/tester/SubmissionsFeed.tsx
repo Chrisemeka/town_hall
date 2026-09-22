@@ -48,7 +48,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
   return (
     <section>
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-        <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px]">
+        <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px]">
           My Submissions
         </p>
         <div className="flex items-center gap-2 flex-wrap">
@@ -65,11 +65,11 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                   "font-mono text-[12px] font-medium px-3 h-8 rounded-[8px] border transition-colors duration-150 cursor-pointer",
                   on
                     ? "border-voltage/35 bg-voltage/10 text-voltage"
-                    : "border-iron bg-graphite text-ash hover:text-chalk",
+                    : "border-line bg-surface-raised text-ink-muted hover:text-ink",
                 ].join(" ")}
               >
                 {label}
-                <span className={on ? "text-voltage/70 ml-1.5" : "text-ash/60 ml-1.5"}>{count}</span>
+                <span className={on ? "text-voltage/70 ml-1.5" : "text-ink-muted/60 ml-1.5"}>{count}</span>
               </button>
             )
           })}
@@ -77,12 +77,12 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
       </div>
 
       {shown.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-14 border border-dashed border-iron rounded-[12px] text-center px-6">
-          <FileText className="w-10 h-10 text-ash mb-3 opacity-40" />
-          <p className="font-syne font-bold text-[18px] text-chalk mb-1">
+        <div className="flex flex-col items-center justify-center py-14 border border-dashed border-line rounded-[12px] text-center px-6">
+          <FileText className="w-10 h-10 text-ink-muted mb-3 opacity-40" />
+          <p className="font-syne font-bold text-[18px] text-ink mb-1">
             {submissions.length === 0 ? "No submissions yet." : `Nothing ${active ? STATUS_LABEL[active].toLowerCase() : ""}.`}
           </p>
-          <p className="font-mono text-[13px] text-ash">
+          <p className="font-mono text-[13px] text-ink-muted">
             {submissions.length === 0
               ? "Pick up a mission above and your work will show up here."
               : "Try a different filter."}
@@ -97,26 +97,26 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
             return (
               <Link key={s.id} href={`/mission/${s.missionId}`} className="group block">
                 <div
-                  className="bg-graphite border border-iron rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors duration-150 group-hover:border-voltage/30"
+                  className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors duration-150 group-hover:border-voltage/30"
                   style={{
                     boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
                     ...(needsChanges ? { borderLeft: "3px solid #FF4F4F" } : null),
                   }}
                 >
                   <div className="flex-1 min-w-0 flex flex-col gap-2">
-                    <span className="font-mono text-[11px] uppercase tracking-[1px] text-ash truncate">
+                    <span className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted truncate">
                       {s.projectName}
                     </span>
-                    <span className="font-syne font-bold text-[16px] text-chalk truncate group-hover:text-voltage transition-colors duration-150">
+                    <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-voltage transition-colors duration-150">
                       {s.missionTitle}
                     </span>
-                    <div className="flex items-center gap-2.5 font-mono text-[12px] text-ash flex-wrap">
+                    <div className="flex items-center gap-2.5 font-mono text-[12px] text-ink-muted flex-wrap">
                       <span>Submitted {formatDate(s.createdAt)}</span>
-                      <span className="text-iron">·</span>
+                      <span className="text-line">·</span>
                       <span>{s.screenshots.length} screenshot{s.screenshots.length !== 1 ? "s" : ""}</span>
                       {needsChanges && s.reviewNote && (
                         <>
-                          <span className="text-iron">·</span>
+                          <span className="text-line">·</span>
                           <span className="text-ember truncate max-w-[280px]">{s.reviewNote}</span>
                         </>
                       )}
@@ -131,7 +131,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                           key={url}
                           src={url}
                           alt=""
-                          className="w-12 h-12 rounded-[8px] object-cover border border-iron"
+                          className="w-12 h-12 rounded-[8px] object-cover border border-line"
                         />
                       ))}
                     </div>
