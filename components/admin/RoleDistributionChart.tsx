@@ -4,7 +4,21 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts"
 
 export type RoleSlice = { role: string; count: number }
 
-const COLORS = ["#E8FF47", "#7AB8FF", "#FF8FA3", "#A78BFA", "#7C7C8A"]
+/*
+ * Mid-tone on purpose. A pie slice is a "graphical object required to
+ * understand content", so WCAG 1.4.11 wants 3:1 against its background — and
+ * this chart has two backgrounds now. Four of the five previous colours failed
+ * on Bone (Voltage 1.02:1, the blue 1.90, the rose 1.99, the violet 2.50);
+ * every colour here clears 3:1 on Bone AND on Obsidian, so one palette serves
+ * both themes rather than two that can drift.
+ *
+ *   #9A7D00  Bone 3.63  Obsidian 4.87
+ *   #2F7DD1  Bone 3.88  Obsidian 4.57
+ *   #C2455E  Bone 4.48  Obsidian 3.95
+ *   #6D4AC7  Bone 5.58  Obsidian 3.17
+ *   #6B6B78  Bone 4.82  Obsidian 3.67
+ */
+const COLORS = ["#9A7D00", "#2F7DD1", "#C2455E", "#6D4AC7", "#6B6B78"]
 
 export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
   const total = data.reduce((sum, d) => sum + d.count, 0)
@@ -25,7 +39,7 @@ export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
                 innerRadius={56}
                 outerRadius={92}
                 paddingAngle={2}
-                stroke="#0E0E10"
+                stroke="var(--color-surface)"
                 strokeWidth={2}
               >
                 {data.map((_, i) => (
@@ -34,14 +48,14 @@ export function RoleDistributionChart({ data }: { data: RoleSlice[] }) {
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#15151A",
-                  border: "1px solid #2C2C35",
+                  background: "var(--color-surface-raised)",
+                  border: "1px solid var(--color-line)",
                   borderRadius: 8,
                   fontFamily: "var(--font-dm-mono)",
                   fontSize: 12,
-                  color: "#F4F4F5",
+                  color: "var(--color-ink)",
                 }}
-                labelStyle={{ color: "#7C7C8A" }}
+                labelStyle={{ color: "var(--color-ink-muted)" }}
               />
             </PieChart>
           </ResponsiveContainer>

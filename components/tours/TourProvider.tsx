@@ -92,6 +92,9 @@ export function TourProvider({
         <Onborda
           steps={steps}
           showOnborda={true}
+          // ponytail: a literal, deliberately. The tour overlay is a scrim —
+          // it exists to push the page back so one element stands out, and a
+          // scrim that follows the theme stops being one in light mode.
           shadowRgb="14,14,16"
           shadowOpacity="0.85"
           cardComponent={OnbordaCard}
