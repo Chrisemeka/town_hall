@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Field, inputClass } from "@/components/ui/Field"
+import { SetupField, setupInputClass } from "@/components/setup/chrome"
 import { addSkill, removeSkill, suggestionsFor } from "@/lib/skills"
 import { SKILLS_MAX } from "@/lib/vocabulary"
 
@@ -13,16 +14,52 @@ import { SKILLS_MAX } from "@/lib/vocabulary"
  * Settings, which is why it takes a list and a setter rather than the enclosing
  * form's value bag.
  */
+/*
+ * Two surfaces, two spellings.
+ *
+ * This component is used by SettingsForm, which is a statically dark app
+ * surface, and by the verification flow, which is now themed. The semantic
+ * tokens resolve to their light values wherever no [data-theme] ancestor
+ * exists, so one spelling cannot serve both — a semantic input on the
+ * dashboard would be a light box on a dark page.
+ *
+ * When the dashboard joins the theme system this prop disappears and the
+ * semantic spelling is the only one. Until then this is two class maps rather
+ * than a second copy of the custom-tag logic, which is the part that matters:
+ * normalizeSkills() and free entry have exactly one implementation.
+ */
+export type SkillsSurface = "app" | "setup"
+
 export function SkillsInput({
   value,
   onChange,
   error,
+  surface = "app",
 }: {
   value: string[]
   onChange: (skills: string[]) => void
   /** The list's own errors, from the enclosing form's schema. */
   error?: string[]
+  surface?: SkillsSurface
 }) {
+  const themed = surface === "setup"
+  const Wrapper = themed ? SetupField : Field
+  const boxClass = themed ? setupInputClass : inputClass
+  const DROPDOWN = themed
+    ? "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
+    : "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-graphite border border-iron rounded-[12px] py-2"
+  const OPTION = themed
+    ? "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
+    : "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-chalk hover:bg-white/[0.04] transition-colors duration-150"
+  // On a light ground a 12% Voltage tint with Voltage text is invisible, so
+  // the themed pill is an accent-ink outline instead of an accent fill.
+  const PILL = themed
+    ? "inline-flex items-center gap-2 border border-accent-ink text-accent-ink rounded-[4px] pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
+    : "inline-flex items-center gap-2 bg-voltage/[0.12] text-voltage rounded-[4px] pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
+  const REMOVE = themed
+    ? "h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-accent-ink hover:bg-accent-ink hover:text-surface-raised transition-colors duration-150"
+    : "h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-voltage/70 hover:text-obsidian hover:bg-voltage transition-colors duration-150"
+
   const [input, setInput] = useState("")
   const [open, setOpen] = useState(false)
   // Errors from trying to add one skill are separate from the list's own
@@ -40,7 +77,7 @@ export function SkillsInput({
   }
 
   return (
-    <Field
+    <Wrapper
       label="Skills"
       htmlFor="skills"
       error={addError ? [addError] : error}
@@ -70,13 +107,13 @@ export function SkillsInput({
             }
             if (e.key === "Escape") setOpen(false)
           }}
-          className={inputClass(!!addError || !!error?.length)}
+          className={boxClass(!!addError || !!error?.length)}
         />
 
         {open && suggestions.length > 0 && (
           <ul
             id="skill-suggestions"
-            className="absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-graphite border border-iron rounded-[12px] py-2"
+            className={DROPDOWN}
           >
             {suggestions.map((skill) => (
               <li key={skill}>
@@ -87,7 +124,7 @@ export function SkillsInput({
                   // click on the row that was actually under the cursor.
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => add(skill)}
-                  className="w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-chalk hover:bg-white/[0.04] transition-colors duration-150"
+                  className={OPTION}
                 >
                   {skill}
                 </button>
@@ -102,7 +139,7 @@ export function SkillsInput({
           {value.map((skill) => (
             <li
               key={skill}
-              className="inline-flex items-center gap-2 bg-voltage/[0.12] text-voltage rounded-[4px] pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
+              className={PILL}
             >
               {skill}
               <button
@@ -112,7 +149,7 @@ export function SkillsInput({
                   onChange(removeSkill(value, skill))
                   setAddError(null)
                 }}
-                className="h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-voltage/70 hover:text-obsidian hover:bg-voltage transition-colors duration-150"
+                className={REMOVE}
               >
                 &times;
               </button>
@@ -120,6 +157,6 @@ export function SkillsInput({
           ))}
         </ul>
       )}
-    </Field>
+    </Wrapper>
   )
 }

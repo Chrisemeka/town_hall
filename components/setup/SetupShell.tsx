@@ -62,30 +62,3 @@ export async function SetupShell({
     </div>
   )
 }
-
-/**
- * The card every step sits in. Design.md §5.3 measurements in the semantic
- * spelling — components/ui/Card is the same thing in literal dark tokens and
- * would render a dark panel inside a light page.
- */
-export function SetupCard({
-  title,
-  subhead,
-  children,
-}: {
-  title: string
-  subhead?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-[16px] border border-line bg-surface-raised p-6 sm:p-10">
-      <h1 className="font-syne font-bold text-[28px] leading-9 tracking-[-0.5px] text-ink">
-        {title}
-      </h1>
-      {subhead && (
-        <p className="font-sans text-[14px] leading-6 text-ink mt-2">{subhead}</p>
-      )}
-      <div className="mt-8">{children}</div>
-    </div>
-  )
-}
