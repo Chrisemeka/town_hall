@@ -162,6 +162,7 @@ layout's wrapper element:
 | `line` | `#E2E2E8` | Iron `#2C2C35` | dividers only |
 | `accent` | Voltage `#E8FF47` | Voltage `#E8FF47` | **fills only** |
 | `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | text, borders, icons |
+| `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text, error borders |
 
 `#5A5A66` and `#E2E2E8` are the two literals this layer adds to the palette.
 
@@ -178,6 +179,11 @@ Two consequences that are easy to get wrong:
 - **`line` is not a control boundary.** 1.19:1 fails WCAG 1.4.11's 3:1 for the
   visible boundary of a control. Inputs and other bounded controls on public
   surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
+- **Ember is not an error colour on a light ground.** `#FF4F4F` is 5.95:1 on
+  Obsidian but **2.97:1 on Bone** — it fails both the 4.5:1 label bar and the
+  3:1 control-boundary bar. `danger-ink` is `#A81E15` (6.74:1) on light and
+  collapses back to Ember on dark. Same shape of problem as Voltage, same shape
+  of answer.
 
 **The theme default is light, with no `prefers-color-scheme` fallback** —
 deferring to the OS would make the default unpredictable. The choice persists in
@@ -458,7 +464,31 @@ horizontally at 360px.
 
 ---
 
-### 5.7 Public Shell
+### 5.7 Auth Card
+
+`/signup`, `/login`, `/forgot-password`, `/reset-password`, `/confirm-email` —
+`components/public/AuthCard.tsx`.
+
+A centred card on the tinted public ground: max-width **440px**,
+`surface-raised` on `surface`, 16px radius, 40px padding, wordmark above it.
+Google sits **above** an "or" divider, not below — it is how every existing
+user got here.
+
+Field chrome is §5.2's measurements in semantic tokens: 40px input, 8px radius,
+DM Mono 14px, `border-ink-muted` at rest, `border-accent-ink` on focus,
+`border-danger-ink` in error. **`components/ui/Field` and `inputClass()` are the
+dark-surface spelling of the same thing and must not be used here** — they
+would render a dark form inside a light page.
+
+> **A submit button is never disabled to mean "not finished".** It is disabled
+> only while the work is in flight, or while a server-side cooldown has not
+> elapsed — and the label says which ("Signing you in…", "Resend in 41s"). A
+> disabled control that does not explain itself is the failure mode the rule in
+> CLAUDE.md exists to prevent.
+
+---
+
+### 5.8 Public Shell
 
 `components/public/` — the header, footer and theme toggle the `(public)` layout
 renders around every public page. Public pages do not render their own nav.

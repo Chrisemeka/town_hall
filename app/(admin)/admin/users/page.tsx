@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin"
+import { Avatar } from "@/components/ui/Avatar"
 import {
   Users, UserPlus, FolderOpen, MessageSquare, ShieldCheck, PauseCircle, Ban,
 } from "lucide-react"
@@ -48,15 +49,6 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
 }
 
-function initials(name: string, email: string) {
-  const source = name || email
-  return source
-    .split(/[\s@.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0]?.toUpperCase() ?? "")
-    .join("")
-}
 
 function roleBadgeStyle(role: string) {
   switch (role) {
@@ -239,19 +231,12 @@ export default async function AdminUsersPage() {
                 <tr key={u.id} className="border-t border-iron/60 hover:bg-obsidian/30 transition-colors duration-150 align-top">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
-                        {u.avatarUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={u.avatarUrl}
-                            alt={u.fullName || u.email}
-                            referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="font-mono text-[12px] text-ash">{initials(u.fullName, u.email)}</span>
-                        )}
-                      </div>
+                      <Avatar
+                        src={u.avatarUrl}
+                        name={u.fullName}
+                        email={u.email}
+                        size={9}
+                      />
                       <div className="min-w-0">
                         <p className="font-mono text-[13px] text-chalk truncate">
                           {u.fullName || u.email || "—"}

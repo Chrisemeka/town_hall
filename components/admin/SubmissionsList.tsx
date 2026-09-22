@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Avatar } from "@/components/ui/Avatar"
 import { Smile, Meh, Frown, ExternalLink } from "lucide-react"
 import { SubmissionRowActions } from "./SubmissionRowActions"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
@@ -31,15 +32,6 @@ function formatDateTime(iso: string) {
   })
 }
 
-function initials(name: string, email: string) {
-  const source = name || email
-  return source
-    .split(/[\s@.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0]?.toUpperCase() ?? "")
-    .join("")
-}
 
 function sentimentStyle(s: Sentiment) {
   switch (s) {
@@ -76,19 +68,12 @@ export function SubmissionsList({
           <li key={s.id} className="p-5 hover:bg-obsidian/20 transition-colors duration-150">
             <div className="flex items-start gap-4">
               {/* Avatar */}
-              <div className="w-10 h-10 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
-                {s.tester.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={s.tester.avatarUrl}
-                    alt={s.tester.fullName || s.tester.email}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="font-mono text-[12px] text-ash">{initials(s.tester.fullName, s.tester.email)}</span>
-                )}
-              </div>
+              <Avatar
+                src={s.tester.avatarUrl}
+                name={s.tester.fullName}
+                email={s.tester.email}
+                size={10}
+              />
 
               {/* Body */}
               <div className="flex-1 min-w-0">

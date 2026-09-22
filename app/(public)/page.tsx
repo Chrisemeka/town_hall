@@ -41,14 +41,14 @@ export default function LandingPage() {
               className="flex flex-col items-center"
             >
               <motion.h1
-                tabIndex={0}
+               
                 variants={fadeUp}
                 className="font-syne font-bold text-[52px] leading-[56px] lg:text-[80px] lg:leading-[84px] tracking-[-1.5px] text-ink mb-6"
               >
                 Ship better.<br />Test each other.
               </motion.h1>
               <motion.p
-                tabIndex={0}
+               
                 variants={fadeUp}
                 className="font-sans text-[18px] leading-7 lg:text-[18px] lg:leading-8 text-ink mb-10 max-w-2xl"
               >
@@ -57,9 +57,9 @@ export default function LandingPage() {
               <motion.div variants={fadeUp} className="mb-16">
                 <form action={signInWithGoogle}>
                   <button
-                    tabIndex={0}
+                   
                     type="submit"
-                    className="h-14 px-7 inline-flex items-center justify-center gap-1.5 font-mono font-medium text-base text-ink rounded-[8px] hover:bg-ink/5 transition-colors duration-150 cursor-pointer"
+                    className="h-14 px-7 inline-flex items-center justify-center gap-1.5 font-mono font-medium text-base text-ink rounded-[8px] hover:bg-ink/5 transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                   >
                     Continue with Google <ArrowRight className="w-[18px] h-[18px]" />
                   </button>
@@ -74,7 +74,7 @@ export default function LandingPage() {
               transition={{ delay: 0.25, duration: 0.6, ease: "easeOut" }}
               className="w-full"
             >
-              <NextImage tabIndex={0}
+              <NextImage
                 src="/images/hero-wireframe.svg"
                 alt="A dark-themed user interface for Twnhall, displaying the Explore Projects page. The screen features a left navigation sidebar and a main grid showing four project cards. Each card includes the project name, website URL, project status badge, mission/feedback metrics, and a Test It link."
                 width={1128}
@@ -98,10 +98,10 @@ export default function LandingPage() {
             viewport={{ once: true, margin: "-80px" }}
             variants={stagger}
           >
-            <motion.p tabIndex={0} variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
+            <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
               The Loop
             </motion.p>
-            <motion.h2 tabIndex={0} variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-16">
+            <motion.h2 variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-16">
               How it works.
             </motion.h2>
 
@@ -128,7 +128,7 @@ export default function LandingPage() {
               ].map((step, i) => (
                 <motion.div key={i} variants={fadeUp} className="relative flex flex-col px-6 lg:px-8 pt-14 pb-10 lg:pt-16 lg:pb-12 min-h-[240px]">
                   {/* Step number — top-right tag */}
-                  <span tabIndex={0} className="absolute top-6 right-6 lg:top-8 lg:right-8 font-syne font-bold text-[12px] tracking-[1px] text-ink-muted select-none">
+                  <span className="absolute top-6 right-6 lg:top-8 lg:right-8 font-syne font-bold text-[12px] tracking-[1px] text-ink-muted select-none">
                     {step.num}
                   </span>
                   <div className="flex flex-col gap-4">
@@ -139,8 +139,8 @@ export default function LandingPage() {
                     <div className="w-11 h-11 rounded-[8px] bg-graphite border border-iron flex items-center justify-center">
                       {step.icon}
                     </div>
-                    <h4 tabIndex={0} className="font-syne font-bold text-[22px] leading-7 tracking-[-0.2px] text-ink">{step.title}</h4>
-                    <p tabIndex={0} className="font-sans text-[14px] leading-6 text-ink">{step.copy}</p>
+                    <h3 className="font-syne font-bold text-[22px] leading-7 tracking-[-0.2px] text-ink">{step.title}</h3>
+                    <p className="font-sans text-[14px] leading-6 text-ink">{step.copy}</p>
                   </div>
                 </motion.div>
               ))}
@@ -162,13 +162,13 @@ export default function LandingPage() {
               variants={stagger}
               className="col-span-12 lg:col-span-6 flex flex-col"
             >
-              <motion.p tabIndex={0} variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
+              <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
                 For Submitters
               </motion.p>
-              <motion.h2 tabIndex={0} variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-5">
+              <motion.h2 variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-5">
                 Structured feedback,<br />not guesses.
               </motion.h2>
-              <motion.p tabIndex={0} variants={fadeUp} className="font-sans text-[16px] leading-8 text-ink max-w-md">
+              <motion.p variants={fadeUp} className="font-sans text-[16px] leading-8 text-ink max-w-md">
                 Define exactly what you need tested, where you want eyes, and what you&apos;re worried about. Missions give testers a clear brief — so you get specific, actionable feedback instead of vague impressions. Whether you&apos;re chasing edge cases, pressure-testing onboarding, or sanity-checking a new flow, every project ships with a list of asks the community can pick up and run with.
               </motion.p>
             </motion.div>
@@ -181,7 +181,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="col-span-12 lg:col-span-6"
             >
-              <NextImage tabIndex={0}
+              <NextImage
                 src="/images/submit-project-form.svg"
                 alt="A dark-themed modal window titled Submit a Project with the subtitle Tell the community what you've built. The form contains three filled text fields: Project Name, Project URL, and a highlighted Brief Summary text area. At the bottom, there is a prominent yellow Create Project button and a dark Cancel button."
                 width={600}
@@ -208,7 +208,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, ease: "easeOut" }}
               className="col-span-12 lg:col-span-6 order-2 lg:order-1"
             >
-              <NextImage tabIndex={0}
+              <NextImage
                 src="/images/mission-card.svg"
                 alt="A dark-themed user interface showing a mission page. At the bottom is a prominent yellow action button that reads Open Project in New Tab."
                 width={600}
@@ -226,13 +226,13 @@ export default function LandingPage() {
               variants={stagger}
               className="col-span-12 lg:col-span-6 flex flex-col order-1 lg:order-2"
             >
-              <motion.p tabIndex={0} variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
+              <motion.p variants={fadeUp} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
                 For Testers
               </motion.p>
-              <motion.h2 tabIndex={0} variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-5">
+              <motion.h2 variants={fadeUp} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-5">
                 Frictionless testing.
               </motion.h2>
-              <motion.p tabIndex={0} variants={fadeUp} className="font-sans text-[16px] leading-8 text-ink max-w-md">
+              <motion.p variants={fadeUp} className="font-sans text-[16px] leading-8 text-ink max-w-md">
                 Browse the community feed, pick a mission, and jump in. Clear instructions tell you exactly what to test — no guessing, no wasted time. Every mission ships with a test case — ordered steps and what each one should do — so the few minutes you spend testing turn into feedback that actually moves the project forward.
               </motion.p>
             </motion.div>
@@ -245,15 +245,15 @@ export default function LandingPage() {
       <section id="community" className="w-full bg-surface">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-8 border-t border-line py-20 lg:py-28">
           <div className="text-center mb-16 max-w-2xl mx-auto">
-            <h2 tabIndex={0} className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-4">
+            <h2 className="font-syne font-bold text-[40px] leading-[46px] lg:text-[44px] lg:leading-[50px] tracking-[-0.5px] text-ink mb-4">
               Projects waiting for your feedback right now
             </h2>
-            <p tabIndex={0} className="font-sans text-[15px] leading-7 text-ink">
+            <p className="font-sans text-[15px] leading-7 text-ink">
               Join hundreds of developers already testing each other&apos;s work.
             </p>
           </div>
 
-          <NextImage tabIndex={0}
+          <NextImage
             src="/images/community-cards.svg"
             alt="Three dark-themed Community project cards displayed side-by-side — DevSync CLI, Palette Flow, and QueryMaster"
             width={1104}
@@ -268,9 +268,9 @@ export default function LandingPage() {
       {/* ─── ⑦ FINAL CTA STRIP ───────────────────────────────────────────── */}
       <section className="w-full bg-surface text-center">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-8 border-t border-line py-20 lg:py-28 flex flex-col items-center">
-          <h1 tabIndex={0} className="font-syne font-bold text-[36px] leading-[40px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink mb-8 max-w-3xl">
+          <h2 className="font-syne font-bold text-[36px] leading-[40px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink mb-8 max-w-3xl">
             Your next release deserves real feedback.
-          </h1>
+          </h2>
         </div>
       </section>
 

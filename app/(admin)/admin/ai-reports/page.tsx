@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Avatar } from "@/components/ui/Avatar"
 import { createAdminClient } from "@/lib/supabase/admin"
 import {
   Sparkles, ShieldCheck, Smile, Frown, AlertTriangle, Meh,
@@ -47,10 +48,6 @@ function formatDateTime(iso: string) {
   })
 }
 
-function initials(name: string, email: string) {
-  const source = name || email
-  return source.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase() ?? "").join("")
-}
 
 function normalizeSentiment(s: string | null): Sentiment {
   if (!s) return "UNKNOWN"
@@ -254,19 +251,12 @@ export default async function AdminAIReportsPage() {
                 <li key={r.id} className="p-5 hover:bg-obsidian/20 transition-colors duration-150">
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-obsidian border border-iron flex items-center justify-center overflow-hidden shrink-0">
-                      {r.tester.avatarUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={r.tester.avatarUrl}
-                          alt={r.tester.fullName || r.tester.email}
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="font-mono text-[12px] text-ash">{initials(r.tester.fullName, r.tester.email)}</span>
-                      )}
-                    </div>
+                    <Avatar
+                      src={r.tester.avatarUrl}
+                      name={r.tester.fullName}
+                      email={r.tester.email}
+                      size={10}
+                    />
 
                     {/* Body */}
                     <div className="flex-1 min-w-0">

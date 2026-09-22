@@ -61,10 +61,56 @@ npm install
 ```
 
 ### Environment Variables
+
 Create a `.env.local` file in the root directory:
-NEXT_PUBLIC_SUPABASE_URL=your_key_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key_here
-GEMINI_API_KEY=your_key_here (gotten from [Google AI Studio](https://aistudio.google.com/))
+
+```bash
+# Supabase — project settings → API
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Service role. Bypasses RLS — server-side only, never exposed to the browser.
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Gemini, from https://aistudio.google.com/
+GEMINI_API_KEY=
+
+# Resend — the app's own transactional mail (emails/). NOT the auth mail; see
+# "Supabase Auth email" below.
+RESEND_API_KEY=
+
+# Absolute origin, used to build OAuth and email-confirmation redirect URLs.
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Shared secrets for the submission webhook and the cron endpoints.
+WEBHOOK_SECRET=
+CRON_SECRET=
+```
+
+### Supabase Auth email — a setup step that is not in this repo
+
+**Confirmation and password-reset mail does not come from `emails/`.** Those
+React Email templates are the app's own transactional mail. Supabase Auth sends
+its own mail, through its own SMTP, using templates stored in the Supabase
+dashboard — so the copy for "Confirm your signup" and "Reset your password"
+lives there, not in this codebase. Editing `emails/` will never change them.
+
+Two things have to be configured in the Supabase dashboard before email signup
+works in production:
+
+1. **Custom SMTP → Resend.** Authentication → Emails → SMTP Settings. Without
+   it the project is capped at **2 emails per hour across all users**, which is
+   not a signup flow — it is a queue. Custom SMTP raises the cap to 30/hour and
+   unlocks the rate-limit field.
+2. **The templates themselves.** Authentication → Emails → Templates. Until
+   they are edited the mail arrives from Supabase's default sender, unbranded.
+
+Settings the app assumes, all under Authentication:
+
+| Setting | Required | Why |
+|---|---|---|
+| Confirm email | On | `signUp()` must not return a live session for an unproven address |
+| Minimum password length | ≤ 8 | `lib/validation/schemas.ts` requires 8; a higher project minimum would reject a password the form accepted |
+| Per-user min interval between emails | ≥ 60s | This *is* the resend cooldown on `/confirm-email` — the app surfaces the refusal, GoTrue enforces it |
 
 
 ### Running Locally

@@ -66,6 +66,7 @@
   --color-line:           #E2E2E8;
   --color-accent:         #E8FF47;   /* Voltage — fills only */
   --color-accent-ink:     #353D00;   /* Forest — text, borders, icons */
+  --color-danger-ink:     #A81E15;   /* Error text and error borders */
 }
 
 /*
@@ -86,6 +87,12 @@
  *
  * Voltage is a FILL ONLY on a light ground: #E8FF47 on Bone is 1.02:1. Forest
  * #353D00 is the accent ink there (10.6:1). In dark both collapse to Voltage.
+ *
+ * Ember has the same problem and the same shape of answer: #FF4F4F is 5.95:1 on
+ * Obsidian but only 2.97:1 on Bone, so it fails Design.md's 4.5:1 for label text
+ * and WCAG 1.4.11's 3:1 for a control boundary. --color-danger-ink is #A81E15
+ * (6.74:1) on light and collapses back to Ember on dark. Error text and error
+ * borders on public surfaces use it; Ember stays the literal for app surfaces.
  */
 [data-theme="dark"] {
   --color-surface:        #0E0E10;   /* Obsidian */
@@ -95,7 +102,25 @@
   --color-line:           #2C2C35;   /* Iron */
   --color-accent:         #E8FF47;   /* Voltage */
   --color-accent-ink:     #E8FF47;
+  --color-danger-ink:     #FF4F4F;   /* Ember */
 }
+
+/*
+ * The brand mark on a themed surface.
+ *
+ * The asset is dark line-art on transparency, so it reads on Bone as-is and
+ * vanishes on Obsidian. Components on statically dark surfaces pass `onDark`
+ * and invert themselves; public components cannot, because the same markup
+ * renders on both grounds. So the flip lives here, keyed on the attribute, and
+ * no public caller has to know the theme.
+ *
+ * Unlayered and attribute-scoped, like the token block above: it matches only
+ * inside [data-theme="dark"], which exists only on the (public) layout wrapper.
+ */
+[data-theme="dark"] .th-logo {
+  filter: brightness(0) invert(1);
+}
+
 /*
  * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
  *

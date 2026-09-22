@@ -46,9 +46,47 @@ export async function GET(request: Request) {
 
         const { data: profile } = await admin
           .from('profiles')
-          .select('role, accepted_terms_at, accounts(type)')
+          .select('role, accepted_terms_at, full_name, avatar_url, accounts(type)')
           .eq('id', user.id)
           .maybeSingle()
+
+        // Backfill the columns the upsert above could not reach.
+        //
+        // `ignoreDuplicates: true` makes that upsert a no-op for an existing
+        // row — correct, because it must never clobber an edited name or an
+        // accepted-terms timestamp. But the row usually already exists by the
+        // time we get here: Supabase's on_auth_user_created trigger fires on
+        // the INSERT into auth.users, which for an email/password signup
+        // happens at signUp() time, long before the confirmation link is
+        // clicked. So a name passed through user_metadata at signup would
+        // otherwise never land.
+        //
+        // Only NULL columns are written, and only from metadata that exists —
+        // so this fills a gap and can never overwrite something the user set.
+        // It also fixes a case that predates email signup: a Google sign-in on
+        // a profile created some other way never backfilled the avatar.
+        if (profile) {
+          const metaName =
+            (user.user_metadata?.full_name as string | undefined) ??
+            (user.user_metadata?.name as string | undefined)
+          const metaAvatar =
+            (user.user_metadata?.avatar_url as string | undefined) ??
+            (user.user_metadata?.picture as string | undefined)
+
+          const backfill: { full_name?: string; avatar_url?: string } = {}
+          if (!profile.full_name && metaName) backfill.full_name = metaName
+          if (!profile.avatar_url && metaAvatar) backfill.avatar_url = metaAvatar
+
+          if (Object.keys(backfill).length > 0) {
+            const { error: backfillError } = await admin
+              .from('profiles')
+              .update(backfill)
+              .eq('id', user.id)
+            if (backfillError) {
+              console.error('Failed to backfill profile:', backfillError.message)
+            }
+          }
+        }
 
         // Admins skip the terms gate and go straight to their dashboard.
         if (profile?.role === 'admin') {

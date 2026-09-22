@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { signInWithGoogle } from "@/actions/auth";
 import { Logo } from "@/components/Logo";
 import { X_URL } from "@/lib/contact";
 
@@ -9,9 +8,8 @@ const LINK =
 /**
  * Four columns, all of them pointing at pages that exist.
  *
- * "Get started" joins the Guides column in the PR that creates /signup. Never
- * add an entry before its destination exists — a footer link to a 404 is the
- * failure mode the revamp brief names by name.
+ * Never add an entry before its destination exists — a footer link to a 404 is
+ * the failure mode the revamp brief names by name.
  */
 export function PublicFooter() {
   return (
@@ -57,6 +55,9 @@ export function PublicFooter() {
             <Link href="/guides/tester" className={LINK}>
               For testers
             </Link>
+            <Link href="/signup" className={LINK}>
+              Get started
+            </Link>
           </div>
 
           <div className="flex flex-col gap-3">
@@ -72,11 +73,9 @@ export function PublicFooter() {
             <Link href="/terms" className={LINK}>
               Terms of service
             </Link>
-            <form action={signInWithGoogle}>
-              <button type="submit" className={`${LINK} cursor-pointer`}>
-                Sign in
-              </button>
-            </form>
+            <Link href="/login" className={LINK}>
+              Sign in
+            </Link>
           </div>
         </div>
 

@@ -11,6 +11,22 @@ export const CHOOSE_ACCOUNT_PATH = "/choose-account"
 export const ACCOUNT_COOKIE = "th_account"
 export const VERIFY_PREFIX = "/verify"
 
+/**
+ * The email-confirmation gate's own page.
+ *
+ * Deliberately NOT under VERIFY_PREFIX. /verify/[role] is a different gate —
+ * it asks whether a role profile is complete, and answers from
+ * accounts.verification_completed_at. This one asks whether the address is
+ * proven, and answers from Supabase's auth.users.email_confirmed_at. Two gates
+ * with near-identical names is how someone eventually wires the wrong one, and
+ * isVerifyPath() would start matching a page that is not part of that gate.
+ */
+export const CONFIRM_EMAIL_PATH = "/confirm-email"
+
+/** Where a password-recovery link lands. Exempt from the email gate — see below. */
+export const RESET_PASSWORD_PATH = "/reset-password"
+
+
 /** Where an account that has not cleared the verification gate has to go. */
 export function verifyPathFor(account: AccountType): string {
   return `${VERIFY_PREFIX}/${account}`
@@ -37,6 +53,11 @@ const SHARED_PREFIXES = [
   "/terms-accept",
   "/admin",
   CHOOSE_ACCOUNT_PATH,
+  // Per-person, not per-role, and both are gate pages: role-scoping them would
+  // let the verification gate fire on a page the user needs in order to get
+  // past an earlier gate.
+  CONFIRM_EMAIL_PATH,
+  RESET_PASSWORD_PATH,
 ]
 
 /** Same matching rule middleware already used for `protectedPrefixes`. */
@@ -51,6 +72,20 @@ function underAny(pathname: string, prefixes: string[]): boolean {
 /** True for the gate's own pages, which the gate itself must never redirect. */
 export function isVerifyPath(pathname: string): boolean {
   return underPrefix(pathname, VERIFY_PREFIX)
+}
+/**
+ * Paths the email-confirmation gate must never redirect away from.
+ *
+ * /confirm-email is the page that lifts the gate, so gating it points the gate
+ * at itself. /reset-password is subtler: a recovery link signs the user in with
+ * a session whose email may never have been confirmed, and bouncing them
+ * mid-recovery strands them with no way to finish.
+ */
+export function isEmailGateExempt(pathname: string): boolean {
+  return (
+    underPrefix(pathname, CONFIRM_EMAIL_PATH) ||
+    underPrefix(pathname, RESET_PASSWORD_PATH)
+  )
 }
 
 /**

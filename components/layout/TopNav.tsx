@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { LogOut, User, Menu, X, Plus, Search } from "lucide-react"
+import { Avatar } from "@/components/ui/Avatar"
+import { LogOut, Menu, X, Plus, Search } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { signOutAction } from "@/actions/auth"
@@ -28,7 +29,6 @@ export function TopNav({
   account?: AccountType
   userId?: string | null
 }) {
-  const altText = displayName ?? "Your profile"
   const cta = CTA[account]
   const CtaIcon = cta.icon
 
@@ -63,19 +63,18 @@ export function TopNav({
           href="/settings"
           aria-label="Settings"
           title={displayName ?? "Settings"}
-          className="w-8 h-8 rounded-full bg-graphite border border-iron flex items-center justify-center overflow-hidden hover:border-voltage transition-colors duration-150"
+          className="rounded-full hover:opacity-80 transition-opacity duration-150"
         >
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatarUrl}
-              alt={altText}
-              referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <User className="w-4 h-4 text-ash" />
-          )}
+          {/* Initials rather than a generic person icon: this was the one
+              avatar surface that did not identify who it belonged to, which
+              matters now that every email/password user has a null
+              avatar_url. */}
+          <Avatar
+            src={avatarUrl}
+            name={displayName}
+            size={32}
+            className="hover:border-voltage transition-colors duration-150"
+          />
         </Link>
 
         <form action={signOutAction}>

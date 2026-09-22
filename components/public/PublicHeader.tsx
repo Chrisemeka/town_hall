@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { signInWithGoogle } from "@/actions/auth";
 import { Logo } from "@/components/Logo";
 import { MobileNav } from "@/components/public/MobileNav";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
@@ -9,8 +8,7 @@ import type { Theme } from "@/lib/theme";
  * Marketing nav, desktop and sheet both.
  *
  * Never add an entry here before its page exists — a nav link to a 404 is the
- * one thing the revamp brief calls out by name. "Get started" joins this list
- * in the PR that creates /signup.
+ * one thing the revamp brief calls out by name.
  */
 const NAV: { href: string; label: string }[] = [
   { href: "/pricing", label: "Pricing" },
@@ -44,25 +42,24 @@ export function PublicHeader({ theme }: { theme: Theme }) {
 
           <ThemeToggle theme={theme} />
 
-          {/*
-            The one Voltage CTA per viewport (Design.md §7.2). Voltage is a
-            fill here and always carries Obsidian text — never accent ink on a
-            light ground. PR 3 replaces this with the Sign in / Get started
-            pair once /login and /signup exist.
-          */}
-          <form action={signInWithGoogle} className="shrink-0">
-            <button
-              type="submit"
-              className="h-11 px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            >
-              {/* Full label needs ~200px, which does not fit beside the
-                  wordmark and toggle at 360px. */}
-              <span className="sm:hidden">Sign in</span>
-              <span className="hidden sm:inline">Continue with Google</span>
-            </button>
-          </form>
+          {/* Sign in is secondary; Get started is the one Voltage fill per
+              viewport (Design.md §7.2), always with Obsidian text on it —
+              never accent ink on a light ground. Google moved onto the auth
+              pages themselves, above the divider. */}
+          <Link
+            href="/login"
+            className="hidden sm:inline-flex h-11 px-4 items-center rounded-[8px] font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/signup"
+            className="shrink-0 h-11 px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          >
+            Get started
+          </Link>
 
-          <MobileNav links={NAV} />
+          <MobileNav links={[...NAV, { href: "/login", label: "Sign in" }]} />
         </div>
       </div>
     </header>
