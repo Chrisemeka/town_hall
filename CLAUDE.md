@@ -38,6 +38,7 @@ lib/
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
   theme.ts            readTheme() — the public theme cookie, resolved in one place
+  setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
   initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
@@ -165,6 +166,25 @@ Twnhall does not call `linkIdentity()` and should not start without a separate
 decision. All four cases and the test transcript are in
 `docs/specs/SPEC-email-password-auth.md` §5.
 
+**The setup chain is three routes and stays three routes.** `/terms-accept`,
+`/choose-account` and `/verify/[role]` each guard a different column and each
+is checked in both layers. `components/setup/SetupShell.tsx` makes them *look*
+like one flow; it does not make them one. Collapsing them means
+re-implementing this routing inside a page and giving up the two-layer
+guarantee.
+
+**The step indicator reads the gates, never a counter.** `lib/setup.ts` derives
+every stage's status from `accepted_terms_at`, the `accounts` row and
+`verification_completed_at`. That is what makes mid-chain entry correct: a
+builder adding a tester role lands straight on `/verify/tester` having passed
+terms months ago, and a counter would show Terms as pending. `profileStep` can
+move which profile stage is current; it can never reopen an earlier gate.
+
+**`/choose-account` is not only a setup step.** It is in `SHARED_PREFIXES` and
+is how an existing verified user adds or switches a role, so the shell shows
+the indicator and the "Setting up your account" line **only when
+`isFirstChoice`**. Anything added to that page has to hold for both modes.
+
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 
 ## Data Mutations — RLS + service role
@@ -250,10 +270,15 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
 - **Contrast:** Body text ≥ 7:1. Labels and large text ≥ 4.5:1. Verify at WebAim before shipping a new pairing.
 - **Surfaces:** App surfaces — `(developer)`, `(tester)`, `(admin)` — are dark
   (Obsidian `#0E0E10` base) and use the **literal** palette tokens (`bg-obsidian`,
-  `text-chalk`, `border-iron`). Public surfaces — the `(public)` group — are
-  **theme-switchable** and use the **semantic** token layer (`surface`,
-  `surface-raised`, `ink`, `ink-muted`, `line`, `accent`, `accent-ink`), which
-  resolves per theme from `[data-theme]` on the `(public)` layout's wrapper.
+  `text-chalk`, `border-iron`). **Themed** surfaces use the **semantic** token
+  layer (`surface`, `surface-raised`, `ink`, `ink-muted`, `line`, `accent`,
+  `accent-ink`, `danger-ink`), which resolves per theme from `[data-theme]`.
+  Two groups of routes are themed: the `(public)` group, where
+  `app/(public)/layout.tsx` sets the attribute, and **the setup chain** —
+  `/terms-accept`, `/choose-account`, `/verify/[role]` — where
+  `components/setup/SetupShell.tsx` does. The setup chain is post-auth but
+  pre-dashboard: handing someone from a light public site to a hard-dark page
+  halfway through signup looks like a bug, so it follows the theme.
   Do not use a semantic token on an app surface. A literal on a public surface
   must be a deliberate inversion that reads in both themes, and must say so in a
   comment — the dark icon chips on the landing page are the precedent.
