@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "6mb",
     },
   },
+  // /guidelines predates the v2 testing model and is gone — the page is
+  // deleted, not left behind this. The redirect stays permanently for traffic
+  // we do not control: anything already linking or bookmarked, and the search
+  // results the old page still holds.
+  async redirects() {
+    return [
+      {
+        source: "/guidelines",
+        destination: "/guides",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

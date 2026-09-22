@@ -33,7 +33,7 @@ const TESTER_PREFIXES = ["/tester", "/explore", "/mission", verifyPathFor("teste
  */
 const SHARED_PREFIXES = [
   "/settings",
-  "/guidelines",
+  "/guides",
   "/terms-accept",
   "/admin",
   CHOOSE_ACCOUNT_PATH,

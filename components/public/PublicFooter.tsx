@@ -33,8 +33,11 @@ export function PublicFooter() {
 
           <div className="flex flex-col gap-3">
             <h2 className="font-medium text-[13px] text-ink mb-1">Guides</h2>
-            <Link href="/guidelines" className={LINK}>
-              Community guidelines
+            <Link href="/guides/builder" className={LINK}>
+              For builders
+            </Link>
+            <Link href="/guides/tester" className={LINK}>
+              For testers
             </Link>
           </div>
 
