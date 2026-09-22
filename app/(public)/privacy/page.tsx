@@ -1,58 +1,36 @@
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Privacy Policy — Twnhall" };
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-bone text-midnight font-mono flex flex-col selection:bg-voltage selection:text-obsidian">
+    <div className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
 
-      {/* Nav */}
-      <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
-        <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo size={40} />
-            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
-          </Link>
-          <Link
-            tabIndex={0}
-            href="/"
-            className="font-mono text-[13px] text-midnight/70 hover:text-midnight transition-colors duration-150"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
-
-        <p tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-4">Legal</p>
-        <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-2">
+        <p tabIndex={0} className="font-mono text-[12px] text-accent-ink uppercase tracking-[1.5px] mb-4">Legal</p>
+        <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Privacy Policy
         </h1>
-        <p tabIndex={0} className="font-mono text-[13px] text-midnight/60 mb-12">Last updated: August 6, 2026</p>
+        <p tabIndex={0} className="font-mono text-[13px] text-ink-muted mb-12">Last updated: August 6, 2026</p>
 
         <div className="flex flex-col gap-10">
 
-          <p tabIndex={0} className="font-mono text-[14px] leading-7 text-midnight/70">
-            At <span className="text-midnight">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
+          <p tabIndex={0} className="font-sans text-[14px] leading-7 text-ink">
+            At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
           </p>
 
           <Section title="Information We Collect">
             <p tabIndex={0}>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture. We sign you in through Google, and receive your name, email address, and profile picture from that sign-in.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — and when each was created. If you hold both, they are stored as two separate account records tied to the same sign-in.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Content You Submit:</span> Projects and mission briefs you create as a Builder, and the written feedback and screenshots you upload as a Tester. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, and any note attached when changes are requested.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture. We sign you in through Google, and receive your name, email address, and profile picture from that sign-in.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — and when each was created. If you hold both, they are stored as two separate account records tied to the same sign-in.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Content You Submit:</span> Projects and mission briefs you create as a Builder, and the written feedback and screenshots you upload as a Tester. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, and any note attached when changes are requested.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
           </Section>
 
           <Section title="Automated Analysis of Submissions">
             <p tabIndex={0}>
-              When you submit feedback as a Tester, your written comment and the screenshots you attach are sent to <span className="text-midnight">Google&apos;s Gemini API</span> to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission.
+              When you submit feedback as a Tester, your written comment and the screenshots you attach are sent to <span className="text-ink">Google&apos;s Gemini API</span> to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission.
             </p>
             <p tabIndex={0}>
               Do not include passwords, personal data about other people, or anything you would not want processed by a third party in your written feedback or screenshots.
@@ -64,10 +42,10 @@ export default function PrivacyPolicyPage() {
 
           <Section title="What Other Users Can See">
             <p tabIndex={0}>
-              <span className="text-midnight font-medium">Builders see:</span> the written feedback, screenshots, and generated summary on submissions made against their own missions, and the name and profile picture attached to your account.
+              <span className="text-ink font-medium">Builders see:</span> the written feedback, screenshots, and generated summary on submissions made against their own missions, and the name and profile picture attached to your account.
             </p>
             <p tabIndex={0}>
-              <span className="text-midnight font-medium">Testers see:</span> their own submissions and the status, rating, and any change request a Builder left on them. Testers cannot see other testers&apos; submissions.
+              <span className="text-ink font-medium">Testers see:</span> their own submissions and the status, rating, and any change request a Builder left on them. Testers cannot see other testers&apos; submissions.
             </p>
             <p tabIndex={0}>
               Project and mission details a Builder publishes are visible to testers browsing the platform.
@@ -76,9 +54,9 @@ export default function PrivacyPolicyPage() {
 
           <Section title="Service Providers We Use">
             <p tabIndex={0}>We rely on the following third parties to operate Twnhall, and information is shared with them only as needed to provide the service:</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Supabase:</span> database, authentication, and file storage for screenshots.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Google:</span> sign-in, and the Gemini API for the automated analysis described above.</p>
-            <p tabIndex={0}><span className="text-midnight font-medium">Resend:</span> transactional and notification email.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Supabase:</span> database, authentication, and file storage for screenshots.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Google:</span> sign-in, and the Gemini API for the automated analysis described above.</p>
+            <p tabIndex={0}><span className="text-ink font-medium">Resend:</span> transactional and notification email.</p>
           </Section>
 
           <Section title="How We Use Your Information">
@@ -114,26 +92,13 @@ export default function PrivacyPolicyPage() {
           <Section title="Contact Us">
             <p tabIndex={0}>
               If you have any questions or concerns about our Privacy Policy or our handling of your personal information, please contact us at{" "}
-              <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-forest  underline hover:overline">
+              <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-accent-ink  underline hover:overline">
                 twnhallhq@gmail.com
               </a>
             </p>
           </Section>
 
         </div>
-      </main>
-
-      {/* Footer — dark, matches landing */}
-      <footer className="w-full bg-obsidian font-mono">
-        <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p tabIndex={0} className="font-mono text-[12px] text-[#F0F0F2]">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link tabIndex={0} href="/privacy" className="font-mono text-[12px] text-voltage">Privacy Policy</Link>
-            <Link tabIndex={0} href="/terms" className="font-mono text-[12px] text-[#F0F0F2] hover:text-chalk transition-colors duration-150  underline hover:overline">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }
@@ -141,8 +106,8 @@ export default function PrivacyPolicyPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 tabIndex={0} className="font-syne font-bold text-[20px] text-midnight mb-4">{title}</h2>
-      <div className="flex flex-col gap-3 font-mono text-[14px] leading-7 text-midnight/70">
+      <h2 tabIndex={0} className="font-syne font-bold text-[20px] text-ink mb-4">{title}</h2>
+      <div className="flex flex-col gap-3 font-sans text-[14px] leading-7 text-ink">
         {children}
       </div>
     </div>
