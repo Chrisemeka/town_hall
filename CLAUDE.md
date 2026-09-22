@@ -20,11 +20,13 @@ Twnhall is a Next.js app where developers submit projects to be tested by other 
 ```
 actions/              Server actions for all mutations (auth, projects, missions, submissions, admin)
 app/
+  (public)/           Public, theme-switchable routes (/, /terms, /privacy) + the shell
   (developer)/        Builder-facing routes (/dashboard/**)
   (tester)/           Tester-facing routes (/explore/**, /mission/[id])
   (admin)/            Admin console (/admin/**)
   api/                Route Handlers (webhooks, auth callback)
 components/           React components
+  public/             The public shell — header, footer, theme toggle
   missions/           TestCaseEditor (authoring), TestCaseView (display)
   submissions/        SubmissionBody — the one place audit-log vs legacy branches
   tester/             AuditLogForm and the tester's own surfaces
@@ -34,6 +36,7 @@ lib/
   ai.ts               Gemini client + the analysis prompt
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
+  theme.ts            readTheme() — the public theme cookie, resolved in one place
   types/db.ts         Hand-written row types — the client has no Database generic
   validation/         Zod schemas
 emails/               React Email templates
@@ -195,12 +198,31 @@ which field is outstanding.
 
 Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor without re-reading the file:
 
-- **Fonts:** Syne (Bold 700) for headings. DM Mono (Regular 400 / Medium 500) for UI, body, buttons, code. No other fonts.
+- **Fonts:** Syne (Bold 700) for headings. DM Mono (Regular 400 / Medium 500) for UI, body, buttons, code. One exception, and only one: **DM Sans** for long-form prose on public surfaces — pricing, about, the guides. App surfaces keep DM Mono for body text. No other fonts.
 - **Grid:** All spacing values divisible by 4. No exceptions.
 - **Accent:** `#E8FF47` (Voltage). One Primary/Voltage CTA per viewport. If you catch yourself adding a second, one of them is wrong.
 - **Color never conveys state alone.** Always pair a badge/indicator color with a text label.
 - **Contrast:** Body text ≥ 7:1. Labels and large text ≥ 4.5:1. Verify at WebAim before shipping a new pairing.
-- **Surfaces:** Dashboard is dark (Obsidian `#0E0E10` base). Landing is light (Bone `#F5F5F7`). Do not mix.
+- **Surfaces:** App surfaces — `(developer)`, `(tester)`, `(admin)` — are dark
+  (Obsidian `#0E0E10` base) and use the **literal** palette tokens (`bg-obsidian`,
+  `text-chalk`, `border-iron`). Public surfaces — the `(public)` group — are
+  **theme-switchable** and use the **semantic** token layer (`surface`,
+  `surface-raised`, `ink`, `ink-muted`, `line`, `accent`, `accent-ink`), which
+  resolves per theme from `[data-theme]` on the `(public)` layout's wrapper.
+  Do not use a semantic token on an app surface. A literal on a public surface
+  must be a deliberate inversion that reads in both themes, and must say so in a
+  comment — the dark icon chips on the landing page are the precedent.
+- **Voltage is a fill only on a light ground.** `#E8FF47` on Bone is 1.02:1 —
+  invisible. Light mode pairs a Voltage fill with Obsidian text (17.3:1) and uses
+  **Forest `#353D00`** (10.6:1) as accent *ink* — links, small-caps labels, icons,
+  focus rings, active borders. Dark mode collapses both back to Voltage. `accent`
+  and `accent-ink` already encode this; use them rather than re-deriving it.
+- **`line` is a divider, not a control boundary.** At 1.19:1 it fails WCAG 1.4.11's
+  3:1 for a control's visible boundary. Inputs and other bounded controls on public
+  surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
+- **Theme default is light, with no `prefers-color-scheme` fallback.** Deliberate —
+  deferring to the OS makes the default unpredictable. `lib/theme.ts` owns the
+  resolution and `scripts/theme.test.mts` pins it.
 
 Component behavior (button variants, input states, card styles, empty states) is defined in `Design.md` §5 and §8. Match existing components in `components/` before inventing new ones.
 

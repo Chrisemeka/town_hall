@@ -55,8 +55,10 @@ wording alongside the new one — with:
 > `#0E0E10` base, and use the literal palette tokens. Public surfaces (the
 > `(public)` route group) are theme-switchable and use the semantic token layer
 > (`surface`, `surface-raised`, `ink`, `ink-muted`, `line`, `accent`,
-> `accent-ink`). Never use a literal palette token on a public surface, and
-> never a semantic one on an app surface.
+> `accent-ink`). Never use a semantic token on an app surface. A literal on a
+> public surface must be a deliberate inversion that reads in both themes, and
+> must say so in a comment — the dark icon chips on the landing page are the
+> precedent.
 
 Mirror the same paragraph into `DESIGN.md` §4.1, together with §3's accent rule
 and §5's typography exception.
@@ -267,10 +269,14 @@ Sign in / Get started pair arrives in PR 3 with `/login` and `/signup`. Both
 are one-line additions to an array in the component, done in the PR that
 creates the destination.
 
-Mobile (<768px): nav collapses to a sheet behind a hamburger with
-`aria-expanded` and `aria-controls`, focus moved into the panel on open and
-returned to the trigger on close, `Esc` closes. Tap targets ≥44×44px. At PR 1
-the sheet holds only the theme toggle and the CTA; PR 2 fills it.
+Mobile: **no sheet in this PR.** With an empty nav a hamburger would hide two
+controls that are already on screen — speculative scaffolding for links that do
+not exist yet. The header at 360px is logo + wordmark + toggle + CTA, which fits
+once the CTA label shortens to "Sign in" below 640px (the full label needs
+~200px it does not have). PR 2 adds the sheet along with the links that justify
+it: hamburger with `aria-expanded`/`aria-controls`, focus moved into the panel
+on open and returned to the trigger on close, `Esc` to close, tap targets
+≥44×44px.
 
 **Footer.** Four columns on ≥1024px, two on ≥640px, one below. `bg-surface`,
 top border `line`. Columns and their contents *at the end of PR 2* — the target
@@ -329,7 +335,6 @@ app/(public)/layout.tsx
 components/public/PublicHeader.tsx
 components/public/PublicFooter.tsx
 components/public/ThemeToggle.tsx
-components/public/MobileNav.tsx
 lib/theme.ts                      THEME_COOKIE, Theme type, readTheme(value)
 scripts/theme.test.mts            see §10
 ```
@@ -417,8 +422,8 @@ plan below and by a QA row in `TownHall_Checklist (1).xlsx`.
 10. Every new colour pairing is verified at WebAIM and matches §3.2's table.
 11. DM Sans applies to public paragraph text only; DM Mono remains the body
     font on every app surface.
-12. The mobile sheet is keyboard-operable: opens, traps focus, closes on `Esc`,
-    returns focus to the trigger.
+12. The header is usable at 360px with no horizontal scroll and no hamburger —
+    the sheet arrives in PR 2 with the links that need it.
 13. `scripts/theme.test.mts` passes and is wired into `npm test`.
 14. `npx tsc --noEmit` — zero errors.
 15. `npm run lint` — passes, no new `as any`.
@@ -460,13 +465,16 @@ Per `CLAUDE.md` — small commits, reviewable in order, not squashed.
 
 1. `feat(public): add semantic colour tokens for the public theme`
 2. `feat(public): add DM Sans for long-form public prose`
-3. `feat(public): add the public route group, layout and theme cookie`
+3. `feat(public): add the theme cookie helper`
 4. `feat(public): add the theme toggle`
-5. `feat(public): add the public header and footer`
+5. `feat(public): add the public route group, header and footer`
 6. `refactor(public): move the landing, terms and privacy pages into the group`
 7. `refactor(public): convert the moved pages to semantic tokens`
 8. `test(public): cover theme cookie resolution`
 9. `docs: scope the surface rule to app surfaces, record the accent rule`
+
+The layout lands with the header and footer it renders rather than two commits
+earlier, so every commit in the sequence builds on its own.
 
 ## Open questions
 
