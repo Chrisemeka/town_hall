@@ -76,7 +76,7 @@ export default function SubmissionReview({
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">Review</p>
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">Review</p>
           <StatusPill status={status} />
           {rating !== null && (
             <span className="font-mono text-[12px] text-ink-muted flex items-center gap-1">
@@ -106,7 +106,7 @@ export default function SubmissionReview({
       </div>
 
       {reviewNote && status === "changes_requested" && (
-        <p className="font-mono text-[13px] leading-5 text-ink-muted bg-ember/5 border-l-2 border-ember rounded-r-[6px] px-3 py-2">
+        <p className="font-mono text-[13px] leading-5 text-ink-muted bg-ember/5 border-l-2 border-danger-ink rounded-r-[6px] px-3 py-2">
           {reviewNote}
         </p>
       )}
@@ -125,7 +125,7 @@ export default function SubmissionReview({
             </p>
             <RatingPicker value={stars} onChange={setStars} />
             {errors?.rating && (
-              <p className="font-mono text-[12px] text-ember mt-1">{errors.rating[0]}</p>
+              <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.rating[0]}</p>
             )}
           </div>
 
@@ -140,10 +140,10 @@ export default function SubmissionReview({
                 rows={3}
                 defaultValue={reviewNote ?? ""}
                 placeholder="e.g. The repro steps aren't clear — which screen were you on?"
-                className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-voltage transition-colors duration-150"
+                className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent-ink transition-colors duration-150"
               />
               {errors?.note && (
-                <p className="font-mono text-[12px] text-ember mt-1">{errors.note[0]}</p>
+                <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.note[0]}</p>
               )}
             </div>
           )}
@@ -160,7 +160,7 @@ export default function SubmissionReview({
       )}
 
       {state && !state.success && (
-        <p className="font-mono text-[12px] text-ember">{state.error}</p>
+        <p className="font-mono text-[12px] text-danger-ink">{state.error}</p>
       )}
     </div>
   )

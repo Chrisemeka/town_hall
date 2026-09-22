@@ -138,14 +138,14 @@ export function TestCaseEditor({
                 className={[
                   "text-left rounded-[12px] border p-4 transition-colors duration-150",
                   active
-                    ? "border-voltage bg-voltage/5"
+                    ? "border-accent-ink bg-voltage/5"
                     : "border-line bg-surface hover:border-ink-muted",
                 ].join(" ")}
               >
                 <span
                   className={[
                     "block font-mono text-[13px] font-medium mb-1",
-                    active ? "text-voltage" : "text-ink",
+                    active ? "text-accent-ink" : "text-ink",
                   ].join(" ")}
                 >
                   {testCategoryLabel(option)}
@@ -181,7 +181,7 @@ export function TestCaseEditor({
                 className={[
                   "text-left rounded-[8px] border px-4 py-3 font-mono text-[13px] transition-colors duration-150",
                   templateId === template.id
-                    ? "border-voltage text-voltage bg-voltage/5"
+                    ? "border-accent-ink text-accent-ink bg-voltage/5"
                     : "border-line text-ink bg-surface hover:border-ink-muted",
                 ].join(" ")}
               >
@@ -236,7 +236,7 @@ export function TestCaseEditor({
                 className="bg-surface border border-line rounded-[12px] p-4 flex flex-col gap-3"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-mono text-[12px] font-medium text-voltage">
+                  <span className="font-mono text-[12px] font-medium text-accent-ink">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <div className="flex items-center gap-1">
@@ -322,7 +322,7 @@ export function TestCaseEditor({
                 className={[
                   "h-10 px-4 rounded-[8px] border font-mono text-[13px] transition-colors duration-150",
                   active
-                    ? "border-voltage text-voltage bg-voltage/5"
+                    ? "border-accent-ink text-accent-ink bg-voltage/5"
                     : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
                 ].join(" ")}
               >
@@ -370,8 +370,8 @@ function StepField({
         onChange={(e) => onChange(e.target.value)}
         {...fieldErrorProps(field, errors)}
         className={[
-          "h-10 w-full bg-surface-raised border rounded-[8px] px-3 font-mono text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150",
-          errors?.length ? "border-ember" : "border-line focus:border-voltage",
+          "h-10 w-full bg-surface-raised border rounded-[8px] px-3 font-mono text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150",
+          errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
         ].join(" ")}
       />
       <FieldError field={field} errors={errors} />

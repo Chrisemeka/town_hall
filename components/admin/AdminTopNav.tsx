@@ -35,7 +35,7 @@ export function AdminTopNav() {
             <Logo size={20} onDark />
             <span className="font-syne font-bold text-[18px] text-ink tracking-tight">Twnhall</span>
           </Link>
-          <span className="hidden sm:flex items-center gap-1 font-mono text-[10px] uppercase tracking-[1px] text-voltage border border-voltage/40 rounded px-2 py-0.5 shrink-0">
+          <span className="hidden sm:flex items-center gap-1 font-mono text-[10px] uppercase tracking-[1px] text-accent-ink border border-accent-ink/40 rounded px-2 py-0.5 shrink-0">
             <ShieldCheck className="w-3 h-3" />
             Admin
           </span>
@@ -49,7 +49,7 @@ export function AdminTopNav() {
               className={cn(
                 "px-3 h-9 flex items-center rounded-[8px] font-mono text-[13px] transition-colors duration-150",
                 isActive(link.href)
-                  ? "text-voltage bg-[rgba(232,255,71,0.06)]"
+                  ? "text-accent-ink bg-voltage/[0.06]"
                   : "text-ink-muted hover:text-ink",
               )}
             >
@@ -87,6 +87,9 @@ export function AdminTopNav() {
       {mobileOpen && (
         <>
           <div
+            // ponytail: a literal, deliberately. A drawer scrim is dark on
+            // both themes — it exists to push the page back, and a scrim
+            // that follows the theme stops being one in light mode.
             className="fixed inset-0 bg-black/50 z-30 md:hidden"
             onClick={() => setMobileOpen(false)}
             aria-hidden="true"
@@ -101,7 +104,7 @@ export function AdminTopNav() {
                   className={cn(
                     "h-10 px-3 rounded-[8px] font-mono text-[14px] flex items-center transition-colors duration-150",
                     isActive(link.href)
-                      ? "text-voltage bg-[rgba(232,255,71,0.06)]"
+                      ? "text-accent-ink bg-voltage/[0.06]"
                       : "text-ink-muted hover:text-ink",
                   )}
                 >

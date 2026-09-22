@@ -38,7 +38,7 @@ export function Field({
       </label>
       {children}
       {error?.length ? (
-        <p id={errorId(htmlFor)} className="font-mono text-[12px] text-ember">{error[0]}</p>
+        <p id={errorId(htmlFor)} className="font-mono text-[12px] text-danger-ink">{error[0]}</p>
       ) : helper ? (
         <p className="font-mono text-[12px] text-ink-muted leading-5">{helper}</p>
       ) : null}
@@ -50,7 +50,7 @@ export function Field({
 export function inputClass(hasError: boolean): string {
   return [
     "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-    hasError ? "border-ember" : "border-line focus:border-voltage",
+    hasError ? "border-danger-ink" : "border-line focus:border-accent-ink",
   ].join(" ")
 }
 
@@ -58,6 +58,6 @@ export function inputClass(hasError: boolean): string {
 export function textareaClass(hasError: boolean): string {
   return [
     "min-h-[120px] w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-y",
-    hasError ? "border-ember" : "border-line focus:border-voltage",
+    hasError ? "border-danger-ink" : "border-line focus:border-accent-ink",
   ].join(" ")
 }

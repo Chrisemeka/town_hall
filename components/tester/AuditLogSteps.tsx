@@ -116,7 +116,7 @@ export function AuditLogSteps({
             // Never colour alone — Design.md §5.4. The message above the submit
             // button names this step by number; the border is how the tester
             // finds it once they have been scrolled to it.
-            errorIndex === index ? "border-ember" : "border-line",
+            errorIndex === index ? "border-danger-ink" : "border-line",
           ].join(" ")}
         >
           {/*
@@ -127,7 +127,7 @@ export function AuditLogSteps({
             below that are the tester's to fill in.
           */}
           <div className="bg-surface border border-line rounded-[8px] p-4">
-            <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px] mb-3">
+            <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px] mb-3">
               Step {String(index + 1).padStart(2, "0")}
             </p>
             <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">Do</p>
@@ -175,7 +175,7 @@ export function AuditLogSteps({
                     onClick={() => edit(index, { status })}
                     className={[
                       "h-10 px-4 rounded-[8px] border font-mono text-[13px] font-medium transition-colors duration-150",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
                       active
                         ? STATUS_ACTIVE[status]
                         : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
@@ -243,15 +243,15 @@ export function AuditLogSteps({
 
 /** The tooltip's labels, toned to match the buttons they describe. */
 const STATUS_HINT_TONE: Record<EntryStatus, string> = {
-  pass: "text-[#3FFFA2]",
-  fail: "text-ember",
-  blocked: "text-sky",
+  pass: "text-success-ink",
+  fail: "text-danger-ink",
+  blocked: "text-info-ink",
 }
 
 const STATUS_ACTIVE: Record<EntryStatus, string> = {
-  pass: "border-[#3FFFA2] text-[#3FFFA2] bg-[rgba(63,255,162,0.1)]",
-  fail: "border-ember text-ember bg-ember/10",
-  blocked: "border-sky text-sky bg-sky/10",
+  pass: "border-success-ink text-success-ink bg-mint/10",
+  fail: "border-danger-ink text-danger-ink bg-ember/10",
+  blocked: "border-info-ink text-info-ink bg-sky/10",
 }
 
 function Field({
@@ -283,7 +283,7 @@ function Field({
         maxLength={ENTRY_TEXT_MAX}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none"
+        className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none"
       />
       {helper && <span className="font-mono text-[11px] text-ink-muted">{helper}</span>}
     </label>

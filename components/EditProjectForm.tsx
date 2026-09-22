@@ -87,8 +87,8 @@ export default function EditProjectForm({
       </h2>
 
       {state?.error && (
-        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-          <p className="font-mono text-[14px] text-ember">{state.error}</p>
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-danger-ink/20 rounded-[8px]">
+          <p className="font-mono text-[14px] text-danger-ink">{state.error}</p>
         </div>
       )}
 
@@ -107,7 +107,7 @@ export default function EditProjectForm({
             {...fieldErrorProps("name", fieldErrors.name)}
             className={[
               "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.name?.length ? "border-ember" : "border-line focus:border-voltage",
+              fieldErrors.name?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <FieldError field="name" errors={fieldErrors.name} />
@@ -127,7 +127,7 @@ export default function EditProjectForm({
             {...fieldErrorProps("app_url", fieldErrors.app_url)}
             className={[
               "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.app_url?.length ? "border-ember" : "border-line focus:border-voltage",
+              fieldErrors.app_url?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <FieldError field="app_url" errors={fieldErrors.app_url} />
@@ -145,7 +145,7 @@ export default function EditProjectForm({
             {...fieldErrorProps("category", fieldErrors.category)}
             className={[
               "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink focus:outline-none transition-colors duration-150",
-              fieldErrors.category?.length ? "border-ember" : "border-line focus:border-voltage",
+              fieldErrors.category?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           >
             <option value="">Select a category</option>
@@ -171,7 +171,7 @@ export default function EditProjectForm({
             {...fieldErrorProps("description", fieldErrors.description)}
             className={[
               "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
-              fieldErrors.description?.length ? "border-ember" : "border-line focus:border-voltage",
+              fieldErrors.description?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <div className="flex items-start justify-between gap-3">
@@ -179,7 +179,7 @@ export default function EditProjectForm({
             {/* No maxLength on the textarea: a project written before the cap
                 dropped to 200 has to be readable and editable, and maxLength
                 would leave the builder unable to see what they are trimming. */}
-            <span className={`font-mono text-[12px] shrink-0 ${description.length > PROJECT_SUMMARY_MAX ? "text-ember" : "text-ink-muted"}`}>
+            <span className={`font-mono text-[12px] shrink-0 ${description.length > PROJECT_SUMMARY_MAX ? "text-danger-ink" : "text-ink-muted"}`}>
               {description.length} / {PROJECT_SUMMARY_MAX}
             </span>
           </div>
@@ -202,7 +202,7 @@ function SaveButton() {
     <button
       type="submit"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Saving…" : "Save Changes"}
     </button>

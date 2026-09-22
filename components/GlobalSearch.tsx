@@ -193,7 +193,7 @@ export function GlobalSearch({
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="w-full h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150"
+          className="w-full h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
         />
       </div>
 

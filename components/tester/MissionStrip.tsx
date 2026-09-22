@@ -66,8 +66,8 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
               className={[
                 "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] transition-colors duration-150",
                 isLoadTest
-                  ? "border-sky/40 group-hover:border-sky"
-                  : "border-line group-hover:border-voltage/30",
+                  ? "border-info-ink/40 group-hover:border-info-ink"
+                  : "border-line group-hover:border-accent-ink/30",
               ].join(" ")}
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
@@ -80,7 +80,7 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                       aria-label="New"
                     />
                   )}
-                  <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-voltage transition-colors duration-150">
+                  <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-accent-ink transition-colors duration-150">
                     {m.projectName}
                   </span>
                 </div>
@@ -97,7 +97,7 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                   </span>
                 )}
                 {isLoadTest && (
-                  <span className="font-mono text-[11px] tracking-[0.5px] text-sky border border-sky/30 bg-sky/10 px-2.5 py-1 rounded-[6px] flex items-center gap-1.5">
+                  <span className="font-mono text-[11px] tracking-[0.5px] text-info-ink border border-info-ink/30 bg-sky/10 px-2.5 py-1 rounded-[6px] flex items-center gap-1.5">
                     <Clock className="w-3 h-3" />
                     {loadTestWindow(m.loadTestAt!)}
                   </span>

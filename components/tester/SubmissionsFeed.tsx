@@ -64,12 +64,12 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                 className={[
                   "font-mono text-[12px] font-medium px-3 h-8 rounded-[8px] border transition-colors duration-150 cursor-pointer",
                   on
-                    ? "border-voltage/35 bg-voltage/10 text-voltage"
+                    ? "border-accent-ink/35 bg-voltage/10 text-accent-ink"
                     : "border-line bg-surface-raised text-ink-muted hover:text-ink",
                 ].join(" ")}
               >
                 {label}
-                <span className={on ? "text-voltage/70 ml-1.5" : "text-ink-muted/60 ml-1.5"}>{count}</span>
+                <span className={on ? "text-accent-ink/70 ml-1.5" : "text-ink-muted/60 ml-1.5"}>{count}</span>
               </button>
             )
           })}
@@ -97,7 +97,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
             return (
               <Link key={s.id} href={`/mission/${s.missionId}`} className="group block">
                 <div
-                  className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors duration-150 group-hover:border-voltage/30"
+                  className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors duration-150 group-hover:border-accent-ink/30"
                   style={{
                     boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
                     ...(needsChanges ? { borderLeft: "3px solid #FF4F4F" } : null),
@@ -107,7 +107,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                     <span className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted truncate">
                       {s.projectName}
                     </span>
-                    <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-voltage transition-colors duration-150">
+                    <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-accent-ink transition-colors duration-150">
                       {s.missionTitle}
                     </span>
                     <div className="flex items-center gap-2.5 font-mono text-[12px] text-ink-muted flex-wrap">
@@ -117,7 +117,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                       {needsChanges && s.reviewNote && (
                         <>
                           <span className="text-line">·</span>
-                          <span className="text-ember truncate max-w-[280px]">{s.reviewNote}</span>
+                          <span className="text-danger-ink truncate max-w-[280px]">{s.reviewNote}</span>
                         </>
                       )}
                     </div>

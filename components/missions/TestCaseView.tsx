@@ -42,7 +42,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
           key={step.id}
           className="bg-surface border border-line rounded-[12px] p-4 flex gap-4"
         >
-          <span className="font-mono text-[12px] font-medium text-voltage shrink-0 pt-0.5">
+          <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 pt-0.5">
             {String(index + 1).padStart(2, "0")}
           </span>
           <div className="flex flex-col gap-2 min-w-0">

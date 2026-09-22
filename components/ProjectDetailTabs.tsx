@@ -88,7 +88,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               >
                 {label}
                 {" "}
-                <span className={`font-mono text-[12px] ${tab === key ? "text-voltage" : "text-ink-muted/60"}`}>
+                <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
                   ({count})
                 </span>
                 {tab === key && (
@@ -131,7 +131,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               return (
                 <div
                   key={mission.id}
-                  className="relative bg-surface-raised border border-line rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-voltage/30"
+                  className="relative bg-surface-raised border border-line rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
                 >
                   {/* Card content */}
@@ -139,7 +139,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     {/* Title row */}
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-baseline gap-3 min-w-0">
-                        <span className="font-mono text-[12px] font-medium text-voltage shrink-0">
+                        <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0">
                           {missionNum}
                         </span>
                         <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
@@ -197,7 +197,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     <Link
                       key={result.id}
                       href={`/dashboard/${projectId}/mission/${mission.id}`}
-                      className="group block border-l-[3px] border-line pl-4 hover:border-voltage transition-colors duration-150"
+                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
                     >
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
@@ -217,7 +217,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
                       <ScreenshotStrip urls={screenshotList(result)} />
 
-                      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-voltage transition-colors duration-150">
+                      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
                         Read full feedback
                         <ArrowRight className="w-3 h-3" />
                       </span>

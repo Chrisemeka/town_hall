@@ -30,7 +30,7 @@ export function UserRowActions({
   if (role === "admin") {
     return (
       <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ink-muted">
-        <ShieldCheck className="w-3 h-3 text-voltage" />
+        <ShieldCheck className="w-3 h-3 text-accent-ink" />
         Admin
       </span>
     )
@@ -94,7 +94,7 @@ export function UserRowActions({
           rows={2}
           autoFocus
           disabled={isPending}
-          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
+          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150 resize-none disabled:opacity-40"
         />
 
         {isSuspend && (
@@ -121,7 +121,7 @@ export function UserRowActions({
 
         <div className="flex items-center gap-2 justify-end flex-wrap">
           {error && (
-            <span className="font-mono text-[11px] text-ember truncate max-w-[160px]" title={error}>{error}</span>
+            <span className="font-mono text-[11px] text-danger-ink truncate max-w-[160px]" title={error}>{error}</span>
           )}
           <span className="font-mono text-[10px] text-ink-muted/60 tabular-nums">
             {reason.trim().length}/{MAX_REASON}
@@ -184,7 +184,7 @@ export function UserRowActions({
     return (
       <div className="flex items-center gap-2 justify-end">
         {error && (
-          <span className="font-mono text-[11px] text-ember mr-1 truncate max-w-[140px]" title={error}>{error}</span>
+          <span className="font-mono text-[11px] text-danger-ink mr-1 truncate max-w-[140px]" title={error}>{error}</span>
         )}
         <button
           type="button"
@@ -213,7 +213,7 @@ export function UserRowActions({
   return (
     <div className="flex items-center gap-2 justify-end">
       {error && (
-        <span className="font-mono text-[11px] text-ember mr-1 truncate max-w-[140px]" title={error}>{error}</span>
+        <span className="font-mono text-[11px] text-danger-ink mr-1 truncate max-w-[140px]" title={error}>{error}</span>
       )}
       <button
         type="button"

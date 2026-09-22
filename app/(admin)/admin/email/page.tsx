@@ -14,8 +14,8 @@ export default async function AdminEmailPage() {
   return (
     <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Email
         </p>
       </div>
@@ -32,7 +32,7 @@ export default async function AdminEmailPage() {
         style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
       >
         <div className="px-5 py-4 border-b border-line flex items-center gap-2">
-          <Mail className="w-4 h-4 text-voltage" />
+          <Mail className="w-4 h-4 text-accent-ink" />
           <h2 className="font-syne font-bold text-[16px] text-ink">
             Compose
           </h2>

@@ -135,7 +135,7 @@ export default async function ProjectDetailPage({
               href={project.app_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-[13px] text-sky hover:underline w-fit"
+              className="font-mono text-[13px] text-info-ink hover:underline w-fit"
             >
               {project.app_url.replace(/^https?:\/\//, "")}
             </a>

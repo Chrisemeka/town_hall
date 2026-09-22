@@ -77,11 +77,11 @@ export function ProjectRowActions({
           rows={2}
           autoFocus
           disabled={isPending}
-          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
+          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150 resize-none disabled:opacity-40"
         />
         <div className="flex items-center gap-2 justify-end">
           {error && (
-            <span className="font-mono text-[11px] text-ember truncate max-w-[160px]" title={error}>
+            <span className="font-mono text-[11px] text-danger-ink truncate max-w-[160px]" title={error}>
               {error}
             </span>
           )}
@@ -113,7 +113,7 @@ export function ProjectRowActions({
   if (mode === "delete-confirm") {
     return (
       <div className="flex items-center gap-2 justify-end">
-        <span className="font-mono text-[11px] text-ember flex items-center gap-1 mr-1">
+        <span className="font-mono text-[11px] text-danger-ink flex items-center gap-1 mr-1">
           <AlertTriangle className="w-3 h-3" />
           Delete?
         </span>
@@ -141,7 +141,7 @@ export function ProjectRowActions({
   return (
     <div className="flex items-center gap-2 justify-end">
       {error && (
-        <span className="font-mono text-[11px] text-ember mr-2 truncate max-w-[180px]" title={error}>
+        <span className="font-mono text-[11px] text-danger-ink mr-2 truncate max-w-[180px]" title={error}>
           {error}
         </span>
       )}

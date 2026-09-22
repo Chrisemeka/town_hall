@@ -91,16 +91,16 @@ export function BroadcastForm({ totalUsers }: BroadcastFormProps) {
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       {success && (
-        <div className="flex items-start gap-2 rounded-[8px] border border-voltage/40 bg-voltage/10 px-3 py-2.5">
-          <CheckCircle2 className="w-4 h-4 text-voltage mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2 rounded-[8px] border border-accent-ink/40 bg-voltage/10 px-3 py-2.5">
+          <CheckCircle2 className="w-4 h-4 text-accent-ink mt-0.5 shrink-0" />
           <p className="font-mono text-[13px] text-ink">
             Email sent to {success.count} recipient{success.count === 1 ? "" : "s"}.
           </p>
         </div>
       )}
       {serverError && (
-        <div ref={banner} className="flex items-start gap-2 rounded-[8px] border border-ember/40 bg-ember/10 px-3 py-2.5">
-          <AlertCircle className="w-4 h-4 text-ember mt-0.5 shrink-0" />
+        <div ref={banner} className="flex items-start gap-2 rounded-[8px] border border-danger-ink/40 bg-ember/10 px-3 py-2.5">
+          <AlertCircle className="w-4 h-4 text-danger-ink mt-0.5 shrink-0" />
           <p className="font-mono text-[13px] text-ink">{serverError}</p>
         </div>
       )}
@@ -230,7 +230,7 @@ function FieldGroup({
     <div>
       <label htmlFor={htmlFor} className="block font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-2">
         {label}
-        {required && <span className="text-voltage ml-1">*</span>}
+        {required && <span className="text-accent-ink ml-1">*</span>}
       </label>
       {children}
     </div>
@@ -257,17 +257,17 @@ function AudienceOption({
       className={cn(
         "flex items-center gap-3 rounded-[8px] border px-3 py-2.5 text-left transition-colors duration-150",
         active
-          ? "border-voltage bg-voltage/5"
+          ? "border-accent-ink bg-voltage/5"
           : "border-line hover:border-ink-muted",
       )}
     >
       <div
         className={cn(
           "w-8 h-8 rounded-[6px] flex items-center justify-center shrink-0 border",
-          active ? "border-voltage/40 bg-voltage/10" : "border-line bg-surface",
+          active ? "border-accent-ink/40 bg-voltage/10" : "border-line bg-surface",
         )}
       >
-        <Icon className={cn("w-4 h-4", active ? "text-voltage" : "text-ink-muted")} />
+        <Icon className={cn("w-4 h-4", active ? "text-accent-ink" : "text-ink-muted")} />
       </div>
       <div className="min-w-0">
         <p className={cn("font-mono text-[13px]", active ? "text-ink" : "text-ink")}>

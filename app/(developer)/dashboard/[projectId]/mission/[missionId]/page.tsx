@@ -123,8 +123,8 @@ export default async function DeveloperMissionDetailPage({
               type="submit"
               className={`h-8 px-3 rounded-[6px] font-mono text-[13px] transition-colors duration-150 flex items-center gap-1.5 cursor-pointer ${
                 isActive
-                  ? "bg-ember/10 border border-ember/30 text-ember hover:bg-ember/20"
-                  : "bg-voltage/10 border border-voltage/30 text-voltage hover:bg-voltage/20"
+                  ? "bg-ember/10 border border-danger-ink/30 text-danger-ink hover:bg-ember/20"
+                  : "bg-voltage/10 border border-accent-ink/30 text-accent-ink hover:bg-voltage/20"
               }`}
             >
               {isActive ? (
@@ -149,7 +149,7 @@ export default async function DeveloperMissionDetailPage({
             heading over blank space. */}
         {mission.task_description && (
           <>
-            <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mb-2">
+            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
               NOTES FOR TESTERS
             </p>
             <p className="font-mono text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
@@ -164,7 +164,7 @@ export default async function DeveloperMissionDetailPage({
           className="mt-4"
         />
 
-        <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mt-6 mb-3">
+        <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
           TEST STEPS
         </p>
         <div className="max-w-3xl">

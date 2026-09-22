@@ -60,7 +60,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
         <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
         <Link
           href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
         >
           New Project
         </Link>
@@ -78,7 +78,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           placeholder="Search missions…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150"
+          className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
         />
       </div>
 
@@ -88,7 +88,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a different search term.</p>
           <button
             onClick={() => setQuery("")}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
           >
             Clear search
           </button>
@@ -101,7 +101,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
             return (
               <div
                 key={mission.id}
-                className="relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-voltage/30"
+                className="relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-accent-ink/30"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
                 {/* Left content */}
@@ -109,7 +109,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                   {/* Number + project · handle */}
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span
-                      className="font-syne font-bold text-voltage leading-none"
+                      className="font-syne font-bold text-accent-ink leading-none"
                       style={{ fontSize: 14 }}
                     >
                       {num}
@@ -140,7 +140,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                 {/* Start → */}
                 <Link
                   href={`/mission/${mission.id}`}
-                  className="shrink-0 relative z-10 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted hover:text-voltage transition-colors duration-150"
+                  className="shrink-0 relative z-10 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted hover:text-accent-ink transition-colors duration-150"
                 >
                   Start <ArrowRight className="w-3.5 h-3.5" />
                 </Link>

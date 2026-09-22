@@ -84,7 +84,7 @@ export default function MissionResultRow({
 
         {/* TEST SCREENSHOTS */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             TEST SCREENSHOTS
             {shots.length > 1 && (
               <span className="text-ink-muted normal-case tracking-normal">
@@ -129,7 +129,7 @@ export default function MissionResultRow({
                   aria-label={`View screenshot ${i + 1}`}
                   className={[
                     "w-14 h-14 rounded-[8px] overflow-hidden border transition-colors duration-150 shrink-0",
-                    i === active ? "border-voltage" : "border-line hover:border-ink-muted",
+                    i === active ? "border-accent-ink" : "border-line hover:border-ink-muted",
                   ].join(" ")}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
@@ -149,7 +149,7 @@ export default function MissionResultRow({
 
         {/* WRITTEN FEEDBACK */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
           </p>
           <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex-1 flex flex-col justify-between">
@@ -166,7 +166,7 @@ export default function MissionResultRow({
       {result.ai_summary && (
         <div className="bg-surface-raised border border-line rounded-[12px] p-6">
           <div className="flex items-center justify-between mb-4">
-            <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
               Test Report
             </p>
             <button
@@ -189,9 +189,9 @@ export default function MissionResultRow({
                   <div key={i}>
                     <div className="flex items-center gap-2 mb-2">
                       {item.status === "warn" || item.status === "fail" ? (
-                        <AlertTriangle className="w-4 h-4 text-voltage shrink-0" />
+                        <AlertTriangle className="w-4 h-4 text-accent-ink shrink-0" />
                       ) : (
-                        <CheckCircle2 className="w-4 h-4 text-mint shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-success-ink shrink-0" />
                       )}
                       <p className="font-mono text-[13px] font-semibold text-ink">{item.title}</p>
                     </div>

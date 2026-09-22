@@ -25,7 +25,7 @@ export function SubmissionRowActions({ submissionId }: { submissionId: string })
   if (confirm) {
     return (
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[11px] text-ember inline-flex items-center gap-1">
+        <span className="font-mono text-[11px] text-danger-ink inline-flex items-center gap-1">
           <AlertTriangle className="w-3 h-3" />
           Delete?
         </span>
@@ -53,7 +53,7 @@ export function SubmissionRowActions({ submissionId }: { submissionId: string })
   return (
     <div className="flex items-center gap-2">
       {error && (
-        <span className="font-mono text-[11px] text-ember truncate max-w-[180px]" title={error}>
+        <span className="font-mono text-[11px] text-danger-ink truncate max-w-[180px]" title={error}>
           {error}
         </span>
       )}

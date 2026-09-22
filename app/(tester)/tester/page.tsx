@@ -145,7 +145,7 @@ export default async function TesterHomePage() {
                 "h-10 px-4 rounded-[8px] font-mono font-medium text-[13px] flex items-center gap-2 transition-colors duration-150",
                 primary
                   ? "bg-voltage text-obsidian hover:bg-voltage-dark"
-                  : "bg-surface-raised border border-line text-ink hover:border-voltage hover:text-voltage",
+                  : "bg-surface-raised border border-line text-ink hover:border-accent-ink hover:text-accent-ink",
               ].join(" ")}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -163,14 +163,14 @@ export default async function TesterHomePage() {
               New Missions
             </p>
             {newCount > 0 && (
-              <span className="font-mono text-[11px] text-voltage bg-voltage/10 px-2 py-0.5 rounded-[6px]">
+              <span className="font-mono text-[11px] text-accent-ink bg-voltage/10 px-2 py-0.5 rounded-[6px]">
                 {newCount} NEW
               </span>
             )}
           </div>
           <Link
             href="/explore/missions"
-            className="font-mono text-[13px] text-ink-muted hover:text-voltage transition-colors duration-150"
+            className="font-mono text-[13px] text-ink-muted hover:text-accent-ink transition-colors duration-150"
           >
             See all →
           </Link>

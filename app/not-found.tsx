@@ -11,7 +11,7 @@ export default function NotFound() {
       >
         {/* Watermark */}
         <span
-          className="absolute font-syne font-bold text-voltage select-none pointer-events-none leading-none"
+          className="absolute font-syne font-bold text-accent-ink select-none pointer-events-none leading-none"
           style={{ fontSize: 320, opacity: 0.04 }}
           aria-hidden="true"
         >
@@ -19,7 +19,7 @@ export default function NotFound() {
         </span>
 
         <div className="relative z-10 flex flex-col items-center">
-          <p tabIndex={0} className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+          <p tabIndex={0} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
             Error 404
           </p>
           <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[46px] tracking-[-0.5px] text-ink mb-3">

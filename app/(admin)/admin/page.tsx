@@ -157,8 +157,8 @@ export default async function AdminHomePage() {
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10">
         <div className="min-w-0">
           <div className="flex items-center gap-3 mb-3">
-            <ShieldCheck className="w-5 h-5 text-voltage" />
-            <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px]">
+            <ShieldCheck className="w-5 h-5 text-accent-ink" />
+            <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px]">
               Admin Console
             </p>
           </div>
@@ -195,7 +195,7 @@ export default async function AdminHomePage() {
       {/* ── Recent activity ──────────────────────────────────── */}
       <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
         <div className="px-5 py-4 border-b border-line flex items-center gap-2">
-          <Activity className="w-4 h-4 text-voltage" />
+          <Activity className="w-4 h-4 text-accent-ink" />
           <h2 className="font-syne font-bold text-[16px] text-ink">Recent Activity</h2>
         </div>
         {recentActivity.length === 0 ? (
@@ -255,14 +255,14 @@ function NavCard({
   return (
     <Link
       href={href}
-      className="group bg-surface-raised border border-line rounded-[12px] p-6 hover:border-voltage/40 transition-colors duration-150 flex flex-col"
+      className="group bg-surface-raised border border-line rounded-[12px] p-6 hover:border-accent-ink/40 transition-colors duration-150 flex flex-col"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
     >
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="w-10 h-10 rounded-[8px] bg-surface border border-line flex items-center justify-center">
-          <Icon className="w-5 h-5 text-voltage" />
+          <Icon className="w-5 h-5 text-accent-ink" />
         </div>
-        <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-voltage transition-colors duration-150" />
+        <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-accent-ink transition-colors duration-150" />
       </div>
       <h3 className="font-syne font-bold text-[18px] text-ink mb-1">{title}</h3>
       <p className="font-mono text-[13px] text-ink-muted leading-5">{desc}</p>

@@ -23,7 +23,7 @@ export function FieldError({
 }) {
   if (!errors || errors.length === 0) return null
   return (
-    <p id={errorId(field)} className={cn("font-mono text-[12px] text-ember mt-1", className)}>
+    <p id={errorId(field)} className={cn("font-mono text-[12px] text-danger-ink mt-1", className)}>
       {errors[0]}
     </p>
   )

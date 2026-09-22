@@ -112,8 +112,8 @@ export default async function AdminMissionDetailPage({
     <div className="max-w-[1000px] mx-auto px-6 py-10">
       {/* Header strip */}
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Mission
         </p>
       </div>
@@ -167,7 +167,7 @@ export default async function AdminMissionDetailPage({
 
       {/* Task description */}
       <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-3">Notes</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-accent-ink mb-3">Notes</p>
         <div
           className="rounded-[12px] p-5"
           style={{
@@ -184,7 +184,7 @@ export default async function AdminMissionDetailPage({
 
       {/* Test case */}
       <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-3">Test case</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-accent-ink mb-3">Test case</p>
         <MissionChips
           category={mission.category}
           deviceTarget={mission.device_target}
@@ -201,7 +201,7 @@ export default async function AdminMissionDetailPage({
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <Link
                 href="/admin/projects"
-                className="font-syne font-bold text-[18px] text-ink hover:text-voltage transition-colors duration-150"
+                className="font-syne font-bold text-[18px] text-ink hover:text-accent-ink transition-colors duration-150"
               >
                 {project.name}
               </Link>
@@ -210,7 +210,7 @@ export default async function AdminMissionDetailPage({
                   href={project.app_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-mono text-[13px] text-sky hover:underline inline-flex items-center gap-1.5"
+                  className="font-mono text-[13px] text-info-ink hover:underline inline-flex items-center gap-1.5"
                 >
                   {project.app_url.replace(/^https?:\/\//, "")}
                   <ExternalLink className="w-3 h-3" />
@@ -233,7 +233,7 @@ export default async function AdminMissionDetailPage({
             )}
           </div>
         ) : (
-          <p className="font-mono text-[13px] text-ember">Project missing.</p>
+          <p className="font-mono text-[13px] text-danger-ink">Project missing.</p>
         )}
       </div>
 

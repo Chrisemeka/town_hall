@@ -254,10 +254,10 @@ export default function AuditLogForm({
           if (appUrl) window.open(appUrl, "_blank", "noopener,noreferrer")
           setUnlocked(true)
         }}
-        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
           unlocked
             ? "mb-8 border border-line text-ink hover:border-ink-muted"
-            : "mb-3 bg-voltage text-obsidian hover:bg-[#C8E000]"
+            : "mb-3 bg-voltage text-obsidian hover:bg-voltage-dark"
         }`}
       >
         {unlocked ? "Open Again in New Tab" : "Open Project in New Tab"}
@@ -295,14 +295,14 @@ export default function AuditLogForm({
             className="mb-6 px-4 py-3 rounded-[8px]"
             style={{ background: "rgba(255,79,79,0.1)", border: "1px solid rgba(255,79,79,0.2)" }}
           >
-            <p className="font-mono text-[14px] text-ember">{submitError}</p>
+            <p className="font-mono text-[14px] text-danger-ink">{submitError}</p>
           </div>
         )}
 
         {hasSteps && (
           <>
             <p
-              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
               style={{ letterSpacing: "1px" }}
             >
               Work through the test case
@@ -323,7 +323,7 @@ export default function AuditLogForm({
         {/* Named for the artefact, not its purpose: a first-time tester read
             "Proof of Visit" and did not know a screenshot was wanted. */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mb-2"
+          className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-2"
           style={{ letterSpacing: "1px" }}
         >
           Screenshots of Your Test
@@ -359,7 +359,7 @@ export default function AuditLogForm({
                   type="button"
                   onClick={() => removeShot(shot)}
                   aria-label={`Remove ${shot.file.name}`}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface/85 border border-line text-ink-muted hover:text-ember hover:border-ember transition-colors duration-150 flex items-center justify-center"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface/85 border border-line text-ink-muted hover:text-danger-ink hover:border-danger-ink transition-colors duration-150 flex items-center justify-center"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -408,7 +408,7 @@ export default function AuditLogForm({
               cursor: "pointer",
               transition: "border-color 150ms ease, background 150ms ease",
             }}
-            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             <input
               ref={fileRef}
@@ -424,7 +424,7 @@ export default function AuditLogForm({
             <Upload className="w-6 h-6 text-ink-muted mb-3" />
             <p className="font-mono text-[13px] text-ink-muted text-center">
               {shots.length > 0 ? "Add more screenshots" : "Drop your screenshots here"}{" "}
-              <span className="text-voltage">or browse files</span>
+              <span className="text-accent-ink">or browse files</span>
             </p>
           </div>
         )}
@@ -437,12 +437,12 @@ export default function AuditLogForm({
         )}
 
         {fileErrors.map((msg) => (
-          <p key={msg} className="font-mono text-[12px] text-ember mt-2">{msg}</p>
+          <p key={msg} className="font-mono text-[12px] text-danger-ink mt-2">{msg}</p>
         ))}
 
         {/* YOUR FEEDBACK */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mt-8 mb-3"
+          className="font-mono text-[11px] font-medium uppercase text-accent-ink mt-8 mb-3"
           style={{ letterSpacing: "1px" }}
         >
           {hasSteps ? "Anything else?" : "Your Feedback"}
@@ -459,13 +459,13 @@ export default function AuditLogForm({
           placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
           className={[
             "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
-            commentError ? "border-ember" : "border-line focus:border-voltage",
+            commentError ? "border-danger-ink" : "border-line focus:border-accent-ink",
           ].join(" ")}
           style={{ minHeight: 160 }}
         />
         <div className="flex items-center justify-between mt-2 mb-8 gap-3">
           {commentError ? (
-            <p className="font-mono text-[12px] text-ember">{commentError}</p>
+            <p className="font-mono text-[12px] text-danger-ink">{commentError}</p>
           ) : (
             <p className="font-mono text-[12px] text-ink-muted">
               {hasSteps
@@ -483,7 +483,7 @@ export default function AuditLogForm({
             onClick={handleSubmit}
             disabled={isSubmitting}
             aria-describedby={isReady ? undefined : "submit-hint"}
-            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
+            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
           >
             {isSubmitting ? "Submitting…" : "Submit Feedback"}
           </button>

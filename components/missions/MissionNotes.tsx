@@ -41,7 +41,7 @@ export function MissionNotes({
           type="checkbox"
           checked={open}
           onChange={(e) => onOpenChange(e.target.checked)}
-          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
         />
         <span className="font-mono text-[14px] text-ink">Add notes for testers</span>
       </label>
@@ -69,15 +69,15 @@ export function MissionNotes({
               onChange={(e) => onChange(e.target.value)}
               {...fieldErrorProps("task_description", errors)}
               className={[
-                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
-                errors?.length ? "border-ember" : "border-line focus:border-voltage",
+                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
+                errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
               ].join(" ")}
             />
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <FieldError field="task_description" errors={errors} />
                 {!errors?.length && (
-                  <p className={`font-mono text-[12px] ${short ? "text-voltage" : "text-ink-muted"}`}>
+                  <p className={`font-mono text-[12px] ${short ? "text-accent-ink" : "text-ink-muted"}`}>
                     {short
                       ? `${MISSION_DESCRIPTION_MIN - value.length} more characters needed.`
                       : "Optional. The steps say what to do; this says what to know first."}
@@ -92,7 +92,7 @@ export function MissionNotes({
               were instructions for writing a brief. The test case does that job
               now, so these are about the context the steps cannot carry. */}
           <div className="bg-surface border border-line rounded-[12px] p-6">
-            <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+            <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
               Writing Useful Notes
             </p>
             <div className="flex flex-col gap-3">

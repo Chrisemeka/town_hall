@@ -72,7 +72,7 @@ export default async function ProjectMissionsPage({
             href={row.app_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[13px] text-sky hover:underline mb-3 block"
+            className="font-mono text-[13px] text-info-ink hover:underline mb-3 block"
           >
             {row.app_url.replace(/^https?:\/\//, "")}
           </a>
@@ -100,11 +100,11 @@ export default async function ProjectMissionsPage({
           return (
             <div
               key={mission.id}
-              className="relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 hover:border-voltage/30 transition-colors duration-150"
+              className="relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 hover:border-accent-ink/30 transition-colors duration-150"
               style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
               <div className="flex-1 min-w-0 relative z-10">
-                <span className="font-syne font-bold text-voltage text-[14px] leading-none">
+                <span className="font-syne font-bold text-accent-ink text-[14px] leading-none">
                   {num}
                 </span>
                 <p className="font-syne font-bold text-[18px] text-ink leading-6 truncate mt-1">
@@ -119,7 +119,7 @@ export default async function ProjectMissionsPage({
 
               <Link
                 href={`/mission/${mission.id}`}
-                className="shrink-0 relative z-10 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted hover:text-voltage transition-colors duration-150"
+                className="shrink-0 relative z-10 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted hover:text-accent-ink transition-colors duration-150"
               >
                 Start <ArrowRight className="w-3.5 h-3.5" />
               </Link>

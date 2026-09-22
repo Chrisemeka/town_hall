@@ -24,7 +24,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
         {paged.map((mission) => (
           <div
             key={mission.id}
-            className="bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex flex-col transition-colors duration-150 hover:border-voltage/30"
+            className="bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex flex-col transition-colors duration-150 hover:border-accent-ink/30"
             style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
           >
             <Link

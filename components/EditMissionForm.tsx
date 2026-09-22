@@ -116,8 +116,8 @@ export default function EditMissionForm({
       </p>
 
       {state?.error && (
-        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-          <p className="font-mono text-[14px] text-ember">{state.error}</p>
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-danger-ink/20 rounded-[8px]">
+          <p className="font-mono text-[14px] text-danger-ink">{state.error}</p>
         </div>
       )}
 
@@ -139,12 +139,12 @@ export default function EditMissionForm({
             {...fieldErrorProps("title", fieldErrors.title)}
             className={[
               "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.title?.length ? "border-ember" : "border-line focus:border-voltage",
+              fieldErrors.title?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <div className="flex items-center justify-between gap-3">
             <FieldError field="title" errors={fieldErrors.title} />
-            <span className={`font-mono text-[12px] ml-auto ${title.length >= MISSION_TITLE_MAX ? "text-ember" : "text-ink-muted"}`}>
+            <span className={`font-mono text-[12px] ml-auto ${title.length >= MISSION_TITLE_MAX ? "text-danger-ink" : "text-ink-muted"}`}>
               {title.length} / {MISSION_TITLE_MAX}
             </span>
           </div>
@@ -193,7 +193,7 @@ function PublishButton() {
       name="intent"
       value="publish"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Saving…" : "Save & Publish"}
     </button>
@@ -208,7 +208,7 @@ function DraftButton() {
       name="intent"
       value="draft"
       disabled={pending}
-      className="h-12 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+      className="h-12 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       Save as Draft
     </button>

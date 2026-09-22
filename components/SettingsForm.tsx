@@ -264,8 +264,8 @@ export function SettingsForm({
         </div>
 
         {formError && (
-          <div ref={banner} className="mt-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-            <p className="font-mono text-[14px] text-ember">{formError}</p>
+          <div ref={banner} className="mt-6 px-4 py-3 bg-ember/10 border border-danger-ink/20 rounded-[8px]">
+            <p className="font-mono text-[14px] text-danger-ink">{formError}</p>
           </div>
         )}
 
@@ -273,7 +273,7 @@ export function SettingsForm({
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="h-10 px-5 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+            className="h-10 px-5 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
           >
             {saving ? "Saving…" : "Save Profile"}
           </button>
@@ -367,7 +367,7 @@ export function SettingsForm({
         </div>
 
         {deleteError && (
-          <p className="font-mono text-[13px] text-ember mt-3">{deleteError}</p>
+          <p className="font-mono text-[13px] text-danger-ink mt-3">{deleteError}</p>
         )}
       </div>
 

@@ -73,7 +73,7 @@ export function TopNav({
             src={avatarUrl}
             name={displayName}
             size={32}
-            className="hover:border-voltage transition-colors duration-150"
+            className="hover:border-accent-ink transition-colors duration-150"
           />
         </Link>
 

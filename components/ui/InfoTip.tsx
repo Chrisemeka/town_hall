@@ -31,7 +31,7 @@ export function InfoTip({
         type="button"
         aria-label={label}
         aria-describedby={id}
-        className="w-4 h-4 shrink-0 rounded-full border border-line text-ink-muted font-mono text-[10px] leading-none flex items-center justify-center transition-colors duration-150 hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+        className="w-4 h-4 shrink-0 rounded-full border border-line text-ink-muted font-mono text-[10px] leading-none flex items-center justify-center transition-colors duration-150 hover:border-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
       >
         ?
       </button>

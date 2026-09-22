@@ -91,8 +91,8 @@ export default async function AdminMissionsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Missions
         </p>
       </div>
@@ -147,7 +147,7 @@ export default async function AdminMissionsPage() {
                       <div className="flex flex-col gap-1 min-w-0">
                         <Link
                           href={`/admin/missions/${m.id}`}
-                          className="font-mono text-[13px] text-ink hover:text-voltage transition-colors duration-150 truncate"
+                          className="font-mono text-[13px] text-ink hover:text-accent-ink transition-colors duration-150 truncate"
                           title={m.title}
                         >
                           {m.title}
@@ -160,7 +160,7 @@ export default async function AdminMissionsPage() {
                     <td className="px-5 py-4">
                       <Link
                         href={`/admin/projects`}
-                        className="font-mono text-[13px] text-ink hover:text-voltage transition-colors duration-150 truncate"
+                        className="font-mono text-[13px] text-ink hover:text-accent-ink transition-colors duration-150 truncate"
                       >
                         {m.projectName}
                       </Link>

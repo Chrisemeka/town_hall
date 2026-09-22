@@ -98,18 +98,18 @@ export function SubmissionsList({
                       {s.project ? (
                         <span className="text-ink truncate max-w-[200px]">{s.project.name}</span>
                       ) : (
-                        <span className="text-ember">project missing</span>
+                        <span className="text-danger-ink">project missing</span>
                       )}
                       <span>›</span>
                       {s.mission ? (
                         <Link
                           href={`/admin/missions/${s.mission.id}`}
-                          className="text-ink-muted hover:text-voltage transition-colors duration-150 truncate max-w-[260px]"
+                          className="text-ink-muted hover:text-accent-ink transition-colors duration-150 truncate max-w-[260px]"
                         >
                           {s.mission.title}
                         </Link>
                       ) : (
-                        <span className="text-ember">mission missing</span>
+                        <span className="text-danger-ink">mission missing</span>
                       )}
                     </>
                   )}
@@ -140,7 +140,7 @@ export function SubmissionsList({
                     className="rounded-[8px] p-3 mb-3"
                     style={{ background: "rgba(232,255,71,0.04)", border: "1px solid rgba(232,255,71,0.15)" }}
                   >
-                    <p className="font-mono text-[11px] uppercase tracking-[1px] text-voltage mb-1">AI Summary</p>
+                    <p className="font-mono text-[11px] uppercase tracking-[1px] text-accent-ink mb-1">AI Summary</p>
                     <p className="font-mono text-[13px] text-ink-muted leading-5">{s.aiSummary}</p>
                   </div>
                 )}
@@ -161,7 +161,7 @@ export function SubmissionsList({
                         <img
                           src={url}
                           alt={`Tester screenshot ${i + 1}`}
-                          className="w-32 h-20 object-cover rounded-[6px] border border-line group-hover:border-voltage/40 transition-colors duration-150"
+                          className="w-32 h-20 object-cover rounded-[6px] border border-line group-hover:border-accent-ink/40 transition-colors duration-150"
                         />
                       </Link>
                     ))}

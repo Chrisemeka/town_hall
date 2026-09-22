@@ -105,8 +105,8 @@ export default async function AdminProjectsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Projects
         </p>
       </div>
@@ -166,7 +166,7 @@ export default async function AdminProjectsPage() {
                               href={p.app_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-ink-muted hover:text-voltage transition-colors duration-150 shrink-0"
+                              className="text-ink-muted hover:text-accent-ink transition-colors duration-150 shrink-0"
                               aria-label="Open project site"
                             >
                               <ExternalLink className="w-3 h-3" />
@@ -198,7 +198,7 @@ export default async function AdminProjectsPage() {
                         </span>
                         {p.status === "flagged" && p.flag_reason && (
                           <p
-                            className="font-mono text-[11px] text-ember/90 leading-4 line-clamp-2"
+                            className="font-mono text-[11px] text-danger-ink/90 leading-4 line-clamp-2"
                             title={p.flag_reason}
                           >
                             {p.flag_reason}

@@ -72,7 +72,7 @@ export default async function MissionDetailPage({
             href={project.app_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[13px] text-sky hover:underline block mb-2 truncate"
+            className="font-mono text-[13px] text-info-ink hover:underline block mb-2 truncate"
           >
             {project.app_url.replace(/^https?:\/\//, "")}
           </a>
@@ -91,7 +91,7 @@ export default async function MissionDetailPage({
         {mission.task_description && (
           <div className="mb-6">
             <p
-              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
               style={{ letterSpacing: "1px" }}
             >
               Notes from the Builder
@@ -119,7 +119,7 @@ export default async function MissionDetailPage({
         {/* The tour's first step anchors here rather than on the notes above,
             which a mission need not have. */}
         <div id="tour-mission-testcase">
-          <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mt-6 mb-3">
+          <p className="font-mono text-[12px] text-accent-ink uppercase tracking-[1px] mt-6 mb-3">
             Test steps
           </p>
           <TestCaseView steps={mission.test_steps} />
@@ -136,7 +136,7 @@ export default async function MissionDetailPage({
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 font-mono text-[13px] text-voltage hover:underline"
+            className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
           >
             Go to Dashboard to view results
           </Link>

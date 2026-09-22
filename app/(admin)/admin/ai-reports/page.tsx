@@ -161,8 +161,8 @@ export default async function AdminAIReportsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · AI Reports
         </p>
       </div>
@@ -215,7 +215,7 @@ export default async function AdminAIReportsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-mono text-[12px] text-ink truncate">
                     {f.tester.fullName || f.tester.email || "Unknown tester"}
-                    {f.mission ? <> · <Link href={`/admin/missions/${f.mission.id}`} className="text-ink-muted hover:text-voltage transition-colors duration-150">{f.mission.title}</Link></> : null}
+                    {f.mission ? <> · <Link href={`/admin/missions/${f.mission.id}`} className="text-ink-muted hover:text-accent-ink transition-colors duration-150">{f.mission.title}</Link></> : null}
                   </p>
                   {f.testerComment && (
                     <p className="font-mono text-[12px] text-ink-muted leading-5 mt-1 line-clamp-2">{f.testerComment}</p>
@@ -276,18 +276,18 @@ export default async function AdminAIReportsPage() {
                         {r.project ? (
                           <span className="text-ink truncate max-w-[200px]">{r.project.name}</span>
                         ) : (
-                          <span className="text-ember">project missing</span>
+                          <span className="text-danger-ink">project missing</span>
                         )}
                         <span>›</span>
                         {r.mission ? (
                           <Link
                             href={`/admin/missions/${r.mission.id}`}
-                            className="text-ink-muted hover:text-voltage transition-colors duration-150 truncate max-w-[260px]"
+                            className="text-ink-muted hover:text-accent-ink transition-colors duration-150 truncate max-w-[260px]"
                           >
                             {r.mission.title}
                           </Link>
                         ) : (
-                          <span className="text-ember">mission missing</span>
+                          <span className="text-danger-ink">mission missing</span>
                         )}
                         <span
                           className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.5px] rounded px-2 py-0.5"

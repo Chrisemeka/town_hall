@@ -113,7 +113,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
         <Link
           href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
         >
           New Project
         </Link>
@@ -162,7 +162,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 w-full sm:w-auto shrink-0 bg-surface-raised border border-line rounded-[8px] px-3 font-mono text-[13px] text-ink focus:outline-none focus:border-voltage transition-colors duration-150"
+            className="h-9 w-full sm:w-auto shrink-0 bg-surface-raised border border-line rounded-[8px] px-3 font-mono text-[13px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150"
           >
             <option value="">All categories</option>
             {presentCategories.map((option) => (
@@ -181,7 +181,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             placeholder="Search projects…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-voltage transition-colors duration-150"
+            className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
           />
         </div>
       </div>
@@ -193,7 +193,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a broader search or clear your filters.</p>
           <button
             onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-voltage hover:text-voltage transition-colors duration-150"
+            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
           >
             Clear filters
           </button>
@@ -204,7 +204,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             {displayed.slice(0, visible).map((project) => (
               <div
                 key={project.id}
-                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-voltage/30"
+                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
                 {/* Name + badge */}
@@ -245,7 +245,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
 
                 {/* URL */}
                 {project.app_url && (
-                  <p className="font-mono text-[13px] text-sky truncate mb-5">
+                  <p className="font-mono text-[13px] text-info-ink truncate mb-5">
                     {project.app_url.replace(/^https?:\/\//, "")}
                   </p>
                 )}

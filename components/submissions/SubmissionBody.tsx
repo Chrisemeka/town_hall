@@ -56,7 +56,7 @@ export function SubmissionBody({
           .map((entry) => (
             <li key={entry.id} className="border-l-[3px] border-line pl-4">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="font-mono text-[12px] font-medium text-voltage">
+                <span className="font-mono text-[12px] font-medium text-accent-ink">
                   {String(entry.step_index + 1).padStart(2, "0")}
                 </span>
                 <StatusPill status={entry.status} />
@@ -118,7 +118,7 @@ export function PassRate({ entries }: { entries: SubmissionEntry[] }) {
       <span
         className={[
           "font-mono text-[13px] font-medium",
-          failed > 0 ? "text-ember" : "text-ink",
+          failed > 0 ? "text-danger-ink" : "text-ink",
         ].join(" ")}
       >
         {passed} of {entries.length} steps passed
@@ -133,10 +133,10 @@ export function PassRate({ entries }: { entries: SubmissionEntry[] }) {
 function StatusPill({ status, count }: { status: string; count?: number }) {
   const tone =
     status === "pass"
-      ? "text-[#3FFFA2] bg-[rgba(63,255,162,0.12)] border-[rgba(63,255,162,0.3)]"
+      ? "text-success-ink bg-mint/[0.12] border-success-ink/30"
       : status === "fail"
-        ? "text-ember bg-ember/10 border-ember/30"
-        : "text-sky bg-sky/10 border-sky/30"
+        ? "text-danger-ink bg-ember/10 border-danger-ink/30"
+        : "text-info-ink bg-sky/10 border-info-ink/30"
 
   return (
     <span
