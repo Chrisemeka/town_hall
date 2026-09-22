@@ -1,41 +1,20 @@
 import Link from "next/link";
-import { Logo } from "@/components/Logo";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Terms of Service — Twnhall" };
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-bone text-midnight font-mono flex flex-col selection:bg-voltage selection:text-obsidian">
+    <div className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
 
-      {/* Nav */}
-      <header className="border-b border-midnight/10 bg-bone/85 backdrop-blur-md">
-        <div className="max-w-[1128px] mx-auto px-6 h-[60px] flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Logo size={40} />
-            <span className="font-syne font-bold text-[18px] text-midnight">Twnhall</span>
-          </Link>
-          <Link
-            tabIndex={0}
-            href="/"
-            className="font-mono text-[13px] text-midnight/70 hover:text-midnight transition-colors duration-150"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
-
-        <p tabIndex={0} className="font-mono text-[12px] text-forest uppercase tracking-[1.5px] mb-4">Legal</p>
-        <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-midnight mb-2">
+        <p tabIndex={0} className="font-mono text-[12px] text-accent-ink uppercase tracking-[1.5px] mb-4">Legal</p>
+        <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Terms of Service
         </h1>
-        <p tabIndex={0} className="font-mono text-[13px] text-midnight/60 mb-6">Last updated: August 6, 2026</p>
+        <p tabIndex={0} className="font-mono text-[13px] text-ink-muted mb-6">Last updated: August 6, 2026</p>
 
-        <p tabIndex={0} className="font-mono text-[14px] leading-7 text-midnight/70 mb-12">
-          Welcome to <span className="text-midnight">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
+        <p tabIndex={0} className="font-sans text-[14px] leading-7 text-ink mb-12">
+          Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
 
         <div className="flex flex-col gap-10">
@@ -46,7 +25,7 @@ export default function TermsPage() {
 
           <Section number="2" title="Accounts and Account Types">
             <p tabIndex={0}>
-              Twnhall has two account types: a <span className="text-midnight">Builder</span> account, which submits projects and missions and reviews the feedback that comes back, and a <span className="text-midnight">Tester</span> account, which picks up missions and submits feedback.
+              Twnhall has two account types: a <span className="text-ink">Builder</span> account, which submits projects and missions and reviews the feedback that comes back, and a <span className="text-ink">Tester</span> account, which picks up missions and submits feedback.
             </p>
             <p tabIndex={0}>
               These are separate accounts, not two modes of one account. Each has its own dashboard and its own history. One person may hold both a Builder and a Tester account, and you choose your account type when you sign up.
@@ -61,7 +40,7 @@ export default function TermsPage() {
 
           <Section number="3" title="Missions and Review">
             <p tabIndex={0}>
-              <span className="text-midnight font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
+              <span className="text-ink font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
             </p>
             <p tabIndex={0}>
               A submission moves from Pending Review to Approved or Needs Changes. Builders are expected to review submissions in good faith and within a reasonable time. Requesting changes must be accompanied by a specific, actionable reason. Withholding approval from work that meets the mission brief is a violation of these terms.
@@ -86,7 +65,7 @@ export default function TermsPage() {
             </p>
             <p tabIndex={0}>
               By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your feedback and screenshots to the Builder whose mission you submitted against, and processing submissions through automated analysis as described in our{" "}
-              <Link tabIndex={0} href="/privacy" className="text-forest underline hover:overline">Privacy Policy</Link>.
+              <Link tabIndex={0} href="/privacy" className="text-accent-ink underline hover:overline">Privacy Policy</Link>.
             </p>
             <p tabIndex={0}>
               Screenshots you capture while testing may show another developer&apos;s unreleased product. Do not publish, share, or reuse them outside Twnhall. Treat anything you see while testing as confidential.
@@ -99,7 +78,7 @@ export default function TermsPage() {
           <Section number="6" title="Privacy Policy">
             <p tabIndex={0}>
               We respect your privacy. Please review our{" "}
-              <Link tabIndex={0} href="/privacy" className="text-forest underline hover:overline">Privacy Policy</Link>
+              <Link tabIndex={0} href="/privacy" className="text-accent-ink underline hover:overline">Privacy Policy</Link>
               {" "}to understand how we collect, use, and safeguard your personal information.
             </p>
           </Section>
@@ -140,32 +119,19 @@ export default function TermsPage() {
           <Section number="12" title="Contact Information">
             <p tabIndex={0}>
               For inquiries, support, or complaints, please contact us at{" "}
-              <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-forest  underline hover:overline">
+              <a tabIndex={0} href="mailto:twnhallhq@gmail.com" className="text-accent-ink  underline hover:overline">
                 twnhallhq@gmail.com
               </a>
             </p>
           </Section>
 
-          <div className="pt-6 border-t border-midnight/10">
-            <p tabIndex={0} className="font-mono text-[13px] leading-6 text-midnight/70">
+          <div className="pt-6 border-t border-line">
+            <p tabIndex={0} className="font-mono text-[13px] leading-6 text-ink">
               By using Twnhall, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use the app.
             </p>
           </div>
 
         </div>
-      </main>
-
-      {/* Footer — dark, matches landing */}
-      <footer className="w-full bg-obsidian font-mono">
-        <div className="max-w-[1128px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p tabIndex={0} className="font-mono text-[12px] text-[#F0F0F2]">© {new Date().getFullYear()} Twnhall. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <Link tabIndex={0} href="/privacy" className="font-mono text-[12px] text-[#F0F0F2] hover:text-chalk transition-colors duration-150 text-decoration-line: underline hover:overline">Privacy Policy</Link>
-            <Link tabIndex={0} href="/terms" className="font-mono text-[12px] text-voltage">Terms of Service</Link>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }
@@ -173,11 +139,11 @@ export default function TermsPage() {
 function Section({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 tabIndex={0} className="font-syne font-bold text-[20px] text-midnight mb-4">
-        <span className="text-forest font-mono text-[14px] mr-2">{number}.</span>
+      <h2 tabIndex={0} className="font-syne font-bold text-[20px] text-ink mb-4">
+        <span className="text-accent-ink font-mono text-[14px] mr-2">{number}.</span>
         {title}
       </h2>
-      <div className="flex flex-col gap-3 font-mono text-[14px] leading-7 text-midnight/70">
+      <div className="flex flex-col gap-3 font-sans text-[14px] leading-7 text-ink">
         {children}
       </div>
     </div>

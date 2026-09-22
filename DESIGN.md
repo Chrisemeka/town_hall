@@ -135,10 +135,54 @@ Twnhall uses a **neutrals-first dark palette with a single bold accent**, follow
 - Full palette preview → [Coolors](https://coolors.co) — lock `#E8FF47` + `#0E0E10`
 - Contrast verification → [WebAim Contrast Checker](https://webaim.org/resources/contrastchecker/)
 
-> Chalk (`#F0F0F2`) on Obsidian (`#0E0E10`) ≈ **14.5:1** — exceeds WCAG AAA.  
-> Ash (`#8A8A99`) on Obsidian ≈ **5.2:1** — meets WCAG AA.  
-> Voltage (`#E8FF47`) on Obsidian ≈ **13.5:1** — exceeds WCAG AAA.  
+> Chalk (`#F0F0F2`) on Obsidian (`#0E0E10`) ≈ **16.9:1** — exceeds WCAG AAA.  
+> Ash (`#8A8A99`) on Obsidian ≈ **5.7:1** — meets WCAG AA.  
+> Voltage (`#E8FF47`) on Obsidian ≈ **17.3:1** — exceeds WCAG AAA.  
 > Verify all new color pairings at WebAim before use.
+
+*(Those three figures previously read 14.5:1, 5.2:1 and 13.5:1. Recomputed by the
+WCAG relative-luminance formula they are the values above — the old ones were
+conservative, so nothing shipped was failing, but they were wrong.)*
+
+#### Two surfaces, two token sets
+
+**App surfaces** — `(developer)`, `(tester)`, `(admin)` — are dark and use the
+literal tokens in the table above. They do not have a theme.
+
+**Public surfaces** — the `(public)` route group — are theme-switchable and use a
+semantic layer that resolves per theme from `[data-theme]` on the `(public)`
+layout's wrapper element:
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `surface` | Bone `#F5F5F7` | Obsidian `#0E0E10` | page ground |
+| `surface-raised` | White `#FFFFFF` | Graphite `#1A1A1F` | cards, panels |
+| `ink` | Obsidian `#0E0E10` | Chalk `#F0F0F2` | headings, body copy |
+| `ink-muted` | `#5A5A66` | Ash `#8A8A99` | labels, metadata, control borders |
+| `line` | `#E2E2E8` | Iron `#2C2C35` | dividers only |
+| `accent` | Voltage `#E8FF47` | Voltage `#E8FF47` | **fills only** |
+| `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | text, borders, icons |
+
+`#5A5A66` and `#E2E2E8` are the two literals this layer adds to the palette.
+
+> **Voltage is a fill only on a light ground.** Voltage on Bone is **1.02:1** —
+> invisible. A Voltage fill always carries Obsidian text (17.3:1); accent *ink*
+> on a light ground is **Forest `#353D00`** at 10.6:1 — links, small-caps labels,
+> icons, focus rings, active borders. In dark mode both collapse back to Voltage.
+> This single rule is what makes light mode look designed rather than broken.
+
+Two consequences that are easy to get wrong:
+
+- **`ink-muted` is not a body colour.** 6.3:1 in light misses the 7:1 body bar.
+  Labels, metadata and captions only — paragraphs use `ink`.
+- **`line` is not a control boundary.** 1.19:1 fails WCAG 1.4.11's 3:1 for the
+  visible boundary of a control. Inputs and other bounded controls on public
+  surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
+
+**The theme default is light, with no `prefers-color-scheme` fallback** —
+deferring to the OS would make the default unpredictable. The choice persists in
+the `th_theme` cookie, read server-side so the first paint is already correct.
+`lib/theme.ts` resolves it; `scripts/theme.test.mts` pins the behaviour.
 
 ---
 
@@ -150,6 +194,14 @@ Twnhall uses a **two-font system** — a geometric display font for brand presen
 |------|------|--------|--------|
 | **Display / Headings** | [Syne](https://fonts.google.com/specimen/Syne) | Bold (700) | Google Fonts |
 | **UI / Body / Code** | [DM Mono](https://fonts.google.com/specimen/DM+Mono) | Regular (400), Medium (500) | Google Fonts |
+| **Long-form prose, public surfaces only** | [DM Sans](https://fonts.google.com/specimen/DM+Sans) | Regular (400), Medium (500) | Google Fonts |
+
+> **The DM Sans exception.** Monospace body copy is right inside a developer
+> tool and materially harder to read across a pricing page, an about page and
+> two guides. DM Sans is scoped to paragraph text in the `(public)` group — UI,
+> labels, buttons, badges, code and metadata stay DM Mono everywhere, and app
+> surfaces do not get it at all. It is DM Mono's own superfamily, so the two
+> share vertical metrics and a mixed setting does not shift baseline.
 
 > **Font rationale:** Syne is angular, geometric, and distinctly modern — it ages well and carries editorial authority. DM Mono brings the developer aesthetic front and centre: monospace fonts communicate precision, code-adjacency, and technical credibility. For a peer testing platform, the font itself signals that Twnhall was built by and for developers.
 
@@ -376,6 +428,35 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 - Nav links: How It Works | Community — DM Mono 14px, Midnight 70% default → Midnight 100% hover, gap `28–36px` between links
 - Gap between link group and CTA: `32–40px` (`gap-8 lg:gap-10`)
 - CTA: Primary SM "Start Testing Free" (Voltage bg, Obsidian text, 8px radius) — triggers Google sign-in
+
+---
+
+### 5.6 Public Shell
+
+`components/public/` — the header, footer and theme toggle the `(public)` layout
+renders around every public page. Public pages do not render their own nav.
+
+**Header:** 64px, sticky, `bg-surface/85` + `backdrop-blur-md`, bottom border
+`line`. Logo + Syne wordmark left; marketing nav, theme toggle and the sign-in
+CTA right. The CTA is the page's one Voltage fill (§7.2) and always carries
+Obsidian text. Below 640px the CTA label shortens to "Sign in" — the full label
+does not fit beside the wordmark and toggle at 360px.
+
+**Theme toggle:** 44×44px, sun/moon icon, `aria-label` naming the *destination*
+("Switch to dark theme") rather than the current state. Writes the `th_theme`
+cookie and refreshes.
+
+**Footer:** four columns on ≥1024px, two on ≥640px, one below. `bg-surface`, top
+border `line`, 64px top / 48px bottom padding.
+
+| Brand | Product | Guides | Company & legal |
+|---|---|---|---|
+| Logo, tagline, "Made in Nigeria 🇳🇬" | Pricing, About | For builders, For testers, Get started | Contact, Privacy policy, Terms of service, Sign in |
+
+> **Never add a nav or footer entry before its page exists.** A column whose
+> pages have not shipped is omitted, not stubbed — no `href="#"`, no "coming
+> soon". Both live as arrays in their components; adding an entry is a one-line
+> change in the PR that creates the destination.
 
 ---
 
@@ -695,14 +776,20 @@ COLORS — Dashboard (Dark)
   Error:          #FF4F4F   Ember
   Info / Links:   #47B8FF   Sky
 
-COLORS — Landing Page (Light)
-  Background:     #F5F5F7   Bone
-  Surface:        #FFFFFF
-  Text:           #0E0E10   Midnight
+COLORS — Public surfaces (semantic, resolve per theme)
+                  LIGHT               DARK
+  surface:        #F5F5F7  Bone       #0E0E10  Obsidian
+  surface-raised: #FFFFFF             #1A1A1F  Graphite
+  ink:            #0E0E10  Obsidian   #F0F0F2  Chalk
+  ink-muted:      #5A5A66             #8A8A99  Ash
+  line:           #E2E2E8             #2C2C35  Iron
+  accent (fill):  #E8FF47  Voltage    #E8FF47  Voltage
+  accent-ink:     #353D00  Forest     #E8FF47  Voltage
 
 FONTS
   Headings:  Syne Bold 700
   UI & Body: DM Mono Regular 400 / Medium 500
+  Public prose only: DM Sans Regular 400 / Medium 500
 
 TYPE SCALE (px) — landing headings scale responsively
   Display 52→80 | H1 36→56 | H2 40→44 | H3 28 | H4 22 | H5 20
@@ -723,6 +810,8 @@ BUTTON HEIGHTS
 
 KEY RULES
   → One Voltage CTA per viewport. No exceptions.
+  → Voltage is a FILL only on light. Forest is the accent ink there.
+  → Literal tokens on app surfaces, semantic tokens on public surfaces.
   → All spacing divisible by 4. No exceptions.
   → Body text: 7:1 contrast min. Labels: 4.5:1 min.
   → Line height inversely proportional to font size.

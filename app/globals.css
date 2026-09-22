@@ -7,6 +7,8 @@
   /* Font Families */
   --font-syne: var(--font-syne);
   --font-mono: var(--font-dm-mono);
+  /* Public-surface prose only — see app/layout.tsx. */
+  --font-sans: var(--font-dm-sans);
 
   /* Color Palette (Design.md) */
   --color-obsidian: #0E0E10;
@@ -48,6 +50,51 @@
 
   /* Box Shadows */
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+
+  /*
+   * Semantic layer — PUBLIC SURFACES ONLY (the `(public)` route group).
+   * App surfaces (dashboard, tester, admin) keep the literal tokens above and
+   * stay dark in both themes. See CLAUDE.md § Design System.
+   *
+   * These are the light values and also the defaults: no cookie means light,
+   * deliberately, with no prefers-color-scheme fallback.
+   */
+  --color-surface:        #F5F5F7;   /* Bone */
+  --color-surface-raised: #FFFFFF;
+  --color-ink:            #0E0E10;   /* Obsidian */
+  --color-ink-muted:      #5A5A66;
+  --color-line:           #E2E2E8;
+  --color-accent:         #E8FF47;   /* Voltage — fills only */
+  --color-accent-ink:     #353D00;   /* Forest — text, borders, icons */
+}
+
+/*
+ * The dark half of the semantic layer.
+ *
+ * ponytail: the semantic names are defined directly here rather than pointing
+ * at a second `--th-*` layer. A custom property is substituted against the
+ * element that DECLARES it, so `--color-surface: var(--th-surface)` on :root
+ * would resolve once against :root and inherit down as a literal — a
+ * [data-theme] attribute on a nested wrapper could never move it. The attribute
+ * lives on the (public) layout's wrapper, not <html>, so the override has to be
+ * on the same property the utilities read. Tailwind's `@theme inline` is the
+ * other way out of this; one layer fewer beat one directive fewer.
+ *
+ * Unlayered, so it wins over @theme's :root declarations (which Tailwind emits
+ * inside `@layer theme`) without a specificity bump. [data-theme="light"] needs
+ * no block — it inherits the defaults above.
+ *
+ * Voltage is a FILL ONLY on a light ground: #E8FF47 on Bone is 1.02:1. Forest
+ * #353D00 is the accent ink there (10.6:1). In dark both collapse to Voltage.
+ */
+[data-theme="dark"] {
+  --color-surface:        #0E0E10;   /* Obsidian */
+  --color-surface-raised: #1A1A1F;   /* Graphite */
+  --color-ink:            #F0F0F2;   /* Chalk */
+  --color-ink-muted:      #8A8A99;   /* Ash */
+  --color-line:           #2C2C35;   /* Iron */
+  --color-accent:         #E8FF47;   /* Voltage */
+  --color-accent-ink:     #E8FF47;
 }
 /*
  * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
