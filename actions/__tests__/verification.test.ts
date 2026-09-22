@@ -5,10 +5,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ requireAccountForVerification: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+// lib/mail.ts imports "server-only", which does not resolve in the node test
+// environment — and a test has no business reaching Resend anyway.
+vi.mock("@/lib/mail", () => ({ sendWelcomeEmail: vi.fn() }))
+// after() defers to the end of the response. Running it inline is what makes
+// the send observable here without the test knowing about scheduling.
+vi.mock("next/server", () => ({ after: (fn: () => unknown) => fn() }))
 
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { requireAccountForVerification } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendWelcomeEmail } from "@/lib/mail"
 import { builderStep1Schema, testerStep1Schema } from "@/lib/validation/schemas"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"

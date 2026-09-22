@@ -1,10 +1,13 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { after } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccountForVerification } from "@/lib/auth"
 import { homeFor, type AccountType } from "@/lib/access"
 import { normalizeSkills } from "@/lib/vocabulary"
+import { sendWelcomeEmail } from "@/lib/mail"
+import { completionHeadlineFor, nextStepsFor } from "@/lib/setup"
 import {
   toFieldErrors,
   verificationSchemaFor,
@@ -108,7 +111,9 @@ export async function completeVerification(role: AccountType): Promise<Verificat
   const admin = createAdminClient()
   const { data: profile, error: readError } = await admin
     .from("profiles")
-    .select("full_name, country, phone, timezone, skills")
+    // `email` rides along on a read that already happens — the welcome mail
+    // costs no extra query.
+    .select("full_name, country, phone, timezone, skills, email")
     .eq("id", userId)
     .maybeSingle()
 
@@ -168,6 +173,37 @@ export async function completeVerification(role: AccountType): Promise<Verificat
 
   /** True only for the call that actually opened the gate. */
   const justOpened = (opened?.length ?? 0) > 0
+
+  if (justOpened && profile?.email) {
+    // after() rather than await: the completion screen is the reward for
+    // finishing setup and should not wait on an SMTP round trip. It is also
+    // not a bare floating promise — an un-awaited send can be dropped when a
+    // serverless response ends, and after() is the supported way to say "run
+    // this, but not before I answer".
+    //
+    // The send swallows its own failures (see lib/mail.ts), so nothing here
+    // can turn a mail problem into a gate problem.
+    //
+    // Content comes from lib/setup.ts, which is what the completion screen
+    // renders too, so the email cannot say something different from the page
+    // the person just read.
+    const email = profile.email as string
+    const name = (profile.full_name as string | null) ?? ""
+    after(() =>
+      sendWelcomeEmail({
+        to: email,
+        name,
+        role,
+        headline: completionHeadlineFor(role),
+        nextSteps: nextStepsFor(role),
+        ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}${homeFor(role)}`,
+        ctaLabel: role === "tester" ? "Find a mission" : "Go to your dashboard",
+      }),
+    )
+  } else if (justOpened) {
+    // No address on the row. Worth a line in the log, never worth a failure.
+    console.error("[completeVerification] no email on profile; welcome mail skipped")
+  }
 
   revalidatePath("/dashboard")
   revalidatePath("/explore")
