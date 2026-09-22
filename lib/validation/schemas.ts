@@ -658,3 +658,81 @@ export const updateProfileSchema = z.object({
 export type UpdateProfileInput = z.input<typeof updateProfileSchema>
 /** The parsed shape — what actually reaches the column list. */
 export type UpdateProfileFields = z.output<typeof updateProfileSchema>
+
+/* ──────────────────────────────────────────────────────────────
+ * Email + password auth
+ *
+ * Every key here is also a form control's `name`. That is not a
+ * coincidence and it is not optional: useFocusFirstError resolves a
+ * field by `name` then `id`, and components/ui/FieldError derives the
+ * message id from the same string. A control called `confirm` against a
+ * key called `confirm_password` is invisible to both — see the
+ * SettingsForm note in CLAUDE.md.
+ * ──────────────────────────────────────────────────────────── */
+
+/** Matches the Supabase project's own minimum. Neither is looser than the
+ *  other, so a password this accepts is never rejected downstream. */
+export const PASSWORD_MIN = 8
+
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, "Email is required.")
+  .email("Enter a valid email address.")
+  // Addresses are case-insensitive in practice and Supabase stores them
+  // lowercased. Normalising here means "Alice@" and "alice@" cannot become two
+  // attempts at the same account.
+  .toLowerCase()
+
+const passwordSchema = z
+  .string()
+  .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters.`)
+  // No composition rules. Length is the requirement that actually correlates
+  // with strength, and a symbol rule mostly produces "Password1!".
+  .max(72, "Password must be 72 characters or fewer.")
+
+/*
+ * The mismatch error is reported on `confirm_password`, not on `password`.
+ * That is the field the user should be taken to and the one they should fix —
+ * pointing at `password` invites them to retype the one that was probably right.
+ *
+ * ponytail: written out twice rather than through a generic helper that adds
+ * the two password fields to a shape. Zod 4 loses the field names through that
+ * inference, and the refine stops type-checking — which is the one thing the
+ * helper existed to keep honest.
+ */
+const PASSWORDS_MATCH = {
+  message: "Passwords do not match.",
+  path: ["confirm_password"],
+}
+
+export const signUpSchema = z
+  .object({
+    full_name: fullNameSchema,
+    email: emailSchema,
+    password: passwordSchema,
+    confirm_password: z.string(),
+  })
+  .refine((v) => v.password === v.confirm_password, PASSWORDS_MATCH)
+export type SignUpInput = z.input<typeof signUpSchema>
+
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirm_password: z.string(),
+  })
+  .refine((v) => v.password === v.confirm_password, PASSWORDS_MATCH)
+export type ResetPasswordInput = z.input<typeof resetPasswordSchema>
+
+export const signInSchema = z.object({
+  email: emailSchema,
+  // Deliberately not passwordSchema: an existing account may predate the
+  // current minimum, and telling someone their password is too short at the
+  // sign-in box is both useless and a disclosure about what is stored.
+  password: z.string().min(1, "Password is required."),
+})
+export type SignInInput = z.input<typeof signInSchema>
+
+export const emailOnlySchema = z.object({ email: emailSchema })
+export type EmailOnlyInput = z.input<typeof emailOnlySchema>
+
