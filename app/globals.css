@@ -104,6 +104,23 @@
   --color-accent-ink:     #E8FF47;
   --color-danger-ink:     #FF4F4F;   /* Ember */
 }
+
+/*
+ * The brand mark on a themed surface.
+ *
+ * The asset is dark line-art on transparency, so it reads on Bone as-is and
+ * vanishes on Obsidian. Components on statically dark surfaces pass `onDark`
+ * and invert themselves; public components cannot, because the same markup
+ * renders on both grounds. So the flip lives here, keyed on the attribute, and
+ * no public caller has to know the theme.
+ *
+ * Unlayered and attribute-scoped, like the token block above: it matches only
+ * inside [data-theme="dark"], which exists only on the (public) layout wrapper.
+ */
+[data-theme="dark"] .th-logo {
+  filter: brightness(0) invert(1);
+}
+
 /*
  * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
  *
