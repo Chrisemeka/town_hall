@@ -5,7 +5,10 @@
 import assert from "node:assert/strict"
 import {
   CHOOSE_ACCOUNT_PATH,
+  CONFIRM_EMAIL_PATH,
+  RESET_PASSWORD_PATH,
   accessFor,
+  isEmailGateExempt,
   homeFor,
   isRoleScoped,
   isVerifyPath,
@@ -70,7 +73,7 @@ assert.equal(allowed(CHOOSE_ACCOUNT_PATH, "tester"), true)
 
 // Per-person, not per-account — both types keep reaching these, and so does a
 // user with no account yet (they still have to be able to accept terms).
-for (const path of ["/settings", "/guides", "/terms-accept", "/admin", "/admin/users"]) {
+for (const path of ["/settings", "/guides", "/terms-accept", "/admin", "/admin/users", CONFIRM_EMAIL_PATH]) {
   for (const account of ["builder", "tester", null] as const) {
     assert.equal(allowed(path, account), true, `${path} should stay open to ${account}`)
   }
@@ -86,6 +89,10 @@ for (const path of ["/settings", "/guides", "/terms-accept", "/admin", "/admin/u
 // match one of these, it fails here.
 const PUBLIC_PAGES = [
   "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  RESET_PASSWORD_PATH,
   "/pricing",
   "/guides",
   "/guides/builder",
@@ -169,16 +176,58 @@ assert.equal(isVerifyPath("/verifyxyz"), false, "/verifyxyz must not match the /
 for (const path of ["/dashboard", "/explore", "/tester", "/mission/abc", "/verify/tester", "/verify/builder"]) {
   assert.equal(isRoleScoped(path), true, `${path} should be gated`)
 }
-for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guides", "/admin", "/", "/terms"]) {
+for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guides", "/admin", "/", "/terms", CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH]) {
   assert.equal(isRoleScoped(path), false, `${path} must stay reachable while unverified`)
 }
+
+/* ── email gate: the first link in the chain ─────────────────────────── */
+
+// The email gate runs before terms, before the account picker, before
+// verification. Two pages have to survive it, and for different reasons.
+assert.equal(isEmailGateExempt(CONFIRM_EMAIL_PATH), true, "the gate must not gate its own page")
+assert.equal(
+  isEmailGateExempt(RESET_PASSWORD_PATH),
+  true,
+  "a recovery session may be unconfirmed; bouncing it strands the user mid-reset",
+)
+
+// Everything else is subject to it, including the later gates' own pages —
+// an unconfirmed address has no business in the verification flow, which would
+// otherwise end with a verified account on an unproven address.
+for (const path of [
+  "/dashboard",
+  "/explore",
+  "/tester",
+  "/mission/abc",
+  "/settings",
+  "/terms-accept",
+  CHOOSE_ACCOUNT_PATH,
+  "/verify/tester",
+  "/verify/builder",
+  "/admin",
+]) {
+  assert.equal(isEmailGateExempt(path), false, `${path} must be behind the email gate`)
+}
+
+// Segment-aware, like every other matcher here.
+assert.equal(isEmailGateExempt("/confirm-emailx"), false)
+assert.equal(isEmailGateExempt("/reset-passwordx"), false)
+assert.equal(isEmailGateExempt("/confirm-email/anything"), true)
 
 /* ── verification gate: the composition terminates ───────────────────── */
 
 // Loops don't come from any single rule, they come from the rules pointing at
 // each other. This walks the same decision middleware.ts makes, following
 // redirects until they stop, and fails if a path is ever visited twice.
-function nextHop(pathname: string, account: AccountType | null, verified: boolean): string | null {
+function nextHop(
+  pathname: string,
+  account: AccountType | null,
+  verified: boolean,
+  emailConfirmed = true,
+): string | null {
+  // First link in the chain, and it outranks every gate below — mirrors the
+  // order in middleware.ts and in resolveAccountOrRedirect().
+  if (!emailConfirmed && !isEmailGateExempt(pathname)) return CONFIRM_EMAIL_PATH
   if (account && isRoleScoped(pathname)) {
     const verifyPath = verifyPathFor(account)
     if (!verified && pathname !== verifyPath) return verifyPath
@@ -188,11 +237,16 @@ function nextHop(pathname: string, account: AccountType | null, verified: boolea
   return access.allow ? null : access.redirect
 }
 
-function settlesAt(start: string, account: AccountType | null, verified: boolean): string {
+function settlesAt(
+  start: string,
+  account: AccountType | null,
+  verified: boolean,
+  emailConfirmed = true,
+): string {
   const seen = [start]
   let path = start
   for (let i = 0; i < 10; i++) {
-    const next = nextHop(path, account, verified)
+    const next = nextHop(path, account, verified, emailConfirmed)
     if (next === null) return path
     assert.ok(!seen.includes(next), `redirect loop: ${[...seen, next].join(" -> ")}`)
     seen.push(next)
@@ -267,3 +321,29 @@ assert.equal(
 )
 
 console.log("access gating: all assertions passed")
+
+/* ── the whole chain, with the email gate at the front ───────────────── */
+
+// An unconfirmed address funnels to /confirm-email from everywhere, whatever
+// state the later gates are in — and settles there rather than bouncing on.
+for (const path of [...GATED, "/verify/tester", "/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept"]) {
+  assert.equal(
+    settlesAt(path, "tester", false, false),
+    CONFIRM_EMAIL_PATH,
+    `unconfirmed tester from ${path}`,
+  )
+  assert.equal(
+    settlesAt(path, null, false, false),
+    CONFIRM_EMAIL_PATH,
+    `unconfirmed with no account yet, from ${path}`,
+  )
+}
+
+assert.equal(settlesAt(CONFIRM_EMAIL_PATH, "tester", false, false), CONFIRM_EMAIL_PATH)
+assert.equal(settlesAt(RESET_PASSWORD_PATH, "tester", false, false), RESET_PASSWORD_PATH)
+
+// Confirmed, and the chain behaves exactly as it did before this gate existed.
+assert.equal(settlesAt("/dashboard", "builder", true, true), "/dashboard")
+assert.equal(settlesAt("/dashboard", "builder", false, true), "/verify/builder")
+
+console.log("email gate + access composition: all assertions passed")
