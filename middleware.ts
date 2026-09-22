@@ -9,8 +9,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 import {
   ACCOUNT_COOKIE,
   CHOOSE_ACCOUNT_PATH,
+  CONFIRM_EMAIL_PATH,
   VERIFY_PREFIX,
   accessFor,
+  isEmailGateExempt,
   homeFor,
   isRoleScoped,
   isVerifyPath,
@@ -59,6 +61,10 @@ export async function middleware(request: NextRequest) {
   const protectedPrefixes = [
     '/dashboard', '/settings', '/admin', '/mission', '/explore',
     '/terms-accept', '/tester', VERIFY_PREFIX, CHOOSE_ACCOUNT_PATH,
+    // Needs a session to say anything useful. /login, /signup,
+    // /forgot-password and /reset-password are deliberately absent — an
+    // anonymous user has to reach all four.
+    CONFIRM_EMAIL_PATH,
   ]
   const isProtected = protectedPrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
@@ -75,10 +81,37 @@ export async function middleware(request: NextRequest) {
     return noStore(NextResponse.redirect(new URL('/', request.url)))
   }
 
-  // A signed-in user on a gated route (or the homepage) needs their profile and
-  // account records to decide where they belong. One embedded read covers both —
-  // service-role so RLS on `profiles` / `accounts` can't block it.
-  if (user && (isProtected || pathname === '/')) {
+  // Showing a signed-in user a login form is a bug report waiting to happen, so
+  // these bounce the same way '/' does. /forgot-password and /reset-password are
+  // NOT here: a signed-in user changing their password is doing a legitimate
+  // thing.
+  const isAuthPage = pathname === '/login' || pathname === '/signup'
+
+  // ── The email-confirmation gate — the first link in the chain ───────────
+  //
+  // Supabase's email_confirmed_at is the source of truth (no column of ours),
+  // and it rides along on the getUser() above, so this costs no extra query and
+  // can run before the profile read the terms gate needs.
+  //
+  // This is the URL-level half; lib/auth.ts re-checks it in-page. Per CLAUDE.md
+  // neither layer may be relied on alone.
+  //
+  // Admins are NOT exempt, unlike the terms gate below. An admin with an
+  // unproven address is the same risk as anyone else, and resend is always open.
+  if (user && !user.email_confirmed_at) {
+    if (!isEmailGateExempt(pathname)) {
+      return noStore(NextResponse.redirect(new URL(CONFIRM_EMAIL_PATH, request.url)))
+    }
+    // On an exempt page: stop here rather than falling into the terms/account
+    // chain below, which would redirect them off the very page they need.
+    return isProtected ? noStore(response) : response
+  }
+
+  // A signed-in user on a gated route (or the homepage, or an auth page) needs
+  // their profile and account records to decide where they belong. One embedded
+  // read covers both — service-role so RLS on `profiles` / `accounts` can't
+  // block it.
+  if (user && (isProtected || pathname === '/' || isAuthPage)) {
     const admin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -121,7 +154,9 @@ export async function middleware(request: NextRequest) {
       // tester account this request is acting as. Mirrors getActiveAccount().
       const verified = !!rows.find((a) => a.type === active)?.verification_completed_at
 
-      if (pathname === '/') {
+      // Confirmed and signed in, so none of these are somewhere to be: the
+      // landing page, a login form, or the gate they have already cleared.
+      if (pathname === '/' || isAuthPage || pathname === CONFIRM_EMAIL_PATH) {
         const target = isAdmin ? '/admin' : active ? homeFor(active) : CHOOSE_ACCOUNT_PATH
         return noStore(NextResponse.redirect(new URL(target, request.url)))
       }

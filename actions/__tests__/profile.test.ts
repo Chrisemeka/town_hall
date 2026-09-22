@@ -85,6 +85,7 @@ function signedInAs(...types: ("builder" | "tester")[]) {
     active: types[0],
     types,
     verified: true,
+    emailConfirmed: true
   })
 }
 
@@ -114,6 +115,7 @@ describe("updateProfile — auth", () => {
       active: null,
       types: [],
       verified: false,
+    emailConfirmed: true
     })
 
     const result = await updateProfile({ phone: "+2348012345678" })
@@ -308,6 +310,7 @@ describe("updateProfile — per-role skills isolation", () => {
       active: "builder",
       types: ["builder", "tester"],
       verified: true,
+    emailConfirmed: true
     })
 
     const result = await updateProfile({ skills: ["Design"] })

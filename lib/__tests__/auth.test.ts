@@ -19,12 +19,27 @@ import { ACCOUNT_COOKIE, type AccountType } from "@/lib/access"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
 const VERIFIED_AT = "2026-08-16T10:00:00.000Z"
+const CONFIRMED_AT = "2026-08-16T09:00:00.000Z"
 
 type Row = { type: AccountType; verification_completed_at: string | null }
 
 /** Wires the session, the accounts table, and the active-account cookie. */
-function given(opts: { user?: boolean; rows?: Row[]; cookie?: AccountType }) {
-  const user = opts.user === false ? null : { id: USER_ID }
+function given(opts: {
+  user?: boolean
+  rows?: Row[]
+  cookie?: AccountType
+  /** Supabase's email_confirmed_at. Defaults to confirmed — these cases are
+   *  about the gates *after* the email gate, and an unconfirmed fixture would
+   *  make every one of them assert the first redirect instead of its own. */
+  emailConfirmed?: boolean
+}) {
+  const user =
+    opts.user === false
+      ? null
+      : {
+          id: USER_ID,
+          email_confirmed_at: opts.emailConfirmed === false ? null : CONFIRMED_AT,
+        }
 
   vi.mocked(createClient).mockResolvedValue({
     auth: { getUser: async () => ({ data: { user } }) },
@@ -53,6 +68,25 @@ describe("requireAccount", () => {
   it("sends an anonymous caller to the landing page", async () => {
     given({ user: false })
     await expect(requireAccount("tester")).rejects.toThrow("REDIRECT:/")
+  })
+
+  // The email gate is first in the chain, so it wins over every redirect below
+  // — including the ones that would otherwise fire. middleware.ts gates the
+  // same thing at URL level; this is the half that survives someone editing
+  // the matcher.
+  it("sends an unconfirmed address to /confirm-email", async () => {
+    given({ rows: [verified("tester")], emailConfirmed: false })
+    await expect(requireAccount("tester")).rejects.toThrow("REDIRECT:/confirm-email")
+  })
+
+  it("puts the email gate ahead of the account picker", async () => {
+    given({ rows: [], emailConfirmed: false })
+    await expect(requireAccount("tester")).rejects.toThrow("REDIRECT:/confirm-email")
+  })
+
+  it("puts the email gate ahead of the verification gate", async () => {
+    given({ rows: [unverified("tester")], emailConfirmed: false })
+    await expect(requireAccount("tester")).rejects.toThrow("REDIRECT:/confirm-email")
   })
 
   it("sends someone with no account yet to the picker", async () => {
@@ -92,6 +126,16 @@ describe("requireAccount", () => {
 })
 
 describe("requireAccountForVerification", () => {
+  // This helper exists to skip the VERIFICATION gate and nothing else. If it
+  // ever skipped the email one too, an unconfirmed address could walk into the
+  // verification flow and come out the other side a verified account.
+  it("still enforces the email gate", async () => {
+    given({ rows: [unverified("tester")], emailConfirmed: false })
+    await expect(requireAccountForVerification("tester")).rejects.toThrow(
+      "REDIRECT:/confirm-email",
+    )
+  })
+
   it("lets an unverified account through — this is what stops the redirect loop", async () => {
     // If this ever redirects, /verify/[role] sends the user to /verify/[role]
     // and the account can never become verified.

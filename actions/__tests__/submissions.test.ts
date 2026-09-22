@@ -107,6 +107,7 @@ beforeEach(() => {
     active: "tester",
     types: ["tester"],
     verified: true,
+    emailConfirmed: true
   })
 })
 
@@ -130,6 +131,7 @@ describe("submitTestResult", () => {
       active: "builder",
       types: ["builder"],
       verified: true,
+    emailConfirmed: true
     })
 
     const result = await submitTestResult(formData())

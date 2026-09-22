@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import {
   ACCOUNT_COOKIE,
   CHOOSE_ACCOUNT_PATH,
+  CONFIRM_EMAIL_PATH,
   homeFor,
   verifyPathFor,
   type AccountType,
@@ -76,6 +77,12 @@ export async function getActiveAccount(): Promise<{
   types: AccountType[]
   /** Whether the *active* account has cleared the verification gate. */
   verified: boolean
+  /**
+   * Whether Supabase has seen this address proven. Read off the user rather
+   * than a column of ours — auth.users.email_confirmed_at is the source of
+   * truth and there is deliberately no second copy of it.
+   */
+  emailConfirmed: boolean
 } | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -96,7 +103,13 @@ export async function getActiveAccount(): Promise<{
   // account this request is acting as.
   const verified = !!rows.find((a) => a.type === active)?.verification_completed_at
 
-  return { userId: user.id, active, types, verified }
+  return {
+    userId: user.id,
+    active,
+    types,
+    verified,
+    emailConfirmed: !!user.email_confirmed_at,
+  }
 }
 
 /**
@@ -108,6 +121,11 @@ export async function getActiveAccount(): Promise<{
 async function resolveAccountOrRedirect(type: AccountType) {
   const resolved = await getActiveAccount()
   if (!resolved) redirect("/")
+  // The in-page half of the email gate, and it goes first because it is first
+  // in the chain — before terms, before the account even resolves. middleware.ts
+  // gates the same thing at URL level; per CLAUDE.md neither layer stands alone,
+  // and this is the one that survives someone editing the matcher.
+  if (!resolved.emailConfirmed) redirect(CONFIRM_EMAIL_PATH)
   if (resolved.active === null) redirect(CHOOSE_ACCOUNT_PATH)
   if (resolved.active !== type) redirect(homeFor(resolved.active))
   return resolved
