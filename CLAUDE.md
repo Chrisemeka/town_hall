@@ -39,6 +39,7 @@ lib/
   sentences.ts        Sentence heuristic for the project summary rule
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
+  initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
   validation/         Zod schemas
 emails/               React Email templates
@@ -121,6 +122,33 @@ The second exists so that if someone edits the middleware matcher, protection do
 **Route permissions come from one function.** `accessFor()` in `lib/access.ts` is the single source of truth used by middleware, server code, and `scripts/access.test.mts`. Extend it there — do not scatter permission logic.
 
 **The `th_account` cookie is not authority.** It records which role the user is currently acting as. It is unsigned. Always intersect it with the user's real `accounts` rows (see `lib/auth.ts`, mirrored in `middleware.ts`) before trusting it. A forged cookie must resolve to a real account the user holds, or to `null`.
+
+**Two gates with similar names. They are not the same gate.**
+
+| Path | Asks | Answers from |
+|---|---|---|
+| `/confirm-email` | Is the address proven? | `auth.users.email_confirmed_at` — **Supabase's**, not ours |
+| `/verify/[role]` | Is the role profile complete? | `accounts.verification_completed_at` |
+
+**Email confirmation is the first link in the chain**, ahead of everything:
+
+```
+auth → email confirmed? → profile upsert → terms → choose-account → per-role verification → home
+```
+
+Enforced in `middleware.ts` and in `resolveAccountOrRedirect()` in `lib/auth.ts`
+— two layers, as always. **Do not add a column mirroring `email_confirmed_at`**;
+the `accepted_terms_at` pattern does not apply because Supabase already owns
+this state. `isEmailGateExempt()` in `lib/access.ts` lists the only two
+exemptions and says why each one is there. Admins are *not* exempt, unlike the
+terms gate.
+
+**Identity linking is GoTrue's behaviour, not ours, and one case is a takeover
+path.** An unconfirmed password signup must never link to a Google account with
+the same address — anyone can type anyone's address at signup, and after
+linking the user reads as confirmed, so the email gate will not catch it. Twnhall
+does not call `linkIdentity()` and should not start without a separate decision.
+The four cases are in `docs/specs/SPEC-email-password-auth.md` §5.
 
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 
@@ -222,6 +250,11 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
 - **`line` is a divider, not a control boundary.** At 1.19:1 it fails WCAG 1.4.11's
   3:1 for a control's visible boundary. Inputs and other bounded controls on public
   surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
+- **Ember is not an error colour on a light ground.** `#FF4F4F` is 5.95:1 on
+  Obsidian but **2.97:1 on Bone** — it fails the 4.5:1 label bar and WCAG
+  1.4.11's 3:1 for an error border. Public surfaces use `danger-ink`
+  (`#A81E15`, 6.74:1), which collapses back to Ember in dark. Same shape of
+  rule as Voltage/Forest above.
 - **Theme default is light, with no `prefers-color-scheme` fallback.** Deliberate —
   deferring to the OS makes the default unpredictable. `lib/theme.ts` owns the
   resolution and `scripts/theme.test.mts` pins it.
@@ -259,7 +292,7 @@ Canonical reference: `Test.md`. Every feature ships with:
   page changes with it — until then, do not add a control implying a
   transaction that does not exist.
 - **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a balance, or a `paid` state without that being the explicit ask.
-- **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores.
+- **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).
 
