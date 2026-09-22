@@ -70,10 +70,39 @@ assert.equal(allowed(CHOOSE_ACCOUNT_PATH, "tester"), true)
 
 // Per-person, not per-account — both types keep reaching these, and so does a
 // user with no account yet (they still have to be able to accept terms).
-for (const path of ["/settings", "/guidelines", "/terms-accept", "/admin", "/admin/users"]) {
+for (const path of ["/settings", "/guides", "/terms-accept", "/admin", "/admin/users"]) {
   for (const account of ["builder", "tester", null] as const) {
     assert.equal(allowed(path, account), true, `${path} should stay open to ${account}`)
   }
+}
+
+/* ── public marketing surfaces ───────────────────────────────────────── */
+
+// These are reachable by everyone, signed in or not. There is no "public list"
+// in lib/access.ts and deliberately so — accessFor() allows anything no role
+// prefix claims, so a list would be a second source of truth reaching the same
+// answer. This loop is what pins the behaviour instead: if someone later files
+// /guides under a role prefix, or widens middleware's protectedPrefixes to
+// match one of these, it fails here.
+const PUBLIC_PAGES = [
+  "/",
+  "/pricing",
+  "/guides",
+  "/guides/builder",
+  "/guides/tester",
+  "/about",
+  "/contact",
+  "/terms",
+  "/privacy",
+]
+
+for (const path of PUBLIC_PAGES) {
+  for (const account of ["builder", "tester", null] as const) {
+    assert.equal(allowed(path, account), true, `${path} must stay public for ${account}`)
+  }
+  // Public pages are not role-scoped, so the verification gate never fires on
+  // them — a half-verified builder can still read the pricing page.
+  assert.equal(isRoleScoped(path), false, `${path} must not be gated`)
 }
 
 /* ── public / unscoped ───────────────────────────────────────────────── */
@@ -140,7 +169,7 @@ assert.equal(isVerifyPath("/verifyxyz"), false, "/verifyxyz must not match the /
 for (const path of ["/dashboard", "/explore", "/tester", "/mission/abc", "/verify/tester", "/verify/builder"]) {
   assert.equal(isRoleScoped(path), true, `${path} should be gated`)
 }
-for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guidelines", "/admin", "/", "/terms"]) {
+for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/terms-accept", "/guides", "/admin", "/", "/terms"]) {
   assert.equal(isRoleScoped(path), false, `${path} must stay reachable while unverified`)
 }
 
@@ -196,7 +225,7 @@ for (const path of ["/explore", "/tester", "/mission/abc-123"]) {
 assert.equal(settlesAt("/dashboard", "builder", true), "/dashboard")
 
 // Unverified users are not trapped: they can still leave or change role.
-for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/guidelines", "/terms-accept"]) {
+for (const path of ["/settings", CHOOSE_ACCOUNT_PATH, "/guides", "/terms-accept"]) {
   assert.equal(settlesAt(path, "tester", false), path, `${path} must stay reachable while unverified`)
 }
 
