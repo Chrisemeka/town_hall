@@ -26,10 +26,15 @@ export function TermsAcceptForm() {
     e.preventDefault();
     if (isPending) return;
 
-    // The button stays live when the box is unticked. CLAUDE.md is explicit:
-    // a disabled control cannot say what is missing, and the message written
-    // for it becomes unreachable — which is exactly what happened here, where
+    // The button READS as inactive until the box is ticked, but it is not
+    // `disabled`. CLAUDE.md forbids disabling a submit to mean "not finished":
+    // a disabled control cannot be focused, announces nothing, and the message
+    // written for it becomes unreachable — which is what happened here, where
     // the only way to learn what was wanted was to notice a greyed button.
+    //
+    // aria-disabled gives the affordance without the dead end. It looks
+    // inactive and is announced as disabled, and pressing it still says what
+    // is outstanding and moves focus there.
     if (!agreed) {
       setError("Tick the box above to continue.");
       checkbox.current?.focus();
@@ -98,10 +103,21 @@ export function TermsAcceptForm() {
 
       <button
         type="submit"
-        // Disabled only while the action is in flight, which is a different
-        // claim from "you have not finished" — and the label says which.
+        // `disabled` is reserved for work in flight — a different claim from
+        // "you have not finished", and one the label makes explicit.
         disabled={isPending}
-        className="h-11 px-5 self-start bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+        aria-disabled={!agreed || undefined}
+        className={[
+          "h-11 px-5 self-start rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised disabled:opacity-60 disabled:cursor-wait",
+          agreed
+            ? "bg-accent text-obsidian hover:bg-voltage-dark cursor-pointer"
+            // Outlined rather than a grey fill: ink-muted on a 10% ink tint is
+            // 3.9:1 in dark mode, under Design.md's 4.5:1 for a label. On the
+            // card itself it is 6.7:1 light and 5.1:1 dark, and an outline
+            // against a solid Voltage button is a clearer inactive/active
+            // distinction than two fills anyway.
+            : "border border-line text-ink-muted cursor-not-allowed",
+        ].join(" ")}
       >
         {isPending ? "Saving…" : "Continue"}
       </button>

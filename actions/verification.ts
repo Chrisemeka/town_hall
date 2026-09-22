@@ -1,6 +1,5 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { after } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccountForVerification } from "@/lib/auth"
@@ -205,8 +204,19 @@ export async function completeVerification(role: AccountType): Promise<Verificat
     console.error("[completeVerification] no email on profile; welcome mail skipped")
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/explore")
-
+  // No revalidatePath here, and that is the fix rather than an omission.
+  //
+  // Calling it in a Server Action makes Next refresh the CURRENT route as part
+  // of the action response. The current route is /verify/[role], whose page
+  // re-runs, sees verification_completed_at set, and calls redirect(homeFor()).
+  // The completion screen was being yanked off the screen a few milliseconds
+  // after it appeared.
+  //
+  // Nothing is lost by dropping them: both /dashboard and /explore are
+  // dynamic (server-rendered on demand), so there is no Full Route Cache to
+  // bust, and the completion screen hands off with a full document navigation
+  // that bypasses the client router cache anyway. If either route is ever made
+  // static, revalidate it from somewhere that is not the page the user is
+  // still looking at.
   return { success: true, redirectTo: homeFor(role) }
 }

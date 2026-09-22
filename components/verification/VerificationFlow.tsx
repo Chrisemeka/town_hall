@@ -455,6 +455,50 @@ function ReviewStep({
  */
 function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
   const steps = nextStepsFor(role)
+  const [leaving, setLeaving] = useState(false)
+
+  // The hand-off is deliberate rather than instant. Going straight from a full
+  // screen of content to a blank one while the dashboard fetches reads as a
+  // stall; a beat of "this is happening" reads as a transition. Long enough to
+  // register, short enough not to be a wait.
+  const HANDOFF_MS = 1000
+
+  function handOff(e: React.MouseEvent<HTMLAnchorElement>) {
+    // Leave modified clicks alone — open-in-new-tab should still work.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+    e.preventDefault()
+    setLeaving(true)
+    window.setTimeout(() => {
+      window.location.href = href
+    }, HANDOFF_MS)
+  }
+
+  // Terminal, and deliberately not a state the user can click out of: the
+  // navigation is already scheduled.
+  if (leaving) {
+    return (
+      <SetupCard title={completionHeadlineFor(role)}>
+        <div
+          className="flex flex-col items-center justify-center gap-4 py-12"
+          role="status"
+          aria-live="polite"
+        >
+          {/* The one rotation Design.md §9 allows: it reports ongoing work
+              rather than decorating. Stilled for anyone who asked for less
+              motion, who gets the message without the spin. */}
+          <span
+            aria-hidden="true"
+            className="h-8 w-8 rounded-full border-2 border-line border-t-accent-ink animate-spin motion-reduce:animate-none"
+          />
+          <p className="font-mono text-[14px] text-ink-muted">
+            {role === "tester"
+              ? "Opening the mission board…"
+              : "Opening your dashboard…"}
+          </p>
+        </div>
+      </SetupCard>
+    )
+  }
 
   return (
     <SetupCard
@@ -481,6 +525,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
       <div className="mt-10 flex flex-col gap-4">
         <a
           href={href}
+          onClick={handOff}
           className="h-11 px-6 self-start inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
         >
           {role === "tester" ? "Find a mission" : "Go to your dashboard"}
