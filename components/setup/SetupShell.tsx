@@ -13,10 +13,9 @@ import { THEME_COOKIE, readTheme } from "@/lib/theme"
  * two-layer guarantee. What this fixes is that they did not *look* like one
  * chain: three shells, three widths, no sense of progress.
  *
- * It owns data-theme for the same reason app/(public)/layout.tsx does — these
- * routes are post-auth but pre-dashboard, so they belong to the themed
- * surface, not the dark app surface. Reading the cookie here rather than in
- * the root layout keeps the dynamic rendering on the routes that need it.
+ * It no longer owns data-theme — app/layout.tsx sets that once on <html> for
+ * every route. The cookie is still read here because the toggle needs to know
+ * which way to point.
  *
  * It carries the theme toggle. The setting does arrive from the public site —
  * one cookie at path=/, read here and in the public layout by the same
@@ -41,10 +40,7 @@ export async function SetupShell({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value)
 
   return (
-    <div
-      data-theme={theme}
-      className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian"
-    >
+    <div className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
       <header className="border-b border-line bg-surface">
         <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
