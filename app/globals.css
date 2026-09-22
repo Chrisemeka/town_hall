@@ -48,8 +48,8 @@
   --radius-md: 12px;
   --radius-lg: 16px;
 
-  /* Box Shadows */
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  /* Box Shadows. Themed — the dark value is in the [data-theme="dark"] block. */
+  --shadow-card: 0 2px 12px rgb(0 0 0 / 0.08);
 
   /*
    * Semantic layer — PUBLIC SURFACES ONLY (the `(public)` route group).
@@ -67,6 +67,8 @@
   --color-accent:         #E8FF47;   /* Voltage — fills only */
   --color-accent-ink:     #353D00;   /* Forest — text, borders, icons */
   --color-danger-ink:     #A81E15;   /* Error text and error borders */
+  --color-success-ink:    #046334;   /* Approved / pass */
+  --color-info-ink:       #0A5490;   /* Blocked / neutral info */
 }
 
 /*
@@ -85,14 +87,26 @@
  * inside `@layer theme`) without a specificity bump. [data-theme="light"] needs
  * no block — it inherits the defaults above.
  *
- * Voltage is a FILL ONLY on a light ground: #E8FF47 on Bone is 1.02:1. Forest
- * #353D00 is the accent ink there (10.6:1). In dark both collapse to Voltage.
+ * ONE RULE, FOUR PAIRS. Every accent in the palette fails as TEXT on Bone:
  *
- * Ember has the same problem and the same shape of answer: #FF4F4F is 5.95:1 on
- * Obsidian but only 2.97:1 on Bone, so it fails Design.md's 4.5:1 for label text
- * and WCAG 1.4.11's 3:1 for a control boundary. --color-danger-ink is #A81E15
- * (6.74:1) on light and collapses back to Ember on dark. Error text and error
- * borders on public surfaces use it; Ember stays the literal for app surfaces.
+ *   Voltage #E8FF47  1.02:1      Mint  #3FFFA2  1.20:1
+ *   Sky     #47B8FF  2.02:1      Ember #FF4F4F  2.97:1
+ *
+ * against Design.md's 4.5:1 for a label and WCAG 1.4.11's 3:1 for a control
+ * boundary. So each has two halves:
+ *
+ *   FILL — the literal (bg-voltage, bg-mint, bg-ember, bg-sky). Identical in
+ *          both themes, and always carries Obsidian text: 17.3:1 on Voltage,
+ *          14.7:1 on Mint, 8.8:1 on Sky, 6.0:1 on Ember.
+ *   INK  — the *-ink token, for text, borders, rings and icons. Darkened for
+ *          light, collapsing back to the literal in dark:
+ *
+ *            accent-ink   Forest  #353D00  10.60:1  ->  Voltage
+ *            danger-ink           #A81E15   6.74:1  ->  Ember
+ *            success-ink          #046334   6.79:1  ->  Mint
+ *            info-ink             #0A5490   7.19:1  ->  Sky
+ *
+ * Never use a literal for text, a border or a ring. Never use an ink as a fill.
  */
 [data-theme="dark"] {
   --color-surface:        #0E0E10;   /* Obsidian */
@@ -103,6 +117,12 @@
   --color-accent:         #E8FF47;   /* Voltage */
   --color-accent-ink:     #E8FF47;
   --color-danger-ink:     #FF4F4F;   /* Ember */
+  --color-success-ink:    #3FFFA2;   /* Mint */
+  --color-info-ink:       #47B8FF;   /* Sky */
+
+  /* Tuned for a dark ground. On Bone the same shadow reads as a smudge, so
+     the light value above is an eighth of the opacity. */
+  --shadow-card: 0 2px 12px rgb(0 0 0 / 0.4);
 }
 
 /*
