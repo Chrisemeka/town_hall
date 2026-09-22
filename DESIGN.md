@@ -144,14 +144,12 @@ Twnhall uses a **neutrals-first dark palette with a single bold accent**, follow
 WCAG relative-luminance formula they are the values above — the old ones were
 conservative, so nothing shipped was failing, but they were wrong.)*
 
-#### Two surfaces, two token sets
+#### One token set, every surface
 
-**App surfaces** — `(developer)`, `(tester)`, `(admin)` — are dark and use the
-literal tokens in the table above. They do not have a theme.
-
-**Public surfaces** — the `(public)` route group — are theme-switchable and use a
-semantic layer that resolves per theme from `[data-theme]` on the `(public)`
-layout's wrapper element:
+**Every surface follows the theme.** The literals in the table above still
+exist — the semantic layer is built out of them, and a *fill* uses them — but
+nothing is a surface, text, border or ring except through a semantic token.
+`data-theme` is set once, on `<html>`.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
@@ -160,30 +158,59 @@ layout's wrapper element:
 | `ink` | Obsidian `#0E0E10` | Chalk `#F0F0F2` | headings, body copy |
 | `ink-muted` | `#5A5A66` | Ash `#8A8A99` | labels, metadata, control borders |
 | `line` | `#E2E2E8` | Iron `#2C2C35` | dividers only |
-| `accent` | Voltage `#E8FF47` | Voltage `#E8FF47` | **fills only** |
-| `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | text, borders, icons |
-| `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text, error borders |
+| `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | accent text, borders, rings |
+| `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text and borders |
+| `success-ink` | `#046334` | Mint `#3FFFA2` | approved, pass |
+| `info-ink` | `#0A5490` | Sky `#47B8FF` | blocked, neutral info |
 
-`#5A5A66` and `#E2E2E8` are the two literals this layer adds to the palette.
+#### The accent rule — one rule, four pairs
 
-> **Voltage is a fill only on a light ground.** Voltage on Bone is **1.02:1** —
-> invisible. A Voltage fill always carries Obsidian text (17.3:1); accent *ink*
-> on a light ground is **Forest `#353D00`** at 10.6:1 — links, small-caps labels,
-> icons, focus rings, active borders. In dark mode both collapse back to Voltage.
-> This single rule is what makes light mode look designed rather than broken.
+**Every accent in the palette fails as text on Bone.** Measured:
+
+| | as text on Bone | on Obsidian |
+|---|---|---|
+| Voltage `#E8FF47` | **1.02** ✗ | 17.29 |
+| Mint `#3FFFA2` | **1.20** ✗ | 14.73 |
+| Sky `#47B8FF` | **2.02** ✗ | 8.79 |
+| Ember `#FF4F4F` | **2.97** ✗ | 5.95 |
+
+against the 4.5:1 label bar and WCAG 1.4.11's 3:1 for a control boundary. So
+each colour has two halves, and they are not interchangeable:
+
+> **FILL** is the literal — `bg-voltage`, `bg-mint`, `bg-ember`, `bg-sky`. The
+> same colour in both themes, and it **always carries Obsidian text** (17.3,
+> 14.7, 6.0 and 8.8 to 1). `bg-voltage-dark` is the hover on a Voltage fill.
+>
+> **INK** is the `*-ink` token — text, borders, rings, icons. Darkened for
+> light, collapsing back to the literal in dark: 10.6, 6.7, 6.8 and 7.2 to 1.
+
+**Never use a literal for text, a border or a ring. Never use an ink as a
+fill.** `scripts/tokens.test.mts` enforces both over the whole app.
 
 Two consequences that are easy to get wrong:
 
-- **`ink-muted` is not a body colour.** 6.3:1 in light misses the 7:1 body bar.
-  Labels, metadata and captions only — paragraphs use `ink`.
-- **`line` is not a control boundary.** 1.19:1 fails WCAG 1.4.11's 3:1 for the
-  visible boundary of a control. Inputs and other bounded controls on public
-  surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
-- **Ember is not an error colour on a light ground.** `#FF4F4F` is 5.95:1 on
-  Obsidian but **2.97:1 on Bone** — it fails both the 4.5:1 label bar and the
-  3:1 control-boundary bar. `danger-ink` is `#A81E15` (6.74:1) on light and
-  collapses back to Ember on dark. Same shape of problem as Voltage, same shape
-  of answer.
+- **`ink-muted` is not a body colour.** 6.3:1 in light misses the 7:1 body
+  bar. Labels, metadata and captions only — paragraphs use `ink`.
+- **`line` is not a control boundary.** 1.19:1 on Bone and 1.40:1 on Obsidian:
+  it fails the 3:1 bar on *both* grounds. Inputs and other bounded controls
+  take `border-ink-muted` (6.8:1 light, 5.1:1 dark).
+
+#### Two things that are not colours
+
+**Shadow.** `--shadow-card` is themed. At 40% black it is tuned for a dark
+ground and reads as a smudge on Bone, so light gets an eighth of the opacity.
+
+**Scrims stay literal.** A drawer or tour overlay is dark on both themes by
+design — a scrim that follows the theme stops being a scrim. Mark each with a
+`ponytail:` comment.
+
+#### Charts
+
+Recharts takes colours as props, so the admin charts read the CSS custom
+properties directly rather than carrying a second palette. A series colour is
+a graphical object under WCAG 1.4.11 and needs **3:1 against both grounds** —
+which rules out the bright palette: four of the five original colours failed
+on Bone. The current set clears 3:1 on Bone and Obsidian alike.
 
 **The theme default is light, with no `prefers-color-scheme` fallback** —
 deferring to the OS would make the default unpredictable. The choice persists in
