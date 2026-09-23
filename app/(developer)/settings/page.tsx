@@ -4,6 +4,8 @@ import { accountTypesFor } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
 import { GiveAndTake } from "@/components/settings/GiveAndTake";
+import { PlanSection } from "@/components/settings/PlanSection";
+import { planIdFor } from "@/lib/vocabulary";
 import { reciprocityFrom } from "@/lib/reciprocity";
 import { ThemePreference } from "@/components/ThemePreference";
 import { cookies } from "next/headers";
@@ -22,7 +24,7 @@ export default async function SettingsPage() {
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, accountTypes, mine, owned] = await Promise.all([
+  const [{ data: profile }, accountTypes, { data: account }, mine, owned] = await Promise.all([
     admin
       .from("profiles")
       .select("full_name, country, phone, timezone, bio, skills")
@@ -31,6 +33,14 @@ export default async function SettingsPage() {
     // Resolved on the server: whether to offer the skills field is an account
     // fact, and the client has no business querying for it.
     accountTypesFor(user.id),
+    // Which plan the builder account is on. Per-role, so it is read off the
+    // accounts row rather than the profile.
+    admin
+      .from("accounts")
+      .select("plan_id")
+      .eq("user_id", user.id)
+      .eq("type", "builder")
+      .maybeSingle(),
     // What this person has given: their own submissions, with the ratings the
     // average needs and the statuses the approved count needs.
     admin.from("test_results").select("status, rating").eq("tester_id", user.id),
@@ -89,6 +99,7 @@ export default async function SettingsPage() {
           stats={stats}
           hasTesterAccount={accountTypes.includes("tester")}
         />
+        <PlanSection planId={planIdFor(account?.plan_id as string | null)} />
         <ThemePreference theme={theme} />
       </div>
 
