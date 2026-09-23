@@ -7,9 +7,9 @@ import { STATUS_LABEL, type ReviewAction, type SubmissionStatus } from "@/lib/re
 import { Button } from "@/components/ui/Button"
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; dot: string }> = {
-  pending: { color: "#E8FF47", dot: "#E8FF47" },
-  approved: { color: "#3FFFA2", dot: "#3FFFA2" },
-  changes_requested: { color: "#FF4F4F", dot: "#FF4F4F" },
+  pending: { color: "var(--color-accent-ink)", dot: "var(--color-accent-ink)" },
+  approved: { color: "var(--color-success-ink)", dot: "var(--color-success-ink)" },
+  changes_requested: { color: "var(--color-danger-ink)", dot: "var(--color-danger-ink)" },
 }
 
 function StatusPill({ status }: { status: SubmissionStatus }) {
@@ -43,8 +43,8 @@ function RatingPicker({ value, onChange }: { value: number; onChange: (n: number
           <Star
             className="w-5 h-5 transition-colors duration-150"
             style={{
-              fill: n <= shown ? "#E8FF47" : "transparent",
-              color: n <= shown ? "#E8FF47" : "#2C2C35",
+              fill: n <= shown ? "var(--color-accent-ink)" : "transparent",
+              color: n <= shown ? "var(--color-accent-ink)" : "var(--color-line)",
             }}
           />
         </button>
@@ -80,7 +80,7 @@ export default function SubmissionReview({
           <StatusPill status={status} />
           {rating !== null && (
             <span className="font-mono text-[12px] text-ink-muted flex items-center gap-1">
-              <Star className="w-3 h-3" style={{ fill: "#E8FF47", color: "#E8FF47" }} />
+              <Star className="w-3 h-3" style={{ fill: "var(--color-accent-ink)", color: "var(--color-accent-ink)" }} />
               {rating}/5 given
             </span>
           )}

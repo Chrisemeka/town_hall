@@ -29,3 +29,15 @@ export function readTheme(cookieValue: string | undefined): Theme {
 export function otherTheme(theme: Theme): Theme {
   return theme === "dark" ? "light" : "dark"
 }
+
+/**
+ * Records the preference. Browser only — call it from an event handler.
+ *
+ * Here rather than in a component because two of them set it: the header
+ * toggle and the Settings control. One cookie, one spelling of how it is
+ * written, so the two presentations of this setting cannot disagree about
+ * path, lifetime or name.
+ */
+export function writeThemeCookie(theme: Theme): void {
+  document.cookie = `${THEME_COOKIE}=${theme};path=/;max-age=${THEME_COOKIE_MAX_AGE};samesite=lax`
+}

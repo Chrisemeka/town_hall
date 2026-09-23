@@ -179,7 +179,7 @@ export default async function AdminHomePage() {
         <KpiTile icon={Target}        label="Missions"     value={missionsCount} />
         <KpiTile icon={MessageSquare} label="Submissions"  value={submissionsCount} />
         <KpiTile icon={Sparkles}      label="AI Reports"   value={aiReportsCount}   accent="#A78BFA" />
-        <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "#FF4F4F" : "#7C7C8A"} />
+        <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
       </div>
 
       {/* ── Nav cards ────────────────────────────────────────── */}
@@ -236,7 +236,7 @@ function KpiTile({
   return (
     <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3 h-3" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3 h-3" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>
@@ -281,13 +281,13 @@ function ActivityIcon({ kind }: { kind: ActivityKind }) {
   if (kind === "submission") {
     return (
       <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(232,255,71,0.08)", border: "1px solid rgba(232,255,71,0.3)" }}>
-        <MessageSquare className="w-3.5 h-3.5" style={{ color: "#E8FF47" }} />
+        <MessageSquare className="w-3.5 h-3.5" style={{ color: "var(--color-accent-ink)" }} />
       </div>
     )
   }
   return (
     <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(255,79,79,0.10)", border: "1px solid rgba(255,79,79,0.3)" }}>
-      <AlertTriangle className="w-3.5 h-3.5" style={{ color: "#FF4F4F" }} />
+      <AlertTriangle className="w-3.5 h-3.5" style={{ color: "var(--color-danger-ink)" }} />
     </div>
   )
 }

@@ -3,12 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Moon, Sun } from "lucide-react";
-import {
-  THEME_COOKIE,
-  THEME_COOKIE_MAX_AGE,
-  otherTheme,
-  type Theme,
-} from "@/lib/theme";
+import { otherTheme, writeThemeCookie, type Theme } from "@/lib/theme";
 
 /**
  * Writes the theme cookie and refreshes so the server layout re-renders with
@@ -33,7 +28,7 @@ export function ThemeToggle({ theme }: { theme: Theme }) {
       // is ambiguous about whether it describes what you have or what you get.
       aria-label={`Switch to ${next} theme`}
       onClick={() => {
-        document.cookie = `${THEME_COOKIE}=${next};path=/;max-age=${THEME_COOKIE_MAX_AGE};samesite=lax`;
+        writeThemeCookie(next);
         startTransition(() => router.refresh());
       }}
       className="h-11 w-11 inline-flex items-center justify-center rounded-[8px] text-ink-muted hover:text-ink hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"

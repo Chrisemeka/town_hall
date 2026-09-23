@@ -154,7 +154,7 @@ nothing is a surface, text, border or ring except through a semantic token.
 | Token | Light | Dark | Use |
 |---|---|---|---|
 | `surface` | `#E8E8EE` | Obsidian `#0E0E10` | page ground |
-| `surface-raised` | `#F8F8FB` | Graphite `#1A1A1F` | cards, panels |
+| `surface-raised` | `#F5F5F9` | Graphite `#1A1A1F` | cards, panels |
 | `ink` | Obsidian `#0E0E10` | Chalk `#F0F0F2` | headings, body copy |
 | `ink-muted` | `#5A5A66` | Ash `#8A8A99` | labels, metadata, control borders |
 | `line` | `#D2D2DA` | Iron `#2C2C35` | dividers only |
@@ -171,12 +171,14 @@ nothing is a surface, text, border or ring except through a semantic token.
 >
 > The ramp is now pitched to mirror dark in **L\***, not in contrast ratio —
 > ratios compress badly at the light end, so matching them there is what
-> produced the flat page:
+> produced the flat page. The light lift is 4.4 rather than dark's 5.5 because
+> a card also carries a `line` border, which does more of the separating on a
+> light ground — matching 5.5 exactly made cards look like they were floating:
 >
 > | | ground → raised | raised → line |
 > |---|---|---|
 > | dark | 4.0 → 9.5 (**5.5**) | 9.5 → 18.3 (8.8) |
-> | light | 92.2 → 97.7 (**5.5**) | 97.7 → 84.4 (7.8) |
+> | light | 92.2 → 96.6 (**4.4**) | 96.6 → 84.4 (12.2) |
 
 #### The accent rule — one rule, four pairs
 
@@ -431,13 +433,24 @@ The mission number is displayed as a large, low-opacity (8%) Voltage watermark b
 
 Color is never the only indicator of status — always paired with a text label.
 
-| Status | Text Color | Background | When Used |
-|--------|-----------|------------|-----------|
-| **Active** | `#E8FF47` | `rgba(232,255,71,0.12)` | Mission is live and accepting testers |
-| **Complete** | `#3FFFA2` | `rgba(63,255,162,0.12)` | Mission has sufficient feedback |
-| **Draft** | `#8A8A99` | `rgba(138,138,153,0.12)` | Saved but not yet published |
-| **Needs Testers** | `#47B8FF` | `rgba(71,184,255,0.12)` | Missions with zero feedback |
-| **Archived** | `#44444F` | `rgba(44,44,53,0.5)` | No longer active |
+| Status | Tone | When Used |
+|--------|------|-----------|
+| **Active** | `info-ink` | Mission is live and accepting testers |
+| **Needs Testers** | `accent-ink` | Missions with zero feedback |
+| **Complete** | `success-ink` | Mission has sufficient feedback |
+| **Draft** / **Archived** | `ink-muted` | Not live. Told apart by the label, per §10 |
+
+> **Active was Mint — the same colour as Complete**, so "this is live" and
+> "this is finished" were the same chip. It is info now: blue reads as running
+> rather than done, and it leaves green to mean finished. **Needs Testers**
+> keeps the accent, because §7.5 names it as one of only two attention-grabbing
+> extras the system permits.
+>
+> A chip is text and a dot — the **ink** half of the accent rule, never the
+> fill half. The colours used to live as inline hex in a `style` prop, which is
+> the one place a colour hides from both the compiler and a class-based audit;
+> every chip read at under 1.1:1 on the light ground for exactly that reason.
+> `scripts/tokens.test.mts` now fails on a palette hex anywhere in a component.
 
 All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-weight: 500`, `letter-spacing: 0.5px`, `font-family: DM Mono`.
 

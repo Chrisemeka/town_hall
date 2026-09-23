@@ -60,7 +60,7 @@ function sentimentStyle(s: Sentiment) {
   switch (s) {
     case "POSITIVE":   return { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)", Icon: Smile }
     case "NEUTRAL":    return { bg: "rgba(124,124,138,0.10)", color: "#A1A1AA", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
-    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
+    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
     case "UNKNOWN":    return { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
   }
 }
@@ -178,7 +178,7 @@ export default async function AdminAIReportsPage() {
         <KpiCard icon={Sparkles}       label="Total Reports" value={totalReports} accent="#A78BFA" />
         <KpiCard icon={Sparkles}       label="Coverage"      value={`${coverage}%`} accent="#A78BFA" />
         <KpiCard icon={Smile}          label="Positive"      value={sentimentCounts.POSITIVE} accent="#7AE18A" />
-        <KpiCard icon={Frown}          label="Frustrated"    value={sentimentCounts.FRUSTRATED} accent="#FF4F4F" />
+        <KpiCard icon={Frown}          label="Frustrated"    value={sentimentCounts.FRUSTRATED} accent="var(--color-danger-ink)" />
         <KpiCard icon={AlertTriangle}  label="Failed"        value={failedCount} accent={failedCount > 0 ? "#FF8F47" : "#7C7C8A"} />
       </div>
 
@@ -312,7 +312,7 @@ export default async function AdminAIReportsPage() {
 
                       {/* Original tester comment as smaller context */}
                       {r.testerComment && (
-                        <div className="pl-3" style={{ borderLeft: "2px solid #2C2C35" }}>
+                        <div className="pl-3" style={{ borderLeft: "2px solid var(--color-line)" }}>
                           <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Tester said</p>
                           <p className="font-mono text-[13px] text-ink-muted leading-5 whitespace-pre-wrap line-clamp-3">{r.testerComment}</p>
                         </div>
@@ -343,7 +343,7 @@ function KpiCard({
   return (
     <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>

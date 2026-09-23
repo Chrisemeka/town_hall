@@ -307,8 +307,16 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
   dark — it fails WCAG 1.4.11's 3:1 on *both* grounds. Inputs and other
   bounded controls take `border-ink-muted`: 5.6:1 on the light ground, 6.4 on
   a card, 5.7 and 5.1 in dark.
+- **A colour never lives as a hex in a component.** An inline `style` prop is
+  the one place a colour hides from both the compiler and a class-based audit:
+  every status chip in the app held raw hex, so the theme refactor walked past
+  them and they rendered at under 1.1:1 on the light ground. Where a prop needs
+  a string rather than a class — Recharts, an inline `style` — use
+  `var(--color-…)`. `scripts/tokens.test.mts` fails on a palette hex anywhere
+  in `app/` or `components/`.
 - **Nothing in the light ramp is pure white.** The ramp mirrors dark in
-  perceptual lightness (5.5 L* ground to raised, both themes) rather than in
+  perceptual lightness (4.4 L* ground to raised, against dark's 5.5 — a card
+  also carries a border, which separates more on a light ground) rather than in
   contrast ratio, which compresses at the light end and produced a page that
   was glaring and flat at once. A hover fill is `bg-ink/[0.06]`, never
   `hover:bg-surface-*` — on a card that is a no-op.

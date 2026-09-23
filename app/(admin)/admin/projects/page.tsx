@@ -34,9 +34,9 @@ function formatDate(iso: string) {
 function statusStyle(status: ProjectStatus) {
   switch (status) {
     case "active":         return { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)" }
-    case "needs-testers":  return { bg: "rgba(232,255,71,0.10)",  color: "#E8FF47", border: "1px solid rgba(232,255,71,0.4)" }
+    case "needs-testers":  return { bg: "rgba(232,255,71,0.10)",  color: "var(--color-accent-ink)", border: "1px solid rgba(232,255,71,0.4)" }
     case "draft":          return { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)" }
-    case "flagged":        return { bg: "rgba(255,79,79,0.10)",   color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)" }
+    case "flagged":        return { bg: "rgba(255,79,79,0.10)",   color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)" }
   }
 }
 
@@ -121,8 +121,8 @@ export default async function AdminProjectsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard icon={FolderOpen}    label="Total Projects" value={totalProjects} />
         <KpiCard icon={CheckCircle2}  label="Active"         value={activeCount}    accent="#7AE18A" />
-        <KpiCard icon={AlertCircle}   label="Needs Testers"  value={needsTestersCount} accent="#E8FF47" />
-        <KpiCard icon={Flag}          label="Flagged"        value={flaggedCount}   accent="#FF4F4F" />
+        <KpiCard icon={AlertCircle}   label="Needs Testers"  value={needsTestersCount} accent="var(--color-accent-ink)" />
+        <KpiCard icon={Flag}          label="Flagged"        value={flaggedCount}   accent="var(--color-danger-ink)" />
       </div>
 
       {/* Table */}
@@ -243,7 +243,7 @@ function KpiCard({
   return (
     <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>

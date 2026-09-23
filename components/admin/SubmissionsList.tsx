@@ -37,7 +37,7 @@ function sentimentStyle(s: Sentiment) {
   switch (s) {
     case "POSITIVE":   return { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)", Icon: Smile }
     case "NEUTRAL":    return { bg: "rgba(124,124,138,0.10)", color: "#A1A1AA", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
-    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
+    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
     case "UNKNOWN":    return { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
   }
 }

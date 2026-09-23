@@ -53,7 +53,7 @@ function payloadFrom(values: ProfileValues, hasTesterAccount: boolean): UpdatePr
 }
 
 function SectionDivider() {
-  return <div style={{ height: 1, background: "#2C2C35", margin: "32px 0" }} />
+  return <div style={{ height: 1, background: "var(--color-line)", margin: "32px 0" }} />
 }
 
 export function SettingsForm({
@@ -309,7 +309,7 @@ export function SettingsForm({
 
       {/* ── Danger Zone ─────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px]" style={{ color: "#FF4F4F" }}>
+        <h5 className="font-syne font-bold text-[20px]" style={{ color: "var(--color-danger-ink)" }}>
           Danger Zone
         </h5>
         <p className="font-mono text-[14px] text-ink-muted mt-2 mb-6">
@@ -331,7 +331,7 @@ export function SettingsForm({
               <button
                 onClick={() => setDeleteStep("confirm")}
                 className="shrink-0 h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium border transition-colors duration-150"
-                style={{ borderColor: "rgba(255,79,79,0.5)", color: "#FF4F4F", background: "transparent" }}
+                style={{ borderColor: "rgba(255,79,79,0.5)", color: "var(--color-danger-ink)", background: "transparent" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,79,79,0.1)" }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
               >
@@ -350,7 +350,7 @@ export function SettingsForm({
                   onClick={handleDeleteAccount}
                   disabled={deleting}
                   className="h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-                  style={{ background: "#FF4F4F", color: "#0E0E10", border: "none" }}
+                  style={{ background: "var(--color-danger-ink)", color: "var(--color-surface)", border: "none" }}
                 >
                   {deleting ? "Deleting…" : "Yes, delete my account"}
                 </button>

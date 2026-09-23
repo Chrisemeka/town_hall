@@ -102,7 +102,7 @@ export default async function AdminMissionDetailPage({
       ? "active"
       : "inactive"
   const statusStyle = project?.flagged_at
-    ? { bg: "rgba(255,79,79,0.10)", color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)", Icon: Flag }
+    ? { bg: "rgba(255,79,79,0.10)", color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)", Icon: Flag }
     : statusActive
       ? { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)", Icon: CheckCircle2 }
       : { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)", Icon: PauseCircle }
@@ -151,9 +151,9 @@ export default async function AdminMissionDetailPage({
           className="rounded-[12px] p-4 mb-6 flex items-start gap-3"
           style={{ background: "rgba(255,79,79,0.06)", border: "1px solid rgba(255,79,79,0.3)" }}
         >
-          <Flag className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#FF4F4F" }} />
+          <Flag className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "var(--color-danger-ink)" }} />
           <div className="min-w-0">
-            <p className="font-syne font-bold text-[14px]" style={{ color: "#FF4F4F" }}>
+            <p className="font-syne font-bold text-[14px]" style={{ color: "var(--color-danger-ink)" }}>
               Parent project is flagged
             </p>
             {project.flag_reason && (
@@ -172,7 +172,7 @@ export default async function AdminMissionDetailPage({
           className="rounded-[12px] p-5"
           style={{
             background: "rgba(232,255,71,0.04)",
-            borderLeft: "3px solid #E8FF47",
+            borderLeft: "3px solid var(--color-accent-ink)",
             borderRadius: "0 12px 12px 0",
           }}
         >

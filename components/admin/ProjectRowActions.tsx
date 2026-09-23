@@ -93,7 +93,7 @@ export function ProjectRowActions({
             onClick={handleConfirmFlag}
             disabled={isPending || reason.trim().length < 3}
             className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-            style={{ background: "#FF8F47", color: "#0E0E10" }}
+            style={{ background: "#FF8F47", color: "var(--color-surface)" }}
           >
             {isPending ? "Flagging…" : "Flag"}
           </button>
@@ -122,7 +122,7 @@ export function ProjectRowActions({
           onClick={handleDelete}
           disabled={isPending}
           className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-          style={{ background: "#FF4F4F", color: "#0E0E10" }}
+          style={{ background: "var(--color-danger-ink)", color: "var(--color-surface)" }}
         >
           {isPending ? "Deleting…" : "Yes"}
         </button>
@@ -153,7 +153,7 @@ export function ProjectRowActions({
         style={
           isFlagged
             ? { borderColor: "rgba(255,143,71,0.4)", color: "#FF8F47", background: "rgba(255,143,71,0.06)" }
-            : { borderColor: "#2C2C35", color: "#A1A1AA", background: "transparent" }
+            : { borderColor: "var(--color-line)", color: "#A1A1AA", background: "transparent" }
         }
       >
         {isFlagged ? <FlagOff className="w-3 h-3" /> : <Flag className="w-3 h-3" />}
@@ -165,7 +165,7 @@ export function ProjectRowActions({
         onClick={() => setMode("delete-confirm")}
         disabled={isPending}
         className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] inline-flex items-center gap-1.5 border transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-        style={{ borderColor: "rgba(255,79,79,0.4)", color: "#FF4F4F", background: "transparent" }}
+        style={{ borderColor: "rgba(255,79,79,0.4)", color: "var(--color-danger-ink)", background: "transparent" }}
       >
         <Trash2 className="w-3 h-3" />
         Remove

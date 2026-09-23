@@ -60,7 +60,7 @@
    * deliberately, with no prefers-color-scheme fallback.
    */
   --color-surface:        #E8E8EE;
-  --color-surface-raised: #F8F8FB;
+  --color-surface-raised: #F5F5F9;
   --color-ink:            #0E0E10;   /* Obsidian */
   --color-ink-muted:      #5A5A66;
   --color-line:           #D2D2DA;

@@ -34,7 +34,7 @@ function formatDate(iso: string) {
 }
 
 function statusStyle(status: MissionStatus, projectFlagged: boolean) {
-  if (projectFlagged) return { bg: "rgba(255,79,79,0.10)", color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)" }
+  if (projectFlagged) return { bg: "rgba(255,79,79,0.10)", color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)" }
   return status === "active"
     ? { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)" }
     : { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)" }
@@ -108,7 +108,7 @@ export default async function AdminMissionsPage() {
         <KpiCard icon={Target}        label="Total Missions" value={totalMissions} />
         <KpiCard icon={CheckCircle2}  label="Active"         value={activeCount}        accent="#7AE18A" />
         <KpiCard icon={PauseCircle}   label="Inactive"       value={inactiveCount}      accent="#7C7C8A" />
-        <KpiCard icon={MessageSquare} label="With Feedback"  value={withFeedbackCount}  accent="#E8FF47" />
+        <KpiCard icon={MessageSquare} label="With Feedback"  value={withFeedbackCount}  accent="var(--color-accent-ink)" />
       </div>
 
       {/* Table */}
@@ -214,7 +214,7 @@ function KpiCard({
   return (
     <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>

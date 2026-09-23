@@ -62,7 +62,7 @@ export default async function MissionDetailPage({
       <div
         id="tour-mission-project"
         className="mb-8 border border-line"
-        style={{ background: "#1A1A1F", borderRadius: 12, padding: "20px 24px" }}
+        style={{ background: "var(--color-surface-raised)", borderRadius: 12, padding: "20px 24px" }}
       >
         <h5 className="font-syne font-bold text-[18px] text-ink mb-1">
           {project?.name}
@@ -99,7 +99,7 @@ export default async function MissionDetailPage({
             <div
               style={{
                 background: "rgba(232,255,71,0.05)",
-                borderLeft: "3px solid #E8FF47",
+                borderLeft: "3px solid var(--color-accent-ink)",
                 borderRadius: "0 8px 8px 0",
                 padding: "16px 20px",
               }}

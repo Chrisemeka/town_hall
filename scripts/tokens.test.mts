@@ -122,6 +122,44 @@ assert.deepEqual(
     `literal; ink never does.`,
 )
 
+/* ── palette hex hiding in source ────────────────────────────────────── */
+
+// The one place a colour can hide from both the compiler and a class-based
+// audit: an inline `style` prop. components/ui/Badge held every status colour
+// as raw hex, so the token swap walked straight past it and all nine chips
+// rendered at under 1.1:1 on the light ground while this test reported clean.
+//
+// Any palette colour written as a hex literal in a component is either a theme
+// bug or something that needs saying out loud, so it needs a ponytail: line.
+const PALETTE_HEX = [
+  "#0E0E10", "#1A1A1F", "#2C2C35", "#F0F0F2", "#8A8A99",
+  "#F5F5F7", "#E8FF47", "#C8E000", "#353D00", "#3FFFA2",
+  "#FF4F4F", "#47B8FF",
+]
+
+const hardcoded: string[] = []
+for (const file of files) {
+  readFileSync(file, "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      if (line.includes("ponytail:")) return
+      for (const colour of PALETTE_HEX) {
+        if (line.toUpperCase().includes(colour)) {
+          hardcoded.push(`${file}:${i + 1}  ${colour}`)
+        }
+      }
+    })
+}
+
+assert.deepEqual(
+  hardcoded,
+  [],
+  "palette colours written as hex in a component — a hex cannot follow the " +
+    `theme:\n  ${hardcoded.join("\n  ")}\n\n` +
+    "Use the semantic token, or var(--color-…) where a prop needs a string " +
+    "rather than a class.",
+)
+
 /* ── vocabulary from a design system that is not ours ────────────────── */
 
 // A class naming a token that does not exist compiles to nothing, so it fails

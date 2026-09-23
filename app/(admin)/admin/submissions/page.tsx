@@ -136,9 +136,9 @@ export default async function AdminSubmissionsPage() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard icon={MessageSquare} label="Total Submissions" value={total} />
-        <KpiCard icon={MessageSquare} label="Last 7 Days" value={last7d} accent="#E8FF47" />
+        <KpiCard icon={MessageSquare} label="Last 7 Days" value={last7d} accent="var(--color-accent-ink)" />
         <KpiCard icon={Smile}  label="Positive"    value={sentimentCounts.POSITIVE}   accent="#7AE18A" />
-        <KpiCard icon={Frown}  label="Frustrated"  value={sentimentCounts.FRUSTRATED} accent="#FF4F4F" />
+        <KpiCard icon={Frown}  label="Frustrated"  value={sentimentCounts.FRUSTRATED} accent="var(--color-danger-ink)" />
       </div>
 
       {/* Chart */}
@@ -181,7 +181,7 @@ function KpiCard({
   return (
     <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>

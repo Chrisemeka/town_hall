@@ -109,8 +109,8 @@ export function UserRowActions({
                 className="h-6 px-2 rounded-[6px] font-mono text-[11px] transition-colors duration-150 disabled:opacity-40"
                 style={
                   duration === d
-                    ? { background: "rgba(232,255,71,0.12)", color: "#E8FF47", border: "1px solid rgba(232,255,71,0.4)" }
-                    : { background: "transparent", color: "#7C7C8A", border: "1px solid #2C2C35" }
+                    ? { background: "rgba(232,255,71,0.12)", color: "var(--color-accent-ink)", border: "1px solid rgba(232,255,71,0.4)" }
+                    : { background: "transparent", color: "#7C7C8A", border: "1px solid var(--color-line)" }
                 }
               >
                 {d}d
@@ -133,8 +133,8 @@ export function UserRowActions({
             className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
             style={
               isSuspend
-                ? { background: "#FF8F47", color: "#0E0E10" }
-                : { background: "#FF4F4F", color: "#0E0E10" }
+                ? { background: "#FF8F47", color: "var(--color-surface)" }
+                : { background: "var(--color-danger-ink)", color: "var(--color-surface)" }
             }
           >
             {isPending ? "Working…" : isSuspend ? "Suspend" : "Ban"}
@@ -164,7 +164,7 @@ export function UserRowActions({
           onClick={handleReactivate}
           disabled={isPending}
           className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-          style={{ background: "#E8FF47", color: "#0E0E10" }}
+          style={{ background: "var(--color-accent-ink)", color: "var(--color-surface)" }}
         >
           {isPending ? "Working…" : "Yes"}
         </button>
@@ -201,7 +201,7 @@ export function UserRowActions({
           onClick={() => setMode("ban-prompt")}
           disabled={isPending}
           className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] inline-flex items-center gap-1.5 border transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-          style={{ borderColor: "rgba(255,79,79,0.4)", color: "#FF4F4F", background: "transparent" }}
+          style={{ borderColor: "rgba(255,79,79,0.4)", color: "var(--color-danger-ink)", background: "transparent" }}
         >
           <Ban className="w-3 h-3" />
           Ban

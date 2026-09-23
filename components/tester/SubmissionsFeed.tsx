@@ -24,9 +24,9 @@ const FILTERS: { label: string; status: SubmissionStatus | null }[] = [
 ]
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; bg: string; border: string }> = {
-  pending: { color: "#E8FF47", bg: "rgba(232,255,71,0.10)", border: "rgba(232,255,71,0.30)" },
-  approved: { color: "#3FFFA2", bg: "rgba(63,255,162,0.10)", border: "rgba(63,255,162,0.30)" },
-  changes_requested: { color: "#FF4F4F", bg: "rgba(255,79,79,0.10)", border: "rgba(255,79,79,0.30)" },
+  pending: { color: "var(--color-accent-ink)", bg: "rgba(232,255,71,0.10)", border: "rgba(232,255,71,0.30)" },
+  approved: { color: "var(--color-success-ink)", bg: "rgba(63,255,162,0.10)", border: "rgba(63,255,162,0.30)" },
+  changes_requested: { color: "var(--color-danger-ink)", bg: "rgba(255,79,79,0.10)", border: "rgba(255,79,79,0.30)" },
 }
 
 const PREVIEW_LIMIT = 3
@@ -100,7 +100,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                   className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors duration-150 group-hover:border-accent-ink/30"
                   style={{
                     boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                    ...(needsChanges ? { borderLeft: "3px solid #FF4F4F" } : null),
+                    ...(needsChanges ? { borderLeft: "3px solid var(--color-danger-ink)" } : null),
                   }}
                 >
                   <div className="flex-1 min-w-0 flex flex-col gap-2">

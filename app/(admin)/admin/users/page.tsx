@@ -52,7 +52,7 @@ function formatDate(iso: string) {
 
 function roleBadgeStyle(role: string) {
   switch (role) {
-    case "admin":     return { background: "rgba(232,255,71,0.12)", color: "#E8FF47", border: "1px solid rgba(232,255,71,0.4)" }
+    case "admin":     return { background: "rgba(232,255,71,0.12)", color: "var(--color-accent-ink)", border: "1px solid rgba(232,255,71,0.4)" }
     case "developer": return { background: "rgba(122,184,255,0.12)", color: "#7AB8FF", border: "1px solid rgba(122,184,255,0.4)" }
     case "tester":    return { background: "rgba(255,143,163,0.12)", color: "#FF8FA3", border: "1px solid rgba(255,143,163,0.4)" }
     default:          return { background: "rgba(124,124,138,0.12)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)" }
@@ -189,7 +189,7 @@ export default async function AdminUsersPage() {
         <KpiCard icon={Users}         label="Total Users"     value={users.length} />
         <KpiCard icon={UserPlus}      label="New · 30 days"   value={newUsers30d} />
         <KpiCard icon={PauseCircle}   label="Suspended"       value={suspendedCount} accent={suspendedCount > 0 ? "#FF8F47" : "#7C7C8A"} />
-        <KpiCard icon={Ban}           label="Banned"          value={bannedCount}    accent={bannedCount > 0 ? "#FF4F4F" : "#7C7C8A"} />
+        <KpiCard icon={Ban}           label="Banned"          value={bannedCount}    accent={bannedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
         <KpiCard icon={FolderOpen}    label="Total Projects"  value={totalProjects} />
         <KpiCard icon={MessageSquare} label="Missions Done"   value={totalMissionsCompleted} />
       </div>
@@ -297,7 +297,7 @@ function ModerationBadge({
 }) {
   const style =
     status === "banned"
-      ? { background: "rgba(255,79,79,0.10)", color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)" }
+      ? { background: "rgba(255,79,79,0.10)", color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)" }
       : { background: "rgba(255,143,71,0.10)", color: "#FF8F47", border: "1px solid rgba(255,143,71,0.4)" }
 
   const label =
@@ -330,7 +330,7 @@ function KpiCard({
   return (
     <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3 h-3" style={{ color: accent ?? "#E8FF47" }} />
+        <Icon className="w-3 h-3" style={{ color: accent ?? "var(--color-accent-ink)" }} />
         <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
       <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>

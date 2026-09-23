@@ -212,7 +212,7 @@ export default function AuditLogForm({
           className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
           style={{ background: "rgba(63,255,162,0.1)" }}
         >
-          <CheckCircle className="w-6 h-6" style={{ color: "#3FFFA2" }} />
+          <CheckCircle className="w-6 h-6" style={{ color: "var(--color-success-ink)" }} />
         </div>
         <h3 className="font-syne font-bold text-[24px] text-ink mb-2">Feedback Submitted</h3>
         <p className="font-mono text-[14px] text-ink-muted">
@@ -230,18 +230,18 @@ export default function AuditLogForm({
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const zoneBorder = fileErrors.length
-    ? "#FF4F4F"
+    ? "var(--color-danger-ink)"
     : isDragOver
-    ? "#E8FF47"
+    ? "var(--color-accent-ink)"
     : isHovered
     ? "rgba(232,255,71,0.4)"
-    : "#2C2C35"
+    : "var(--color-line)"
 
   const zoneBg = isDragOver
     ? "rgba(232,255,71,0.06)"
     : isHovered
     ? "rgba(232,255,71,0.03)"
-    : "#1A1A1F"
+    : "var(--color-surface-raised)"
 
   const acceptAttr = ALLOWED_SCREENSHOT_TYPES.join(",")
   const maxMb = Math.round(MAX_SCREENSHOT_BYTES / (1024 * 1024))

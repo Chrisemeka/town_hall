@@ -139,12 +139,12 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                     ? {
                         background: "rgba(232,255,71,0.12)",
                         border: "1px solid rgba(232,255,71,0.4)",
-                        color: "#E8FF47",
+                        color: "var(--color-accent-ink)",
                       }
                     : {
-                        background: "#1A1A1F",
-                        border: "1px solid #2C2C35",
-                        color: "#8A8A99",
+                        background: "var(--color-surface-raised)",
+                        border: "1px solid var(--color-line)",
+                        color: "var(--color-ink-muted)",
                       }
                 }
               >

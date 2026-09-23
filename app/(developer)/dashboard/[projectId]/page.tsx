@@ -97,10 +97,10 @@ export default async function ProjectDetailPage({
             className="w-9 h-9 rounded-[8px] flex items-center justify-center shrink-0"
             style={{ background: "rgba(255,79,79,0.12)", border: "1px solid rgba(255,79,79,0.3)" }}
           >
-            <Flag className="w-4 h-4" style={{ color: "#FF4F4F" }} />
+            <Flag className="w-4 h-4" style={{ color: "var(--color-danger-ink)" }} />
           </div>
           <div className="min-w-0">
-            <p className="font-syne font-bold text-[16px]" style={{ color: "#FF4F4F" }}>
+            <p className="font-syne font-bold text-[16px]" style={{ color: "var(--color-danger-ink)" }}>
               This project has been flagged by an admin.
             </p>
             <p className="font-mono text-[13px] text-ink-muted mt-1 leading-5">
