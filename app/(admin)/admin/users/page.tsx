@@ -228,7 +228,7 @@ export default async function AdminUsersPage() {
                 </tr>
               )}
               {users.map((u) => (
-                <tr key={u.id} className="border-t border-line/60 hover:bg-surface/30 transition-colors duration-150 align-top">
+                <tr key={u.id} className="border-t border-line/60 hover:bg-ink/[0.06] transition-colors duration-150 align-top">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar

@@ -248,7 +248,7 @@ export default async function AdminAIReportsPage() {
               const sentiment = sentimentStyle(r.aiSentiment)
               const SentimentIcon = sentiment.Icon
               return (
-                <li key={r.id} className="p-5 hover:bg-surface/20 transition-colors duration-150">
+                <li key={r.id} className="p-5 hover:bg-ink/[0.06] transition-colors duration-150">
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
                     <Avatar

@@ -153,26 +153,41 @@ nothing is a surface, text, border or ring except through a semantic token.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `surface` | Bone `#F5F5F7` | Obsidian `#0E0E10` | page ground |
-| `surface-raised` | White `#FFFFFF` | Graphite `#1A1A1F` | cards, panels |
+| `surface` | `#E8E8EE` | Obsidian `#0E0E10` | page ground |
+| `surface-raised` | `#F8F8FB` | Graphite `#1A1A1F` | cards, panels |
 | `ink` | Obsidian `#0E0E10` | Chalk `#F0F0F2` | headings, body copy |
 | `ink-muted` | `#5A5A66` | Ash `#8A8A99` | labels, metadata, control borders |
-| `line` | `#E2E2E8` | Iron `#2C2C35` | dividers only |
+| `line` | `#D2D2DA` | Iron `#2C2C35` | dividers only |
 | `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | accent text, borders, rings |
 | `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text and borders |
 | `success-ink` | `#046334` | Mint `#3FFFA2` | approved, pass |
 | `info-ink` | `#0A5490` | Sky `#47B8FF` | blocked, neutral info |
 
+> **Nothing in the light ramp is pure white, and that is the point.** The first
+> version used Bone `#F5F5F7` with `#FFFFFF` cards: a 3.4 step in perceptual
+> lightness, with the raised surface at L\* 100 — the maximum, so a card had
+> nowhere to go and every hover, border and shadow fought over the last three
+> percent. It read as glaring and flat at the same time.
+>
+> The ramp is now pitched to mirror dark in **L\***, not in contrast ratio —
+> ratios compress badly at the light end, so matching them there is what
+> produced the flat page:
+>
+> | | ground → raised | raised → line |
+> |---|---|---|
+> | dark | 4.0 → 9.5 (**5.5**) | 9.5 → 18.3 (8.8) |
+> | light | 92.2 → 97.7 (**5.5**) | 97.7 → 84.4 (7.8) |
+
 #### The accent rule — one rule, four pairs
 
 **Every accent in the palette fails as text on Bone.** Measured:
 
-| | as text on Bone | on Obsidian |
+| | as text on `surface` (light) | on `surface` (dark) |
 |---|---|---|
-| Voltage `#E8FF47` | **1.02** ✗ | 17.29 |
-| Mint `#3FFFA2` | **1.20** ✗ | 14.73 |
-| Sky `#47B8FF` | **2.02** ✗ | 8.79 |
-| Ember `#FF4F4F` | **2.97** ✗ | 5.95 |
+| Voltage `#E8FF47` | **1.09** ✗ | 17.29 |
+| Mint `#3FFFA2` | **1.07** ✗ | 14.73 |
+| Sky `#47B8FF` | **1.80** ✗ | 8.79 |
+| Ember `#FF4F4F` | **2.65** ✗ | 5.95 |
 
 against the 4.5:1 label bar and WCAG 1.4.11's 3:1 for a control boundary. So
 each colour has two halves, and they are not interchangeable:
@@ -182,18 +197,23 @@ each colour has two halves, and they are not interchangeable:
 > 14.7, 6.0 and 8.8 to 1). `bg-voltage-dark` is the hover on a Voltage fill.
 >
 > **INK** is the `*-ink` token — text, borders, rings, icons. Darkened for
-> light, collapsing back to the literal in dark: 10.6, 6.7, 6.8 and 7.2 to 1.
+> light, collapsing back to the literal in dark. On the light ground:
+> `accent-ink` 9.5, `danger-ink` 6.0, `success-ink` 6.1, `info-ink` 6.4.
 
 **Never use a literal for text, a border or a ring. Never use an ink as a
 fill.** `scripts/tokens.test.mts` enforces both over the whole app.
 
 Two consequences that are easy to get wrong:
 
-- **`ink-muted` is not a body colour.** 6.3:1 in light misses the 7:1 body
-  bar. Labels, metadata and captions only — paragraphs use `ink`.
-- **`line` is not a control boundary.** 1.19:1 on Bone and 1.40:1 on Obsidian:
-  it fails the 3:1 bar on *both* grounds. Inputs and other bounded controls
-  take `border-ink-muted` (6.8:1 light, 5.1:1 dark).
+- **`ink-muted` is not a body colour.** 5.6:1 on the light ground misses the
+  7:1 body bar. Labels, metadata and captions only — paragraphs use `ink`.
+- **`line` is not a control boundary.** 1.23:1 light and 1.40:1 dark: it fails
+  the 3:1 bar on *both* grounds. Inputs and other bounded controls take
+  `border-ink-muted` (5.6:1 on the ground, 6.4 on a card; 5.7 and 5.1 in dark).
+- **A hover fill is a tint of the ink**, `bg-ink/[0.06]`, which darkens on
+  light and lightens on dark without a token of its own. `hover:bg-surface-*`
+  does not work: on a card it is a no-op, and on the ground it was a near-white
+  over a near-white.
 
 #### Two things that are not colours
 

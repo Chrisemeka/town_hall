@@ -156,7 +156,7 @@ export default async function AdminProjectsPage() {
               {projects.map((p) => {
                 const style = statusStyle(p.status)
                 return (
-                  <tr key={p.id} className="border-t border-line/60 hover:bg-surface/30 transition-colors duration-150 align-top">
+                  <tr key={p.id} className="border-t border-line/60 hover:bg-ink/[0.06] transition-colors duration-150 align-top">
                     <td className="px-5 py-4 max-w-[280px]">
                       <div className="flex flex-col gap-1 min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0">

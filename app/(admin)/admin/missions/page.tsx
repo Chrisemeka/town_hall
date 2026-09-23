@@ -142,7 +142,7 @@ export default async function AdminMissionsPage() {
                 const style = statusStyle(m.status, m.projectFlagged)
                 const label = m.projectFlagged ? "project flagged" : m.status
                 return (
-                  <tr key={m.id} className="border-t border-line/60 hover:bg-surface/30 transition-colors duration-150 align-top">
+                  <tr key={m.id} className="border-t border-line/60 hover:bg-ink/[0.06] transition-colors duration-150 align-top">
                     <td className="px-5 py-4 max-w-[280px]">
                       <div className="flex flex-col gap-1 min-w-0">
                         <Link

@@ -59,11 +59,11 @@
    * These are the light values and also the defaults: no cookie means light,
    * deliberately, with no prefers-color-scheme fallback.
    */
-  --color-surface:        #F5F5F7;   /* Bone */
-  --color-surface-raised: #FFFFFF;
+  --color-surface:        #E8E8EE;
+  --color-surface-raised: #F8F8FB;
   --color-ink:            #0E0E10;   /* Obsidian */
   --color-ink-muted:      #5A5A66;
-  --color-line:           #E2E2E8;
+  --color-line:           #D2D2DA;
   --color-accent:         #E8FF47;   /* Voltage — fills only */
   --color-accent-ink:     #353D00;   /* Forest — text, borders, icons */
   --color-danger-ink:     #A81E15;   /* Error text and error borders */

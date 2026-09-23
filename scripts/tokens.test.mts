@@ -122,6 +122,51 @@ assert.deepEqual(
     `literal; ink never does.`,
 )
 
+/* ── vocabulary from a design system that is not ours ────────────────── */
+
+// A class naming a token that does not exist compiles to nothing, so it fails
+// silently and looks fine in review. Two components were written against
+// Material Design names — surface-variant, error-container, outline-variant,
+// secondary — and had been rendering unstyled for months because Tailwind has
+// no way to warn about a colour it has never heard of.
+//
+// A tripwire, not a proof: it catches the vocabulary that actually leaked in
+// rather than validating every class against the token list, which would mean
+// an allowlist of every Tailwind keyword and a stream of false positives. If a
+// third system's names ever appear, add them here.
+const FOREIGN = [
+  "surface-variant",
+  "surface-container",
+  "on-surface",
+  "on-primary",
+  "outline-variant",
+  "error-container",
+  "primary-container",
+  "secondary-container",
+  "inverse-surface",
+]
+
+const foreign: string[] = []
+for (const file of files) {
+  readFileSync(file, "utf8")
+    .split("\n")
+    .forEach((line, i) => {
+      for (const name of FOREIGN) {
+        const re = new RegExp(
+          `(?<![\\w-])(bg|text|border|ring|divide|fill|stroke)-${name}(?![\\w-])`,
+        )
+        if (re.test(line)) foreign.push(`${file}:${i + 1}  ${name}`)
+      }
+    })
+}
+
+assert.deepEqual(
+  foreign,
+  [],
+  "classes naming tokens this codebase does not define — they compile to " +
+    `nothing:\n  ${foreign.join("\n  ")}`,
+)
+
 /* ── the attribute is set once, and in the right place ───────────────── */
 
 const setsTheme = files.filter((f) =>

@@ -295,17 +295,23 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
   built out of them and because a **fill** uses them — they are never a
   surface, text, border or ring.
 - **One accent rule, four pairs.** Every accent in the palette fails as *text*
-  on Bone: Voltage 1.02:1, Mint 1.20, Sky 2.02, Ember 2.97 — against
+  on the light ground: Voltage 1.09:1, Mint 1.07, Sky 1.80, Ember 2.65 — against
   `Design.md`'s 4.5:1 for a label and WCAG 1.4.11's 3:1 for a control
   boundary. So each has two halves:
   - **fill** — the literal (`bg-voltage`, `bg-mint`, `bg-ember`, `bg-sky`),
     identical in both themes, always carrying Obsidian text.
   - **ink** — the `*-ink` token for text, borders, rings and icons, darkened
     for light and collapsing back to the literal in dark: `accent-ink`
-    Forest 10.6:1, `danger-ink` 6.7, `success-ink` 6.8, `info-ink` 7.2.
-- **`line` is a divider, not a control boundary.** 1.19:1 on Bone and 1.40:1
-  on Obsidian — it fails WCAG 1.4.11's 3:1 on *both* grounds. Inputs and other
-  bounded controls take `border-ink-muted` (6.8:1 light, 5.1:1 dark).
+    Forest 9.5:1, `danger-ink` 6.0, `success-ink` 6.1, `info-ink` 6.4.
+- **`line` is a divider, not a control boundary.** 1.23:1 light and 1.40:1
+  dark — it fails WCAG 1.4.11's 3:1 on *both* grounds. Inputs and other
+  bounded controls take `border-ink-muted`: 5.6:1 on the light ground, 6.4 on
+  a card, 5.7 and 5.1 in dark.
+- **Nothing in the light ramp is pure white.** The ramp mirrors dark in
+  perceptual lightness (5.5 L* ground to raised, both themes) rather than in
+  contrast ratio, which compresses at the light end and produced a page that
+  was glaring and flat at once. A hover fill is `bg-ink/[0.06]`, never
+  `hover:bg-surface-*` — on a card that is a no-op.
 - **Scrims stay literal.** A drawer or tour overlay is dark on both themes by
   design — one that follows the theme stops being a scrim. Mark each with a
   `ponytail:` comment, which is also how `tokens.test.mts` lets it through.
