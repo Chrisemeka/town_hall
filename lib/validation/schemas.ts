@@ -6,6 +6,7 @@ import {
   COUNTRIES,
   DEVICE_TARGETS,
   ENTRY_STATUSES,
+  PLAN_IDS,
   PROJECT_CATEGORIES,
   SKILLS_MAX,
   SKILLS_MIN,
@@ -736,3 +737,12 @@ export type SignInInput = z.input<typeof signInSchema>
 export const emailOnlySchema = z.object({ email: emailSchema })
 export type EmailOnlyInput = z.input<typeof emailOnlySchema>
 
+
+/**
+ * A plan id, for the admin override.
+ *
+ * `accounts.plan_id` has no CHECK constraint — fixed vocabularies live in
+ * lib/vocabulary.ts and are enforced here, per CLAUDE.md — so this is the only
+ * thing standing between a typo and the column.
+ */
+export const planIdSchema = z.enum(PLAN_IDS, { message: "Unknown plan." })
