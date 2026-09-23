@@ -3,6 +3,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { accountTypesFor } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
+import { GiveAndTake } from "@/components/settings/GiveAndTake";
+import { reciprocityFrom } from "@/lib/reciprocity";
 import { ThemePreference } from "@/components/ThemePreference";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, readTheme } from "@/lib/theme";
@@ -20,7 +22,7 @@ export default async function SettingsPage() {
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, accountTypes] = await Promise.all([
+  const [{ data: profile }, accountTypes, mine, owned] = await Promise.all([
     admin
       .from("profiles")
       .select("full_name, country, phone, timezone, bio, skills")
@@ -29,7 +31,32 @@ export default async function SettingsPage() {
     // Resolved on the server: whether to offer the skills field is an account
     // fact, and the client has no business querying for it.
     accountTypesFor(user.id),
+    // What this person has given: their own submissions, with the ratings the
+    // average needs and the statuses the approved count needs.
+    admin.from("test_results").select("status, rating").eq("tester_id", user.id),
+    // What they have taken: submissions on missions belonging to projects they
+    // own. The inner join IS the ownership filter — service role bypasses RLS,
+    // so this is the only thing scoping it (CLAUDE.md, Data Mutations).
+    //
+    // head + exact count: the number is all this needs, so no rows cross the
+    // wire. The two-hop embed relies on the FK chain
+    // test_results -> missions -> projects being visible to PostgREST.
+    admin
+      .from("test_results")
+      .select("id, missions!inner(projects!inner(owner_id))", {
+        count: "exact",
+        head: true,
+      })
+      .eq("missions.projects.owner_id", user.id),
   ]);
+
+  const givenRows = (mine.data ?? []) as { status: string; rating: number | null }[];
+  const stats = reciprocityFrom({
+    given: givenRows.length,
+    received: owned.count ?? 0,
+    approved: givenRows.filter((r) => r.status === "approved").length,
+    ratings: givenRows.map((r) => r.rating),
+  });
 
   return (
     <div className="max-w-[640px] mx-auto px-6 py-10">
@@ -57,7 +84,11 @@ export default async function SettingsPage() {
         hasTesterAccount={accountTypes.includes("tester")}
       />
 
-      <div className="mt-10">
+      <div className="mt-10 flex flex-col gap-10">
+        <GiveAndTake
+          stats={stats}
+          hasTesterAccount={accountTypes.includes("tester")}
+        />
         <ThemePreference theme={theme} />
       </div>
 
