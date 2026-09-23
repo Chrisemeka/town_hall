@@ -19,6 +19,9 @@ import {
   deviceTargetLabel,
   entryStatusLabel,
   testCategoryLabel,
+  PLAN_IDS,
+  DEFAULT_PLAN,
+  planIdFor,
 } from "../lib/vocabulary.ts"
 
 const noDuplicates = (list: readonly string[], label: string) =>
@@ -167,5 +170,29 @@ assert.equal(
   ENTRY_STATUSES.length,
   "ENTRY_STATUS_HINTS has an entry for a status that does not exist",
 )
+
+
+/* ── plan ids ────────────────────────────────────────────────────────── */
+
+// The column is nullable and null means Community, so planIdFor has to answer
+// for a row that has never been touched as well as for one that has.
+assert.equal(planIdFor(null), DEFAULT_PLAN, "an unassigned account is on the free plan")
+assert.equal(planIdFor(undefined), DEFAULT_PLAN)
+assert.equal(planIdFor(""), DEFAULT_PLAN)
+assert.equal(planIdFor("community"), "community")
+assert.equal(planIdFor("pro"), "pro")
+
+// There is no CHECK constraint on the column — Zod is the only thing standing
+// between a typo and the database — so a value that is not in the vocabulary
+// must read as the default rather than as itself.
+assert.equal(planIdFor("enterprise"), DEFAULT_PLAN, "an unknown plan is not a plan")
+assert.equal(planIdFor("PRO"), DEFAULT_PLAN, "exact match only")
+
+assert.ok(
+  (PLAN_IDS as readonly string[]).includes(DEFAULT_PLAN),
+  "the default has to be one of the plans it defaults to",
+)
+
+console.log("plan ids: all assertions passed")
 
 console.log("entry statuses: all assertions passed")
