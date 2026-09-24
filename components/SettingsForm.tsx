@@ -1,11 +1,9 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { deleteAccountAction } from "@/actions/auth"
 import { updateProfile } from "@/actions/profile"
 import { Field, inputClass, textareaClass } from "@/components/ui/Field"
 import { SkillsInput } from "@/components/ui/SkillsInput"
-import { AccountControl } from "@/components/settings/AccountControl"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { fieldErrorProps } from "@/components/ui/FieldError"
@@ -53,17 +51,21 @@ function payloadFrom(values: ProfileValues, hasTesterAccount: boolean): UpdatePr
   return payload
 }
 
-function SectionDivider() {
-  return <div style={{ height: 1, background: "var(--color-line)", margin: "32px 0" }} />
-}
 
 export function SettingsForm({
   initialEmail,
   initialProfile,
   hasTesterAccount,
+  onDirtyChange,
 }: {
   initialEmail: string
   initialProfile: ProfileValues
+  /**
+   * Reports whether there are unsaved edits, so the Profile tab can show an
+   * indicator. The same boolean the beforeunload hook below uses — not a
+   * second definition of "dirty", which would drift.
+   */
+  onDirtyChange?: (dirty: boolean) => void
   /** Whether the person holds a tester account at all — not which role they are
    *  currently acting as. The profile row is per-person, so their skills are
    *  theirs to edit from either hat. */
@@ -82,11 +84,23 @@ export function SettingsForm({
   // but displayed grouped, so a successful save leaves the field looking different
   // from the column it was just written to — without this, saving a phone number
   // and then reloading would still be met with "leave site?".
-  useUnsavedChangesWarning(!saved && JSON.stringify(values) !== JSON.stringify(initialProfile))
+  const dirty = !saved && JSON.stringify(values) !== JSON.stringify(initialProfile)
+  useUnsavedChangesWarning(dirty)
 
-  const [deleteStep, setDeleteStep]   = useState<"idle" | "confirm">("idle")
-  const [deleting,   setDeleting]     = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  // beforeunload does not fire on an in-page tab switch, so the hook above
+  // cannot warn about leaving Profile for Plan. Nothing is lost either way —
+  // the panels stay mounted, so this state survives — but the tab strip shows
+  // an indicator so that is visible rather than merely true.
+  //
+  // Derived during render from a value that changed, rather than in an effect:
+  // the pattern React documents for adjusting state on an input change, and
+  // the one the set-state-in-effect rule leaves alone.
+  const [reportedDirty, setReportedDirty] = useState(dirty)
+  if (reportedDirty !== dirty) {
+    setReportedDirty(dirty)
+    onDirtyChange?.(dirty)
+  }
+
 
   function set<K extends keyof ProfileValues>(key: K, value: ProfileValues[K]) {
     setValues((v) => ({ ...v, [key]: value }))
@@ -134,17 +148,6 @@ export function SettingsForm({
     }
   }
 
-  async function handleDeleteAccount() {
-    setDeleting(true)
-    setDeleteError(null)
-    try {
-      await deleteAccountAction()
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete account.")
-      setDeleting(false)
-      setDeleteStep("idle")
-    }
-  }
 
   return (
     <div>
@@ -283,98 +286,6 @@ export function SettingsForm({
           )}
         </div>
       </div>
-
-      <SectionDivider />
-
-      {/* ── Account ─────────────────────────────────────── */}
-      <div>
-        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h5>
-
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-mono text-[14px] text-ink">Linked Accounts</p>
-            <p className="font-mono text-[13px] text-ink-muted mt-0.5">
-              GitHub, Google, and other OAuth providers.
-            </p>
-          </div>
-          <button className="h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 shrink-0">
-            Manage
-          </button>
-        </div>
-      </div>
-
-      <SectionDivider />
-
-      {/* Moved down from the sidebar, where there was no room to say that
-          adding a tester account means completing a tester profile first. */}
-      <AccountControl hasTesterAccount={hasTesterAccount} />
-
-      <SectionDivider />
-
-      {/* ── Danger Zone ─────────────────────────────────── */}
-      <div>
-        <h5 className="font-syne font-bold text-[20px]" style={{ color: "var(--color-danger-ink)" }}>
-          Danger Zone
-        </h5>
-        <p className="font-mono text-[14px] text-ink-muted mt-2 mb-6">
-          Destructive actions that cannot be undone.
-        </p>
-
-        <div
-          className="rounded-[12px] p-5 flex flex-col gap-4"
-          style={{ background: "rgba(255,79,79,0.05)", border: "1px solid rgba(255,79,79,0.2)" }}
-        >
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-mono text-[14px] text-ink">Delete Account</p>
-              <p className="font-mono text-[13px] text-ink-muted mt-0.5">
-                Permanently removes your account, projects, missions, and all feedback.
-              </p>
-            </div>
-            {deleteStep === "idle" && (
-              <button
-                onClick={() => setDeleteStep("confirm")}
-                className="shrink-0 h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium border transition-colors duration-150"
-                style={{ borderColor: "rgba(255,79,79,0.5)", color: "var(--color-danger-ink)", background: "transparent" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,79,79,0.1)" }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-              >
-                Delete Account
-              </button>
-            )}
-          </div>
-
-          {deleteStep === "confirm" && (
-            <div className="border-t pt-4" style={{ borderColor: "rgba(255,79,79,0.2)" }}>
-              <p className="font-mono text-[13px] text-ink mb-4">
-                This cannot be undone. All your data will be permanently deleted. Are you sure?
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={deleting}
-                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-                  style={{ background: "var(--color-danger-ink)", color: "var(--color-surface)", border: "none" }}
-                >
-                  {deleting ? "Deleting…" : "Yes, delete my account"}
-                </button>
-                <button
-                  onClick={() => { setDeleteStep("idle"); setDeleteError(null) }}
-                  disabled={deleting}
-                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {deleteError && (
-          <p className="font-mono text-[13px] text-danger-ink mt-3">{deleteError}</p>
-        )}
-      </div>
-
     </div>
   )
 }

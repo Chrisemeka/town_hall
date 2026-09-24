@@ -2,18 +2,26 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { accountTypesFor } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { SettingsForm } from "@/components/SettingsForm";
+import { SettingsClient } from "@/components/settings/SettingsClient";
 import { GiveAndTake } from "@/components/settings/GiveAndTake";
 import { PlanSection } from "@/components/settings/PlanSection";
 import { planIdFor } from "@/lib/vocabulary";
+import { tabFromParam } from "@/lib/settingsTabs";
 import { reciprocityFrom } from "@/lib/reciprocity";
-import { ThemePreference } from "@/components/ThemePreference";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, readTheme } from "@/lib/theme";
 
 export const metadata = { title: "Settings — Twnhall" };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  // Deep-linkable: /settings?tab=plan opens on Plan, refresh keeps you there,
+  // and another surface can point straight at a tab. Anything unrecognised
+  // resolves to Profile rather than erroring — see tabFromParam.
+  searchParams: Promise<{ tab?: string | string[] }>;
+}) {
+  const initialTab = tabFromParam((await searchParams).tab);
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -72,7 +80,7 @@ export default async function SettingsPage() {
     <div className="max-w-[640px] mx-auto px-6 py-10">
 
       {/* Page header */}
-      <div className="mb-10">
+      <div className="mb-8">
         <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
           Settings
         </h1>
@@ -81,7 +89,8 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsForm
+      <SettingsClient
+        initialTab={initialTab}
         initialEmail={user.email ?? ""}
         initialProfile={{
           full_name: profile?.full_name ?? "",
@@ -92,16 +101,15 @@ export default async function SettingsPage() {
           skills: profile?.skills ?? [],
         }}
         hasTesterAccount={accountTypes.includes("tester")}
+        theme={theme}
+        activity={
+          <GiveAndTake
+            stats={stats}
+            hasTesterAccount={accountTypes.includes("tester")}
+          />
+        }
+        plan={<PlanSection planId={planIdFor(account?.plan_id as string | null)} />}
       />
-
-      <div className="mt-10 flex flex-col gap-10">
-        <GiveAndTake
-          stats={stats}
-          hasTesterAccount={accountTypes.includes("tester")}
-        />
-        <PlanSection planId={planIdFor(account?.plan_id as string | null)} />
-        <ThemePreference theme={theme} />
-      </div>
 
     </div>
   );
