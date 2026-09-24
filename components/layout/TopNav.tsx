@@ -2,10 +2,9 @@
 
 import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
-import { LogOut, Menu, X, Plus, Search } from "lucide-react"
+import { Menu, X, Plus, Search } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
-import { signOutAction } from "@/actions/auth"
 import { homeFor, type AccountType } from "@/lib/access"
 
 // The primary CTA is whatever that account type is here to do.
@@ -77,15 +76,6 @@ export function TopNav({
           />
         </Link>
 
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            aria-label="Sign out"
-            className="p-2 text-ink-muted hover:text-ink transition-colors duration-150 flex items-center justify-center"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </form>
       </div>
 
       {/* Right: Mobile actions */}

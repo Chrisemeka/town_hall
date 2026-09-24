@@ -13,7 +13,6 @@ export function AppShell({
   displayName,
   seenTours,
   account = "builder",
-  heldTypes = [],
 }: {
   children: React.ReactNode
   userId?: string | null
@@ -21,7 +20,6 @@ export function AppShell({
   displayName?: string | null
   seenTours?: string[]
   account?: AccountType
-  heldTypes?: AccountType[]
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -40,7 +38,6 @@ export function AppShell({
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           account={account}
-          heldTypes={heldTypes}
         />
 
         {/* Mobile backdrop */}

@@ -5,6 +5,7 @@ import { deleteAccountAction } from "@/actions/auth"
 import { updateProfile } from "@/actions/profile"
 import { Field, inputClass, textareaClass } from "@/components/ui/Field"
 import { SkillsInput } from "@/components/ui/SkillsInput"
+import { AccountControl } from "@/components/settings/AccountControl"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { fieldErrorProps } from "@/components/ui/FieldError"
@@ -304,6 +305,9 @@ export function SettingsForm({
 
       <SectionDivider />
 
+      {/* Moved down from the sidebar, where there was no room to say that
+          adding a tester account means completing a tester profile first. */}
+      <AccountControl hasTesterAccount={hasTesterAccount} />
 
       <SectionDivider />
 
