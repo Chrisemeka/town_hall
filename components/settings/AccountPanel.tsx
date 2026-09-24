@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { deleteAccountAction } from "@/actions/auth"
 import { AccountControl } from "@/components/settings/AccountControl"
+import { ExportPanel } from "@/components/settings/ExportPanel"
 
 /**
  * The Account tab: linked accounts, the tester-account switch, and the danger
@@ -13,15 +14,22 @@ import { AccountControl } from "@/components/settings/AccountControl"
  * halves never shared state: the profile form owns `values` and `errors`,
  * this owns the delete flow.
  *
- * Export your data lands here when feat/feedback-export ships. Delete and
- * export belong together — both are operations on your own data — and this
- * tab is built expecting it.
+ * Export sits directly above Danger Zone: delete and export belong together,
+ * because both are operations on your own data.
  */
 function SectionDivider() {
   return <div className="h-px bg-line my-10" />
 }
 
-export function AccountPanel({ hasTesterAccount }: { hasTesterAccount: boolean }) {
+export function AccountPanel({
+  hasTesterAccount,
+  projects,
+  hasFeedback,
+}: {
+  hasTesterAccount: boolean
+  projects: { id: string; name: string }[]
+  hasFeedback: boolean
+}) {
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm">("idle")
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -62,6 +70,10 @@ export function AccountPanel({ hasTesterAccount }: { hasTesterAccount: boolean }
       {/* Moved down from the sidebar, where there was no room to say that
           adding a tester account means completing a tester profile first. */}
       <AccountControl hasTesterAccount={hasTesterAccount} />
+
+      <SectionDivider />
+
+      <ExportPanel projects={projects} hasFeedback={hasFeedback} />
 
       <SectionDivider />
 
