@@ -26,6 +26,8 @@ export function SettingsClient({
   initialProfile,
   hasTesterAccount,
   theme,
+  projects,
+  hasFeedback,
   activity,
   plan,
 }: {
@@ -34,6 +36,9 @@ export function SettingsClient({
   initialProfile: ProfileValues
   hasTesterAccount: boolean
   theme: Theme
+  /** The caller's own projects, for the export scope select. */
+  projects: { id: string; name: string }[]
+  hasFeedback: boolean
   activity: React.ReactNode
   plan: React.ReactNode
 }) {
@@ -55,7 +60,13 @@ export function SettingsClient({
             <ThemePreference theme={theme} />
           </div>
         ),
-        account: <AccountPanel hasTesterAccount={hasTesterAccount} />,
+        account: (
+          <AccountPanel
+            hasTesterAccount={hasTesterAccount}
+            projects={projects}
+            hasFeedback={hasFeedback}
+          />
+        ),
         activity,
         plan,
       }}

@@ -32,7 +32,8 @@ export default async function SettingsPage({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, accountTypes, { data: account }, mine, owned] = await Promise.all([
+  const [{ data: profile }, accountTypes, { data: account }, mine, owned, ownProjects] =
+    await Promise.all([
     admin
       .from("profiles")
       .select("full_name, country, phone, timezone, bio, skills")
@@ -66,6 +67,8 @@ export default async function SettingsPage({
         head: true,
       })
       .eq("missions.projects.owner_id", user.id),
+    // The caller's own projects, for the export scope select.
+    admin.from("projects").select("id, name").eq("owner_id", user.id).order("name"),
   ]);
 
   const givenRows = (mine.data ?? []) as { status: string; rating: number | null }[];
@@ -102,6 +105,10 @@ export default async function SettingsPage({
         }}
         hasTesterAccount={accountTypes.includes("tester")}
         theme={theme}
+        projects={(ownProjects.data ?? []) as { id: string; name: string }[]}
+        // The count the Activity tab already needed — "feedback received" and
+        // "is there anything to export" are the same question.
+        hasFeedback={(owned.count ?? 0) > 0}
         activity={
           <GiveAndTake
             stats={stats}

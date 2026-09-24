@@ -125,6 +125,15 @@ CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIE
 
 **One identity, two accounts.** A person is one `profiles` row with up to two `accounts` rows (`type='builder'` and `type='tester'`). Google OAuth + Supabase's unique email constraint means one person cannot hold two identities. Anything scoped to a role must live on `accounts`, not `profiles`.
 
+**Route Handlers have no middleware, so they gate themselves.**
+`middleware.ts`'s matcher excludes `api` in its negative lookahead, so nothing
+under `app/api/**` is gated by it — the two-layer rule below has one of its
+layers *structurally absent* there. `app/api/export/feedback` calls
+`requireAccount("builder")` itself, and that is the only gate on it, not a
+second opinion. Use `requireAccount()` rather than a hand-rolled `getUser()`:
+it carries the email-confirmation and per-role verification gates with it, and
+a route that skips them is a way around them.
+
 **Two layers, always.** Every protected route is gated in **two** places:
 
 1. `middleware.ts` — URL-matcher gate, refreshes session, sets `no-store` on protected routes.
@@ -371,6 +380,14 @@ Canonical reference: `Test.md`. Every feature ships with:
   button, and nothing unshipped is listed. When tier enforcement lands, the
   page changes with it — until then, do not add a control implying a
   transaction that does not exist.
+- **What leaves in a CSV.** `app/api/export/feedback` includes a tester's
+  display name, because the builder already sees it in the app. It must never
+  include **email addresses**, user ids or avatar URLs — a downloaded file is
+  out of your control the moment it exists, and the app shows a builder none
+  of those. Every field also passes through `neutralise()` in `lib/csv.ts`
+  before quoting, and **the order matters**: reversed, the apostrophe lands
+  outside the quotes and the formula runs. Every field in that file is written
+  by a tester and opened by a builder.
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
   the other tier includes, and that is all: **no usage meter, no "3 of 5
