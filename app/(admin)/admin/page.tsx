@@ -112,7 +112,7 @@ export default async function AdminHomePage() {
       timestamp: u.created_at,
       text: (
         <>
-          <span className="text-chalk">{(u.user_metadata?.full_name as string | undefined) || u.email || "Someone"}</span>{" "}
+          <span className="text-ink">{(u.user_metadata?.full_name as string | undefined) || u.email || "Someone"}</span>{" "}
           joined the community
         </>
       ),
@@ -127,8 +127,8 @@ export default async function AdminHomePage() {
       timestamp: r.created_at,
       text: (
         <>
-          <span className="text-chalk">{tester?.fullName || tester?.email || "A tester"}</span>{" "}
-          submitted feedback{missionTitle ? <> on <span className="text-chalk">{missionTitle}</span></> : null}
+          <span className="text-ink">{tester?.fullName || tester?.email || "A tester"}</span>{" "}
+          submitted feedback{missionTitle ? <> on <span className="text-ink">{missionTitle}</span></> : null}
         </>
       ),
     })
@@ -140,8 +140,8 @@ export default async function AdminHomePage() {
       timestamp: p.flagged_at,
       text: (
         <>
-          Flagged <span className="text-chalk">{p.name}</span>
-          {p.flag_reason ? <span className="text-ash"> — {p.flag_reason}</span> : null}
+          Flagged <span className="text-ink">{p.name}</span>
+          {p.flag_reason ? <span className="text-ink-muted"> — {p.flag_reason}</span> : null}
         </>
       ),
     })
@@ -157,15 +157,15 @@ export default async function AdminHomePage() {
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10">
         <div className="min-w-0">
           <div className="flex items-center gap-3 mb-3">
-            <ShieldCheck className="w-5 h-5 text-voltage" />
-            <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px]">
+            <ShieldCheck className="w-5 h-5 text-accent-ink" />
+            <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px]">
               Admin Console
             </p>
           </div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[34px] sm:leading-[40px] md:text-[40px] md:leading-[44px] tracking-[-0.5px] text-chalk mb-2 break-words">
+          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[34px] sm:leading-[40px] md:text-[40px] md:leading-[44px] tracking-[-0.5px] text-ink mb-2 break-words">
             Welcome, {displayName}.
           </h1>
-          <p className="font-mono text-[14px] text-ash max-w-xl">
+          <p className="font-mono text-[14px] text-ink-muted max-w-xl">
             Manage the Twnhall community from here.
           </p>
         </div>
@@ -179,7 +179,7 @@ export default async function AdminHomePage() {
         <KpiTile icon={Target}        label="Missions"     value={missionsCount} />
         <KpiTile icon={MessageSquare} label="Submissions"  value={submissionsCount} />
         <KpiTile icon={Sparkles}      label="AI Reports"   value={aiReportsCount}   accent="#A78BFA" />
-        <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "#FF4F4F" : "#7C7C8A"} />
+        <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
       </div>
 
       {/* ── Nav cards ────────────────────────────────────────── */}
@@ -193,24 +193,24 @@ export default async function AdminHomePage() {
       </div>
 
       {/* ── Recent activity ──────────────────────────────────── */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center gap-2">
-          <Activity className="w-4 h-4 text-voltage" />
-          <h2 className="font-syne font-bold text-[16px] text-chalk">Recent Activity</h2>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+          <Activity className="w-4 h-4 text-accent-ink" />
+          <h2 className="font-syne font-bold text-[16px] text-ink">Recent Activity</h2>
         </div>
         {recentActivity.length === 0 ? (
-          <div className="px-5 py-12 text-center font-mono text-[13px] text-ash">
+          <div className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
             Nothing here yet.
           </div>
         ) : (
-          <ul className="divide-y divide-iron/60">
+          <ul className="divide-y divide-line/60">
             {recentActivity.map((item, i) => (
               <li key={`${item.kind}-${i}`} className="px-5 py-3 flex items-center gap-3">
                 <ActivityIcon kind={item.kind} />
-                <p className="font-mono text-[13px] text-ash flex-1 leading-5 min-w-0">
+                <p className="font-mono text-[13px] text-ink-muted flex-1 leading-5 min-w-0">
                   {item.text}
                 </p>
-                <span className="font-mono text-[12px] text-ash/70 whitespace-nowrap tabular-nums">
+                <span className="font-mono text-[12px] text-ink-muted/70 whitespace-nowrap tabular-nums">
                   {relativeTime(item.timestamp)}
                 </span>
               </li>
@@ -234,12 +234,12 @@ function KpiTile({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
+    <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3 h-3" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ash">{label}</p>
+        <Icon className="w-3 h-3" style={{ color: accent ?? "var(--color-accent-ink)" }} />
+        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[22px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }
@@ -255,17 +255,17 @@ function NavCard({
   return (
     <Link
       href={href}
-      className="group bg-graphite border border-iron rounded-[12px] p-6 hover:border-voltage/40 transition-colors duration-150 flex flex-col"
+      className="group bg-surface-raised border border-line rounded-[12px] p-6 hover:border-accent-ink/40 transition-colors duration-150 flex flex-col"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
     >
       <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="w-10 h-10 rounded-[8px] bg-obsidian border border-iron flex items-center justify-center">
-          <Icon className="w-5 h-5 text-voltage" />
+        <div className="w-10 h-10 rounded-[8px] bg-surface border border-line flex items-center justify-center">
+          <Icon className="w-5 h-5 text-accent-ink" />
         </div>
-        <ArrowRight className="w-4 h-4 text-ash group-hover:text-voltage transition-colors duration-150" />
+        <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-accent-ink transition-colors duration-150" />
       </div>
-      <h3 className="font-syne font-bold text-[18px] text-chalk mb-1">{title}</h3>
-      <p className="font-mono text-[13px] text-ash leading-5">{desc}</p>
+      <h3 className="font-syne font-bold text-[18px] text-ink mb-1">{title}</h3>
+      <p className="font-mono text-[13px] text-ink-muted leading-5">{desc}</p>
     </Link>
   )
 }
@@ -281,13 +281,13 @@ function ActivityIcon({ kind }: { kind: ActivityKind }) {
   if (kind === "submission") {
     return (
       <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(232,255,71,0.08)", border: "1px solid rgba(232,255,71,0.3)" }}>
-        <MessageSquare className="w-3.5 h-3.5" style={{ color: "#E8FF47" }} />
+        <MessageSquare className="w-3.5 h-3.5" style={{ color: "var(--color-accent-ink)" }} />
       </div>
     )
   }
   return (
     <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(255,79,79,0.10)", border: "1px solid rgba(255,79,79,0.3)" }}>
-      <AlertTriangle className="w-3.5 h-3.5" style={{ color: "#FF4F4F" }} />
+      <AlertTriangle className="w-3.5 h-3.5" style={{ color: "var(--color-danger-ink)" }} />
     </div>
   )
 }

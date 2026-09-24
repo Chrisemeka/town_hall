@@ -1,26 +1,14 @@
 import { cookies } from "next/headers";
+import { THEME_COOKIE, readTheme } from "@/lib/theme";
 import { PublicHeader } from "@/components/public/PublicHeader";
 import { PublicFooter } from "@/components/public/PublicFooter";
-import { THEME_COOKIE, readTheme } from "@/lib/theme";
 
 /**
- * The public shell: theme attribute, header, footer.
+ * The public shell: header and footer.
  *
- * `data-theme` sits on this wrapper rather than on <html> because only the
- * root layout may render <html>, and reading cookies() there would opt every
- * route in the app into dynamic rendering — including the app surfaces, which
- * do not have a theme. Scoping the read here keeps that cost on the pages that
- * need it. Custom properties cascade, so an attribute on a div resolves for
- * everything inside it (see the note in app/globals.css on why the semantic
- * tokens are defined directly rather than through an indirection layer).
- *
- * Reading the cookie server-side is also what makes the first paint correct:
- * no flash of the wrong theme, no blocking inline script, no
- * suppressHydrationWarning.
- *
- * The root <body> keeps its literal `bg-obsidian text-chalk` — the app
- * surfaces still rely on it — so overscroll past the end of a light page shows
- * Obsidian, exactly as today's landing page already does.
+ * It no longer owns `data-theme` — app/layout.tsx sets that once on <html>
+ * for every route, now that every surface is themed. The theme is still read
+ * here because PublicHeader's toggle needs to know which way to point.
  */
 export default async function PublicLayout({
   children,
@@ -30,10 +18,7 @@ export default async function PublicLayout({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
-    <div
-      data-theme={theme}
-      className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian"
-    >
+    <div className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
       <PublicHeader theme={theme} />
       <main className="flex-1 flex flex-col">{children}</main>
       <PublicFooter />

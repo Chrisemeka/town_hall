@@ -27,7 +27,7 @@ export function AppShell({
 
   return (
     <TourProvider seenTours={seenTours ?? []}>
-      <div className="min-h-screen bg-obsidian flex text-chalk">
+      <div className="min-h-screen bg-surface flex text-ink">
         <TopNav
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
@@ -46,6 +46,9 @@ export function AppShell({
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
+            // ponytail: a literal, deliberately. A drawer scrim is dark on
+            // both themes — it exists to push the page back, and a scrim
+            // that follows the theme stops being one in light mode.
             className="fixed inset-0 bg-black/50 z-30 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />

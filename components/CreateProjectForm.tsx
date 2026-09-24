@@ -64,22 +64,22 @@ export default function CreateProjectForm() {
   }
 
   return (
-    <div id="tour-new-project-form" className="bg-graphite border border-iron rounded-[16px] p-10">
+    <div id="tour-new-project-form" className="bg-surface-raised border border-line rounded-[16px] p-10">
 
       {/* Header */}
       <div id="tour-new-project-header">
-        <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-1">
+        <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-1">
           Submit a Project
         </h2>
-        <p className="font-mono text-[16px] leading-6 text-ash mb-8">
+        <p className="font-mono text-[16px] leading-6 text-ink-muted mb-8">
           Tell the community what you&apos;ve built.
         </p>
       </div>
 
       {/* Server error */}
       {state?.error && (
-        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-          <p className="font-mono text-[14px] text-ember">{state.error}</p>
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-danger-ink/20 rounded-[8px]">
+          <p className="font-mono text-[14px] text-danger-ink">{state.error}</p>
         </div>
       )}
 
@@ -87,7 +87,7 @@ export default function CreateProjectForm() {
 
         {/* Project Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+          <label htmlFor="name" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
             Project Name
           </label>
           <input
@@ -100,8 +100,8 @@ export default function CreateProjectForm() {
             onChange={(e) => setName(e.target.value)}
             {...fieldErrorProps("name", fieldErrors.name)}
             className={[
-              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-              fieldErrors.name?.length ? "border-ember" : "border-iron focus:border-voltage",
+              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+              fieldErrors.name?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <FieldError field="name" errors={fieldErrors.name} />
@@ -109,7 +109,7 @@ export default function CreateProjectForm() {
 
         {/* Project URL */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="app_url" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+          <label htmlFor="app_url" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
             Project URL
           </label>
           <input
@@ -121,8 +121,8 @@ export default function CreateProjectForm() {
             onChange={(e) => setAppUrl(e.target.value)}
             {...fieldErrorProps("app_url", fieldErrors.app_url)}
             className={[
-              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-              fieldErrors.app_url?.length ? "border-ember" : "border-iron focus:border-voltage",
+              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+              fieldErrors.app_url?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <FieldError field="app_url" errors={fieldErrors.app_url} />
@@ -130,7 +130,7 @@ export default function CreateProjectForm() {
 
         {/* Category */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="category" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+          <label htmlFor="category" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
             Category
           </label>
           <select
@@ -140,8 +140,8 @@ export default function CreateProjectForm() {
             onChange={(e) => setCategory(e.target.value)}
             {...fieldErrorProps("category", fieldErrors.category)}
             className={[
-              "w-full h-10 bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk focus:outline-none transition-colors duration-150",
-              fieldErrors.category?.length ? "border-ember" : "border-iron focus:border-voltage",
+              "w-full h-10 bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink focus:outline-none transition-colors duration-150",
+              fieldErrors.category?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           >
             <option value="">Select a category</option>
@@ -154,7 +154,7 @@ export default function CreateProjectForm() {
           {fieldErrors.category?.length ? (
             <FieldError field="category" errors={fieldErrors.category} />
           ) : (
-            <p className="font-mono text-[12px] text-ash leading-5">
+            <p className="font-mono text-[12px] text-ink-muted leading-5">
               Testers filter the Explore feed by this.
             </p>
           )}
@@ -162,7 +162,7 @@ export default function CreateProjectForm() {
 
         {/* Brief Summary */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="description" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+          <label htmlFor="description" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
             What is it? (2 sentences)
           </label>
           <textarea
@@ -175,27 +175,27 @@ export default function CreateProjectForm() {
             onChange={(e) => setSummary(e.target.value)}
             {...fieldErrorProps("description", fieldErrors.description)}
             className={[
-              "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
-              fieldErrors.description?.length ? "border-ember" : "border-iron focus:border-voltage",
+              "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
+              fieldErrors.description?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <div className="flex items-start justify-between gap-3">
             {fieldErrors.description?.length ? (
               <FieldError field="description" errors={fieldErrors.description} />
             ) : (
-              <p className="font-mono text-[12px] text-ash leading-5 min-w-0">
+              <p className="font-mono text-[12px] text-ink-muted leading-5 min-w-0">
                 Testers read this on the Explore feed — say what it does and who it&apos;s for.
               </p>
             )}
-            <span className={`font-mono text-[12px] shrink-0 ${summary.length >= PROJECT_SUMMARY_MAX ? "text-ember" : "text-ash"}`}>
+            <span className={`font-mono text-[12px] shrink-0 ${summary.length >= PROJECT_SUMMARY_MAX ? "text-danger-ink" : "text-ink-muted"}`}>
               {summary.length} / {PROJECT_SUMMARY_MAX}
             </span>
           </div>
         </div>
 
         {/* What Happens Next info box */}
-        <div id="tour-new-project-next" className="bg-obsidian border border-iron rounded-[12px] p-6">
-          <p className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+        <div id="tour-new-project-next" className="bg-surface border border-line rounded-[12px] p-6">
+          <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
             What happens next?
           </p>
           <div className="flex flex-col gap-4">
@@ -205,10 +205,10 @@ export default function CreateProjectForm() {
               { num: "03", text: "Once live, developers pick up your missions and submit feedback with screenshots." },
             ].map((step) => (
               <div key={step.num} className="flex items-start gap-4">
-                <span className="font-mono text-[12px] font-medium text-voltage shrink-0 w-6">
+                <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 w-6">
                   {step.num}
                 </span>
-                <p className="font-mono text-[13px] text-ash leading-5">{step.text}</p>
+                <p className="font-mono text-[13px] text-ink-muted leading-5">{step.text}</p>
               </div>
             ))}
           </div>
@@ -233,7 +233,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite"
+      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Creating…" : "Create Project"}
     </button>

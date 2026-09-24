@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, readTheme } from "@/lib/theme";
 import { Syne, DM_Mono, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -62,17 +64,34 @@ const organizationSchema = {
   description: "Connecting developers with real-world testers.",
 };
 
-export default function RootLayout({
+/*
+ * data-theme is set here, once, for every route.
+ *
+ * It used to live on two nested wrappers — the (public) layout and the setup
+ * shell — because only those surfaces were themed. Now that every surface is,
+ * one attribute on the document is the whole mechanism: two nested attributes
+ * agreeing is harmless right up until the day they disagree.
+ *
+ * Read from the cookie server-side, so the first byte is already correct:
+ * no flash of the wrong theme, no blocking inline script, no
+ * suppressHydrationWarning. The cost is that /_not-found stops being
+ * statically rendered — it was the only static page left, and robots.txt and
+ * sitemap.xml are route handlers and unaffected.
+ */
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   return (
     <html
       lang="en"
+      data-theme={theme}
       className={`${syne.variable} ${dmMono.variable} ${dmSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-mono bg-obsidian text-chalk">
+      <body className="min-h-full flex flex-col font-mono bg-surface text-ink">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}

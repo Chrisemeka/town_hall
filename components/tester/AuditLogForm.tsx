@@ -212,10 +212,10 @@ export default function AuditLogForm({
           className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
           style={{ background: "rgba(63,255,162,0.1)" }}
         >
-          <CheckCircle className="w-6 h-6" style={{ color: "#3FFFA2" }} />
+          <CheckCircle className="w-6 h-6" style={{ color: "var(--color-success-ink)" }} />
         </div>
-        <h3 className="font-syne font-bold text-[24px] text-chalk mb-2">Feedback Submitted</h3>
-        <p className="font-mono text-[14px] text-ash">
+        <h3 className="font-syne font-bold text-[24px] text-ink mb-2">Feedback Submitted</h3>
+        <p className="font-mono text-[14px] text-ink-muted">
           Thanks for testing — your feedback has been logged.
         </p>
       </div>
@@ -230,18 +230,18 @@ export default function AuditLogForm({
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const zoneBorder = fileErrors.length
-    ? "#FF4F4F"
+    ? "var(--color-danger-ink)"
     : isDragOver
-    ? "#E8FF47"
+    ? "var(--color-accent-ink)"
     : isHovered
     ? "rgba(232,255,71,0.4)"
-    : "#2C2C35"
+    : "var(--color-line)"
 
   const zoneBg = isDragOver
     ? "rgba(232,255,71,0.06)"
     : isHovered
     ? "rgba(232,255,71,0.03)"
-    : "#1A1A1F"
+    : "var(--color-surface-raised)"
 
   const acceptAttr = ALLOWED_SCREENSHOT_TYPES.join(",")
   const maxMb = Math.round(MAX_SCREENSHOT_BYTES / (1024 * 1024))
@@ -254,10 +254,10 @@ export default function AuditLogForm({
           if (appUrl) window.open(appUrl, "_blank", "noopener,noreferrer")
           setUnlocked(true)
         }}
-        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian ${
+        className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
           unlocked
-            ? "mb-8 border border-iron text-chalk hover:border-ash"
-            : "mb-3 bg-voltage text-obsidian hover:bg-[#C8E000]"
+            ? "mb-8 border border-line text-ink hover:border-ink-muted"
+            : "mb-3 bg-voltage text-obsidian hover:bg-voltage-dark"
         }`}
       >
         {unlocked ? "Open Again in New Tab" : "Open Project in New Tab"}
@@ -277,8 +277,8 @@ export default function AuditLogForm({
         clicking "Open Again" has already found out.
       */}
       {!unlocked && (
-        <p className="font-mono text-[13px] text-ash leading-5 mb-8">
-          <span className="text-chalk">Screenshot as you go.</span>{" "}
+        <p className="font-mono text-[13px] text-ink-muted leading-5 mb-8">
+          <span className="text-ink">Screenshot as you go.</span>{" "}
           You&apos;ll need at least one to
           submit, and the whole journey tells the builder more than the last screen does.
         </p>
@@ -295,19 +295,19 @@ export default function AuditLogForm({
             className="mb-6 px-4 py-3 rounded-[8px]"
             style={{ background: "rgba(255,79,79,0.1)", border: "1px solid rgba(255,79,79,0.2)" }}
           >
-            <p className="font-mono text-[14px] text-ember">{submitError}</p>
+            <p className="font-mono text-[14px] text-danger-ink">{submitError}</p>
           </div>
         )}
 
         {hasSteps && (
           <>
             <p
-              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
               style={{ letterSpacing: "1px" }}
             >
               Work through the test case
             </p>
-            <p className="font-mono text-[13px] text-ash leading-5 mb-4">
+            <p className="font-mono text-[13px] text-ink-muted leading-5 mb-4">
               Each step shows what the builder asked for. Answer them in order.
             </p>
             <div className="mb-8">
@@ -323,12 +323,12 @@ export default function AuditLogForm({
         {/* Named for the artefact, not its purpose: a first-time tester read
             "Proof of Visit" and did not know a screenshot was wanted. */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mb-2"
+          className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-2"
           style={{ letterSpacing: "1px" }}
         >
           Screenshots of Your Test
         </p>
-        <p className="font-mono text-[13px] text-ash mb-4 leading-5">
+        <p className="font-mono text-[13px] text-ink-muted mb-4 leading-5">
           Upload screenshots from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB each, up to{" "}
           {MAX_SCREENSHOTS}. Capture the whole journey, not just the final screen: the more steps you
           show, the more the builder can act on.
@@ -346,7 +346,7 @@ export default function AuditLogForm({
               <Reorder.Item
                 key={shot.url}
                 value={shot}
-                className="relative w-20 h-20 rounded-[8px] overflow-hidden border border-iron bg-obsidian cursor-grab active:cursor-grabbing shrink-0"
+                className="relative w-20 h-20 rounded-[8px] overflow-hidden border border-line bg-surface cursor-grab active:cursor-grabbing shrink-0"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -359,11 +359,11 @@ export default function AuditLogForm({
                   type="button"
                   onClick={() => removeShot(shot)}
                   aria-label={`Remove ${shot.file.name}`}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-obsidian/85 border border-iron text-ash hover:text-ember hover:border-ember transition-colors duration-150 flex items-center justify-center"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface/85 border border-line text-ink-muted hover:text-danger-ink hover:border-danger-ink transition-colors duration-150 flex items-center justify-center"
                 >
                   <X className="w-3 h-3" />
                 </button>
-                <span className="absolute bottom-0 left-0 right-0 bg-obsidian/80 font-mono text-[10px] text-ash text-center leading-4">
+                <span className="absolute bottom-0 left-0 right-0 bg-surface/80 font-mono text-[10px] text-ink-muted text-center leading-4">
                   {i + 1}
                 </span>
               </Reorder.Item>
@@ -408,7 +408,7 @@ export default function AuditLogForm({
               cursor: "pointer",
               transition: "border-color 150ms ease, background 150ms ease",
             }}
-            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian"
+            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             <input
               ref={fileRef}
@@ -421,28 +421,28 @@ export default function AuditLogForm({
                 e.target.value = ""
               }}
             />
-            <Upload className="w-6 h-6 text-ash mb-3" />
-            <p className="font-mono text-[13px] text-ash text-center">
+            <Upload className="w-6 h-6 text-ink-muted mb-3" />
+            <p className="font-mono text-[13px] text-ink-muted text-center">
               {shots.length > 0 ? "Add more screenshots" : "Drop your screenshots here"}{" "}
-              <span className="text-voltage">or browse files</span>
+              <span className="text-accent-ink">or browse files</span>
             </p>
           </div>
         )}
 
         {shots.length > 0 && (
-          <p className="font-mono text-[12px] text-ash mt-2">
+          <p className="font-mono text-[12px] text-ink-muted mt-2">
             {shots.length} of {MAX_SCREENSHOTS} attached
             {shots.length > 1 && " · drag a thumbnail to reorder"}
           </p>
         )}
 
         {fileErrors.map((msg) => (
-          <p key={msg} className="font-mono text-[12px] text-ember mt-2">{msg}</p>
+          <p key={msg} className="font-mono text-[12px] text-danger-ink mt-2">{msg}</p>
         ))}
 
         {/* YOUR FEEDBACK */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-voltage mt-8 mb-3"
+          className="font-mono text-[11px] font-medium uppercase text-accent-ink mt-8 mb-3"
           style={{ letterSpacing: "1px" }}
         >
           {hasSteps ? "Anything else?" : "Your Feedback"}
@@ -458,22 +458,22 @@ export default function AuditLogForm({
           }}
           placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
           className={[
-            "w-full bg-obsidian border rounded-[8px] px-4 py-3 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150 resize-none",
-            commentError ? "border-ember" : "border-iron focus:border-voltage",
+            "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
+            commentError ? "border-danger-ink" : "border-line focus:border-accent-ink",
           ].join(" ")}
           style={{ minHeight: 160 }}
         />
         <div className="flex items-center justify-between mt-2 mb-8 gap-3">
           {commentError ? (
-            <p className="font-mono text-[12px] text-ember">{commentError}</p>
+            <p className="font-mono text-[12px] text-danger-ink">{commentError}</p>
           ) : (
-            <p className="font-mono text-[12px] text-ash">
+            <p className="font-mono text-[12px] text-ink-muted">
               {hasSteps
                 ? "Optional — anything that did not fit the steps above."
                 : "Be specific and constructive."}
             </p>
           )}
-          <span className="font-mono text-[12px] text-ash shrink-0">{feedback.length} chars</span>
+          <span className="font-mono text-[12px] text-ink-muted shrink-0">{feedback.length} chars</span>
         </div>
 
         {/* CTAs */}
@@ -483,12 +483,12 @@ export default function AuditLogForm({
             onClick={handleSubmit}
             disabled={isSubmitting}
             aria-describedby={isReady ? undefined : "submit-hint"}
-            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-[#C8E000] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
+            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
           >
             {isSubmitting ? "Submitting…" : "Submit Feedback"}
           </button>
           {!isReady && (
-            <p id="submit-hint" className="font-mono text-[12px] text-ash">
+            <p id="submit-hint" className="font-mono text-[12px] text-ink-muted">
               {hasSteps && !draftIsComplete(entries)
                 ? "Answer every step and attach a screenshot to submit."
                 : "Attach at least one screenshot to submit."}
@@ -501,7 +501,7 @@ export default function AuditLogForm({
               accidentally implied is real too. So it survives as a sentence.
               "On this device" because that is the truth: nothing follows a
               tester to another machine. */}
-          <p className="font-mono text-[12px] text-ash">
+          <p className="font-mono text-[12px] text-ink-muted">
             Your answers save on this device as you go.
           </p>
         </div>

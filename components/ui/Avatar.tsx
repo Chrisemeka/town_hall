@@ -30,7 +30,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "shrink-0 rounded-full bg-obsidian border border-iron overflow-hidden flex items-center justify-center",
+        "shrink-0 rounded-full bg-surface border border-line overflow-hidden flex items-center justify-center",
         className,
       )}
       style={{ width: size, height: size }}
@@ -45,7 +45,7 @@ export function Avatar({
         />
       ) : (
         <span
-          className="font-mono text-ash leading-none"
+          className="font-mono text-ink-muted leading-none"
           style={{ fontSize: Math.max(10, Math.round(size * 0.375)) }}
           // The initials are decoration on top of a name that is already in the
           // markup beside them; announcing "AT" as well is noise.

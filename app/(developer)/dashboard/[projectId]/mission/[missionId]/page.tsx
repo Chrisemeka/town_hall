@@ -79,35 +79,35 @@ export default async function DeveloperMissionDetailPage({
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
 
       {/* Navigation bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-iron">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-line">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href={`/dashboard/${projectId}`}
-            className="flex items-center gap-1.5 h-8 px-3 border border-iron rounded-[6px] font-mono text-[13px] text-ash hover:text-chalk hover:border-ash transition-colors duration-150 shrink-0"
+            className="flex items-center gap-1.5 h-8 px-3 border border-line rounded-[6px] font-mono text-[13px] text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 shrink-0"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
             Back
           </Link>
-          <div className="font-mono text-[13px] text-ash flex items-center gap-1.5 min-w-0">
-            <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150 shrink-0">
+          <div className="font-mono text-[13px] text-ink-muted flex items-center gap-1.5 min-w-0">
+            <Link href="/dashboard" className="hover:text-ink transition-colors duration-150 shrink-0">
               My Projects
             </Link>
-            <span className="text-iron shrink-0">/</span>
+            <span className="text-line shrink-0">/</span>
             <Link
               href={`/dashboard/${projectId}`}
-              className="hover:text-chalk transition-colors duration-150 truncate max-w-[100px] sm:max-w-[160px]"
+              className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] sm:max-w-[160px]"
             >
               {project?.name ?? "Project"}
             </Link>
-            <span className="text-iron shrink-0">/</span>
-            <span className="text-chalk truncate max-w-[120px] sm:max-w-[200px]">{mission.title}</span>
+            <span className="text-line shrink-0">/</span>
+            <span className="text-ink truncate max-w-[120px] sm:max-w-[200px]">{mission.title}</span>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href={`/dashboard/${projectId}/mission/${missionId}/edit`}
-            className="h-8 px-3 border border-iron text-ash rounded-[6px] font-mono text-[13px] hover:text-chalk hover:border-ash transition-colors duration-150 flex items-center gap-1.5"
+            className="h-8 px-3 border border-line text-ink-muted rounded-[6px] font-mono text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
           >
             <Pencil className="w-3 h-3" />
             Edit Mission
@@ -123,8 +123,8 @@ export default async function DeveloperMissionDetailPage({
               type="submit"
               className={`h-8 px-3 rounded-[6px] font-mono text-[13px] transition-colors duration-150 flex items-center gap-1.5 cursor-pointer ${
                 isActive
-                  ? "bg-ember/10 border border-ember/30 text-ember hover:bg-ember/20"
-                  : "bg-voltage/10 border border-voltage/30 text-voltage hover:bg-voltage/20"
+                  ? "bg-ember/10 border border-danger-ink/30 text-danger-ink hover:bg-ember/20"
+                  : "bg-voltage/10 border border-accent-ink/30 text-accent-ink hover:bg-voltage/20"
               }`}
             >
               {isActive ? (
@@ -141,7 +141,7 @@ export default async function DeveloperMissionDetailPage({
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <Badge variant={isActive ? "active" : "draft"} />
-          <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk break-words min-w-0">
+          <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink break-words min-w-0">
             {mission.title}
           </h1>
         </div>
@@ -149,10 +149,10 @@ export default async function DeveloperMissionDetailPage({
             heading over blank space. */}
         {mission.task_description && (
           <>
-            <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mb-2">
+            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
               NOTES FOR TESTERS
             </p>
-            <p className="font-mono text-[15px] leading-6 text-ash max-w-3xl whitespace-pre-wrap">
+            <p className="font-mono text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
               {mission.task_description}
             </p>
           </>
@@ -164,7 +164,7 @@ export default async function DeveloperMissionDetailPage({
           className="mt-4"
         />
 
-        <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px] mt-6 mb-3">
+        <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
           TEST STEPS
         </p>
         <div className="max-w-3xl">
@@ -174,9 +174,9 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Results */}
       {results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-iron rounded-[12px]">
-          <p className="font-syne font-bold text-[20px] text-chalk mb-2">No submissions yet.</p>
-          <p className="font-mono text-[14px] text-ash">
+        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-line rounded-[12px]">
+          <p className="font-syne font-bold text-[20px] text-ink mb-2">No submissions yet.</p>
+          <p className="font-mono text-[14px] text-ink-muted">
             Results will appear here once testers start submitting feedback.
           </p>
         </div>
@@ -184,7 +184,7 @@ export default async function DeveloperMissionDetailPage({
         <div className="flex flex-col">
           {results.map((result, i) => (
             <div key={result.id}>
-              {i > 0 && <div className="my-10 border-t border-iron" />}
+              {i > 0 && <div className="my-10 border-t border-line" />}
               <MissionResultRow
                 result={result}
                 entries={entriesByResult.get(result.id) ?? null}
@@ -198,9 +198,9 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Delete (inactive missions only) */}
       {!isActive && (
-        <div className="mt-10 pt-6 border-t border-iron flex flex-col items-start gap-2">
+        <div className="mt-10 pt-6 border-t border-line flex flex-col items-start gap-2">
           <DeleteMissionButton missionId={mission.id} projectId={projectId} />
-          <p className="font-mono text-[12px] text-ash">
+          <p className="font-mono text-[12px] text-ink-muted">
             Permanently deletes this draft. This cannot be undone.
           </p>
         </div>

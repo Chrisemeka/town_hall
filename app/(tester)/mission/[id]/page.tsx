@@ -43,28 +43,28 @@ export default async function MissionDetailPage({
     <div className="max-w-[800px] mx-auto px-6 py-10">
 
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8 flex-wrap">
-        <Link href="/explore" className="hover:text-chalk transition-colors duration-150">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
+        <Link href="/explore" className="hover:text-ink transition-colors duration-150">
           Explore
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
-        <span className="text-ash truncate max-w-[180px]">{project?.name}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-iron shrink-0" />
-        <span className="text-chalk truncate max-w-[200px]">{mission.title}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <span className="text-ink-muted truncate max-w-[180px]">{project?.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <span className="text-ink truncate max-w-[200px]">{mission.title}</span>
       </div>
 
       {/* Mission title */}
-      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-6">
+      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-6">
         {mission.title}
       </h2>
 
       {/* Project context card */}
       <div
         id="tour-mission-project"
-        className="mb-8 border border-iron"
-        style={{ background: "#1A1A1F", borderRadius: 12, padding: "20px 24px" }}
+        className="mb-8 border border-line"
+        style={{ background: "var(--color-surface-raised)", borderRadius: 12, padding: "20px 24px" }}
       >
-        <h5 className="font-syne font-bold text-[18px] text-chalk mb-1">
+        <h5 className="font-syne font-bold text-[18px] text-ink mb-1">
           {project?.name}
         </h5>
         {project?.app_url && (
@@ -72,13 +72,13 @@ export default async function MissionDetailPage({
             href={project.app_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[13px] text-sky hover:underline block mb-2 truncate"
+            className="font-mono text-[13px] text-info-ink hover:underline block mb-2 truncate"
           >
             {project.app_url.replace(/^https?:\/\//, "")}
           </a>
         )}
         {project?.description && (
-          <p className="font-mono text-[14px] text-ash leading-5">
+          <p className="font-mono text-[14px] text-ink-muted leading-5">
             {project.description}
           </p>
         )}
@@ -91,7 +91,7 @@ export default async function MissionDetailPage({
         {mission.task_description && (
           <div className="mb-6">
             <p
-              className="font-mono text-[11px] font-medium uppercase text-voltage mb-3"
+              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
               style={{ letterSpacing: "1px" }}
             >
               Notes from the Builder
@@ -99,12 +99,12 @@ export default async function MissionDetailPage({
             <div
               style={{
                 background: "rgba(232,255,71,0.05)",
-                borderLeft: "3px solid #E8FF47",
+                borderLeft: "3px solid var(--color-accent-ink)",
                 borderRadius: "0 8px 8px 0",
                 padding: "16px 20px",
               }}
             >
-              <p className="font-mono text-[16px] text-chalk leading-6 whitespace-pre-wrap">
+              <p className="font-mono text-[16px] text-ink leading-6 whitespace-pre-wrap">
                 {mission.task_description}
               </p>
             </div>
@@ -119,7 +119,7 @@ export default async function MissionDetailPage({
         {/* The tour's first step anchors here rather than on the notes above,
             which a mission need not have. */}
         <div id="tour-mission-testcase">
-          <p className="font-mono text-[12px] text-voltage uppercase tracking-[1px] mt-6 mb-3">
+          <p className="font-mono text-[12px] text-accent-ink uppercase tracking-[1px] mt-6 mb-3">
             Test steps
           </p>
           <TestCaseView steps={mission.test_steps} />
@@ -128,15 +128,15 @@ export default async function MissionDetailPage({
 
       {/* Submission section */}
       {isOwner ? (
-        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-iron rounded-[12px] text-center px-6">
-          <ShieldAlert className="w-10 h-10 text-ash mb-4" />
-          <h3 className="font-syne font-bold text-[20px] text-chalk mb-2">Project Owner</h3>
-          <p className="font-mono text-[14px] text-ash max-w-[400px]">
+        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+          <ShieldAlert className="w-10 h-10 text-ink-muted mb-4" />
+          <h3 className="font-syne font-bold text-[20px] text-ink mb-2">Project Owner</h3>
+          <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
             You created this project. Developers cannot submit test results for their own missions.
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 font-mono text-[13px] text-voltage hover:underline"
+            className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
           >
             Go to Dashboard to view results
           </Link>

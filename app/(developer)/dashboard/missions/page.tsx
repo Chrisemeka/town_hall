@@ -50,10 +50,10 @@ export default async function MyMissionsPage() {
 
       <div id="tour-my-missions-header" className="flex items-start justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+          <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
             My Missions
           </h1>
-          <p className="font-mono text-[14px] text-ash mt-1">
+          <p className="font-mono text-[14px] text-ink-muted mt-1">
             All missions across your projects.
           </p>
         </div>
@@ -65,10 +65,10 @@ export default async function MyMissionsPage() {
       </div>
 
       {missions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px] text-center px-6">
-          <Target className="w-12 h-12 text-ash mb-4 opacity-40" />
-          <h3 className="font-syne font-bold text-[24px] text-chalk mb-2">No missions yet.</h3>
-          <p className="font-mono text-[14px] text-ash mb-6 max-w-[340px]">
+        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px] text-center px-6">
+          <Target className="w-12 h-12 text-ink-muted mb-4 opacity-40" />
+          <h3 className="font-syne font-bold text-[24px] text-ink mb-2">No missions yet.</h3>
+          <p className="font-mono text-[14px] text-ink-muted mb-6 max-w-[340px]">
             Add a mission to active your project and start receiving tester feedback.
           </p>
           <Button variant="ghost" asChild>

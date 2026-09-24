@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react"
 import type { z } from "zod"
 import { completeVerification, saveVerificationStep } from "@/actions/verification"
 import { fieldErrorProps } from "@/components/ui/FieldError"
-import { SetupCard, SetupField, setupInputClass } from "@/components/setup/chrome"
+import { SetupCard } from "@/components/setup/chrome"
+import { Field, inputClass } from "@/components/ui/Field"
 import { StepIndicator } from "@/components/setup/StepIndicator"
 import {
   completionHeadlineFor,
@@ -232,7 +233,6 @@ export function VerificationFlow({
           )}
           {steps[step]?.id === "skills" && (
             <SkillsInput
-              surface="setup"
               value={values.skills}
               onChange={(skills) => set("skills", skills)}
               error={errors.skills}
@@ -303,24 +303,24 @@ function IdentityStep({ values, errors, set }: StepProps) {
 
   return (
     <>
-      <SetupField label="Full name" htmlFor="fullName" error={errors.fullName}>
+      <Field label="Full name" htmlFor="fullName" error={errors.fullName}>
         <input
           id="fullName"
           value={values.fullName}
           maxLength={FULL_NAME_MAX}
           onChange={(e) => set("fullName", e.target.value)}
           {...fieldErrorProps("fullName", errors.fullName)}
-          className={setupInputClass(!!errors.fullName?.length)}
+          className={inputClass(!!errors.fullName?.length)}
         />
-      </SetupField>
+      </Field>
 
-      <SetupField label="Country" htmlFor="country" error={errors.country}>
+      <Field label="Country" htmlFor="country" error={errors.country}>
         <select
           id="country"
           value={values.country}
           onChange={(e) => onCountryChange(e.target.value)}
           {...fieldErrorProps("country", errors.country)}
-          className={setupInputClass(!!errors.country?.length)}
+          className={inputClass(!!errors.country?.length)}
         >
           <option value="">Select your country</option>
           {COUNTRIES.map((code) => (
@@ -329,9 +329,9 @@ function IdentityStep({ values, errors, set }: StepProps) {
             </option>
           ))}
         </select>
-      </SetupField>
+      </Field>
 
-      <SetupField
+      <Field
         label="Phone"
         htmlFor="phone"
         error={errors.phone}
@@ -348,11 +348,11 @@ function IdentityStep({ values, errors, set }: StepProps) {
           }}
           onChange={(e) => onPhoneChange(e.target.value)}
           {...fieldErrorProps("phone", errors.phone)}
-          className={setupInputClass(!!errors.phone?.length)}
+          className={inputClass(!!errors.phone?.length)}
         />
-      </SetupField>
+      </Field>
 
-      <SetupField
+      <Field
         label="Timezone"
         htmlFor="timezone"
         error={errors.timezone}
@@ -363,7 +363,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
           value={values.timezone}
           onChange={(e) => set("timezone", e.target.value)}
           {...fieldErrorProps("timezone", errors.timezone)}
-          className={setupInputClass(!!errors.timezone?.length)}
+          className={inputClass(!!errors.timezone?.length)}
         >
           <option value="">Select your timezone</option>
           {TIMEZONES.map((zone) => (
@@ -372,7 +372,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
             </option>
           ))}
         </select>
-      </SetupField>
+      </Field>
     </>
   )
 }

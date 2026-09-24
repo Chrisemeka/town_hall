@@ -178,9 +178,9 @@ export function GlobalSearch({
 
       {/* Input */}
       <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ash pointer-events-none" />
+        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
         {loading && (
-          <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-ash animate-spin" />
+          <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted animate-spin" />
         )}
         <input
           ref={inputRef}
@@ -193,25 +193,25 @@ export function GlobalSearch({
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="w-full h-9 pl-9 pr-8 bg-graphite border border-iron rounded-[8px] font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150"
+          className="w-full h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
         />
       </div>
 
       {/* Dropdown */}
       {showDropdown && (
         <div
-          className="absolute top-[calc(100%+6px)] left-0 right-0 bg-graphite border border-iron rounded-[8px] overflow-hidden z-[200]"
+          className="absolute top-[calc(100%+6px)] left-0 right-0 bg-surface-raised border border-line rounded-[8px] overflow-hidden z-[200]"
           style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
         >
           {loading && results.length === 0 ? (
             <div className="flex items-center gap-2 px-4 py-3">
-              <Loader2 className="w-3.5 h-3.5 text-ash animate-spin shrink-0" />
-              <span className="font-mono text-[13px] text-ash">Searching…</span>
+              <Loader2 className="w-3.5 h-3.5 text-ink-muted animate-spin shrink-0" />
+              <span className="font-mono text-[13px] text-ink-muted">Searching…</span>
             </div>
           ) : results.length === 0 ? (
             <div className="px-4 py-3">
-              <p className="font-mono text-[13px] text-ash">
-                No results for <span className="text-chalk">&quot;{query}&quot;</span>
+              <p className="font-mono text-[13px] text-ink-muted">
+                No results for <span className="text-ink">&quot;{query}&quot;</span>
               </p>
             </div>
           ) : (
@@ -221,7 +221,7 @@ export function GlobalSearch({
               {projectResults.length > 0 && (
                 <div>
                   <p
-                    className="font-mono text-[11px] uppercase text-ash px-4 pt-3 pb-1"
+                    className="font-mono text-[11px] uppercase text-ink-muted px-4 pt-3 pb-1"
                     style={{ letterSpacing: "1px" }}
                   >
                     Projects
@@ -238,11 +238,11 @@ export function GlobalSearch({
                         }}
                         onMouseEnter={() => setCursor(idx)}
                       >
-                        <LayoutDashboard className="w-4 h-4 text-ash shrink-0" />
+                        <LayoutDashboard className="w-4 h-4 text-ink-muted shrink-0" />
                         <div className="min-w-0">
-                          <p className="font-mono text-[14px] text-chalk truncate">{r.name}</p>
+                          <p className="font-mono text-[14px] text-ink truncate">{r.name}</p>
                           {r.description && (
-                            <p className="font-mono text-[12px] text-ash truncate">{r.description}</p>
+                            <p className="font-mono text-[12px] text-ink-muted truncate">{r.description}</p>
                           )}
                         </div>
                       </button>
@@ -255,7 +255,7 @@ export function GlobalSearch({
               {missionResults.length > 0 && (
                 <div>
                   <p
-                    className="font-mono text-[11px] uppercase text-ash px-4 pt-3 pb-1"
+                    className="font-mono text-[11px] uppercase text-ink-muted px-4 pt-3 pb-1"
                     style={{ letterSpacing: "1px" }}
                   >
                     Missions
@@ -272,10 +272,10 @@ export function GlobalSearch({
                         }}
                         onMouseEnter={() => setCursor(idx)}
                       >
-                        <Target className="w-4 h-4 text-ash shrink-0" />
+                        <Target className="w-4 h-4 text-ink-muted shrink-0" />
                         <div className="min-w-0">
-                          <p className="font-mono text-[14px] text-chalk truncate">{r.title}</p>
-                          <p className="font-mono text-[12px] text-ash truncate">{r.projectName}</p>
+                          <p className="font-mono text-[14px] text-ink truncate">{r.title}</p>
+                          <p className="font-mono text-[12px] text-ink-muted truncate">{r.projectName}</p>
                         </div>
                       </button>
                     )

@@ -60,7 +60,7 @@ function sentimentStyle(s: Sentiment) {
   switch (s) {
     case "POSITIVE":   return { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)", Icon: Smile }
     case "NEUTRAL":    return { bg: "rgba(124,124,138,0.10)", color: "#A1A1AA", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
-    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
+    case "FRUSTRATED": return { bg: "rgba(255,79,79,0.10)",   color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)",  Icon: Frown }
     case "UNKNOWN":    return { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)", Icon: Meh }
   }
 }
@@ -161,15 +161,15 @@ export default async function AdminAIReportsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · AI Reports
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
         AI Reports
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Monitor AI-generated summaries and sentiment classifications across every submission.
       </p>
 
@@ -178,7 +178,7 @@ export default async function AdminAIReportsPage() {
         <KpiCard icon={Sparkles}       label="Total Reports" value={totalReports} accent="#A78BFA" />
         <KpiCard icon={Sparkles}       label="Coverage"      value={`${coverage}%`} accent="#A78BFA" />
         <KpiCard icon={Smile}          label="Positive"      value={sentimentCounts.POSITIVE} accent="#7AE18A" />
-        <KpiCard icon={Frown}          label="Frustrated"    value={sentimentCounts.FRUSTRATED} accent="#FF4F4F" />
+        <KpiCard icon={Frown}          label="Frustrated"    value={sentimentCounts.FRUSTRATED} accent="var(--color-danger-ink)" />
         <KpiCard icon={AlertTriangle}  label="Failed"        value={failedCount} accent={failedCount > 0 ? "#FF8F47" : "#7C7C8A"} />
       </div>
 
@@ -203,22 +203,22 @@ export default async function AdminAIReportsPage() {
               {failedCount} submission{failedCount === 1 ? "" : "s"} without an AI report
             </h3>
           </div>
-          <p className="font-mono text-[13px] text-ash leading-5 mb-4">
+          <p className="font-mono text-[13px] text-ink-muted leading-5 mb-4">
             These submissions were saved but the AI summary failed to generate. Most recent {failedRows.length}:
           </p>
           <ul className="flex flex-col gap-2">
             {failedRows.map((f) => (
               <li key={f.id} className="flex items-start gap-3 px-3 py-2 rounded-[8px]" style={{ background: "rgba(0,0,0,0.25)" }}>
-                <span className="font-mono text-[12px] text-ash whitespace-nowrap pt-0.5">
+                <span className="font-mono text-[12px] text-ink-muted whitespace-nowrap pt-0.5">
                   {formatDateTime(f.createdAt)}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-mono text-[12px] text-chalk truncate">
+                  <p className="font-mono text-[12px] text-ink truncate">
                     {f.tester.fullName || f.tester.email || "Unknown tester"}
-                    {f.mission ? <> · <Link href={`/admin/missions/${f.mission.id}`} className="text-ash hover:text-voltage transition-colors duration-150">{f.mission.title}</Link></> : null}
+                    {f.mission ? <> · <Link href={`/admin/missions/${f.mission.id}`} className="text-ink-muted hover:text-accent-ink transition-colors duration-150">{f.mission.title}</Link></> : null}
                   </p>
                   {f.testerComment && (
-                    <p className="font-mono text-[12px] text-ash leading-5 mt-1 line-clamp-2">{f.testerComment}</p>
+                    <p className="font-mono text-[12px] text-ink-muted leading-5 mt-1 line-clamp-2">{f.testerComment}</p>
                   )}
                 </div>
               </li>
@@ -228,10 +228,10 @@ export default async function AdminAIReportsPage() {
       )}
 
       {/* Reports list */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">Recent AI Reports</h2>
-          <span className="font-mono text-[12px] text-ash">
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">Recent AI Reports</h2>
+          <span className="font-mono text-[12px] text-ink-muted">
             {reports.length === totalReports
               ? `${totalReports} total`
               : `showing ${reports.length} of ${totalReports}`}
@@ -239,16 +239,16 @@ export default async function AdminAIReportsPage() {
         </div>
 
         {reports.length === 0 ? (
-          <div className="px-5 py-16 text-center font-mono text-[13px] text-ash">
+          <div className="px-5 py-16 text-center font-mono text-[13px] text-ink-muted">
             No AI reports yet.
           </div>
         ) : (
-          <ul className="divide-y divide-iron/60">
+          <ul className="divide-y divide-line/60">
             {reports.map((r) => {
               const sentiment = sentimentStyle(r.aiSentiment)
               const SentimentIcon = sentiment.Icon
               return (
-                <li key={r.id} className="p-5 hover:bg-obsidian/20 transition-colors duration-150">
+                <li key={r.id} className="p-5 hover:bg-ink/[0.06] transition-colors duration-150">
                   <div className="flex items-start gap-4">
                     {/* Avatar */}
                     <Avatar
@@ -262,32 +262,32 @@ export default async function AdminAIReportsPage() {
                     <div className="flex-1 min-w-0">
                       {/* Header line */}
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1">
-                        <span className="font-mono text-[13px] text-chalk truncate">
+                        <span className="font-mono text-[13px] text-ink truncate">
                           {r.tester.fullName || r.tester.email || "Unknown tester"}
                         </span>
-                        <span className="font-mono text-[12px] text-ash">·</span>
-                        <span className="font-mono text-[12px] text-ash whitespace-nowrap">
+                        <span className="font-mono text-[12px] text-ink-muted">·</span>
+                        <span className="font-mono text-[12px] text-ink-muted whitespace-nowrap">
                           {formatDateTime(r.createdAt)}
                         </span>
                       </div>
 
                       {/* Project › Mission + Sentiment */}
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 font-mono text-[12px] text-ash">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 font-mono text-[12px] text-ink-muted">
                         {r.project ? (
-                          <span className="text-chalk truncate max-w-[200px]">{r.project.name}</span>
+                          <span className="text-ink truncate max-w-[200px]">{r.project.name}</span>
                         ) : (
-                          <span className="text-ember">project missing</span>
+                          <span className="text-danger-ink">project missing</span>
                         )}
                         <span>›</span>
                         {r.mission ? (
                           <Link
                             href={`/admin/missions/${r.mission.id}`}
-                            className="text-ash hover:text-voltage transition-colors duration-150 truncate max-w-[260px]"
+                            className="text-ink-muted hover:text-accent-ink transition-colors duration-150 truncate max-w-[260px]"
                           >
                             {r.mission.title}
                           </Link>
                         ) : (
-                          <span className="text-ember">mission missing</span>
+                          <span className="text-danger-ink">mission missing</span>
                         )}
                         <span
                           className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.5px] rounded px-2 py-0.5"
@@ -307,14 +307,14 @@ export default async function AdminAIReportsPage() {
                           <Sparkles className="w-3.5 h-3.5" style={{ color: "#A78BFA" }} />
                           <p className="font-mono text-[11px] uppercase tracking-[1px]" style={{ color: "#A78BFA" }}>AI Summary</p>
                         </div>
-                        <p className="font-mono text-[14px] text-chalk leading-5 whitespace-pre-wrap">{r.aiSummary}</p>
+                        <p className="font-mono text-[14px] text-ink leading-5 whitespace-pre-wrap">{r.aiSummary}</p>
                       </div>
 
                       {/* Original tester comment as smaller context */}
                       {r.testerComment && (
-                        <div className="pl-3" style={{ borderLeft: "2px solid #2C2C35" }}>
-                          <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash mb-1">Tester said</p>
-                          <p className="font-mono text-[13px] text-ash leading-5 whitespace-pre-wrap line-clamp-3">{r.testerComment}</p>
+                        <div className="pl-3" style={{ borderLeft: "2px solid var(--color-line)" }}>
+                          <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Tester said</p>
+                          <p className="font-mono text-[13px] text-ink-muted leading-5 whitespace-pre-wrap line-clamp-3">{r.testerComment}</p>
                         </div>
                       )}
                     </div>
@@ -341,12 +341,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash">{label}</p>
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[28px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

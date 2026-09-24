@@ -52,7 +52,7 @@ function formatDate(iso: string) {
 
 function roleBadgeStyle(role: string) {
   switch (role) {
-    case "admin":     return { background: "rgba(232,255,71,0.12)", color: "#E8FF47", border: "1px solid rgba(232,255,71,0.4)" }
+    case "admin":     return { background: "rgba(232,255,71,0.12)", color: "var(--color-accent-ink)", border: "1px solid rgba(232,255,71,0.4)" }
     case "developer": return { background: "rgba(122,184,255,0.12)", color: "#7AB8FF", border: "1px solid rgba(122,184,255,0.4)" }
     case "tester":    return { background: "rgba(255,143,163,0.12)", color: "#FF8FA3", border: "1px solid rgba(255,143,163,0.4)" }
     default:          return { background: "rgba(124,124,138,0.12)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)" }
@@ -172,15 +172,15 @@ export default async function AdminUsersPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Users
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-ink mb-1">
         User Management
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Every account, with signups, projects submitted, and missions completed. Suspend or ban users who violate policies.
       </p>
 
@@ -189,7 +189,7 @@ export default async function AdminUsersPage() {
         <KpiCard icon={Users}         label="Total Users"     value={users.length} />
         <KpiCard icon={UserPlus}      label="New · 30 days"   value={newUsers30d} />
         <KpiCard icon={PauseCircle}   label="Suspended"       value={suspendedCount} accent={suspendedCount > 0 ? "#FF8F47" : "#7C7C8A"} />
-        <KpiCard icon={Ban}           label="Banned"          value={bannedCount}    accent={bannedCount > 0 ? "#FF4F4F" : "#7C7C8A"} />
+        <KpiCard icon={Ban}           label="Banned"          value={bannedCount}    accent={bannedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
         <KpiCard icon={FolderOpen}    label="Total Projects"  value={totalProjects} />
         <KpiCard icon={MessageSquare} label="Missions Done"   value={totalMissionsCompleted} />
       </div>
@@ -201,16 +201,16 @@ export default async function AdminUsersPage() {
       </div>
 
       {/* Users table */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">All Users</h2>
-          <span className="font-mono text-[12px] text-ash">{users.length} total</span>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">All Users</h2>
+          <span className="font-mono text-[12px] text-ink-muted">{users.length} total</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-obsidian/40">
-              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ash">
+            <thead className="bg-surface/40">
+              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">
                 <th className="px-5 py-3 font-medium">User</th>
                 <th className="px-5 py-3 font-medium">Role / Status</th>
                 <th className="px-5 py-3 font-medium">Joined</th>
@@ -222,13 +222,13 @@ export default async function AdminUsersPage() {
             <tbody>
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ash">
+                  <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
                     No users yet.
                   </td>
                 </tr>
               )}
               {users.map((u) => (
-                <tr key={u.id} className="border-t border-iron/60 hover:bg-obsidian/30 transition-colors duration-150 align-top">
+                <tr key={u.id} className="border-t border-line/60 hover:bg-ink/[0.06] transition-colors duration-150 align-top">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3 min-w-0">
                       <Avatar
@@ -238,11 +238,11 @@ export default async function AdminUsersPage() {
                         size={9}
                       />
                       <div className="min-w-0">
-                        <p className="font-mono text-[13px] text-chalk truncate">
+                        <p className="font-mono text-[13px] text-ink truncate">
                           {u.fullName || u.email || "—"}
                         </p>
                         {u.fullName && (
-                          <p className="font-mono text-[12px] text-ash truncate">{u.email}</p>
+                          <p className="font-mono text-[12px] text-ink-muted truncate">{u.email}</p>
                         )}
                       </div>
                     </div>
@@ -264,13 +264,13 @@ export default async function AdminUsersPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-ash whitespace-nowrap">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink-muted whitespace-nowrap">
                     {formatDate(u.createdAt)}
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                     {u.projectsSubmitted}
                   </td>
-                  <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                  <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                     {u.missionsCompleted}
                   </td>
                   <td className="px-5 py-4">
@@ -297,7 +297,7 @@ function ModerationBadge({
 }) {
   const style =
     status === "banned"
-      ? { background: "rgba(255,79,79,0.10)", color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)" }
+      ? { background: "rgba(255,79,79,0.10)", color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)" }
       : { background: "rgba(255,143,71,0.10)", color: "#FF8F47", border: "1px solid rgba(255,143,71,0.4)" }
 
   const label =
@@ -328,12 +328,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
+    <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3 h-3" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ash">{label}</p>
+        <Icon className="w-3 h-3" style={{ color: accent ?? "var(--color-accent-ink)" }} />
+        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[22px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

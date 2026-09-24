@@ -34,9 +34,9 @@ function formatDate(iso: string) {
 function statusStyle(status: ProjectStatus) {
   switch (status) {
     case "active":         return { bg: "rgba(122,225,138,0.10)", color: "#7AE18A", border: "1px solid rgba(122,225,138,0.4)" }
-    case "needs-testers":  return { bg: "rgba(232,255,71,0.10)",  color: "#E8FF47", border: "1px solid rgba(232,255,71,0.4)" }
+    case "needs-testers":  return { bg: "rgba(232,255,71,0.10)",  color: "var(--color-accent-ink)", border: "1px solid rgba(232,255,71,0.4)" }
     case "draft":          return { bg: "rgba(124,124,138,0.10)", color: "#7C7C8A", border: "1px solid rgba(124,124,138,0.4)" }
-    case "flagged":        return { bg: "rgba(255,79,79,0.10)",   color: "#FF4F4F", border: "1px solid rgba(255,79,79,0.4)" }
+    case "flagged":        return { bg: "rgba(255,79,79,0.10)",   color: "var(--color-danger-ink)", border: "1px solid rgba(255,79,79,0.4)" }
   }
 }
 
@@ -105,15 +105,15 @@ export default async function AdminProjectsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Projects
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Project Management
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Review every submitted project. Flag inappropriate content to hide it from the community, or remove it permanently.
       </p>
 
@@ -121,21 +121,21 @@ export default async function AdminProjectsPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard icon={FolderOpen}    label="Total Projects" value={totalProjects} />
         <KpiCard icon={CheckCircle2}  label="Active"         value={activeCount}    accent="#7AE18A" />
-        <KpiCard icon={AlertCircle}   label="Needs Testers"  value={needsTestersCount} accent="#E8FF47" />
-        <KpiCard icon={Flag}          label="Flagged"        value={flaggedCount}   accent="#FF4F4F" />
+        <KpiCard icon={AlertCircle}   label="Needs Testers"  value={needsTestersCount} accent="var(--color-accent-ink)" />
+        <KpiCard icon={Flag}          label="Flagged"        value={flaggedCount}   accent="var(--color-danger-ink)" />
       </div>
 
       {/* Table */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">All Projects</h2>
-          <span className="font-mono text-[12px] text-ash">{totalProjects} total</span>
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">All Projects</h2>
+          <span className="font-mono text-[12px] text-ink-muted">{totalProjects} total</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-obsidian/40">
-              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ash">
+            <thead className="bg-surface/40">
+              <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">
                 <th className="px-5 py-3 font-medium">Project</th>
                 <th className="px-5 py-3 font-medium">Owner</th>
                 <th className="px-5 py-3 font-medium">Status</th>
@@ -148,7 +148,7 @@ export default async function AdminProjectsPage() {
             <tbody>
               {projects.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center font-mono text-[13px] text-ash">
+                  <td colSpan={7} className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
                     No projects yet.
                   </td>
                 </tr>
@@ -156,17 +156,17 @@ export default async function AdminProjectsPage() {
               {projects.map((p) => {
                 const style = statusStyle(p.status)
                 return (
-                  <tr key={p.id} className="border-t border-iron/60 hover:bg-obsidian/30 transition-colors duration-150 align-top">
+                  <tr key={p.id} className="border-t border-line/60 hover:bg-ink/[0.06] transition-colors duration-150 align-top">
                     <td className="px-5 py-4 max-w-[280px]">
                       <div className="flex flex-col gap-1 min-w-0">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="font-mono text-[13px] text-chalk truncate">{p.name}</span>
+                          <span className="font-mono text-[13px] text-ink truncate">{p.name}</span>
                           {p.app_url && (
                             <Link
                               href={p.app_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-ash hover:text-voltage transition-colors duration-150 shrink-0"
+                              className="text-ink-muted hover:text-accent-ink transition-colors duration-150 shrink-0"
                               aria-label="Open project site"
                             >
                               <ExternalLink className="w-3 h-3" />
@@ -174,16 +174,16 @@ export default async function AdminProjectsPage() {
                           )}
                         </div>
                         {p.description && (
-                          <p className="font-mono text-[12px] text-ash line-clamp-2">{p.description}</p>
+                          <p className="font-mono text-[12px] text-ink-muted line-clamp-2">{p.description}</p>
                         )}
                       </div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="font-mono text-[13px] text-chalk truncate">
+                        <span className="font-mono text-[13px] text-ink truncate">
                           {p.owner.fullName || "—"}
                         </span>
-                        <span className="font-mono text-[12px] text-ash truncate">
+                        <span className="font-mono text-[12px] text-ink-muted truncate">
                           {p.owner.email}
                         </span>
                       </div>
@@ -198,7 +198,7 @@ export default async function AdminProjectsPage() {
                         </span>
                         {p.status === "flagged" && p.flag_reason && (
                           <p
-                            className="font-mono text-[11px] text-ember/90 leading-4 line-clamp-2"
+                            className="font-mono text-[11px] text-danger-ink/90 leading-4 line-clamp-2"
                             title={p.flag_reason}
                           >
                             {p.flag_reason}
@@ -206,13 +206,13 @@ export default async function AdminProjectsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                    <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                       {p.missionCount}
                     </td>
-                    <td className="px-5 py-4 font-mono text-[13px] text-chalk text-right tabular-nums">
+                    <td className="px-5 py-4 font-mono text-[13px] text-ink text-right tabular-nums">
                       {p.feedbackCount}
                     </td>
-                    <td className="px-5 py-4 font-mono text-[13px] text-ash whitespace-nowrap">
+                    <td className="px-5 py-4 font-mono text-[13px] text-ink-muted whitespace-nowrap">
                       {formatDate(p.created_at)}
                     </td>
                     <td className="px-5 py-4">
@@ -241,12 +241,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash">{label}</p>
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[28px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

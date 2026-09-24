@@ -7,16 +7,16 @@ import { STATUS_LABEL, type ReviewAction, type SubmissionStatus } from "@/lib/re
 import { Button } from "@/components/ui/Button"
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; dot: string }> = {
-  pending: { color: "#E8FF47", dot: "#E8FF47" },
-  approved: { color: "#3FFFA2", dot: "#3FFFA2" },
-  changes_requested: { color: "#FF4F4F", dot: "#FF4F4F" },
+  pending: { color: "var(--color-accent-ink)", dot: "var(--color-accent-ink)" },
+  approved: { color: "var(--color-success-ink)", dot: "var(--color-success-ink)" },
+  changes_requested: { color: "var(--color-danger-ink)", dot: "var(--color-danger-ink)" },
 }
 
 function StatusPill({ status }: { status: SubmissionStatus }) {
   const style = STATUS_STYLE[status]
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-iron"
+      className="inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-line"
       style={{ color: style.color }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: style.dot }} />
@@ -43,8 +43,8 @@ function RatingPicker({ value, onChange }: { value: number; onChange: (n: number
           <Star
             className="w-5 h-5 transition-colors duration-150"
             style={{
-              fill: n <= shown ? "#E8FF47" : "transparent",
-              color: n <= shown ? "#E8FF47" : "#2C2C35",
+              fill: n <= shown ? "var(--color-accent-ink)" : "transparent",
+              color: n <= shown ? "var(--color-accent-ink)" : "var(--color-line)",
             }}
           />
         </button>
@@ -72,15 +72,15 @@ export default function SubmissionReview({
   const errors = state && !state.success ? state.fieldErrors : undefined
 
   return (
-    <div className="mt-6 pt-5 border-t border-iron flex flex-col gap-4">
+    <div className="mt-6 pt-5 border-t border-line flex flex-col gap-4">
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">Review</p>
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">Review</p>
           <StatusPill status={status} />
           {rating !== null && (
-            <span className="font-mono text-[12px] text-ash flex items-center gap-1">
-              <Star className="w-3 h-3" style={{ fill: "#E8FF47", color: "#E8FF47" }} />
+            <span className="font-mono text-[12px] text-ink-muted flex items-center gap-1">
+              <Star className="w-3 h-3" style={{ fill: "var(--color-accent-ink)", color: "var(--color-accent-ink)" }} />
               {rating}/5 given
             </span>
           )}
@@ -106,7 +106,7 @@ export default function SubmissionReview({
       </div>
 
       {reviewNote && status === "changes_requested" && (
-        <p className="font-mono text-[13px] leading-5 text-ash bg-ember/5 border-l-2 border-ember rounded-r-[6px] px-3 py-2">
+        <p className="font-mono text-[13px] leading-5 text-ink-muted bg-ember/5 border-l-2 border-danger-ink rounded-r-[6px] px-3 py-2">
           {reviewNote}
         </p>
       )}
@@ -114,24 +114,24 @@ export default function SubmissionReview({
       {/* Rating prompt — opens after the builder picks a decision, because a
           decision without a rating leaves the tester's reputation unmoved. */}
       {draft && (
-        <form action={formAction} className="bg-graphite border border-iron rounded-[12px] p-5 flex flex-col gap-4">
+        <form action={formAction} className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4">
           <input type="hidden" name="resultId" value={resultId} />
           <input type="hidden" name="action" value={draft} />
 
           <div>
-            <p className="font-mono text-[13px] text-chalk mb-2">
+            <p className="font-mono text-[13px] text-ink mb-2">
               {draft === "approve" ? "Approving this submission." : "Sending this back for changes."}
               {" "}How was the tester&apos;s work?
             </p>
             <RatingPicker value={stars} onChange={setStars} />
             {errors?.rating && (
-              <p className="font-mono text-[12px] text-ember mt-1">{errors.rating[0]}</p>
+              <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.rating[0]}</p>
             )}
           </div>
 
           {draft === "request_changes" && (
             <div>
-              <label htmlFor={`note-${resultId}`} className="font-mono text-[12px] text-ash block mb-1.5">
+              <label htmlFor={`note-${resultId}`} className="font-mono text-[12px] text-ink-muted block mb-1.5">
                 What needs changing?
               </label>
               <textarea
@@ -140,10 +140,10 @@ export default function SubmissionReview({
                 rows={3}
                 defaultValue={reviewNote ?? ""}
                 placeholder="e.g. The repro steps aren't clear — which screen were you on?"
-                className="w-full bg-obsidian border border-iron rounded-[8px] px-3 py-2 font-mono text-[13px] text-chalk placeholder:text-ash/60 focus:outline-none focus:border-voltage transition-colors duration-150"
+                className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent-ink transition-colors duration-150"
               />
               {errors?.note && (
-                <p className="font-mono text-[12px] text-ember mt-1">{errors.note[0]}</p>
+                <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.note[0]}</p>
               )}
             </div>
           )}
@@ -160,7 +160,7 @@ export default function SubmissionReview({
       )}
 
       {state && !state.success && (
-        <p className="font-mono text-[12px] text-ember">{state.error}</p>
+        <p className="font-mono text-[12px] text-danger-ink">{state.error}</p>
       )}
     </div>
   )

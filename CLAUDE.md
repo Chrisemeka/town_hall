@@ -286,33 +286,43 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
 - **Accent:** `#E8FF47` (Voltage). One Primary/Voltage CTA per viewport. If you catch yourself adding a second, one of them is wrong.
 - **Color never conveys state alone.** Always pair a badge/indicator color with a text label.
 - **Contrast:** Body text ≥ 7:1. Labels and large text ≥ 4.5:1. Verify at WebAim before shipping a new pairing.
-- **Surfaces:** App surfaces — `(developer)`, `(tester)`, `(admin)` — are dark
-  (Obsidian `#0E0E10` base) and use the **literal** palette tokens (`bg-obsidian`,
-  `text-chalk`, `border-iron`). **Themed** surfaces use the **semantic** token
-  layer (`surface`, `surface-raised`, `ink`, `ink-muted`, `line`, `accent`,
-  `accent-ink`, `danger-ink`), which resolves per theme from `[data-theme]`.
-  Two groups of routes are themed: the `(public)` group, where
-  `app/(public)/layout.tsx` sets the attribute, and **the setup chain** —
-  `/terms-accept`, `/choose-account`, `/verify/[role]` — where
-  `components/setup/SetupShell.tsx` does. The setup chain is post-auth but
-  pre-dashboard: handing someone from a light public site to a hard-dark page
-  halfway through signup looks like a bug, so it follows the theme.
-  Do not use a semantic token on an app surface. A literal on a public surface
-  must be a deliberate inversion that reads in both themes, and must say so in a
-  comment — the dark icon chips on the landing page are the precedent.
-- **Voltage is a fill only on a light ground.** `#E8FF47` on Bone is 1.02:1 —
-  invisible. Light mode pairs a Voltage fill with Obsidian text (17.3:1) and uses
-  **Forest `#353D00`** (10.6:1) as accent *ink* — links, small-caps labels, icons,
-  focus rings, active borders. Dark mode collapses both back to Voltage. `accent`
-  and `accent-ink` already encode this; use them rather than re-deriving it.
-- **`line` is a divider, not a control boundary.** At 1.19:1 it fails WCAG 1.4.11's
-  3:1 for a control's visible boundary. Inputs and other bounded controls on public
-  surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
-- **Ember is not an error colour on a light ground.** `#FF4F4F` is 5.95:1 on
-  Obsidian but **2.97:1 on Bone** — it fails the 4.5:1 label bar and WCAG
-  1.4.11's 3:1 for an error border. Public surfaces use `danger-ink`
-  (`#A81E15`, 6.74:1), which collapses back to Ember in dark. Same shape of
-  rule as Voltage/Forest above.
+- **Surfaces:** **Every surface follows the theme.** Use the semantic token
+  layer everywhere — `surface`, `surface-raised`, `ink`, `ink-muted`, `line`,
+  `accent-ink`, `danger-ink`, `success-ink`, `info-ink`. `data-theme` is set
+  once, on `<html>` in `app/layout.tsx`, from the `th_theme` cookie;
+  `scripts/tokens.test.mts` fails if it appears anywhere else. The literal
+  palette tokens stay defined in `globals.css` because the semantic layer is
+  built out of them and because a **fill** uses them — they are never a
+  surface, text, border or ring.
+- **One accent rule, four pairs.** Every accent in the palette fails as *text*
+  on the light ground: Voltage 1.09:1, Mint 1.07, Sky 1.80, Ember 2.65 — against
+  `Design.md`'s 4.5:1 for a label and WCAG 1.4.11's 3:1 for a control
+  boundary. So each has two halves:
+  - **fill** — the literal (`bg-voltage`, `bg-mint`, `bg-ember`, `bg-sky`),
+    identical in both themes, always carrying Obsidian text.
+  - **ink** — the `*-ink` token for text, borders, rings and icons, darkened
+    for light and collapsing back to the literal in dark: `accent-ink`
+    Forest 9.5:1, `danger-ink` 6.0, `success-ink` 6.1, `info-ink` 6.4.
+- **`line` is a divider, not a control boundary.** 1.23:1 light and 1.40:1
+  dark — it fails WCAG 1.4.11's 3:1 on *both* grounds. Inputs and other
+  bounded controls take `border-ink-muted`: 5.6:1 on the light ground, 6.4 on
+  a card, 5.7 and 5.1 in dark.
+- **A colour never lives as a hex in a component.** An inline `style` prop is
+  the one place a colour hides from both the compiler and a class-based audit:
+  every status chip in the app held raw hex, so the theme refactor walked past
+  them and they rendered at under 1.1:1 on the light ground. Where a prop needs
+  a string rather than a class — Recharts, an inline `style` — use
+  `var(--color-…)`. `scripts/tokens.test.mts` fails on a palette hex anywhere
+  in `app/` or `components/`.
+- **Nothing in the light ramp is pure white.** The ramp mirrors dark in
+  perceptual lightness (4.4 L* ground to raised, against dark's 5.5 — a card
+  also carries a border, which separates more on a light ground) rather than in
+  contrast ratio, which compresses at the light end and produced a page that
+  was glaring and flat at once. A hover fill is `bg-ink/[0.06]`, never
+  `hover:bg-surface-*` — on a card that is a no-op.
+- **Scrims stay literal.** A drawer or tour overlay is dark on both themes by
+  design — one that follows the theme stops being a scrim. Mark each with a
+  `ponytail:` comment, which is also how `tokens.test.mts` lets it through.
 - **Theme default is light, with no `prefers-color-scheme` fallback.** Deliberate —
   deferring to the OS makes the default unpredictable. `lib/theme.ts` owns the
   resolution and `scripts/theme.test.mts` pins it.

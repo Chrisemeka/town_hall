@@ -11,7 +11,7 @@ export default function NotFound() {
       >
         {/* Watermark */}
         <span
-          className="absolute font-syne font-bold text-voltage select-none pointer-events-none leading-none"
+          className="absolute font-syne font-bold text-accent-ink select-none pointer-events-none leading-none"
           style={{ fontSize: 320, opacity: 0.04 }}
           aria-hidden="true"
         >
@@ -19,13 +19,13 @@ export default function NotFound() {
         </span>
 
         <div className="relative z-10 flex flex-col items-center">
-          <p tabIndex={0} className="font-mono text-[12px] font-medium text-voltage uppercase tracking-[1px] mb-4">
+          <p tabIndex={0} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
             Error 404
           </p>
-          <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[46px] tracking-[-0.5px] text-chalk mb-3">
+          <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[46px] tracking-[-0.5px] text-ink mb-3">
             Page not found.
           </h1>
-          <p tabIndex={0} className="font-mono text-[14px] text-ash mb-8 max-w-[340px] leading-5">
+          <p tabIndex={0} className="font-mono text-[14px] text-ink-muted mb-8 max-w-[340px] leading-5">
             The page you&apos;re looking for doesn&apos;t exist or may have been moved.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -39,7 +39,7 @@ export default function NotFound() {
             <Link
               tabIndex={0}
               href="/explore"
-              className="h-10 px-5 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150 flex items-center justify-center"
+              className="h-10 px-5 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 flex items-center justify-center"
             >
               Explore Projects
             </Link>

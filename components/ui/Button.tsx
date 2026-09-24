@@ -16,12 +16,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(
           // Base
-          "inline-flex items-center justify-center rounded-[8px] font-mono font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-obsidian disabled:pointer-events-none disabled:opacity-40",
+          "inline-flex items-center justify-center rounded-[8px] font-mono font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-40",
           // Variants
           variant === "primary"     && "bg-voltage text-obsidian hover:bg-voltage-dark",
-          variant === "secondary"   && "bg-transparent border border-iron text-chalk hover:bg-graphite",
-          variant === "ghost"       && "bg-transparent text-chalk border border-iron hover:border-voltage hover:text-voltage",
-          variant === "destructive" && "bg-transparent border border-ember text-ember hover:bg-ember hover:text-obsidian",
+          variant === "secondary"   && "bg-transparent border border-line text-ink hover:bg-surface-raised",
+          variant === "ghost"       && "bg-transparent text-ink border border-line hover:border-accent-ink hover:text-accent-ink",
+          variant === "destructive" && "bg-transparent border border-danger-ink text-danger-ink hover:bg-ember hover:text-obsidian",
           // Sizes
           size === "default" && "h-10 px-4 text-[14px]",
           size === "sm"      && "h-8  px-3 text-[12px]",

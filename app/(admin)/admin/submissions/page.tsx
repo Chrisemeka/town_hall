@@ -121,24 +121,24 @@ export default async function AdminSubmissionsPage() {
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Submissions
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Test Submissions
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Every test result submitted by a tester, with their comment, AI summary, and screenshot proof.
       </p>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <KpiCard icon={MessageSquare} label="Total Submissions" value={total} />
-        <KpiCard icon={MessageSquare} label="Last 7 Days" value={last7d} accent="#E8FF47" />
+        <KpiCard icon={MessageSquare} label="Last 7 Days" value={last7d} accent="var(--color-accent-ink)" />
         <KpiCard icon={Smile}  label="Positive"    value={sentimentCounts.POSITIVE}   accent="#7AE18A" />
-        <KpiCard icon={Frown}  label="Frustrated"  value={sentimentCounts.FRUSTRATED} accent="#FF4F4F" />
+        <KpiCard icon={Frown}  label="Frustrated"  value={sentimentCounts.FRUSTRATED} accent="var(--color-danger-ink)" />
       </div>
 
       {/* Chart */}
@@ -151,10 +151,10 @@ export default async function AdminSubmissionsPage() {
       </div>
 
       {/* Submissions list */}
-      <div className="bg-graphite border border-iron rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-iron flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-chalk">Recent Submissions</h2>
-          <span className="font-mono text-[12px] text-ash">
+      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+        <div className="px-5 py-4 border-b border-line flex items-center justify-between">
+          <h2 className="font-syne font-bold text-[16px] text-ink">Recent Submissions</h2>
+          <span className="font-mono text-[12px] text-ink-muted">
             {submissions.length === total
               ? `${total} total`
               : `showing ${submissions.length} of ${total}`}
@@ -179,12 +179,12 @@ function KpiCard({
   accent?: string
 }) {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
+    <div className="bg-surface-raised border border-line rounded-[12px] p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "#E8FF47" }} />
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ash">{label}</p>
+        <Icon className="w-3.5 h-3.5" style={{ color: accent ?? "var(--color-accent-ink)" }} />
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">{label}</p>
       </div>
-      <p className="font-syne font-bold text-[28px] leading-none text-chalk tabular-nums">{value}</p>
+      <p className="font-syne font-bold text-[28px] leading-none text-ink tabular-nums">{value}</p>
     </div>
   )
 }

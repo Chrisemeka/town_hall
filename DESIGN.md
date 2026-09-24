@@ -144,46 +144,95 @@ Twnhall uses a **neutrals-first dark palette with a single bold accent**, follow
 WCAG relative-luminance formula they are the values above — the old ones were
 conservative, so nothing shipped was failing, but they were wrong.)*
 
-#### Two surfaces, two token sets
+#### One token set, every surface
 
-**App surfaces** — `(developer)`, `(tester)`, `(admin)` — are dark and use the
-literal tokens in the table above. They do not have a theme.
-
-**Public surfaces** — the `(public)` route group — are theme-switchable and use a
-semantic layer that resolves per theme from `[data-theme]` on the `(public)`
-layout's wrapper element:
+**Every surface follows the theme.** The literals in the table above still
+exist — the semantic layer is built out of them, and a *fill* uses them — but
+nothing is a surface, text, border or ring except through a semantic token.
+`data-theme` is set once, on `<html>`.
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `surface` | Bone `#F5F5F7` | Obsidian `#0E0E10` | page ground |
-| `surface-raised` | White `#FFFFFF` | Graphite `#1A1A1F` | cards, panels |
+| `surface` | `#E8E8EE` | Obsidian `#0E0E10` | page ground |
+| `surface-raised` | `#F5F5F9` | Graphite `#1A1A1F` | cards, panels |
 | `ink` | Obsidian `#0E0E10` | Chalk `#F0F0F2` | headings, body copy |
 | `ink-muted` | `#5A5A66` | Ash `#8A8A99` | labels, metadata, control borders |
-| `line` | `#E2E2E8` | Iron `#2C2C35` | dividers only |
-| `accent` | Voltage `#E8FF47` | Voltage `#E8FF47` | **fills only** |
-| `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | text, borders, icons |
-| `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text, error borders |
+| `line` | `#D2D2DA` | Iron `#2C2C35` | dividers only |
+| `accent-ink` | Forest `#353D00` | Voltage `#E8FF47` | accent text, borders, rings |
+| `danger-ink` | `#A81E15` | Ember `#FF4F4F` | error text and borders |
+| `success-ink` | `#046334` | Mint `#3FFFA2` | approved, pass |
+| `info-ink` | `#0A5490` | Sky `#47B8FF` | blocked, neutral info |
 
-`#5A5A66` and `#E2E2E8` are the two literals this layer adds to the palette.
+> **Nothing in the light ramp is pure white, and that is the point.** The first
+> version used Bone `#F5F5F7` with `#FFFFFF` cards: a 3.4 step in perceptual
+> lightness, with the raised surface at L\* 100 — the maximum, so a card had
+> nowhere to go and every hover, border and shadow fought over the last three
+> percent. It read as glaring and flat at the same time.
+>
+> The ramp is now pitched to mirror dark in **L\***, not in contrast ratio —
+> ratios compress badly at the light end, so matching them there is what
+> produced the flat page. The light lift is 4.4 rather than dark's 5.5 because
+> a card also carries a `line` border, which does more of the separating on a
+> light ground — matching 5.5 exactly made cards look like they were floating:
+>
+> | | ground → raised | raised → line |
+> |---|---|---|
+> | dark | 4.0 → 9.5 (**5.5**) | 9.5 → 18.3 (8.8) |
+> | light | 92.2 → 96.6 (**4.4**) | 96.6 → 84.4 (12.2) |
 
-> **Voltage is a fill only on a light ground.** Voltage on Bone is **1.02:1** —
-> invisible. A Voltage fill always carries Obsidian text (17.3:1); accent *ink*
-> on a light ground is **Forest `#353D00`** at 10.6:1 — links, small-caps labels,
-> icons, focus rings, active borders. In dark mode both collapse back to Voltage.
-> This single rule is what makes light mode look designed rather than broken.
+#### The accent rule — one rule, four pairs
+
+**Every accent in the palette fails as text on Bone.** Measured:
+
+| | as text on `surface` (light) | on `surface` (dark) |
+|---|---|---|
+| Voltage `#E8FF47` | **1.09** ✗ | 17.29 |
+| Mint `#3FFFA2` | **1.07** ✗ | 14.73 |
+| Sky `#47B8FF` | **1.80** ✗ | 8.79 |
+| Ember `#FF4F4F` | **2.65** ✗ | 5.95 |
+
+against the 4.5:1 label bar and WCAG 1.4.11's 3:1 for a control boundary. So
+each colour has two halves, and they are not interchangeable:
+
+> **FILL** is the literal — `bg-voltage`, `bg-mint`, `bg-ember`, `bg-sky`. The
+> same colour in both themes, and it **always carries Obsidian text** (17.3,
+> 14.7, 6.0 and 8.8 to 1). `bg-voltage-dark` is the hover on a Voltage fill.
+>
+> **INK** is the `*-ink` token — text, borders, rings, icons. Darkened for
+> light, collapsing back to the literal in dark. On the light ground:
+> `accent-ink` 9.5, `danger-ink` 6.0, `success-ink` 6.1, `info-ink` 6.4.
+
+**Never use a literal for text, a border or a ring. Never use an ink as a
+fill.** `scripts/tokens.test.mts` enforces both over the whole app.
 
 Two consequences that are easy to get wrong:
 
-- **`ink-muted` is not a body colour.** 6.3:1 in light misses the 7:1 body bar.
-  Labels, metadata and captions only — paragraphs use `ink`.
-- **`line` is not a control boundary.** 1.19:1 fails WCAG 1.4.11's 3:1 for the
-  visible boundary of a control. Inputs and other bounded controls on public
-  surfaces take `border-ink-muted` (6.3:1 light, 5.7:1 dark).
-- **Ember is not an error colour on a light ground.** `#FF4F4F` is 5.95:1 on
-  Obsidian but **2.97:1 on Bone** — it fails both the 4.5:1 label bar and the
-  3:1 control-boundary bar. `danger-ink` is `#A81E15` (6.74:1) on light and
-  collapses back to Ember on dark. Same shape of problem as Voltage, same shape
-  of answer.
+- **`ink-muted` is not a body colour.** 5.6:1 on the light ground misses the
+  7:1 body bar. Labels, metadata and captions only — paragraphs use `ink`.
+- **`line` is not a control boundary.** 1.23:1 light and 1.40:1 dark: it fails
+  the 3:1 bar on *both* grounds. Inputs and other bounded controls take
+  `border-ink-muted` (5.6:1 on the ground, 6.4 on a card; 5.7 and 5.1 in dark).
+- **A hover fill is a tint of the ink**, `bg-ink/[0.06]`, which darkens on
+  light and lightens on dark without a token of its own. `hover:bg-surface-*`
+  does not work: on a card it is a no-op, and on the ground it was a near-white
+  over a near-white.
+
+#### Two things that are not colours
+
+**Shadow.** `--shadow-card` is themed. At 40% black it is tuned for a dark
+ground and reads as a smudge on Bone, so light gets an eighth of the opacity.
+
+**Scrims stay literal.** A drawer or tour overlay is dark on both themes by
+design — a scrim that follows the theme stops being a scrim. Mark each with a
+`ponytail:` comment.
+
+#### Charts
+
+Recharts takes colours as props, so the admin charts read the CSS custom
+properties directly rather than carrying a second palette. A series colour is
+a graphical object under WCAG 1.4.11 and needs **3:1 against both grounds** —
+which rules out the bright palette: four of the five original colours failed
+on Bone. The current set clears 3:1 on Bone and Obsidian alike.
 
 **The theme default is light, with no `prefers-color-scheme` fallback** —
 deferring to the OS would make the default unpredictable. The choice persists in
@@ -384,13 +433,24 @@ The mission number is displayed as a large, low-opacity (8%) Voltage watermark b
 
 Color is never the only indicator of status — always paired with a text label.
 
-| Status | Text Color | Background | When Used |
-|--------|-----------|------------|-----------|
-| **Active** | `#E8FF47` | `rgba(232,255,71,0.12)` | Mission is live and accepting testers |
-| **Complete** | `#3FFFA2` | `rgba(63,255,162,0.12)` | Mission has sufficient feedback |
-| **Draft** | `#8A8A99` | `rgba(138,138,153,0.12)` | Saved but not yet published |
-| **Needs Testers** | `#47B8FF` | `rgba(71,184,255,0.12)` | Missions with zero feedback |
-| **Archived** | `#44444F` | `rgba(44,44,53,0.5)` | No longer active |
+| Status | Tone | When Used |
+|--------|------|-----------|
+| **Active** | `info-ink` | Mission is live and accepting testers |
+| **Needs Testers** | `accent-ink` | Missions with zero feedback |
+| **Complete** | `success-ink` | Mission has sufficient feedback |
+| **Draft** / **Archived** | `ink-muted` | Not live. Told apart by the label, per §10 |
+
+> **Active was Mint — the same colour as Complete**, so "this is live" and
+> "this is finished" were the same chip. It is info now: blue reads as running
+> rather than done, and it leaves green to mean finished. **Needs Testers**
+> keeps the accent, because §7.5 names it as one of only two attention-grabbing
+> extras the system permits.
+>
+> A chip is text and a dot — the **ink** half of the accent rule, never the
+> fill half. The colours used to live as inline hex in a `style` prop, which is
+> the one place a colour hides from both the compiler and a class-based audit;
+> every chip read at under 1.1:1 on the light ground for exactly that reason.
+> `scripts/tokens.test.mts` now fails on a palette hex anywhere in a component.
 
 All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-weight: 500`, `letter-spacing: 0.5px`, `font-family: DM Mono`.
 

@@ -3,6 +3,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { accountTypesFor } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsForm } from "@/components/SettingsForm";
+import { ThemePreference } from "@/components/ThemePreference";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, readTheme } from "@/lib/theme";
 
 export const metadata = { title: "Settings — Twnhall" };
 
@@ -14,6 +17,8 @@ export default async function SettingsPage() {
 
   // Service-role read, per the RLS pattern in CLAUDE.md — `profiles` has no
   // policy that would let the anon key see even the caller's own row.
+  const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
+
   const admin = createAdminClient();
   const [{ data: profile }, accountTypes] = await Promise.all([
     admin
@@ -31,10 +36,10 @@ export default async function SettingsPage() {
 
       {/* Page header */}
       <div className="mb-10">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk">
+        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
           Settings
         </h1>
-        <p className="font-mono text-[14px] text-ash mt-1">
+        <p className="font-mono text-[14px] text-ink-muted mt-1">
           Manage your profile and preferences.
         </p>
       </div>
@@ -51,6 +56,10 @@ export default async function SettingsPage() {
         }}
         hasTesterAccount={accountTypes.includes("tester")}
       />
+
+      <div className="mt-10">
+        <ThemePreference theme={theme} />
+      </div>
 
     </div>
   );

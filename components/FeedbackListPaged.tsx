@@ -63,11 +63,11 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
             <div className="mb-5">
               <Link
                 href={`/dashboard/${group.projectId}`}
-                className="font-mono text-[12px] text-ash hover:text-chalk transition-colors duration-150 block mb-1"
+                className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 block mb-1"
               >
                 {group.projectName}
               </Link>
-              <h5 className="font-syne font-bold text-[18px] text-chalk">{group.title}</h5>
+              <h5 className="font-syne font-bold text-[18px] text-ink">{group.title}</h5>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -75,14 +75,14 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                 <Link
                   key={item.id}
                   href={`/dashboard/${item.projectId}/mission/${item.missionId}`}
-                  className="group block border-l-[3px] border-iron pl-4 hover:border-voltage transition-colors duration-150"
+                  className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="font-mono text-[12px] text-ash">
+                    <span className="font-mono text-[12px] text-ink-muted">
                       Developer #{(i + 1).toString().padStart(2, "0")}
                     </span>
-                    <span className="font-mono text-[12px] text-ash/40">·</span>
-                    <span className="font-mono text-[12px] text-ash/60">{relTime(item.created_at)}</span>
+                    <span className="font-mono text-[12px] text-ink-muted/40">·</span>
+                    <span className="font-mono text-[12px] text-ink-muted/60">{relTime(item.created_at)}</span>
                   </div>
 
                   {item.entries?.length ? (
@@ -90,14 +90,14 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                     // the mission page this links to.
                     <PassRate entries={item.entries} />
                   ) : (
-                    <p className="font-mono text-[14px] text-chalk leading-5 line-clamp-3">
+                    <p className="font-mono text-[14px] text-ink leading-5 line-clamp-3">
                       {item.tester_comment ?? "No written feedback."}
                     </p>
                   )}
 
                   <ScreenshotStrip urls={screenshotList(item)} />
 
-                  <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
+                  <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
                     Read full feedback
                     <ArrowRight className="w-3 h-3" />
                   </span>
@@ -112,7 +112,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
         <div className="flex justify-center mt-10">
           <button
             onClick={() => setVisible((v) => v + 6)}
-            className="h-10 px-6 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:bg-graphite transition-colors duration-150"
+            className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
           >
             Load More
           </button>

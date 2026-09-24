@@ -84,16 +84,16 @@ export default function MissionResultRow({
 
         {/* TEST SCREENSHOTS */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             TEST SCREENSHOTS
             {shots.length > 1 && (
-              <span className="text-ash normal-case tracking-normal">
+              <span className="text-ink-muted normal-case tracking-normal">
                 {" "}· {active + 1} of {shots.length}
               </span>
             )}
           </p>
           <div
-            className="relative bg-graphite border border-iron rounded-[12px] overflow-hidden cursor-pointer"
+            className="relative bg-surface-raised border border-line rounded-[12px] overflow-hidden cursor-pointer"
             onClick={() => current && setLightboxOpen(true)}
           >
             {current ? (
@@ -108,7 +108,7 @@ export default function MissionResultRow({
               />
             ) : (
               <div className="w-full h-48 flex items-center justify-center">
-                <p className="font-mono text-[13px] text-ash">No screenshot captured</p>
+                <p className="font-mono text-[13px] text-ink-muted">No screenshot captured</p>
               </div>
             )}
             {result.ai_sentiment && (
@@ -129,7 +129,7 @@ export default function MissionResultRow({
                   aria-label={`View screenshot ${i + 1}`}
                   className={[
                     "w-14 h-14 rounded-[8px] overflow-hidden border transition-colors duration-150 shrink-0",
-                    i === active ? "border-voltage" : "border-iron hover:border-ash",
+                    i === active ? "border-accent-ink" : "border-line hover:border-ink-muted",
                   ].join(" ")}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
@@ -139,9 +139,9 @@ export default function MissionResultRow({
             </div>
           )}
           {(displayUrl || date) && (
-            <p className="font-mono text-[12px] text-ash">
+            <p className="font-mono text-[12px] text-ink-muted">
               {displayUrl && <span>{displayUrl}</span>}
-              {displayUrl && <span className="mx-1.5 text-iron">·</span>}
+              {displayUrl && <span className="mx-1.5 text-line">·</span>}
               <span>{date}</span>
             </p>
           )}
@@ -149,14 +149,14 @@ export default function MissionResultRow({
 
         {/* WRITTEN FEEDBACK */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
           </p>
-          <div className="bg-graphite border border-iron rounded-[12px] p-6 flex-1 flex flex-col justify-between">
+          <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex-1 flex flex-col justify-between">
             <SubmissionBody entries={entries} comment={result.tester_comment} />
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-iron">
-              <span className="font-mono text-[12px] text-ash">Developer #{developerNum}</span>
-              <span className="font-mono text-[12px] text-ash">{date}</span>
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-line">
+              <span className="font-mono text-[12px] text-ink-muted">Developer #{developerNum}</span>
+              <span className="font-mono text-[12px] text-ink-muted">{date}</span>
             </div>
           </div>
         </div>
@@ -164,14 +164,14 @@ export default function MissionResultRow({
 
       {/* SYSTEM INSIGHT */}
       {result.ai_summary && (
-        <div className="bg-graphite border border-iron rounded-[12px] p-6">
+        <div className="bg-surface-raised border border-line rounded-[12px] p-6">
           <div className="flex items-center justify-between mb-4">
-            <p className="font-mono text-[11px] text-voltage uppercase tracking-[0.8px]">
+            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
               Test Report
             </p>
             <button
               onClick={() => setInsightOpen(!insightOpen)}
-              className="font-mono text-[12px] text-ash hover:text-chalk transition-colors duration-150 flex items-center gap-1.5"
+              className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1.5"
             >
               AI generated · {insightOpen ? "collapse" : "expand"}
               {insightOpen ? (
@@ -189,18 +189,18 @@ export default function MissionResultRow({
                   <div key={i}>
                     <div className="flex items-center gap-2 mb-2">
                       {item.status === "warn" || item.status === "fail" ? (
-                        <AlertTriangle className="w-4 h-4 text-voltage shrink-0" />
+                        <AlertTriangle className="w-4 h-4 text-accent-ink shrink-0" />
                       ) : (
-                        <CheckCircle2 className="w-4 h-4 text-mint shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-success-ink shrink-0" />
                       )}
-                      <p className="font-mono text-[13px] font-semibold text-chalk">{item.title}</p>
+                      <p className="font-mono text-[13px] font-semibold text-ink">{item.title}</p>
                     </div>
-                    <p className="font-mono text-[13px] leading-5 text-ash">{item.description}</p>
+                    <p className="font-mono text-[13px] leading-5 text-ink-muted">{item.description}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="font-mono text-[14px] leading-6 text-ash whitespace-pre-wrap">
+              <p className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap">
                 {result.ai_summary}
               </p>
             )
@@ -219,11 +219,11 @@ export default function MissionResultRow({
       {/* Screenshot lightbox */}
       {lightboxOpen && current && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/95 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-sm p-4"
           onClick={() => setLightboxOpen(false)}
         >
           <button
-            className="absolute top-8 right-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors cursor-pointer"
+            className="absolute top-8 right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
             onClick={(e) => { e.stopPropagation(); setLightboxOpen(false) }}
           >
             <X size={20} />
@@ -233,14 +233,14 @@ export default function MissionResultRow({
             <>
               <button
                 aria-label="Previous screenshot"
-                className="absolute left-4 md:left-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute left-4 md:left-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); step(-1) }}
               >
                 <ChevronLeft size={20} />
               </button>
               <button
                 aria-label="Next screenshot"
-                className="absolute right-4 md:right-8 w-12 h-12 bg-iron hover:bg-iron/80 rounded-full text-chalk flex items-center justify-center transition-colors cursor-pointer"
+                className="absolute right-4 md:right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); step(1) }}
               >
                 <ChevronRight size={20} />
@@ -249,7 +249,7 @@ export default function MissionResultRow({
           )}
 
           <div
-            className="bg-obsidian border border-iron shadow-2xl rounded-2xl p-2 max-w-5xl"
+            className="bg-surface border border-line shadow-2xl rounded-2xl p-2 max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
@@ -259,7 +259,7 @@ export default function MissionResultRow({
               className="w-full max-h-[85vh] object-contain rounded-xl"
             />
             {shots.length > 1 && (
-              <p className="font-mono text-[12px] text-ash text-center py-2">
+              <p className="font-mono text-[12px] text-ink-muted text-center py-2">
                 {active + 1} of {shots.length}
               </p>
             )}

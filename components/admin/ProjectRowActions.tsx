@@ -77,15 +77,15 @@ export function ProjectRowActions({
           rows={2}
           autoFocus
           disabled={isPending}
-          className="w-full md:w-[280px] bg-obsidian border border-iron rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-chalk placeholder:text-ash focus:outline-none focus:border-voltage transition-colors duration-150 resize-none disabled:opacity-40"
+          className="w-full md:w-[280px] bg-surface border border-line rounded-[6px] px-2 py-1.5 font-mono text-[12px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150 resize-none disabled:opacity-40"
         />
         <div className="flex items-center gap-2 justify-end">
           {error && (
-            <span className="font-mono text-[11px] text-ember truncate max-w-[160px]" title={error}>
+            <span className="font-mono text-[11px] text-danger-ink truncate max-w-[160px]" title={error}>
               {error}
             </span>
           )}
-          <span className="font-mono text-[10px] text-ash/60 tabular-nums">
+          <span className="font-mono text-[10px] text-ink-muted/60 tabular-nums">
             {reason.trim().length}/{MAX_REASON}
           </span>
           <button
@@ -93,7 +93,7 @@ export function ProjectRowActions({
             onClick={handleConfirmFlag}
             disabled={isPending || reason.trim().length < 3}
             className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-            style={{ background: "#FF8F47", color: "#0E0E10" }}
+            style={{ background: "#FF8F47", color: "var(--color-surface)" }}
           >
             {isPending ? "Flagging…" : "Flag"}
           </button>
@@ -101,7 +101,7 @@ export function ProjectRowActions({
             type="button"
             onClick={reset}
             disabled={isPending}
-            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+            className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
           >
             Cancel
           </button>
@@ -113,7 +113,7 @@ export function ProjectRowActions({
   if (mode === "delete-confirm") {
     return (
       <div className="flex items-center gap-2 justify-end">
-        <span className="font-mono text-[11px] text-ember flex items-center gap-1 mr-1">
+        <span className="font-mono text-[11px] text-danger-ink flex items-center gap-1 mr-1">
           <AlertTriangle className="w-3 h-3" />
           Delete?
         </span>
@@ -122,7 +122,7 @@ export function ProjectRowActions({
           onClick={handleDelete}
           disabled={isPending}
           className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-          style={{ background: "#FF4F4F", color: "#0E0E10" }}
+          style={{ background: "var(--color-danger-ink)", color: "var(--color-surface)" }}
         >
           {isPending ? "Deleting…" : "Yes"}
         </button>
@@ -130,7 +130,7 @@ export function ProjectRowActions({
           type="button"
           onClick={reset}
           disabled={isPending}
-          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ash border border-iron hover:text-chalk transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+          className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
         >
           Cancel
         </button>
@@ -141,7 +141,7 @@ export function ProjectRowActions({
   return (
     <div className="flex items-center gap-2 justify-end">
       {error && (
-        <span className="font-mono text-[11px] text-ember mr-2 truncate max-w-[180px]" title={error}>
+        <span className="font-mono text-[11px] text-danger-ink mr-2 truncate max-w-[180px]" title={error}>
           {error}
         </span>
       )}
@@ -153,7 +153,7 @@ export function ProjectRowActions({
         style={
           isFlagged
             ? { borderColor: "rgba(255,143,71,0.4)", color: "#FF8F47", background: "rgba(255,143,71,0.06)" }
-            : { borderColor: "#2C2C35", color: "#A1A1AA", background: "transparent" }
+            : { borderColor: "var(--color-line)", color: "#A1A1AA", background: "transparent" }
         }
       >
         {isFlagged ? <FlagOff className="w-3 h-3" /> : <Flag className="w-3 h-3" />}
@@ -165,7 +165,7 @@ export function ProjectRowActions({
         onClick={() => setMode("delete-confirm")}
         disabled={isPending}
         className="h-7 px-2.5 rounded-[6px] font-mono text-[11px] inline-flex items-center gap-1.5 border transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
-        style={{ borderColor: "rgba(255,79,79,0.4)", color: "#FF4F4F", background: "transparent" }}
+        style={{ borderColor: "rgba(255,79,79,0.4)", color: "var(--color-danger-ink)", background: "transparent" }}
       >
         <Trash2 className="w-3 h-3" />
         Remove

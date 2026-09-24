@@ -4,8 +4,8 @@
  * Design.md does not specify a skeleton treatment — §8 covers empty states,
  * which are a different thing: an empty state is a terminal answer ("Nothing
  * here yet"), a skeleton is a placeholder for content that is on its way. These
- * derive their look from the §5.3 card instead — graphite surface, iron border,
- * 12px radius — with iron bars standing in for text at the real line heights,
+ * derive their look from the §5.3 card instead — raised surface, line border,
+ * 12px radius — with tinted bars standing in for text at the real line heights,
  * so the skeleton and the content it replaces occupy the same space.
  *
  * Skeletons are decorative by definition. The tree is `aria-hidden` at each call
@@ -13,9 +13,15 @@
  * screen reader gets one sentence rather than a bag of empty boxes.
  */
 
-/** A single placeholder line. Caller sets the height and width. */
+/**
+ * A single placeholder line. Caller sets the height and width.
+ *
+ * A tint of the ink rather than a fixed colour: a skeleton has to read as
+ * "slightly darker/lighter than the card" on whichever ground it lands on, and
+ * an absolute value only does that on one of them.
+ */
 export function Bar({ className }: { className: string }) {
-  return <div className={`bg-iron rounded-[4px] ${className}`} />
+  return <div className={`bg-ink/[0.08] rounded-[4px] ${className}`} />
 }
 
 /**
@@ -24,7 +30,7 @@ export function Bar({ className }: { className: string }) {
  */
 export function ProjectCardSkeleton() {
   return (
-    <div className="bg-graphite border border-iron rounded-[12px] p-6 flex flex-col gap-4">
+    <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col gap-4">
       {/* Title + status badge */}
       <div className="flex items-start justify-between gap-4">
         <Bar className="h-7 w-1/2" />
@@ -38,7 +44,7 @@ export function ProjectCardSkeleton() {
       {/* URL */}
       <Bar className="h-4 w-2/5" />
       {/* Footer counts + action */}
-      <div className="pt-4 border-t border-iron flex items-center justify-between gap-4">
+      <div className="pt-4 border-t border-line flex items-center justify-between gap-4">
         <Bar className="h-4 w-32" />
         <Bar className="h-4 w-16" />
       </div>

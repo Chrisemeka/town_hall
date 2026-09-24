@@ -31,16 +31,16 @@ export default async function EditProjectPage({
 
   return (
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ash mb-8">
-        <Link href="/dashboard" className="hover:text-chalk transition-colors duration-150">
+      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8">
+        <Link href="/dashboard" className="hover:text-ink transition-colors duration-150">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron" />
-        <Link href={`/dashboard/${projectId}`} className="hover:text-chalk transition-colors duration-150 truncate max-w-[240px]">
+        <ChevronRight className="w-3.5 h-3.5 text-line" />
+        <Link href={`/dashboard/${projectId}`} className="hover:text-ink transition-colors duration-150 truncate max-w-[240px]">
           {project.name}
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-iron" />
-        <span className="text-chalk">Edit</span>
+        <ChevronRight className="w-3.5 h-3.5 text-line" />
+        <span className="text-ink">Edit</span>
       </div>
 
       <div className="max-w-2xl mx-auto">

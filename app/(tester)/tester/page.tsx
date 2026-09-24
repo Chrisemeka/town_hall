@@ -126,10 +126,10 @@ export default async function TesterHomePage() {
       {/* Header + Quick Actions */}
       <div id="tour-tester-header" className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
         <div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-chalk">
+          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink">
             Tester Home
           </h1>
-          <p className="font-mono text-[14px] text-ash mt-1">
+          <p className="font-mono text-[14px] text-ink-muted mt-1">
             {missions.length > 0
               ? `${missions.length} open mission${missions.length !== 1 ? "s" : ""} waiting for you.`
               : "Nothing open right now — check back soon."}
@@ -145,7 +145,7 @@ export default async function TesterHomePage() {
                 "h-10 px-4 rounded-[8px] font-mono font-medium text-[13px] flex items-center gap-2 transition-colors duration-150",
                 primary
                   ? "bg-voltage text-obsidian hover:bg-voltage-dark"
-                  : "bg-graphite border border-iron text-chalk hover:border-voltage hover:text-voltage",
+                  : "bg-surface-raised border border-line text-ink hover:border-accent-ink hover:text-accent-ink",
               ].join(" ")}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -159,18 +159,18 @@ export default async function TesterHomePage() {
       <section>
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <p className="font-mono text-[11px] font-medium text-ash uppercase tracking-[1px]">
+            <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px]">
               New Missions
             </p>
             {newCount > 0 && (
-              <span className="font-mono text-[11px] text-voltage bg-voltage/10 px-2 py-0.5 rounded-[6px]">
+              <span className="font-mono text-[11px] text-accent-ink bg-voltage/10 px-2 py-0.5 rounded-[6px]">
                 {newCount} NEW
               </span>
             )}
           </div>
           <Link
             href="/explore/missions"
-            className="font-mono text-[13px] text-ash hover:text-voltage transition-colors duration-150"
+            className="font-mono text-[13px] text-ink-muted hover:text-accent-ink transition-colors duration-150"
           >
             See all →
           </Link>

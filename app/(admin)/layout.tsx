@@ -30,7 +30,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-obsidian text-chalk">
+    <div className="min-h-screen bg-surface text-ink">
       <AdminTopNav />
       <main className="pt-[56px] min-h-screen w-full min-w-0 overflow-x-hidden">{children}</main>
     </div>

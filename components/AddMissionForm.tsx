@@ -80,17 +80,17 @@ export default function AddMissionForm({
   }
 
   return (
-    <div className="bg-graphite border border-iron rounded-[16px] p-10">
+    <div className="bg-surface-raised border border-line rounded-[16px] p-10">
 
       {/* Header */}
-      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-chalk mb-1">
+      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-1">
         Create a Mission
       </h2>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         For:{" "}
         <Link
           href={`/dashboard/${projectId}`}
-          className="text-chalk hover:underline"
+          className="text-ink hover:underline"
         >
           {projectName}
         </Link>
@@ -98,8 +98,8 @@ export default function AddMissionForm({
 
       {/* Server error */}
       {state?.error && (
-        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-ember/20 rounded-[8px]">
-          <p className="font-mono text-[14px] text-ember">{state.error}</p>
+        <div ref={banner} className="mb-6 px-4 py-3 bg-ember/10 border border-danger-ink/20 rounded-[8px]">
+          <p className="font-mono text-[14px] text-danger-ink">{state.error}</p>
         </div>
       )}
 
@@ -108,7 +108,7 @@ export default function AddMissionForm({
 
         {/* Mission Title */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="title" className="font-mono text-[12px] text-ash uppercase tracking-[0.5px]">
+          <label htmlFor="title" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
             Mission Title
           </label>
           <input
@@ -121,13 +121,13 @@ export default function AddMissionForm({
             onChange={(e) => setTitle(e.target.value)}
             {...fieldErrorProps("title", fieldErrors.title)}
             className={[
-              "h-10 w-full bg-obsidian border rounded-[8px] px-4 font-mono text-[14px] text-chalk placeholder:text-ash focus:outline-none transition-colors duration-150",
-              fieldErrors.title?.length ? "border-ember" : "border-iron focus:border-voltage",
+              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+              fieldErrors.title?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
             ].join(" ")}
           />
           <div className="flex items-center justify-between gap-3">
             <FieldError field="title" errors={fieldErrors.title} />
-            <span className={`font-mono text-[12px] ml-auto ${title.length >= MISSION_TITLE_MAX ? "text-ember" : "text-ash"}`}>
+            <span className={`font-mono text-[12px] ml-auto ${title.length >= MISSION_TITLE_MAX ? "text-danger-ink" : "text-ink-muted"}`}>
               {title.length} / {MISSION_TITLE_MAX}
             </span>
           </div>
@@ -159,7 +159,7 @@ export default function AddMissionForm({
               <Link href={`/dashboard/${projectId}`}>Cancel</Link>
             </Button>
           </div>
-          <p className="font-mono text-[12px] text-ash leading-5">
+          <p className="font-mono text-[12px] text-ink-muted leading-5">
             Publishing puts this mission — and your project — on the Explore feed where testers
             pick it up. Drafts stay private, and a project with no published mission stays hidden.
           </p>
@@ -178,7 +178,7 @@ function PublishButton() {
       name="intent"
       value="publish"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite"
+      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Publishing…" : "Publish Mission"}
     </button>
@@ -193,7 +193,7 @@ function DraftButton() {
       name="intent"
       value="draft"
       disabled={pending}
-      className="h-12 px-6 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-voltage focus-visible:ring-offset-2 focus-visible:ring-offset-graphite"
+      className="h-12 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
     >
       Save as Draft
     </button>

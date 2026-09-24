@@ -21,7 +21,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
   // rendering as emptiness.
   if (!parsed.success) {
     return (
-      <p className="font-mono text-[13px] text-ash italic">
+      <p className="font-mono text-[13px] text-ink-muted italic">
         This test case could not be read. Ask the builder to re-save the mission.
       </p>
     )
@@ -29,7 +29,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
 
   if (parsed.data.length === 0) {
     return (
-      <p className="font-mono text-[13px] text-ash italic">
+      <p className="font-mono text-[13px] text-ink-muted italic">
         No steps yet — follow the brief above.
       </p>
     )
@@ -40,25 +40,25 @@ export function TestCaseView({ steps }: { steps: unknown }) {
       {parsed.data.map((step, index) => (
         <li
           key={step.id}
-          className="bg-obsidian border border-iron rounded-[12px] p-4 flex gap-4"
+          className="bg-surface border border-line rounded-[12px] p-4 flex gap-4"
         >
-          <span className="font-mono text-[12px] font-medium text-voltage shrink-0 pt-0.5">
+          <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 pt-0.5">
             {String(index + 1).padStart(2, "0")}
           </span>
           <div className="flex flex-col gap-2 min-w-0">
             <div>
-              <p className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] mb-1">
+              <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
                 Do
               </p>
-              <p className="font-mono text-[14px] leading-5 text-chalk break-words">
+              <p className="font-mono text-[14px] leading-5 text-ink break-words">
                 {step.action}
               </p>
             </div>
             <div>
-              <p className="font-mono text-[11px] text-ash uppercase tracking-[0.5px] mb-1">
+              <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
                 Expect
               </p>
-              <p className="font-mono text-[14px] leading-5 text-ash break-words">
+              <p className="font-mono text-[14px] leading-5 text-ink-muted break-words">
                 {step.expected_result}
               </p>
             </div>
@@ -99,7 +99,7 @@ export function MissionChips({
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block font-mono text-[12px] font-medium tracking-[0.5px] text-chalk bg-obsidian border border-iron rounded-[4px] px-2 py-0.5">
+    <span className="inline-block font-mono text-[12px] font-medium tracking-[0.5px] text-ink bg-surface border border-line rounded-[4px] px-2 py-0.5">
       {children}
     </span>
   )

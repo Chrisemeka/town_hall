@@ -14,29 +14,29 @@ export default async function AdminEmailPage() {
   return (
     <div className="max-w-[860px] mx-auto px-4 sm:px-6 py-8 md:py-10">
       <div className="flex items-center gap-3 mb-2">
-        <ShieldCheck className="w-4 h-4 text-voltage" />
-        <p className="font-mono text-[11px] font-medium text-voltage uppercase tracking-[1px]">
+        <ShieldCheck className="w-4 h-4 text-accent-ink" />
+        <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
           Admin · Email
         </p>
       </div>
-      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-chalk mb-1">
+      <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[40px] tracking-[-0.5px] text-ink mb-1">
         Send a broadcast
       </h1>
-      <p className="font-mono text-[14px] text-ash mb-8">
+      <p className="font-mono text-[14px] text-ink-muted mb-8">
         Compose a message to a single user or every account on Twnhall. Sent
         via Resend from the Twnhall admin sender.
       </p>
 
       <div
-        className="bg-graphite border border-iron rounded-[12px] overflow-hidden"
+        className="bg-surface-raised border border-line rounded-[12px] overflow-hidden"
         style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
       >
-        <div className="px-5 py-4 border-b border-iron flex items-center gap-2">
-          <Mail className="w-4 h-4 text-voltage" />
-          <h2 className="font-syne font-bold text-[16px] text-chalk">
+        <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+          <Mail className="w-4 h-4 text-accent-ink" />
+          <h2 className="font-syne font-bold text-[16px] text-ink">
             Compose
           </h2>
-          <span className="ml-auto font-mono text-[11px] text-ash">
+          <span className="ml-auto font-mono text-[11px] text-ink-muted">
             {count ?? 0} reachable user{count === 1 ? "" : "s"}
           </span>
         </div>

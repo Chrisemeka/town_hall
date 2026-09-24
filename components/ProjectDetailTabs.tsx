@@ -71,7 +71,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
   return (
     <div>
       {/* Tab bar + action button */}
-      <div className="border-b border-iron mb-8">
+      <div className="border-b border-line mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
           <div className="flex items-end gap-4 sm:gap-6">
             {[
@@ -83,12 +83,12 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                 onClick={() => setTab(key as typeof tab)}
                 className={[
                   "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
-                  tab === key ? "text-chalk" : "text-ash hover:text-chalk",
+                  tab === key ? "text-ink" : "text-ink-muted hover:text-ink",
                 ].join(" ")}
               >
                 {label}
                 {" "}
-                <span className={`font-mono text-[12px] ${tab === key ? "text-voltage" : "text-ash/60"}`}>
+                <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
                   ({count})
                 </span>
                 {tab === key && (
@@ -101,7 +101,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           {tab === "missions" && (
             <Link
               href={`/dashboard/${projectId}/mission/new`}
-              className="self-end sm:self-auto h-9 px-4 border border-iron text-chalk rounded-[8px] font-mono text-[14px] hover:border-ash transition-colors duration-150 flex items-center gap-1.5 mb-3 w-fit"
+              className="self-end sm:self-auto h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5 mb-3 w-fit"
             >
               + Add Mission
             </Link>
@@ -113,9 +113,9 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
       {tab === "missions" && (
         <div className="flex flex-col gap-4">
           {missions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
-              <p className="font-syne font-bold text-[24px] text-chalk mb-2">No missions added.</p>
-              <p className="font-mono text-[14px] text-ash mb-6 text-center">
+            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+              <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
+              <p className="font-mono text-[14px] text-ink-muted mb-6 text-center">
                 Add a mission to activate your project and start receiving tester feedback.
               </p>
               <Button variant="secondary" asChild>
@@ -131,7 +131,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               return (
                 <div
                   key={mission.id}
-                  className="relative bg-graphite border border-iron rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-voltage/30"
+                  className="relative bg-surface-raised border border-line rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
                 >
                   {/* Card content */}
@@ -139,10 +139,10 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     {/* Title row */}
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-baseline gap-3 min-w-0">
-                        <span className="font-mono text-[12px] font-medium text-voltage shrink-0">
+                        <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0">
                           {missionNum}
                         </span>
-                        <h5 className="font-syne font-bold text-[20px] leading-7 text-chalk truncate">
+                        <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
                           {mission.title}
                         </h5>
                       </div>
@@ -155,13 +155,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     />
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between pt-2 border-t border-iron mt-1">
-                      <span className="font-mono text-[12px] text-ash">
+                    <div className="flex items-center justify-between pt-2 border-t border-line mt-1">
+                      <span className="font-mono text-[12px] text-ink-muted">
                         {fbCount} Feedback{fbCount !== 1 ? "s" : ""}
                       </span>
                       <Link
                         href={`/dashboard/${projectId}/mission/${mission.id}`}
-                        className="font-mono text-[13px] font-medium text-ash hover:text-chalk transition-colors duration-150 flex items-center gap-1"
+                        className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
                       >
                         Open <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
@@ -178,9 +178,9 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
       {tab === "feedback" && (
         <div className="flex flex-col gap-10">
           {feedbackCount === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-iron rounded-[12px]">
-              <p className="font-syne font-bold text-[24px] text-chalk mb-2">No feedback yet.</p>
-              <p className="font-mono text-[14px] text-ash">
+            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+              <p className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</p>
+              <p className="font-mono text-[14px] text-ink-muted">
                 Share your project in the community to start receiving feedback.
               </p>
             </div>
@@ -188,7 +188,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
             byMission.map(({ mission, items }) => (
               <div key={mission.id}>
                 {/* Mission heading */}
-                <h5 className="font-syne font-bold text-[20px] text-chalk mb-4">
+                <h5 className="font-syne font-bold text-[20px] text-ink mb-4">
                   {mission.title}
                 </h5>
 
@@ -197,27 +197,27 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     <Link
                       key={result.id}
                       href={`/dashboard/${projectId}/mission/${mission.id}`}
-                      className="group block border-l-[3px] border-iron pl-4 hover:border-voltage transition-colors duration-150"
+                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
                     >
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="font-mono text-[12px] text-ash">
+                        <span className="font-mono text-[12px] text-ink-muted">
                           Developer #{String(idx + 1).padStart(2, "0")}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-iron" />
-                        <span className="font-mono text-[12px] text-ash">
+                        <span className="w-1 h-1 rounded-full bg-line" />
+                        <span className="font-mono text-[12px] text-ink-muted">
                           {relativeTime(result.created_at)}
                         </span>
                       </div>
 
                       {/* Feedback body (truncated — full breakdown on mission page) */}
-                      <p className="font-mono text-[16px] leading-6 text-chalk line-clamp-3">
+                      <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
                         {result.tester_comment}
                       </p>
 
                       <ScreenshotStrip urls={screenshotList(result)} />
 
-                      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ash group-hover:text-voltage transition-colors duration-150">
+                      <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
                         Read full feedback
                         <ArrowRight className="w-3 h-3" />
                       </span>

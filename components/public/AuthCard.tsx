@@ -8,7 +8,7 @@ import { errorId } from "@/lib/focus"
  * a centred card on the tinted public ground.
  *
  * Not `components/ui/Field` or `inputClass()` — those are the same chrome in
- * literal dark tokens (`bg-obsidian`, `text-chalk`, `border-iron`) and would
+ * literal dark tokens (`bg-surface`, `text-ink`, `border-line`) and would
  * render a dark form inside a light page. Same Design.md §5.2 measurements,
  * semantic spelling. A third copy of these strings should not appear; if a
  * fifth auth surface needs them, it imports from here.
