@@ -63,7 +63,7 @@ missions ───────────┘  └── test_result_entries   o
 | Table          | Key columns |
 |----------------|-------------|
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
-| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`. Unique on `(user_id, type)`. |
+| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable, nothing enforces it**). Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
@@ -104,6 +104,18 @@ audit log; it is now the free-text "anything else?" at the end. Twenty-four subm
 audit log and carry only this. Every surface that renders a submission must handle both shapes —
 `components/submissions/SubmissionBody.tsx` is the one place that branches, don't add a ninth
 conditional elsewhere.
+
+**`accounts.plan_id` records a plan; it does not enforce one.** Nullable, and
+null means Community — "has not been assigned a plan" and "is on the free plan"
+are the same fact, so existing rows are deliberately not backfilled. No CHECK
+constraint: `PLAN_IDS` in `lib/vocabulary.ts` and `planIdSchema` are the
+vocabulary, same as everything else. **Nothing in the app reads it to block
+anything** — there is no report counter, no per-mission tester ceiling and no
+active-mission limit, and tier enforcement is separate work with its own
+sequencing. `lib/plans.ts` holds the tier content and reads the same
+monetisation plan §3 that `/pricing` renders, so the two cannot disagree. The
+only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
+manual upgrade path because there is no checkout.
 
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
@@ -359,6 +371,13 @@ Canonical reference: `Test.md`. Every feature ships with:
   button, and nothing unshipped is listed. When tier enforcement lands, the
   page changes with it — until then, do not add a control implying a
   transaction that does not exist.
+- **The plan section's honesty**, which is the pricing page's rule one step
+  closer to the danger. `/settings` shows which plan an account is on and what
+  the other tier includes, and that is all: **no usage meter, no "3 of 5
+  reports used", no renewal date, no Subscribe or Upgrade control.** It sits
+  inside an account, so anything resembling a control reads as "change my
+  plan" rather than "read about plans", and a meter reading zero would be a
+  lie about a limit nothing enforces. The call to action is `/contact`.
 - **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a balance, or a `paid` state without that being the explicit ask.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.

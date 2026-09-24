@@ -3,6 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
+import type { AccountType } from "@/lib/access"
+import { planIdSchema } from "@/lib/validation/schemas"
 
 async function ensureModerable(
   admin: ReturnType<typeof createAdminClient>,
@@ -106,4 +108,50 @@ export async function reactivateUser(targetUserId: string) {
 
   revalidatePath("/admin/users")
   revalidatePath("/admin")
+}
+
+/**
+ * Records which plan an account is on.
+ *
+ * This is the whole manual upgrade path: there is no checkout, so a sale is
+ * recorded here or it is not recorded at all. Without it the plan_id column
+ * would be decorative.
+ *
+ * NOT moderation, so it deliberately does not call ensureModerable(): setting
+ * an admin's own plan, or another admin's, is a billing fact rather than an
+ * action taken against someone. The requireAdmin() guard is the whole
+ * authorisation question here.
+ *
+ * Per-role by construction — `.eq("type", role)` — because plan_id lives on
+ * accounts. Upgrading somebody's builder account must not touch their tester
+ * one.
+ */
+export async function setUserPlan(
+  targetUserId: string,
+  role: AccountType,
+  planId: string,
+) {
+  const { admin } = await requireAdmin()
+
+  // The column has no CHECK constraint, so this parse is the only thing
+  // between a typo and the database. Zod at the boundary, per CLAUDE.md.
+  const parsed = planIdSchema.safeParse(planId)
+  if (!parsed.success) throw new Error("Unknown plan.")
+
+  const { error, data } = await admin
+    .from("accounts")
+    // Explicit single-column write: this runs as service role, so anything
+    // reaching the UPDATE is written.
+    .update({ plan_id: parsed.data })
+    .eq("user_id", targetUserId)
+    .eq("type", role)
+    .select("id")
+
+  if (error) throw new Error(error.message)
+  if ((data?.length ?? 0) === 0) {
+    throw new Error(`That user has no ${role} account to put on a plan.`)
+  }
+
+  revalidatePath("/admin/users")
+  revalidatePath("/settings")
 }

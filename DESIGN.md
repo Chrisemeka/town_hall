@@ -497,6 +497,30 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 
 ---
 
+### 5.6 Settings Sections
+
+`/settings` is a stack of sections rather than one form —
+`components/settings/SettingsSection.tsx` is the shared chrome, and there are
+five by the end of Stage 3: Profile, Give and take, Plan, Appearance, Export.
+
+| Property | Value |
+|----------|-------|
+| Section | `surface-raised`, 1px `line`, 12px radius, 32px padding (24px < 640px) |
+| Heading | Syne Bold 20px, `ink` |
+| Description | DM Sans 14px, `ink`, one line under the heading |
+| Metric | value Syne Bold 28px above a DM Mono 12px uppercase label |
+| Gap between sections | 40px |
+
+**A metric that has no value renders `—`, never `0`.** An average with nothing
+rated and a ratio with nothing received are both *absent*, not zero, and a
+zero reads as a bad score rather than as no score. A real zero still renders as
+`0.0` — the dash is reserved for the undefined case.
+
+Metrics are one column below 640px. A label and its own figure colliding is
+the way a metric row breaks narrow.
+
+---
+
 ### 5.6 Comparison Tables
 
 Used on `/pricing`, and by anything else that compares options side by side.

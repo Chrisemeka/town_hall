@@ -262,3 +262,29 @@ export const TIMEZONES = Intl.supportedValuesOf("timeZone").concat("UTC") as [
   string,
   ...string[],
 ]
+
+/**
+ * Which plan an account is on.
+ *
+ * `null` on the column means Community, so this list is the set of values that
+ * can be *written*. "community" is spelled out anyway: an admin setting
+ * somebody back to the free tier needs a value to pick, and clearing a column
+ * is not something a select box does well.
+ *
+ * Machine values like TEST_CATEGORIES rather than display copy like
+ * PROJECT_CATEGORIES — a plan id is something code branches on, and the label
+ * belongs in lib/plans.ts with the rest of the tier content.
+ */
+export const PLAN_IDS = ["community", "pro"] as const
+
+export type PlanId = (typeof PLAN_IDS)[number]
+
+/** What a null column means. Null and "community" are the same plan. */
+export const DEFAULT_PLAN: PlanId = "community"
+
+/** Narrows a stored value, which may be null, to the vocabulary. */
+export function planIdFor(value: string | null | undefined): PlanId {
+  return (PLAN_IDS as readonly string[]).includes(value ?? "")
+    ? (value as PlanId)
+    : DEFAULT_PLAN
+}

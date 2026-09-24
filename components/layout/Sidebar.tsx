@@ -5,11 +5,10 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Target, MessageSquare,
   Telescope, Compass, Settings, LayoutGrid,
-  User, LogOut, BookOpen, Repeat,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
-import { switchAccount } from "@/actions/accounts"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
 import type { AccountType } from "@/lib/access"
 
@@ -74,17 +73,13 @@ export function Sidebar({
   isOpen,
   onClose,
   account = "builder",
-  heldTypes = [],
 }: {
   isOpen: boolean
   onClose: () => void
   account?: AccountType
-  heldTypes?: AccountType[]
 }) {
   const pathname = usePathname()
 
-  const other: AccountType = account === "builder" ? "tester" : "builder"
-  const hasOther = heldTypes.includes(other)
 
   const isActive = (href: string) =>
     EXACT_MATCH.has(href)
@@ -120,52 +115,40 @@ export function Sidebar({
           </p>
           <div className="flex flex-col gap-0.5">
 
-            {/* Switching between two accounts this person holds — not a role
-                toggle on one profile. Each is its own record with its own data. */}
-            {hasOther ? (
-              <form action={switchAccount.bind(null, other)}>
-                <button
-                  type="submit"
-                  className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                >
-                  <Repeat className="w-4 h-4 shrink-0" />
-                  Switch to {other}
-                </button>
-              </form>
-            ) : (
-              <NavItem
-                href="/choose-account"
-                name={`Add ${other} account`}
-                icon={Repeat}
-                isActive={isActive("/choose-account")}
-                onClick={onClose}
-              />
-            )}
+            {/*
+              Exactly three, and Sign out is one of them.
 
-            {/* Settings — desktop only */}
-            <div className="hidden md:block">
-              <NavItem href="/settings" name="Settings" icon={Settings} isActive={isActive("/settings")} />
-              <NavItem href="/guides" name="How it works" icon={BookOpen} isActive={isActive("/guides")} />
-              <ReplayTourButton onClick={onClose} />
-            </div>
+              Switching or adding a role used to live here; it is in Settings →
+              Profile now, which is the one place a builder can reach the
+              tester side and where the copy has room to say that adding one
+              means completing a tester profile first.
 
-            {/* Profile + Sign Out — mobile only */}
-            <div className="md:hidden flex flex-col gap-0.5">
-              <NavItem href="/settings" name="Profile" icon={User} isActive={isActive("/settings")} onClick={onClose} />
-              <NavItem href="/guides" name="How it works" icon={BookOpen} isActive={isActive("/guides")} onClick={onClose} />
-              <ReplayTourButton onClick={onClose} />
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="flex items-center gap-3 h-10 w-full rounded-[8px] font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                  style={{ paddingLeft: 12, paddingRight: 12 }}
-                >
-                  <LogOut className="w-4 h-4 shrink-0" />
-                  Sign Out
-                </button>
-              </form>
-            </div>
-
+              Sign out came DOWN from TopNav, and it is in this shared block
+              rather than the desktop-only one on purpose. The sidebar
+              collapses to a sheet on mobile, so a desktop-only sign-out would
+              put logging out behind a menu that was not previously needed to
+              leave — while "back button reaches dashboard after logout" is
+              still open on the QA list. It used to exist three times: here for
+              mobile, in TopNav for every width, and nowhere for desktop rail
+              users. Now it is one control in one place.
+            */}
+            <NavItem
+              href="/settings"
+              name="Settings"
+              icon={Settings}
+              isActive={isActive("/settings")}
+              onClick={onClose}
+            />
+            <ReplayTourButton onClick={onClose} />
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="flex items-center gap-3 h-10 w-full px-3 rounded-[8px] font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                <LogOut className="w-4 h-4 shrink-0" />
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
 

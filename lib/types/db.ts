@@ -46,6 +46,8 @@ export type AccountRow = {
   type: string
   created_at: string
   verification_completed_at: string | null
+  /** null means Community. Display and admin override only — nothing enforces it. */
+  plan_id: string | null
 }
 
 export type ProjectRow = {

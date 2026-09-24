@@ -6,6 +6,8 @@ import {
 import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
 import { RoleDistributionChart, type RoleSlice } from "@/components/admin/RoleDistributionChart"
 import { UserRowActions, type ModerationStatus } from "@/components/admin/UserRowActions"
+import { UserPlanControl } from "@/components/admin/UserPlanControl"
+import { planIdFor, type PlanId } from "@/lib/vocabulary"
 
 export const metadata = { title: "Users — Admin · Twnhall" }
 
@@ -95,15 +97,27 @@ async function fetchAllAuthUsers(admin: ReturnType<typeof createAdminClient>) {
 export default async function AdminUsersPage() {
   const admin = createAdminClient()
 
-  const [authUsers, profilesRes, projectsRes, testResultsRes] = await Promise.all([
+  const [authUsers, profilesRes, projectsRes, testResultsRes, accountsRes] = await Promise.all([
     fetchAllAuthUsers(admin),
     admin.from("profiles").select("id, full_name, avatar_url, email, role, moderation_status, ban_reason, banned_at"),
     admin.from("projects").select("owner_id"),
     admin.from("test_results").select("tester_id"),
+    // plan_id is per-role, so it comes off the accounts row rather than the
+    // profile. Only the builder account carries a meaningful one.
+    admin.from("accounts").select("user_id, type, plan_id"),
   ])
 
   const profiles = (profilesRes.data ?? []) as ProfileRow[]
   const profileById = new Map(profiles.map((p) => [p.id, p]))
+
+  const builderPlan = new Map<string, PlanId>()
+  for (const row of (accountsRes.data ?? []) as {
+    user_id: string
+    type: string
+    plan_id: string | null
+  }[]) {
+    if (row.type === "builder") builderPlan.set(row.user_id, planIdFor(row.plan_id))
+  }
 
   const projectCounts = new Map<string, number>()
   for (const row of (projectsRes.data ?? []) as { owner_id: string | null }[]) {
@@ -274,7 +288,14 @@ export default async function AdminUsersPage() {
                     {u.missionsCompleted}
                   </td>
                   <td className="px-5 py-4">
-                    <UserRowActions userId={u.id} status={u.moderationStatus} role={u.role} />
+                    <div className="flex flex-col gap-2 items-end">
+                      <UserPlanControl
+                        userId={u.id}
+                        planId={builderPlan.get(u.id) ?? "community"}
+                        hasBuilderAccount={builderPlan.has(u.id)}
+                      />
+                      <UserRowActions userId={u.id} status={u.moderationStatus} role={u.role} />
+                    </div>
                   </td>
                 </tr>
               ))}

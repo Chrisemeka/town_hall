@@ -12,7 +12,6 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
   let displayName: string | null = null
   let seenTours: string[] = []
   let account: AccountType = "builder"
-  let heldTypes: AccountType[] = []
 
   if (user) {
     const admin = createAdminClient()
@@ -41,7 +40,6 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
     // is accessFor() in middleware plus requireAccount() on the page.
     const resolved = await getActiveAccount()
     account = resolved?.active ?? "builder"
-    heldTypes = resolved?.types ?? []
   }
 
   return (
@@ -51,7 +49,6 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
       displayName={displayName}
       seenTours={seenTours}
       account={account}
-      heldTypes={heldTypes}
     >
       {children}
     </AppShell>
