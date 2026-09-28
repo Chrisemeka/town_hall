@@ -4,9 +4,10 @@ import { useState } from "react"
 import { deleteAccountAction } from "@/actions/auth"
 import { AccountControl } from "@/components/settings/AccountControl"
 import { ExportPanel } from "@/components/settings/ExportPanel"
+import type { AccountType } from "@/lib/access"
 
 /**
- * The Account tab: linked accounts, the tester-account switch, and the danger
+ * The Account tab: linked accounts, the account switch, and the danger
  * zone.
  *
  * Lifted out of SettingsForm unchanged — same elements, same classes, same
@@ -22,11 +23,13 @@ function SectionDivider() {
 }
 
 export function AccountPanel({
-  hasTesterAccount,
+  active,
+  holdsOther,
   projects,
   hasFeedback,
 }: {
-  hasTesterAccount: boolean
+  active: AccountType
+  holdsOther: boolean
   projects: { id: string; name: string }[]
   hasFeedback: boolean
 }) {
@@ -68,8 +71,8 @@ export function AccountPanel({
       <SectionDivider />
 
       {/* Moved down from the sidebar, where there was no room to say that
-          adding a tester account means completing a tester profile first. */}
-      <AccountControl hasTesterAccount={hasTesterAccount} />
+          adding an account means completing that role's profile first. */}
+      <AccountControl active={active} holdsOther={holdsOther} />
 
       <SectionDivider />
 

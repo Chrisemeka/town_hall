@@ -134,6 +134,18 @@ export function homeFor(account: AccountType): string {
   return account === "tester" ? "/explore" : "/dashboard"
 }
 
+/**
+ * Where an account belongs right now: its home, or its gate while still closed.
+ *
+ * For code that is about to send someone somewhere — createAccount and
+ * switchAccount — so they land where middleware would put them in one hop
+ * instead of via the role's home and a bounce. On a phone that bounce was long
+ * enough to read as a hung page.
+ */
+export function landingFor(account: AccountType, verified: boolean): string {
+  return verified ? homeFor(account) : verifyPathFor(account)
+}
+
 export type AccessResult =
   | { allow: true }
   | { allow: false; redirect: string }

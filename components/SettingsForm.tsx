@@ -8,6 +8,7 @@ import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { fieldErrorProps } from "@/components/ui/FieldError"
 import { formatPhoneAsYouType, isAllowedPhoneKey } from "@/lib/phone"
+import { phoneErrorFor, phoneExampleFor, phoneHintFor } from "@/lib/phoneExample"
 import { COUNTRIES, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
   BIO_MAX,
@@ -190,15 +191,15 @@ export function SettingsForm({
           <Field
             label="Phone"
             htmlFor="phone"
-            error={errors.phone}
-            helper="Include your country code — e.g. +234 801 234 5678."
+            error={phoneErrorFor(errors.phone, values.country)}
+            helper={phoneHintFor(values.country)}
           >
             <input
               id="phone"
               type="tel"
               inputMode="tel"
               value={values.phone}
-              placeholder="+234 801 234 5678"
+              placeholder={phoneExampleFor(values.country) ?? "+"}
               onKeyDown={(e) => {
                 if (!isAllowedPhoneKey(e)) e.preventDefault()
               }}

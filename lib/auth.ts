@@ -46,7 +46,7 @@ type AccountRow = { type: AccountType; verification_completed_at: string | null 
  * Verification comes back on the same read rather than in a follow-up query —
  * this runs on every protected page render, and the caller always wants both.
  */
-async function accountRowsFor(userId: string): Promise<AccountRow[]> {
+export async function accountRowsFor(userId: string): Promise<AccountRow[]> {
   const admin = createAdminClient()
   const { data } = await admin
     .from("accounts")

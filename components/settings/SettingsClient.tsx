@@ -5,7 +5,8 @@ import { SettingsForm, type ProfileValues } from "@/components/SettingsForm"
 import { AccountPanel } from "@/components/settings/AccountPanel"
 import { ThemePreference } from "@/components/ThemePreference"
 import { SettingsTabs } from "@/components/settings/SettingsTabs"
-import type { SettingsTabId } from "@/lib/settingsTabs"
+import { tabsFor, type SettingsTabId } from "@/lib/settingsTabs"
+import type { AccountType } from "@/lib/access"
 import type { Theme } from "@/lib/theme"
 
 /**
@@ -24,7 +25,8 @@ export function SettingsClient({
   initialTab,
   initialEmail,
   initialProfile,
-  hasTesterAccount,
+  active,
+  types,
   theme,
   projects,
   hasFeedback,
@@ -34,7 +36,14 @@ export function SettingsClient({
   initialTab: SettingsTabId
   initialEmail: string
   initialProfile: ProfileValues
-  hasTesterAccount: boolean
+  /**
+   * The validated active account (getActiveAccount), never the raw cookie.
+   * Required: the account switch and the tab set both depend on which side
+   * is looking, and both were wrong while nothing told them.
+   */
+  active: AccountType
+  /** Every account type this person holds. */
+  types: AccountType[]
   theme: Theme
   /** The caller's own projects, for the export scope select. */
   projects: { id: string; name: string }[]
@@ -47,6 +56,7 @@ export function SettingsClient({
   return (
     <SettingsTabs
       initialTab={initialTab}
+      tabs={tabsFor(active)}
       dirty={{ profile: profileDirty }}
       panels={{
         profile: (
@@ -54,7 +64,7 @@ export function SettingsClient({
             <SettingsForm
               initialEmail={initialEmail}
               initialProfile={initialProfile}
-              hasTesterAccount={hasTesterAccount}
+              hasTesterAccount={types.includes("tester")}
               onDirtyChange={setProfileDirty}
             />
             <ThemePreference theme={theme} />
@@ -62,13 +72,15 @@ export function SettingsClient({
         ),
         account: (
           <AccountPanel
-            hasTesterAccount={hasTesterAccount}
+            active={active}
+            holdsOther={types.length > 1}
             projects={projects}
             hasFeedback={hasFeedback}
           />
         ),
         activity,
-        plan,
+        // Builder-only; tabsFor() leaves the tab out for a tester.
+        ...(active === "builder" ? { plan } : {}),
       }}
     />
   )

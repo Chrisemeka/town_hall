@@ -4,6 +4,7 @@ import {
   firstIncompleteStep,
   nextStepsFor,
   profileStageCount,
+  roleCardState,
   setupStages,
   type SetupProgress,
 } from "@/lib/setup"
@@ -219,5 +220,22 @@ describe("completion content", () => {
         expect(step.detail.trim().length).toBeGreaterThan(0)
       }
     }
+  })
+})
+
+describe("roleCardState", () => {
+  it("leaves both cards live with their idle labels when nothing is pending", () => {
+    expect(roleCardState("builder", false, null)).toEqual({ label: "Create this account", disabled: false, busy: false })
+    expect(roleCardState("tester", true, null)).toEqual({ label: "Continue", disabled: false, busy: false })
+  })
+
+  it("locks BOTH cards on a submit and labels only the tapped one", () => {
+    // Tap Builder, see nothing, tap Tester: without the lock that creates both.
+    expect(roleCardState("builder", false, "builder")).toEqual({ label: "Creating…", disabled: true, busy: true })
+    expect(roleCardState("tester", false, "builder")).toEqual({ label: "Create this account", disabled: true, busy: false })
+  })
+
+  it("says Switching… for a role already held", () => {
+    expect(roleCardState("tester", true, "tester").label).toBe("Switching…")
   })
 })

@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { accountTypesFor } from "@/lib/auth";
+import { getActiveAccount } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsClient } from "@/components/settings/SettingsClient";
 import { GiveAndTake } from "@/components/settings/GiveAndTake";
 import { PlanSection } from "@/components/settings/PlanSection";
 import { planIdFor } from "@/lib/vocabulary";
-import { tabFromParam } from "@/lib/settingsTabs";
+import { tabFromParam, tabsFor } from "@/lib/settingsTabs";
 import { reciprocityFrom } from "@/lib/reciprocity";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, readTheme } from "@/lib/theme";
@@ -21,27 +21,32 @@ export default async function SettingsPage({
   // resolves to Profile rather than erroring — see tabFromParam.
   searchParams: Promise<{ tab?: string | string[] }>;
 }) {
-  const initialTab = tabFromParam((await searchParams).tab);
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/explore");
+
+  // The active account, already intersected with the real accounts rows —
+  // never the raw th_account cookie, which is unsigned. /settings is shared,
+  // so middleware lets a user with no account yet through; there is no side
+  // to write the page from, so they pick one first.
+  const resolved = await getActiveAccount();
+  if (!resolved?.active) redirect("/choose-account");
+  const { active, types: accountTypes } = resolved;
+  const initialTab = tabFromParam((await searchParams).tab, tabsFor(active));
 
   // Service-role read, per the RLS pattern in CLAUDE.md — `profiles` has no
   // policy that would let the anon key see even the caller's own row.
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, accountTypes, { data: account }, mine, owned, ownProjects] =
+  const [{ data: profile }, { data: account }, mine, owned, ownProjects] =
     await Promise.all([
     admin
       .from("profiles")
       .select("full_name, country, phone, timezone, bio, skills")
       .eq("id", user.id)
       .maybeSingle(),
-    // Resolved on the server: whether to offer the skills field is an account
-    // fact, and the client has no business querying for it.
-    accountTypesFor(user.id),
     // Which plan the builder account is on. Per-role, so it is read off the
     // accounts row rather than the profile.
     admin
@@ -103,7 +108,8 @@ export default async function SettingsPage({
           bio: profile?.bio ?? "",
           skills: profile?.skills ?? [],
         }}
-        hasTesterAccount={accountTypes.includes("tester")}
+        active={active}
+        types={accountTypes}
         theme={theme}
         projects={(ownProjects.data ?? []) as { id: string; name: string }[]}
         // The count the Activity tab already needed — "feedback received" and

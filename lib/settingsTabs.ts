@@ -22,6 +22,18 @@ export const SETTINGS_TABS: readonly SettingsTab[] = [
 export const DEFAULT_TAB: SettingsTabId = "profile"
 
 /**
+ * The tabs the active account sees.
+ *
+ * Plan is builder-only: it reads plan_id off the *builder* accounts row and
+ * every line of the tier content is builder-side ("5 tester reports a month").
+ * A tester account has no plan, so showing one is the same mistake the account
+ * switch made — Settings assuming it is always the builder looking at it.
+ */
+export function tabsFor(active: "builder" | "tester"): readonly SettingsTab[] {
+  return active === "builder" ? SETTINGS_TABS : SETTINGS_TABS.filter((t) => t.id !== "plan")
+}
+
+/**
  * Resolves `?tab=` to a tab.
  *
  * Anything unrecognised — absent, misspelt, wrong case, an array from a
@@ -30,13 +42,18 @@ export const DEFAULT_TAB: SettingsTabId = "profile"
  * 404 for a query string nobody typed deliberately is a worse answer than the
  * default tab.
  */
-export function tabFromParam(value: string | string[] | undefined): SettingsTabId {
+export function tabFromParam(
+  value: string | string[] | undefined,
+  tabs: readonly SettingsTab[] = SETTINGS_TABS,
+): SettingsTabId {
   const raw = Array.isArray(value) ? value[0] : value
-  return SETTINGS_TABS.some((t) => t.id === raw) ? (raw as SettingsTabId) : DEFAULT_TAB
+  // Resolved against the visible set, so ?tab=plan on a tester account opens
+  // Profile rather than a tab that is not rendered.
+  return tabs.some((t) => t.id === raw) ? (raw as SettingsTabId) : DEFAULT_TAB
 }
 
-export function tabIndex(id: SettingsTabId): number {
-  const at = SETTINGS_TABS.findIndex((t) => t.id === id)
+export function tabIndex(id: SettingsTabId, tabs: readonly SettingsTab[] = SETTINGS_TABS): number {
+  const at = tabs.findIndex((t) => t.id === id)
   return at === -1 ? 0 : at
 }
 
@@ -51,8 +68,9 @@ export function tabIndex(id: SettingsTabId): number {
 export function nextTabIndex(
   current: number,
   key: "ArrowLeft" | "ArrowRight" | "Home" | "End" | string,
+  count: number = SETTINGS_TABS.length,
 ): number {
-  const last = SETTINGS_TABS.length - 1
+  const last = count - 1
   switch (key) {
     case "ArrowLeft":
       return current <= 0 ? last : current - 1
