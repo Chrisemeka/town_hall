@@ -4,8 +4,8 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { accountTypesFor } from "@/lib/auth"
-import { ACCOUNT_COOKIE, homeFor, type AccountType } from "@/lib/access"
+import { accountRowsFor } from "@/lib/auth"
+import { ACCOUNT_COOKIE, landingFor, type AccountType } from "@/lib/access"
 
 const VALID: AccountType[] = ["builder", "tester"]
 
@@ -22,7 +22,8 @@ async function setActive(type: AccountType) {
 
 /**
  * Creates the account record for `type` if this person doesn't hold one yet,
- * makes it active, and drops them into that account's home.
+ * makes it active, and sends them where that account belongs — its home, or
+ * /verify/[role] while the gate is closed, which for a new account it always is.
  *
  * Idempotent — the unique (user_id, type) constraint means picking a type you
  * already hold is just a switch. Uses the service-role client because
@@ -45,8 +46,13 @@ export async function createAccount(type: AccountType) {
     throw new Error("Could not create that account. Please try again.")
   }
 
+  // Read back rather than assumed unverified: picking a type already held and
+  // verified is a switch, and belongs at home.
+  const rows = await accountRowsFor(user.id)
+  const verified = !!rows.find((a) => a.type === type)?.verification_completed_at
+
   await setActive(type)
-  redirect(homeFor(type))
+  redirect(landingFor(type, verified))
 }
 
 /**
@@ -61,9 +67,9 @@ export async function switchAccount(type: AccountType) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/")
 
-  const types = await accountTypesFor(user.id)
-  if (!types.includes(type)) throw new Error("You don't have a " + type + " account.")
+  const row = (await accountRowsFor(user.id)).find((a) => a.type === type)
+  if (!row) throw new Error("You don't have a " + type + " account.")
 
   await setActive(type)
-  redirect(homeFor(type))
+  redirect(landingFor(type, !!row.verification_completed_at))
 }

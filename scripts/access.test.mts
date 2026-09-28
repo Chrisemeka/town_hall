@@ -13,6 +13,7 @@ import {
   isRoleScoped,
   isVerifyPath,
   verifyPathFor,
+  landingFor,
   type AccountType,
 } from "../lib/access.ts"
 import { searchHref, type SearchTarget } from "../lib/searchHref.ts"
@@ -358,3 +359,22 @@ assert.equal(settlesAt("/dashboard", "builder", true, true), "/dashboard")
 assert.equal(settlesAt("/dashboard", "builder", false, true), "/verify/builder")
 
 console.log("email gate + access composition: all assertions passed")
+
+/* ── landingFor: the actions' one-hop destination ────────────────────── */
+
+// createAccount and switchAccount redirect to landingFor() instead of the
+// role's home, so they skip middleware's bounce. That is only safe if it is
+// exactly where the chain would have settled from the role's home anyway.
+for (const account of ["builder", "tester"] as const) {
+  for (const verified of [true, false]) {
+    assert.equal(
+      landingFor(account, verified),
+      settlesAt(homeFor(account), account, verified),
+      `landingFor(${account}, ${verified}) agrees with the gate chain`,
+    )
+  }
+}
+assert.equal(landingFor("tester", false), "/verify/tester")
+assert.equal(landingFor("builder", true), "/dashboard")
+
+console.log("landingFor: all assertions passed")

@@ -220,3 +220,25 @@ export function completionHeadlineFor(role: AccountType): string {
     ? "You're set. Here's how testing works."
     : "You're set. Here's how to get your first report."
 }
+
+/**
+ * What one card on /choose-account shows while a submit may be in flight.
+ *
+ * Any pending submit disables BOTH cards, not just the tapped one. Someone who
+ * taps Builder, sees nothing, then taps Tester would otherwise create both
+ * accounts — createAccount is idempotent per type, so nothing errors and they
+ * silently hold a role they never wanted. That is why this takes the one
+ * pending role for the whole page rather than a per-form status, and why
+ * useFormStatus() is not enough on its own.
+ */
+export function roleCardState(
+  type: AccountType,
+  alreadyHeld: boolean,
+  pendingRole: AccountType | null,
+): { label: string; disabled: boolean; busy: boolean } {
+  const busy = pendingRole === type
+  const label = busy
+    ? alreadyHeld ? "Switching…" : "Creating…"
+    : alreadyHeld ? "Continue" : "Create this account"
+  return { label, disabled: pendingRole !== null, busy }
+}
