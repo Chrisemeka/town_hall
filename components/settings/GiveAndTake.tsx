@@ -39,7 +39,7 @@ export function GiveAndTake({
           count. Adding one is how you earn reports on your own work.
         </p>
         <p className="font-mono text-[13px] text-ink-muted mt-4">
-          The control for that is in Profile, above.
+          The control for that is in the Account tab.
         </p>
       </SettingsSection>
     )

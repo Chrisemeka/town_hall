@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import {
-  SETTINGS_TABS,
   nextTabIndex,
   tabFromParam,
   tabHref,
   tabIndex,
+  type SettingsTab,
   type SettingsTabId,
 } from "@/lib/settingsTabs"
 
@@ -32,16 +32,19 @@ import {
  */
 export function SettingsTabs({
   initialTab,
+  tabs,
   panels,
   dirty,
 }: {
   initialTab: SettingsTabId
-  panels: Record<SettingsTabId, React.ReactNode>
+  /** The tabs this account sees — tabsFor(active). */
+  tabs: readonly SettingsTab[]
+  panels: Partial<Record<SettingsTabId, React.ReactNode>>
   /** Tabs whose content has unsaved changes. */
   dirty?: Partial<Record<SettingsTabId, boolean>>
 }) {
   const params = useSearchParams()
-  const urlTab = tabFromParam(params.get("tab") ?? undefined)
+  const urlTab = tabFromParam(params.get("tab") ?? undefined, tabs)
 
   // The URL is the record; this is what renders, so a click is instant rather
   // than waiting for a server round trip. Derived during render when the URL
@@ -59,7 +62,7 @@ export function SettingsTabs({
   // is required: arrow to a tab, press Tab, and the tab order has to make
   // sense from where you actually are.
   const [focused, setFocused] = useState<number | null>(null)
-  const activeIndex = tabIndex(active)
+  const activeIndex = tabIndex(active, tabs)
   const tabbable = focused ?? activeIndex
 
   const strip = useRef<HTMLDivElement>(null)
@@ -96,7 +99,7 @@ export function SettingsTabs({
 
   function onKeyDown(e: React.KeyboardEvent) {
     const from = tabbable
-    const to = nextTabIndex(from, e.key)
+    const to = nextTabIndex(from, e.key, tabs.length)
     if (to !== from) {
       e.preventDefault()
       setFocused(to)
@@ -105,7 +108,7 @@ export function SettingsTabs({
     }
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
-      activate(SETTINGS_TABS[from].id)
+      activate(tabs[from].id)
     }
   }
 
@@ -126,7 +129,7 @@ export function SettingsTabs({
         // fit 360px, and a ragged two-row grid reads as a mistake.
         className="flex flex-nowrap gap-1 overflow-x-auto border-b border-line [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {SETTINGS_TABS.map((tab, i) => {
+        {tabs.map((tab, i) => {
           const selected = tab.id === active
           const isDirty = !!dirty?.[tab.id]
           return (
@@ -167,7 +170,7 @@ export function SettingsTabs({
         })}
       </div>
 
-      {SETTINGS_TABS.map((tab) => (
+      {tabs.map((tab) => (
         <div
           key={tab.id}
           id={`settings-panel-${tab.id}`}

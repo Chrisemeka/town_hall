@@ -6,6 +6,7 @@ import {
   tabFromParam,
   tabHref,
   tabIndex,
+  tabsFor,
 } from "@/lib/settingsTabs"
 
 describe("tabFromParam", () => {
@@ -87,5 +88,27 @@ describe("the strip can always be rendered", () => {
       expect(tabFromParam(query)).toBe(tab.id)
       expect(tabIndex(tab.id)).toBe(SETTINGS_TABS.indexOf(tab))
     }
+  })
+})
+
+describe("tabsFor", () => {
+  it("shows a builder all four tabs", () => {
+    expect(tabsFor("builder").map((t) => t.id)).toEqual(["profile", "account", "activity", "plan"])
+  })
+
+  it("hides Plan from a tester, which has no plan", () => {
+    expect(tabsFor("tester").map((t) => t.id)).toEqual(["profile", "account", "activity"])
+  })
+
+  it("resolves ?tab=plan to Profile on a tester account", () => {
+    expect(tabFromParam("plan", tabsFor("tester"))).toBe(DEFAULT_TAB)
+    expect(tabFromParam("activity", tabsFor("tester"))).toBe("activity")
+  })
+
+  it("wraps the arrows over the visible tabs only", () => {
+    const n = tabsFor("tester").length
+    expect(nextTabIndex(n - 1, "ArrowRight", n)).toBe(0)
+    expect(nextTabIndex(0, "ArrowLeft", n)).toBe(n - 1)
+    expect(nextTabIndex(0, "End", n)).toBe(n - 1)
   })
 })
