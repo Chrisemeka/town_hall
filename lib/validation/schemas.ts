@@ -1,5 +1,9 @@
 import { z } from "zod"
-import { parsePhoneNumberFromString } from "libphonenumber-js"
+import {
+  getCountryCallingCode,
+  isSupportedCountry,
+  parsePhoneNumberFromString,
+} from "libphonenumber-js"
 // Relative, with the extension: scripts/*.test.mts import this file under plain
 // node, which resolves neither the "@/" alias nor an extensionless specifier.
 import {
@@ -12,6 +16,7 @@ import {
   SKILLS_MIN,
   TEST_CATEGORIES,
   TIMEZONES,
+  countryName,
 } from "../vocabulary.ts"
 // Relative with the extension, like the imports above: scripts/*.test.mts run
 // this file under plain node, which does not resolve the "@/" alias.
@@ -499,16 +504,64 @@ export const countryEnum = z.enum(COUNTRIES, { message: "Select your country." }
  * Parsed rather than regex-matched: E.164 is only half the problem, the other
  * half is whether the national number is actually valid for that country.
  * Normalised to E.164 on the way through so the column holds one format.
+ *
+ * The message is generic on purpose. The example for the *selected* country is
+ * rendered by the form (lib/phoneExample.ts) — the examples dataset is too big
+ * to drag into a module that runs on every submit and under plain node in
+ * scripts/*.test.mts. It used to carry a Nigerian example for every country,
+ * which read as "this form only wants Nigerian numbers".
  */
 export const phoneSchema = z
   .string()
   .trim()
   .min(1, "Phone number is required.")
   .refine((v) => parsePhoneNumberFromString(v)?.isValid() ?? false, {
-    message: "Enter a valid phone number including country code — e.g. +234 801 234 5678.",
+    message: "Enter a valid phone number for the selected country, including its country code.",
   })
   // Unreachable fallback: refine above already proved this parses.
   .transform((v) => parsePhoneNumberFromString(v)?.number ?? v)
+
+/**
+ * Whether a phone number belongs to the selected country.
+ *
+ * Compares CALLING CODES, not the parsed country. +1 covers the US, Canada and
+ * most of the Caribbean, +7 Russia and Kazakhstan, and for a shared range the
+ * parser names one specific country — getPossibleCountries() on +1 415 answers
+ * only ["US"], so a Canadian user with a 415 number would be refused. The check
+ * exists to catch "Botswana selected, Nigerian number", not to police area
+ * codes.
+ *
+ * True when either side cannot be judged — an unparseable number or a country
+ * with no metadata (BV, HM, AQ are selectable). Other rules own those errors;
+ * reporting a mismatch on top of them would name the wrong problem.
+ */
+export function phoneMatchesCountry(phone: string, country: string): boolean {
+  const parsed = parsePhoneNumberFromString(phone)
+  if (!parsed || !isSupportedCountry(country)) return true
+  return parsed.countryCallingCode === getCountryCallingCode(country)
+}
+
+/**
+ * Adds the phone-vs-country check to an object schema that carries both.
+ *
+ * A wrapper rather than a refine on the field bag: the check needs two fields,
+ * and Zod 4 THROWS on .partial() of a refined object — so the base objects stay
+ * unrefined and this goes on last, including after .partial() for the step
+ * save. Skips when either field is absent, which is what a partial payload is.
+ *
+ * The issue lands on `phone`, the key useFocusFirstError and FieldError resolve.
+ */
+export function withPhoneCountry<T extends z.ZodType<{ country?: string; phone?: string }>>(schema: T) {
+  return schema.superRefine((v, ctx) => {
+    if (!v.country || !v.phone) return
+    if (phoneMatchesCountry(v.phone, v.country)) return
+    ctx.addIssue({
+      code: "custom",
+      path: ["phone"],
+      message: `That isn't a ${countryName(v.country)} number. Check the country code, or change the country above.`,
+    })
+  })
+}
 
 export const timezoneEnum = z.enum(TIMEZONES, { message: "Select your timezone." })
 
@@ -569,7 +622,8 @@ const skillsField = {
  * these, so an error lands on the field that caused it rather than on a later
  * step the user hasn't reached yet. */
 
-export const testerStep1Schema = z.object({ ...identityFields, ...timezoneField })
+const step1Base = z.object({ ...identityFields, ...timezoneField })
+export const testerStep1Schema = withPhoneCountry(step1Base)
 /**
  * Structurally identical to tester step 1 — both roles now answer the same
  * identity questions, timezone included.
@@ -586,11 +640,12 @@ export const testerStep2Schema = z.object(skillsField)
 /* Full role schemas — what `completeVerification` re-checks before it opens the
  * gate, because the partial saves that got us here each only saw one step. */
 
-export const testerVerificationSchema = z.object({
+const testerVerificationBase = z.object({
   ...identityFields,
   ...timezoneField,
   ...skillsField,
 })
+export const testerVerificationSchema = withPhoneCountry(testerVerificationBase)
 /** A builder's full requirement is its only step. Named for symmetry at the call site. */
 export const builderVerificationSchema = builderStep1Schema
 
@@ -613,7 +668,8 @@ export function verificationSchemaFor(role: AccountType) {
  * belongs — the step number a client claims to be on is not evidence.
  */
 export function verificationStepSchemaFor(role: AccountType) {
-  return verificationSchemaFor(role).partial()
+  // .partial() on the unrefined base, then the refine — the other order throws.
+  return withPhoneCountry((role === "tester" ? testerVerificationBase : step1Base).partial())
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -639,7 +695,7 @@ export const BIO_MAX = 500
  * allowed in them. A phone number the gate accepted cannot be one the editor
  * rejects.
  */
-export const updateProfileSchema = z.object({
+export const updateProfileSchema = withPhoneCountry(z.object({
   full_name: fullNameSchema.optional(),
   country: countryEnum.optional(),
   phone: phoneSchema.optional(),
@@ -654,7 +710,7 @@ export const updateProfileSchema = z.object({
     .nullable()
     .optional(),
   skills: skillsArraySchema.optional(),
-})
+}))
 
 export type UpdateProfileInput = z.input<typeof updateProfileSchema>
 /** The parsed shape — what actually reaches the column list. */

@@ -17,6 +17,7 @@ import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
 import { formatPhoneAsYouType, isAllowedPhoneKey, phoneForCountryChange } from "@/lib/phone"
+import { phoneErrorFor, phoneExampleFor, phoneHintFor } from "@/lib/phoneExample"
 import { COUNTRIES, TIMEZONES, countryName } from "@/lib/vocabulary"
 import {
   FULL_NAME_MAX,
@@ -334,15 +335,17 @@ function IdentityStep({ values, errors, set }: StepProps) {
       <Field
         label="Phone"
         htmlFor="phone"
-        error={errors.phone}
-        helper="We've filled in your country code."
+        error={phoneErrorFor(errors.phone, values.country)}
+        // Follows the dropdown, so the format is shown before a mistake rather
+        // than explained after one.
+        helper={phoneHintFor(values.country)}
       >
         <input
           id="phone"
           type="tel"
           inputMode="tel"
           value={values.phone}
-          placeholder="+234 801 234 5678"
+          placeholder={phoneExampleFor(values.country) ?? "+"}
           onKeyDown={(e) => {
             if (!isAllowedPhoneKey(e)) e.preventDefault()
           }}
