@@ -145,6 +145,21 @@ The second exists so that if someone edits the middleware matcher, protection do
 
 **The `th_account` cookie is not authority.** It records which role the user is currently acting as. It is unsigned. Always intersect it with the user's real `accounts` rows (see `lib/auth.ts`, mirrored in `middleware.ts`) before trusting it. A forged cookie must resolve to a real account the user holds, or to `null`.
 
+**Settings components take the active account type, and it is required.**
+`/settings` is reachable from both dashboards, so anything on it that says
+"the other account" or shows role-specific content has to be told which side is
+looking. Pass `active` from `getActiveAccount()` — already intersected with
+the real `accounts` rows — never the raw cookie. The account switch took only
+`hasTesterAccount`, assumed the builder, and told testers "Switch to tester
+account" for six weeks. `accountSwitchCopy()` in `lib/accountSwitch.ts` holds
+both directions of the copy; `tabsFor()` in `lib/settingsTabs.ts` hides Plan
+from a tester, whose account has no plan.
+
+**Code that sends someone to a role goes to `landingFor()`**, in
+`lib/access.ts`: home when verified, `/verify/[role]` when not. Redirecting to
+`homeFor()` for an unverified account costs a middleware bounce — on a phone,
+long enough to read as a hung page.
+
 **Two gates with similar names. They are not the same gate.**
 
 | Path | Asks | Answers from |
@@ -291,6 +306,15 @@ a schema key `full_name` is invisible to both — that mismatch existed in
 `SettingsForm` and is why the rule is written down. Where a field has no single
 control (a button group, an array-level error), give the group's first button or
 the section that `name`/`id` so there is still something to move to.
+
+**A phone number must belong to the selected country**, checked by
+`withPhoneCountry()` in `lib/validation/schemas.ts` by **calling code**, never
+by the parsed country: +1 and +7 are shared, and the parser names one country
+for a shared range, so equality refuses a Canadian with a 415 number. Two
+traps: Zod 4 **throws** on `.partial()` of a refined object, so the base
+objects stay unrefined and the wrapper goes on after `.partial()`; and the
+country's example number lives in `lib/phoneExample.ts`, imported only by the
+client forms — the examples dataset does not belong in the schema module.
 
 **Never disable a submit button to express "not finished yet."** A disabled control
 cannot say what is missing, and the message written for it becomes unreachable —

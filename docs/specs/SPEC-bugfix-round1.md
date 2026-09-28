@@ -1,6 +1,6 @@
 # SPEC: Bug Fix Round 1
 
-**Status:** Awaiting approval
+**Status:** Built
 **Branch:** `fix/account-switch-choose-account-phone`
 **Base:** `main`
 **Migration:** none
@@ -128,8 +128,9 @@ held). **Both** buttons get `disabled`, with `aria-busy` on the tapped one.
   component never chooses between create and switch. `ROLES` content moves with
   the cards. The icons are components and can't cross the server/client
   boundary, so `ROLES` moves into the client file.
-- If the action throws, `pendingRole` resets to `null`. A failed create doesn't
-  leave both cards locked.
+- No reset on failure, as built. A throwing action lands on the error
+  boundary, which replaces the subtree, and a success redirects away, so the
+  locked state never outlives the submit.
 
 The label logic goes in a pure `roleCardState(type, alreadyHeld, pendingRole)`
 that returns `{ label, disabled, busy }`. That is what gets tested.
@@ -183,9 +184,12 @@ the destination paints right away.
 
 ### 3.1 — The country-specific hint
 
-A pure `phoneHintFor(country)` in `lib/phoneExample.ts` returns
-`"e.g. +267 71 123 456"` from `getExampleNumber(country, examples)`, or `null`
-when `isSupportedCountry` is false or no example exists. The null case covers
+`phoneExampleFor(country)` in `lib/phoneExample.ts` returns
+`"+267 71 123 456"` from `getExampleNumber(country, examples)`, or `null`
+when `isSupportedCountry` is false or no example exists. `phoneHintFor()`
+builds the helper text from it. `phoneErrorFor()` appends the example to the
+phone error, because `Field` shows an error *instead of* its helper, and
+without this the example would vanish at exactly the moment it's needed. The null case covers
 BV, HM and AQ, the same guard as `dialCodeFor`.
 
 - It gets its own module, not `lib/phone.ts` and not the schema. The examples
