@@ -11,19 +11,22 @@ import {
   P,
   PageHeader,
 } from "@/components/public/prose"
+import { PLANS, SIGNUP_GRANT } from "@/lib/plans"
 
 export const metadata: Metadata = {
   title: "Pricing — Twnhall",
   description:
-    "Community is free: five tester reports a month, and more when you test for others. Pro is $19/month for twenty.",
+    "Community is free: three tester reports to start, and one more for every report you write. Pro is $19/month for ten a month.",
 }
 
 /*
- * Content is from docs/Twnhall_Monetisation_Plan_v4.docx §2, §3 and §5.
+ * Content is from docs/Twnhall_Monetisation_Plan_v4.docx §2 and §5, with the
+ * tiers from docs/Twnhall_Cohort_Compensation_Model.md §7 and §8. The tier
+ * numbers are read from lib/plans.ts, the same source /settings renders.
  *
- * NOTHING ON THIS PAGE IS ENFORCED IN CODE YET. There is no report counter, no
- * per-mission tester ceiling and no active-mission limit — tier enforcement is
- * item 3 in the plan's build order and is not built. That is deliberate (it is
+ * NOTHING ON THIS PAGE IS ENFORCED IN CODE YET — until `feat/report-allowance`
+ * lands. There is no report counter, no per-mission tester ceiling and no
+ * active-mission limit. That is deliberate (it is
  * the plan's Phase 2: ration honestly, no payment, the upgrade button opens a
  * conversation) and it binds this page in three ways:
  *
@@ -55,14 +58,16 @@ const TERMS = [
   },
 ]
 
-/** The comparison. Row order is the plan's. A dash renders as "—" with the row
- *  header carrying the meaning, so no cell states anything by colour alone. */
+const { community: COMMUNITY, pro: PRO } = PLANS
+
+/** The comparison. Row order is the plan's. The numeric rows come from
+ *  lib/plans.ts; the rest is copy. */
 const ROWS: { label: string; community: string; pro: string; emphasis?: boolean }[] = [
   { label: "Projects", community: "Unlimited", pro: "Unlimited" },
   {
-    label: "Tester reports per month",
-    community: "5",
-    pro: "20",
+    label: "Tester reports",
+    community: `${SIGNUP_GRANT} to start`,
+    pro: `${PRO.monthlyReports} a month`,
     emphasis: true,
   },
   {
@@ -70,12 +75,18 @@ const ROWS: { label: string; community: string; pro: string; emphasis?: boolean 
     community: "+1 per report you complete",
     pro: "Same",
   },
-  { label: "Testers per mission", community: "Up to 5", pro: "Up to 8" },
-  { label: "Active missions at once", community: "2", pro: "5" },
+  {
+    label: "Testers per mission",
+    community: `Up to ${COMMUNITY.testersPerMission}`,
+    pro: `Up to ${PRO.testersPerMission}`,
+  },
+  {
+    label: "Active missions at once",
+    community: String(COMMUNITY.activeMissions),
+    pro: String(PRO.activeMissions),
+  },
   { label: "AI insights", community: "3 / month", pro: "Unlimited" },
   { label: "CSV export", community: "Included", pro: "Included" },
-  { label: "Shareable report", community: "—", pro: "Included" },
-  { label: "Priority in the tester queue", community: "—", pro: "Included" },
 ]
 
 export default function PricingPage() {
@@ -127,8 +138,8 @@ export default function PricingPage() {
               Free
             </p>
             <p className="font-sans text-[14px] leading-6 text-ink">
-              Five tester reports a month, and one more for every report you
-              write as a tester.
+              Three tester reports to get you started, then one more for every
+              report you write as a tester.
             </p>
             <form action={signInWithGoogle} className="mt-2">
               <button type="submit" className={BTN_SECONDARY}>
@@ -154,8 +165,7 @@ export default function PricingPage() {
               </span>
             </p>
             <p className="font-sans text-[14px] leading-6 text-ink">
-              Twenty tester reports a month, eight testers on a mission, and
-              your missions surface first in the tester queue.
+              Ten tester reports a month — two full rounds of five testers.
             </p>
             <Link href="/contact" className={`${BTN_PRIMARY} mt-2`}>
               Hitting your limit? Get in touch
