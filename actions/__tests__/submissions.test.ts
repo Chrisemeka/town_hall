@@ -65,7 +65,9 @@ function formData(over: { entries?: unknown; comment?: string; files?: File[] } 
 }
 
 /** Records the rpc call; `rpcError` makes the write fail. */
-function mocks(opts: { ownerId?: string; steps?: unknown; rpcError?: { message: string } } = {}) {
+function mocks(
+  opts: { ownerId?: string; steps?: unknown; category?: string | null; rpcError?: { message: string } } = {},
+) {
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = []
 
   vi.mocked(createClient).mockResolvedValue({
@@ -78,6 +80,7 @@ function mocks(opts: { ownerId?: string; steps?: unknown; rpcError?: { message: 
               data: {
                 project_id: "p",
                 test_steps: opts.steps ?? MISSION_STEPS,
+                category: opts.category === undefined ? "process_flow" : opts.category,
                 projects: { owner_id: opts.ownerId ?? OWNER_ID },
               },
             }),
@@ -275,5 +278,52 @@ describe("submitTestResult", () => {
     const result = await submitTestResult(formData())
 
     expect(result.success).toBe(false)
+  })
+})
+
+describe("submitTestResult by mission category", () => {
+  const bare = [entry(STEP_A, { actual_result: "" }), entry(STEP_B, { actual_result: "" })]
+
+  it("rejects a ui_design pass with no description, before writing anything", async () => {
+    const rpc = mocks({ category: "ui_design" })
+    const result = await submitTestResult(formData({ entries: bare }))
+    expect(result.success).toBe(false)
+    expect(!result.success && result.error).toMatch(/^Step 1: Describe what you saw/)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("accepts a described ui_design log", async () => {
+    const rpc = mocks({ category: "ui_design" })
+    const described = { actual_result: "The purpose was clear within a few seconds" }
+    const result = await submitTestResult(
+      formData({ entries: [entry(STEP_A, described), entry(STEP_B, described)] }),
+    )
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  for (const category of ["process_flow", "component", null, "retired_category"]) {
+    it(`still accepts a bare pass on a ${String(category)} mission`, async () => {
+      const rpc = mocks({ category })
+      const result = await submitTestResult(formData({ entries: bare }))
+      expect(result.success).toBe(true)
+      expect(rpc).toHaveLength(1)
+    })
+  }
+
+  it("calls submit_audit_log with the same argument shape and stored statuses for ui_design", async () => {
+    const described = { actual_result: "The purpose was clear within a few seconds" }
+    const entries = [entry(STEP_A, described), entry(STEP_B, { ...described, status: "blocked", issue_summary: "Hero image never loaded", steps_to_reproduce: "1. Open the page on 3G" })]
+
+    const designRpc = mocks({ category: "ui_design" })
+    await submitTestResult(formData({ entries }))
+    const flowRpc = mocks({ category: "process_flow" })
+    await submitTestResult(formData({ entries }))
+
+    expect(designRpc[0].name).toBe("submit_audit_log")
+    expect(Object.keys(designRpc[0].args).sort()).toEqual(Object.keys(flowRpc[0].args).sort())
+    expect(designRpc[0].args.p_entries).toEqual(flowRpc[0].args.p_entries)
+    const statuses = (designRpc[0].args.p_entries as { status: string }[]).map((e) => e.status)
+    expect(statuses).toEqual(["pass", "blocked"])
   })
 })

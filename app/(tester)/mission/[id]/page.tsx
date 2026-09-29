@@ -147,6 +147,7 @@ export default async function MissionDetailPage({
             missionId={mission.id}
             appUrl={project?.app_url ?? null}
             steps={steps}
+            category={mission.category}
           />
         </div>
       )}

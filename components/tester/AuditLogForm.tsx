@@ -34,9 +34,12 @@ export default function AuditLogForm({
   missionId,
   appUrl,
   steps,
+  category,
 }: {
   missionId: string
   appUrl: string | null
+  /** The mission's test category; decides what each step owes. Null on older missions. */
+  category: string | null
   /** Empty for every mission written before test cases existed — see hasSteps. */
   steps: TestStep[]
 }) {
@@ -144,7 +147,7 @@ export default function AuditLogForm({
     // missing — which was the state this form was in, with three error messages
     // behind a control that never fired them.
     if (hasSteps) {
-      const missing = firstIncompleteEntry(entries)
+      const missing = firstIncompleteEntry(entries, category)
       if (missing) {
         setErrorIndex(missing.index)
         // Named, not "answer every step". On a ten-step log that sentence is
@@ -226,7 +229,7 @@ export default function AuditLogForm({
   // hint under the button, so an incomplete form says what it is waiting for
   // instead of presenting a control that silently refuses.
   const isReady =
-    shots.length > 0 && (hasSteps ? draftIsComplete(entries) : feedback.trim().length > 0)
+    shots.length > 0 && (hasSteps ? draftIsComplete(entries, category) : feedback.trim().length > 0)
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const zoneBorder = fileErrors.length
@@ -313,6 +316,7 @@ export default function AuditLogForm({
             <div className="mb-8">
               <AuditLogSteps
                 entries={entries}
+                category={category}
                 onChange={setEntries}
                 errorIndex={errorIndex}
               />
@@ -489,7 +493,7 @@ export default function AuditLogForm({
           </button>
           {!isReady && (
             <p id="submit-hint" className="font-mono text-[12px] text-ink-muted">
-              {hasSteps && !draftIsComplete(entries)
+              {hasSteps && !draftIsComplete(entries, category)
                 ? "Answer every step and attach a screenshot to submit."
                 : "Attach at least one screenshot to submit."}
             </p>
