@@ -267,6 +267,190 @@ The table in the brief is the fixture:
 
 ---
 
+## §4 — Settings still leaks builder-only sections to testers
+
+**Status:** Built on `fix/settings-roles-design-statuses`. §1–§3 were already
+merged in #23 and weren't reopened.
+
+This is §1's bug in two more places. `tabsFor()` filtered the tab strip, but
+two sections inside the tabs never learned which account was looking. Each one
+now takes `active` and decides for itself.
+
+### 4.1 — Export: hidden on a tester account
+
+`AccountPanel` renders `ExportPanel` and its divider only when `active ===
+"builder"`. The section is hidden rather than given an empty state, because an
+empty state is for something that will fill in and this never will: the
+export is feedback received on your own missions, and a tester has none.
+
+The section is not gated on `hasFeedback`. A builder with no feedback yet
+still gets the section and its "Nothing to export yet" state.
+
+**Deferred:** a tester exporting *their own report history* is a plausible
+future feature, and a different one. It needs different data, a different
+query and different copy. It isn't in this PR.
+
+### 4.2 — Activity: kept, and re-pointed for testers
+
+Removing Activity for testers would be the wrong call. For a tester, reports
+written and average rating are their whole track record, and this is the
+closest thing they have to the reputation panel that `846414a` deleted.
+
+- **Builder:** unchanged. Five metrics, the existing empty state, and the
+  "no tester account" prompt.
+- **Tester:** a section titled "Your testing" with three metrics: reports
+  written, approved (of N), and average rating. `received` and `ratio` are
+  dropped rather than shown as 0 and "—", since for a pure tester they read as
+  failure rather than "not applicable".
+- **Tester empty state:** keyed on `given === 0`, because what came back on
+  their own projects isn't part of a tester's record.
+- **Rating:** still "—" until something is rated, never 0.0.
+- **Copy:** nothing about pay, earnings or ranking. Cohort payment happens
+  outside the product.
+
+### 4.3 — Tests
+
+`components/settings/__tests__/roleSections.test.ts` renders the real
+components with `renderToStaticMarkup`, so no DOM is needed:
+
+- A tester sees no export section.
+- A builder with zero feedback sees the section and its empty state.
+- A tester's Activity has no received count or ratio. A builder's is unchanged.
+- An unrated tester sees "—", never "0.0".
+- A tester's Activity says nothing about pay or earnings.
+- `tabsFor` still hides Plan from a tester.
+
+---
+
+## §5 — Pass / Fail / Blocked does not fit UI Design Testing
+
+### 5.1 — The actual bug
+
+A `ui_design` step is an elicitation prompt ("describe your first
+impression"). The description *is* the deliverable. As built, a tester could
+mark such a step Pass and write nothing, and the builder got a green tick
+carrying no information. Relabelling the buttons alone wouldn't have touched
+that.
+
+### 5.2 — Part 1: `actual_result` is required on every `ui_design` step
+
+`auditLogSchemaFor(category)` in `lib/validation/schemas.ts`:
+
+- **`ui_design`:** it returns the log schema with one more refine. Every
+  entry, **pass included**, owes an `actual_result` of at least
+  `DESCRIPTION_MIN = 20` characters. Twenty characters is about one short
+  clause ("The headline is clear but tiny"), which is the least a builder can
+  act on. "ok", "fine" and "looks good" all fail it.
+- **Everything else:** `process_flow`, `component`, and a null or unknown
+  category (older rows exist) all get `auditLogSchema` unchanged.
+  **`actual_result` stays optional on a pass for all of them.**
+- **No migration:** the column is already `NOT NULL default ''`, so this is a
+  Zod change only.
+- **Where it runs:** in `submitTestResult`, after the mission row is read
+  (`category` was added to its select). The payload doesn't carry the category
+  and shouldn't be trusted to. The check runs before the screenshot upload, so
+  a refused log costs no storage.
+- **What it passes on:** `entries` goes to `submit_audit_log` unchanged. The
+  new check only judges them, so the RPC's argument shape is identical for
+  every category.
+- **The form mirrors it:** `firstIncompleteEntry(entries, category)` and
+  `draftIsComplete(entries, category)`. The ENT-08 drift guard now crosses 5
+  categories × 4 statuses × 4³ text values.
+
+**This inverts a documented decision.** `20260907_01` made `actual_result`
+optional on a pass because a functional pass is already stated by
+`step_expected`, and asking again filled the column with "as expected". That
+reasoning holds for functional steps and only for them. On a design step,
+`actual_result` isn't a restatement: it's the answer the action asked for.
+
+### 5.3 — Part 2: the status judges the expectation
+
+On a `ui_design` step:
+
+- The card asks **"What you saw"** first, directly under the builder's step,
+  with a required helper line.
+- The status question below it reads **"Did the builder's expectation
+  hold?"** in place of "How did it go?".
+- `actual_result` isn't asked a second time in the fail/blocked block.
+
+The status is a filter: five testers × three steps is fifteen written entries,
+and the builder needs to know which to read first. The prose is the feedback.
+
+### 5.4 — Part 3: relabel, display only
+
+`entryStatusCopy(status, category)` and `statusQuestionFor(category)` in
+`lib/vocabulary.ts` sit alongside the existing label maps. I used the wording
+from the brief unchanged:
+
+| Stored | Label | Hint |
+|---|---|---|
+| `pass` | Clear | It landed the way the builder described. |
+| `fail` | Unclear | You saw it, and it didn't land that way. |
+| `blocked` | Couldn't tell | You couldn't judge this — it didn't load, or wasn't there. |
+
+`ENTRY_STATUSES` is unchanged. There's no fourth status, no rating column and
+no migration.
+
+### 5.5 — Where the labels follow
+
+- **Tester's submission form:** yes.
+- **A tester reading their own filed report:** no such surface exists today.
+  Testers can't open a submitted report, so there's nothing to relabel.
+- **Builder's review screen, pass-rate summary and CSV:** they keep Pass /
+  Fail / Blocked. The rule is that the tester is shown the category's wording
+  while answering, and every surface that reads or compares reports uses the
+  stored vocabulary.
+  - `/dashboard/feedback` interleaves missions of every category, and
+    `PassRate` counts across them. Two vocabularies on one screen would make a
+    builder translate "Clear" into "Pass" to compare.
+  - The CSV already carries a Category column, so nothing is lost there.
+  - The builder now also sees the tester's description on every design step,
+    and that's where the meaning is.
+- **Database, AI prompt, aggregates:** unchanged. `renderEntries` still emits
+  `PASS` / `FAIL` / `BLOCKED`.
+
+### 5.6 — Deferred: a rating scale
+
+Graded design feedback (1–5 per step) is a real option and deliberately not
+built. It needs a column, a migration, and changes to the review UI, the CSV
+and the AI prompt. Required prose plus a three-way filter tests whether the
+problem was the *shape* of the answer or the *missing description*. If
+builders still can't act on design reports once every step carries a written
+answer, the scale becomes a decision informed by real reports.
+
+### 5.7 — Tests
+
+- `auditEntry.test.ts` (ENT-12, ENT-13, ENT-08):
+  - A `ui_design` pass with an empty or two-character description is rejected
+    on `[0, "actual_result"]`.
+  - `process_flow`, `component`, null and unknown categories still accept a
+    bare pass.
+  - The form and the server agree across every combination.
+- `submissions.test.ts`:
+  - A bare `ui_design` pass is refused before any write.
+  - A described one is accepted.
+  - Every other category, including null, accepts a bare pass.
+  - `submit_audit_log` gets the same argument shape and the stored statuses.
+- `designStatuses.test.ts`:
+  - The labels and question for `ui_design` and for every other category.
+  - `ANALYSIS_PROMPT` still says `PASS` / `FAIL`.
+- `components/tester/__tests__/designSteps.test.ts`: the rendered card shows
+  the design labels, the expectation question and "What you saw" above the
+  status on `ui_design`, and the originals everywhere else.
+
+### 5.8 — Not changed, noted
+
+- **A pre-existing mismatch on functional categories:** the form requires
+  `ENTRY_TEXT_MIN` (4) characters on fail/blocked fields, while the schema
+  requires 1. The drift guard doesn't catch it because it never tests 1–3
+  characters. It's harmless in the safe direction (the form is stricter), and
+  I've left it as it was.
+- **Design steps still ask for "Steps to reproduce"** on Unclear and Couldn't
+  tell, because `auditEntrySchema` requires it for every non-pass. The
+  placeholder is still the functional one.
+
+---
+
 ## Constraints
 
 Semantic tokens only, in both themes. Control names match schema keys, and the
@@ -280,7 +464,10 @@ are already `grid-cols-1` below `sm`, and the hint is one line that wraps.
   Also: phone and country are checked together, by calling code, and
   `.partial()` can't follow a refinement.
 - **`TownHall_Checklist (1).xlsx`:** QA rows for the tester-side switch label,
-  the choose-account pending state, and the phone/country mismatch.
+  the choose-account pending state, and the phone/country mismatch. Later
+  also for the tester-side Settings sections and the UI Design status labels.
+- **`CLAUDE.md` (§5):** the audit-log rule now names the `ui_design`
+  exception, and the data-model note on `actual_result` says the same.
 
 ## Commits
 
@@ -288,3 +475,9 @@ are already `grid-cols-1` below `sm`, and the hint is one line that wraps.
 2. `fix(choose-account): lock both cards on submit, land on the real route`
 3. `fix(phone): show the selected country's example, check number vs country`
 4. `docs: record active-role input and phone/country rule`
+
+Second round, on `fix/settings-roles-design-statuses` (§1–§3 already merged in #23):
+
+5. `fix(settings): hide export and re-point activity on a tester account`
+6. `fix(missions): require a description on ui_design steps, relabel them`
+7. `docs: record the ui_design rule and the round-1 additions`
