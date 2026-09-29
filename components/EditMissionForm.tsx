@@ -28,6 +28,7 @@ export default function EditMissionForm({
   initialSteps,
   initialTemplateId = null,
   isActive,
+  allowance,
 }: {
   missionId: string
   projectId: string
@@ -40,6 +41,8 @@ export default function EditMissionForm({
   initialSteps: TestStep[]
   initialTemplateId?: string | null
   isActive: boolean
+  /** What publishing will spend. Drafts only — re-saving a live mission spends nothing. */
+  allowance?: React.ReactNode
 }) {
   const [state, formAction] = useActionState(updateMission, null)
   const [title, setTitle] = useState(initialTitle)
@@ -179,6 +182,7 @@ export default function EditMissionForm({
             Publishing puts this mission — and your project — on the Explore feed where testers
             pick it up. Drafts stay private, and a project with no published mission stays hidden.
           </p>
+          {!isActive && allowance}
         </div>
       </form>
     </div>

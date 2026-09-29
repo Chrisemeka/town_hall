@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import AddMissionForm from "@/components/AddMissionForm";
+import { AllowanceNotice } from "@/components/missions/AllowanceNotice";
+import { reportBalance } from "@/lib/allowanceDb";
 
 export const metadata = { title: "New Mission — Twnhall" };
 
@@ -54,7 +56,11 @@ export default async function NewMissionPage({
         <span className="text-ink">New Mission</span>
       </div>
 
-      <AddMissionForm projectId={projectId} projectName={project.name} />
+      <AddMissionForm
+        projectId={projectId}
+        projectName={project.name}
+        allowance={<AllowanceNotice view={await reportBalance(userId)} />}
+      />
 
     </div>
   );

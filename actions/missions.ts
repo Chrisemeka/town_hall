@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
+import { closeMission, publishMission } from "@/lib/allowanceDb"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
@@ -61,31 +62,43 @@ export async function createMission(
 
   const { projectId, template_id, title, task_description, intent, category, device_target, test_steps } =
     parsed.data
-  const is_active = intent === "publish"
 
   // Service role bypasses RLS, so ownership is checked here rather than by the
   // database. See requireProjectOwner() for why the move was made.
   await requireProjectOwner(projectId, user.id)
 
-  const { error } = await createAdminClient()
+  // Always inserted as a draft. Publishing is a separate step because it spends
+  // the allowance: if the builder has nothing to spend, the draft still exists
+  // and a resubmit of the form cannot create a duplicate.
+  const { data: created, error } = await createAdminClient()
     .from("missions")
     .insert({
       project_id: projectId,
       title,
       task_description,
-      is_active,
+      is_active: false,
       category,
       device_target,
       test_steps,
       template_id,
     })
-    .select()
+    .select("id")
     .single()
 
   if (error) return { error: error.message }
 
   revalidatePath(`/dashboard/${projectId}`)
-  redirect(`/dashboard/${projectId}`)
+  if (intent !== "publish") redirect(`/dashboard/${projectId}`)
+
+  // Anything short of a full publish lands on the mission page, which says why
+  // — capped, empty or at the active-mission limit — from the mission's own state.
+  const outcome = await publishMission(created.id, user.id)
+  revalidatePath("/explore")
+  redirect(
+    outcome.status === "published" && outcome.slots === outcome.requested
+      ? `/dashboard/${projectId}`
+      : `/dashboard/${projectId}/mission/${created.id}`,
+  )
 }
 
 export async function updateMission(
@@ -119,18 +132,17 @@ export async function updateMission(
 
   const { missionId, projectId, title, task_description, intent, category, device_target, test_steps } =
     parsed.data
-  const is_active = intent === "publish"
 
   await requireProjectOwner(projectId, user.id)
 
-  // Explicit column list, and template_id is not in it: provenance is set once
-  // at creation and an edit must not rewrite where a mission came from.
+  // Explicit column list, and neither template_id nor is_active is in it:
+  // provenance is set once at creation, and going live spends the allowance,
+  // so it goes through publishMission below rather than a column write.
   const { error } = await createAdminClient()
     .from("missions")
     .update({
       title,
       task_description,
-      is_active,
       category,
       device_target,
       test_steps,
@@ -142,8 +154,14 @@ export async function updateMission(
 
   if (error) return { error: error.message }
 
+  // Publishing a draft reserves; re-saving a live mission does not — the
+  // edit form only offers "publish" on a live one, and publish_mission answers
+  // "already" rather than reserving twice.
+  if (intent === "publish") await publishMission(missionId, user.id)
+
   revalidatePath(`/dashboard/${projectId}`)
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
+  revalidatePath("/explore")
   redirect(`/dashboard/${projectId}/mission/${missionId}`)
 }
 
@@ -179,13 +197,11 @@ export async function toggleMissionStatus(missionId: string, projectId: string, 
   await requireAccount("builder")
   await requireProjectOwner(projectId, user.id)
 
-  const { error } = await createAdminClient()
-    .from("missions")
-    .update({ is_active: newStatus })
-    .eq("id", missionId)
-    .eq("project_id", projectId)
-
-  if (error) throw new Error(error.message)
+  // Reopening is a fresh reservation; closing returns what was not used. The
+  // mission page reads the outcome back from the mission's own state, so there
+  // is nothing to return here.
+  if (newStatus) await publishMission(missionId, user.id)
+  else await closeMission(missionId, user.id)
 
   revalidatePath(`/dashboard/${projectId}`)
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)

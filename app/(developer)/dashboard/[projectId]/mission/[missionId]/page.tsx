@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/Badge";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import DeleteMissionButton from "@/components/DeleteMissionButton";
 import MissionResultRow from "@/components/MissionResultRow";
+import { AllowanceNotice, CappedNotice } from "@/components/missions/AllowanceNotice";
+import { reportBalance } from "@/lib/allowanceDb";
 
 export default async function DeveloperMissionDetailPage({
   params,
@@ -74,6 +76,9 @@ export default async function DeveloperMissionDetailPage({
 
   const project = one((mission as MissionWithProject).projects);
   const isActive = mission.is_active !== false;
+  // Drafts say what publishing would spend, which is also why a refused
+  // publish left this a draft. Live missions need only the cap, from the row.
+  const allowance = await reportBalance(userId);
 
   return (
     <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
@@ -170,6 +175,16 @@ export default async function DeveloperMissionDetailPage({
         <div className="max-w-3xl">
           <TestCaseView steps={mission.test_steps} />
         </div>
+
+        {isActive ? (
+          mission.testers_needed != null && (
+            <CappedNotice testers={mission.testers_needed} max={allowance.testersPerMission} />
+          )
+        ) : (
+          <div className="mt-6 max-w-3xl">
+            <AllowanceNotice view={allowance} />
+          </div>
+        )}
       </div>
 
       {/* Results */}
