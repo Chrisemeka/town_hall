@@ -67,7 +67,7 @@ missions ───────────┘  └── test_result_entries   o
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
-| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''`**), `expected_result` (**no longer collected, defaults `''`**) |
+| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**) |
 
 **`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
 `20260907_01` the column is optional with a `''` default and the form calls it "Notes for Testers"
@@ -84,6 +84,19 @@ the builder's `step_expected`, already snapshotted on the row. A **fail** and a 
 and collecting nothing for it meant the one status meaning "something stopped me" reached the
 builder with nothing actionable. If you change either definition, change both —
 `lib/validation/__tests__/auditEntry.test.ts` crosses every combination and will tell you.
+
+**`ui_design` inverts the pass rule, and only `ui_design` does.** Its steps are
+elicitation prompts ("describe your first impression"), so the description is
+the deliverable: `auditLogSchemaFor(category)` requires `actual_result` of at
+least `DESCRIPTION_MIN` characters on **every** entry, pass included, and
+`firstIncompleteEntry(entries, category)` mirrors it. `process_flow`,
+`component` and null or unknown categories keep `20260907_01`'s optional
+`actual_result` on a pass. Do not generalise either way. The category comes
+from the mission row inside `submitTestResult`, never from the payload. The
+tester sees Clear / Unclear / Couldn't tell (`entryStatusCopy()` in
+`lib/vocabulary.ts`), but that is display only: the database, the AI prompt,
+the CSV, `PassRate` and the builder's review keep `pass`/`fail`/`blocked`.
+Anything that reads or compares reports uses the stored vocabulary.
 
 **`test_result_entries.expected_result` is history, not a field.** `20260908_01` took it off the
 form: it was prefilled from the builder's own `step_expected` and ten of the first eleven testers
@@ -153,7 +166,10 @@ the real `accounts` rows — never the raw cookie. The account switch took only
 `hasTesterAccount`, assumed the builder, and told testers "Switch to tester
 account" for six weeks. `accountSwitchCopy()` in `lib/accountSwitch.ts` holds
 both directions of the copy; `tabsFor()` in `lib/settingsTabs.ts` hides Plan
-from a tester, whose account has no plan.
+from a tester, whose account has no plan. The same applies inside the tabs:
+the feedback export renders for a builder only, and `GiveAndTake` shows a
+tester their record (written, approved, rating) without the builder-side
+received count and ratio.
 
 **Code that sends someone to a role goes to `landingFor()`**, in
 `lib/access.ts`: home when verified, `/verify/[role]` when not. Redirecting to

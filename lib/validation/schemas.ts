@@ -17,6 +17,7 @@ import {
   TEST_CATEGORIES,
   TIMEZONES,
   countryName,
+  isDesignCategory,
 } from "../vocabulary.ts"
 // Relative with the extension, like the imports above: scripts/*.test.mts run
 // this file under plain node, which does not resolve the "@/" alias.
@@ -330,6 +331,40 @@ export type AuditEntryInput = z.infer<typeof auditEntrySchema>
  * screenshots for those. Thirteen of the sixteen live missions are that shape.
  */
 export const auditLogSchema = z.array(auditEntrySchema)
+
+/**
+ * The shortest description a ui_design step accepts. "ok", "fine" and "looks
+ * good" are not descriptions; twenty characters is about one short clause —
+ * "The headline is clear but tiny" — which is the least a builder can act on.
+ */
+export const DESCRIPTION_MIN = 20
+
+/**
+ * The log as a mission of `category` judges it.
+ *
+ * INVERTS 20260907_01 FOR ui_design, deliberately. That migration made
+ * actual_result optional on a pass because a functional step's pass is
+ * already stated by step_expected — asking again filled the column with "as
+ * expected". A ui_design step is an elicitation prompt ("describe your first
+ * impression"): the description is not supplementary, it is the whole
+ * deliverable, and without this a tester could click Pass and write nothing.
+ *
+ * Every other category — and a null or unknown one, which older rows have —
+ * gets auditLogSchema unchanged. Mirrored by firstIncompleteEntry in
+ * components/tester/AuditLogSteps.tsx; change both or neither.
+ *
+ * Applied in the action, not in submissionSchema: the category is on the
+ * mission row, which the payload does not carry and should not be trusted to.
+ */
+export function auditLogSchemaFor(category: string | null | undefined) {
+  if (!isDesignCategory(category)) return auditLogSchema
+  return z.array(
+    auditEntrySchema.refine((e) => (e.actual_result?.trim().length ?? 0) >= DESCRIPTION_MIN, {
+      message: `Describe what you saw — at least ${DESCRIPTION_MIN} characters.`,
+      path: ["actual_result"],
+    }),
+  )
+}
 
 /** The JSON-string variant, parsed inside the schema so a malformed body is a
  *  field error rather than a throw out of the action. Same shape as

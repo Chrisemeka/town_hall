@@ -6,6 +6,7 @@ import {
   type Reciprocity,
 } from "@/lib/reciprocity"
 import { Metric, SettingsSection } from "@/components/settings/SettingsSection"
+import type { AccountType } from "@/lib/access"
 
 /**
  * What this person has given and what they have taken.
@@ -18,14 +19,25 @@ import { Metric, SettingsSection } from "@/components/settings/SettingsSection"
  * monthly budget and no earned-report balance, because neither is enforced
  * anywhere — and a number that looks like an allowance, on a page with a plan
  * section next to it, will be read as one.
+ *
+ * Role-aware, because `received` and `ratio` are the builder's halves: for a
+ * tester they are 0 and "—", and a wall of those reads as failure rather than
+ * as "not applicable". A tester sees their track record instead — reports
+ * written, how many were approved, the average rating. Nothing about pay,
+ * earnings or ranking: none of that happens inside the product.
  */
 export function GiveAndTake({
+  active,
   stats,
   hasTesterAccount,
 }: {
+  /** The validated active account — see CLAUDE.md on Settings components. */
+  active: AccountType
   stats: Reciprocity
   hasTesterAccount: boolean
 }) {
+  if (active === "tester") return <TesterRecord stats={stats} />
+
   // Somebody who has never had a tester account is not a tester with a score
   // of nothing. A prompt, not a wall of zeros.
   if (!hasTesterAccount) {
@@ -91,6 +103,52 @@ export function GiveAndTake({
           label="Approved"
           hint={`of ${stats.given} you wrote`}
         />
+      </div>
+    </SettingsSection>
+  )
+}
+
+/**
+ * The tester's side: what they have written and how it landed.
+ *
+ * Empty on `given` alone — a tester's record starts with their first report,
+ * and what has come back on their own projects is not part of it.
+ */
+function TesterRecord({ stats }: { stats: Reciprocity }) {
+  const description = "The reports you've written, and how builders received them."
+
+  if (stats.given === 0) {
+    return (
+      <SettingsSection title="Your testing" description={description}>
+        <div className="py-8 text-center">
+          <p className="font-syne font-bold text-[20px] leading-7 text-ink">
+            No reports yet.
+          </p>
+          <p className="font-sans text-[14px] leading-6 text-ink mt-2 max-w-md mx-auto">
+            Pick up a mission and file a report, and this fills in.
+          </p>
+          <Link
+            href="/explore/missions"
+            className="mt-6 inline-flex h-11 px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          >
+            Browse missions
+          </Link>
+        </div>
+      </SettingsSection>
+    )
+  }
+
+  return (
+    <SettingsSection title="Your testing" description={description}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <Metric value={String(stats.given)} label="Reports written" />
+        <Metric
+          value={String(stats.approved)}
+          label="Approved"
+          hint={`of ${stats.given} you wrote`}
+        />
+        {/* "—" until someone rates one, never 0.0 — see averageRating. */}
+        <Metric value={formatRating(stats.rating)} label="Average rating" />
       </div>
     </SettingsSection>
   )

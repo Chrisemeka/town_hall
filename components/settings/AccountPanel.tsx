@@ -76,9 +76,19 @@ export function AccountPanel({
 
       <SectionDivider />
 
-      <ExportPanel projects={projects} hasFeedback={hasFeedback} />
-
-      <SectionDivider />
+      {/* Builder-only. The export is feedback received on your own missions,
+          and a tester has none — hidden rather than an empty state, because an
+          empty state is for something that will fill in and this never will.
+          Not gated on hasFeedback: a builder with nothing yet still gets the
+          section and its empty state. A tester exporting their own report
+          history would be a different feature — different data, query and
+          copy. */}
+      {active === "builder" && (
+        <>
+          <ExportPanel projects={projects} hasFeedback={hasFeedback} />
+          <SectionDivider />
+        </>
+      )}
 
       {/* ── Danger Zone ─────────────────────────────────── */}
       <div>

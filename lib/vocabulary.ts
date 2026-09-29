@@ -143,6 +143,59 @@ export function entryStatusLabel(value: string): string {
   return ENTRY_STATUS_LABELS[value as EntryStatus] ?? value
 }
 
+/**
+ * Whether a mission's steps are judgements rather than functional checks.
+ *
+ * A ui_design step is an elicitation prompt — "describe your first
+ * impression" — which cannot pass or fail; the tester's description IS the
+ * deliverable, so it is required at every status (auditLogSchemaFor), and the
+ * status becomes a judgement on the builder's expectation. process_flow and
+ * component are genuinely functional and keep Pass / Fail / Blocked with the
+ * description optional on a pass. Null and unknown categories — older rows
+ * exist — are treated as functional.
+ */
+export function isDesignCategory(category: string | null | undefined): boolean {
+  return category === "ui_design"
+}
+
+/**
+ * Display copy for a ui_design mission. The STORED values do not change —
+ * pass / fail / blocked in the database, the AI prompt, the CSV and every
+ * count — only what the tester is shown while answering.
+ *
+ * "Couldn't tell" keeps the distinction ENTRY_STATUSES exists to protect: a
+ * step nobody could judge still reports differently from one that was seen and
+ * did not land.
+ */
+const DESIGN_STATUS_COPY: Record<EntryStatus, { label: string; hint: string }> = {
+  pass: { label: "Clear", hint: "It landed the way the builder described." },
+  fail: { label: "Unclear", hint: "You saw it, and it didn't land that way." },
+  blocked: {
+    label: "Couldn't tell",
+    hint: "You couldn't judge this — it didn't load, or wasn't there.",
+  },
+}
+
+/** The label and hint a tester sees for `status` on a mission of `category`. */
+export function entryStatusCopy(
+  status: EntryStatus,
+  category: string | null | undefined,
+): { label: string; hint: string } {
+  return isDesignCategory(category)
+    ? DESIGN_STATUS_COPY[status]
+    : { label: ENTRY_STATUS_LABELS[status], hint: ENTRY_STATUS_HINTS[status] }
+}
+
+/**
+ * The question above the status buttons. On a design step it points at the
+ * builder's expectation, not the action — the description answers the action,
+ * and "How did it go?" under "describe your first impression" reads as
+ * grading the description.
+ */
+export function statusQuestionFor(category: string | null | undefined): string {
+  return isDesignCategory(category) ? "Did the builder's expectation hold?" : "How did it go?"
+}
+
 export const SKILLS_MIN = 1
 export const SKILLS_MAX = 8
 

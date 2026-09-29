@@ -8,6 +8,7 @@ import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import { getActiveAccount } from "@/lib/auth"
 import {
+  auditLogSchemaFor,
   storedTestStepsSchema,
   submissionSchema,
   screenshotsSchema,
@@ -78,6 +79,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       .select(`
         project_id,
         test_steps,
+        category,
         projects (
           owner_id
         )
@@ -88,6 +90,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     const mission = missionData as unknown as {
       project_id: string
       test_steps: unknown
+      category: string | null
       projects: { owner_id: string } | { owner_id: string }[] | null
     } | null
 
@@ -116,6 +119,21 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
           success: false,
           error: "This mission changed while you were testing. Reload and try again.",
         }
+      }
+    }
+
+    // The category's own rule, which only the mission row can supply: a
+    // ui_design step owes a description at every status, pass included. Runs
+    // before the upload so a refused log costs no storage. `entries` is passed
+    // on unchanged — this only judges it, so the RPC's argument shape is the
+    // same for every category.
+    const judged = auditLogSchemaFor(mission?.category).safeParse(entries)
+    if (!judged.success) {
+      const issue = judged.error.issues[0]
+      const step = typeof issue.path[0] === "number" ? issue.path[0] + 1 : null
+      return {
+        success: false,
+        error: step ? `Step ${step}: ${issue.message}` : issue.message,
       }
     }
 

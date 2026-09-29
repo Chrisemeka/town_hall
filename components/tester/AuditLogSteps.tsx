@@ -2,12 +2,13 @@
 
 import {
   ENTRY_STATUSES,
-  ENTRY_STATUS_HINTS,
-  entryStatusLabel,
+  entryStatusCopy,
+  isDesignCategory,
+  statusQuestionFor,
   type EntryStatus,
 } from "@/lib/vocabulary"
 import { InfoTip } from "@/components/ui/InfoTip"
-import { ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
+import { DESCRIPTION_MIN, ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
 /**
@@ -64,14 +65,24 @@ export const entryFieldName = (index: number, field: EntryField) =>
  * either refuses a valid submission or sends one the server then rejects.
  * draftIsComplete is now this asking whether it found anything.
  */
-export function firstIncompleteEntry(entries: DraftEntry[]): Incomplete | null {
+export function firstIncompleteEntry(
+  entries: DraftEntry[],
+  category?: string | null,
+): Incomplete | null {
   // ENTRY_TEXT_MIN rather than "not blank", because auditEntrySchema is the
   // authority and that is what it asks for. Checking only for non-empty let a
   // two-character answer through the form and into a server rejection the
   // tester never sees clearly.
   const given = (v: string) => v.trim().length >= ENTRY_TEXT_MIN
+  // Mirrors auditLogSchemaFor: on a ui_design step the description is the
+  // deliverable, owed at every status, and it renders ABOVE the status - so it
+  // is checked first, in rendered order.
+  const design = isDesignCategory(category)
 
   for (const [index, e] of entries.entries()) {
+    if (design && e.actual_result.trim().length < DESCRIPTION_MIN) {
+      return { index, field: "actual_result" }
+    }
     if (e.status === "") return { index, field: "status" }
     // A pass is complete here — its status is the whole answer, and what it
     // confirms is the builder's step_expected, already on the row.
@@ -88,16 +99,19 @@ export function firstIncompleteEntry(entries: DraftEntry[]): Incomplete | null {
 }
 
 /** Whether every step has been answered well enough to submit. */
-export function draftIsComplete(entries: DraftEntry[]): boolean {
-  return firstIncompleteEntry(entries) === null
+export function draftIsComplete(entries: DraftEntry[], category?: string | null): boolean {
+  return firstIncompleteEntry(entries, category) === null
 }
 
 export function AuditLogSteps({
   entries,
+  category,
   onChange,
   errorIndex,
 }: {
   entries: DraftEntry[]
+  /** The mission's test category. Null on older missions, which read as functional. */
+  category?: string | null
   onChange: (next: DraftEntry[]) => void
   /** The step the submit attempt stopped on, marked so it is findable by eye. */
   errorIndex?: number
@@ -105,6 +119,9 @@ export function AuditLogSteps({
   function edit(index: number, patch: Partial<DraftEntry>) {
     onChange(entries.map((e, i) => (i === index ? { ...e, ...patch } : e)))
   }
+
+  const design = isDesignCategory(category)
+  const labels = ENTRY_STATUSES.map((s) => entryStatusCopy(s, category).label)
 
   return (
     <div className="flex flex-col gap-5">
@@ -142,20 +159,36 @@ export function AuditLogSteps({
             </p>
           </div>
 
+          {/* A design step's action asks for a description, so the answer to
+              the action comes first and is required at every status. The
+              status below is then a judgement on the builder's expectation,
+              not a grade on the description. The prose is the feedback; the
+              status is the filter that tells the builder which to read first. */}
+          {design && (
+            <Field
+              name={entryFieldName(index, "actual_result")}
+              label="What you saw"
+              value={entry.actual_result}
+              onChange={(v) => edit(index, { actual_result: v })}
+              placeholder="The headline says what it does, but the sign-up button blends into the background"
+              helper={`Required — at least ${DESCRIPTION_MIN} characters, in your own words.`}
+            />
+          )}
+
           {/* Status. Text-labelled, never colour alone — Design.md §5.4. */}
           <div className="flex flex-col gap-2">
             <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] flex items-center gap-2">
-              How did it go?
+              {statusQuestionFor(category)}
               {/* Per step rather than once at the top: the choice is made per
                   step, and the icon costs no vertical space on a form that is
                   already several screens tall. */}
-              <InfoTip label="What do Pass, Fail and Blocked mean?">
+              <InfoTip label={`What do ${labels[0]}, ${labels[1]} and ${labels[2]} mean?`}>
                 <span className="flex flex-col gap-2 normal-case tracking-normal">
                   {ENTRY_STATUSES.map((s) => (
                     <span key={s} className="font-mono text-[12px] leading-5 text-ink-muted">
-                      <span className={STATUS_HINT_TONE[s]}>{entryStatusLabel(s)}</span>
+                      <span className={STATUS_HINT_TONE[s]}>{entryStatusCopy(s, category).label}</span>
                       {" — "}
-                      {ENTRY_STATUS_HINTS[s]}
+                      {entryStatusCopy(s, category).hint}
                     </span>
                   ))}
                 </span>
@@ -181,7 +214,7 @@ export function AuditLogSteps({
                         : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
                     ].join(" ")}
                   >
-                    {entryStatusLabel(status)}
+                    {entryStatusCopy(status, category).label}
                   </button>
                 )
               })}
@@ -204,7 +237,9 @@ export function AuditLogSteps({
           */}
           {entry.status !== "" && entry.status !== "pass" && (
             <>
-              <Field
+              {/* Already asked above on a design step. process_flow and
+                  component keep it here, and optional on a pass. */}
+              {!design && <Field
                 name={entryFieldName(index, "actual_result")}
                 label="What actually happened"
                 value={entry.actual_result}
@@ -214,7 +249,7 @@ export function AuditLogSteps({
                     ? "Could not reach this step — step 2 never completed"
                     : "The form submitted but nothing appeared to happen"
                 }
-              />
+              />}
               <Field
                 name={entryFieldName(index, "issue_summary")}
                 label="Summary of the issue"

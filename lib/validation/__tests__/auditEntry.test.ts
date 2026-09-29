@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { auditEntrySchema, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
-import { draftIsComplete, type DraftEntry } from "@/components/tester/AuditLogSteps"
+import {
+  auditEntrySchema,
+  auditLogSchemaFor,
+  DESCRIPTION_MIN,
+  ENTRY_TEXT_MIN,
+} from "@/lib/validation/schemas"
+import { draftIsComplete, firstIncompleteEntry, type DraftEntry } from "@/components/tester/AuditLogSteps"
 import { ENTRY_STATUSES } from "@/lib/vocabulary"
 
 /**
@@ -143,21 +148,25 @@ describe("auditEntrySchema by status", () => {
 })
 
 describe("ENT-08 the form and the server agree on complete", () => {
-  it("across every status and every combination of the four text fields", () => {
+  it("across every category, every status and every combination of the text fields", () => {
     // The drift guard, and the reason firstIncompleteEntry exists at all.
     // Disagreement in one direction is a form that refuses valid work; in the
     // other it is a submission the server rejects with a message the tester
     // cannot act on.
-    const long = "x".repeat(ENTRY_TEXT_MIN)
-    const values = ["", "  ", long]
+    // Short clears ENTRY_TEXT_MIN but not DESCRIPTION_MIN, so the design rule
+    // is crossed too, not only the functional one.
+    const short = "x".repeat(ENTRY_TEXT_MIN)
+    const long = "x".repeat(DESCRIPTION_MIN)
+    const values = ["", "  ", short, long]
     let checked = 0
 
+    for (const category of [null, "process_flow", "component", "ui_design", "not_a_category"])
     for (const status of [...ENTRY_STATUSES, ""] as const) {
       for (const actual_result of values) {
         for (const issue_summary of values) {
           for (const steps_to_reproduce of values) {
             const d = draft({ status, actual_result, issue_summary, steps_to_reproduce })
-            const formSaysComplete = draftIsComplete([d])
+            const formSaysComplete = draftIsComplete([d], category)
             // An unanswered status can never reach the server — the form holds
             // it — and the schema has no representation for "".
             if (status === "") {
@@ -165,10 +174,10 @@ describe("ENT-08 the form and the server agree on complete", () => {
               checked++
               continue
             }
-            const serverAccepts = auditEntrySchema.safeParse(payload(d)).success
+            const serverAccepts = auditLogSchemaFor(category).safeParse([payload(d)]).success
             expect(
               formSaysComplete,
-              `status=${status} actual=${JSON.stringify(actual_result)} ` +
+              `category=${category} status=${status} actual=${JSON.stringify(actual_result)} ` +
                 `issue=${JSON.stringify(issue_summary)} repro=${JSON.stringify(steps_to_reproduce)}`,
             ).toBe(serverAccepts)
             checked++
@@ -176,6 +185,47 @@ describe("ENT-08 the form and the server agree on complete", () => {
         }
       }
     }
-    expect(checked).toBe(4 * 27)
+    expect(checked).toBe(5 * 4 * 64)
   })
+})
+
+describe("ENT-12 ui_design: the description is the deliverable", () => {
+  const design = auditLogSchemaFor("ui_design")
+  const described = "The headline is clear but the button is hard to find"
+
+  it("rejects a pass with an empty description, on actual_result", () => {
+    // The bug: Pass on "describe your first impression", with nothing written.
+    const parsed = design.safeParse([payload(draft({ actual_result: "" }))])
+    expect(parsed.success).toBe(false)
+    expect(parsed.error?.issues[0].path).toEqual([0, "actual_result"])
+  })
+
+  it("rejects a description shorter than DESCRIPTION_MIN", () => {
+    expect(design.safeParse([payload(draft({ actual_result: "ok" }))]).success).toBe(false)
+  })
+
+  it("accepts a described pass", () => {
+    expect(design.safeParse([payload(draft({ actual_result: described }))]).success).toBe(true)
+  })
+
+  it("still requires the issue fields on a fail", () => {
+    const parsed = design.safeParse([payload(draft({ status: "fail", actual_result: described }))])
+    expect(parsed.success).toBe(false)
+  })
+
+  it("puts the description first in the form's order", () => {
+    const d = draft({ status: "", actual_result: "" })
+    expect(firstIncompleteEntry([d], "ui_design")).toEqual({ index: 0, field: "actual_result" })
+    expect(firstIncompleteEntry([d], "process_flow")).toEqual({ index: 0, field: "status" })
+  })
+})
+
+describe("ENT-13 every other category keeps 20260907_01", () => {
+  for (const category of ["process_flow", "component", null, undefined, "legacy_value"]) {
+    it(`accepts a pass with no actual_result for ${String(category)}`, () => {
+      const parsed = auditLogSchemaFor(category).safeParse([payload(draft({ actual_result: "" }))])
+      expect(parsed.success).toBe(true)
+      expect(draftIsComplete([draft({ actual_result: "" })], category)).toBe(true)
+    })
+  }
 })
