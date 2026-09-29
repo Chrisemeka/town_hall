@@ -1,6 +1,6 @@
 # SPEC: Cohort Payouts
 
-**Status:** Approved — implementing
+**Status:** Implemented on `feat/cohort-payouts` — migration not yet applied
 **Branch:** `feat/cohort-payouts`
 **Base:** `main`, after `feat/report-allowance` **and** `fix/one-report-per-mission` merge
 (built on `feat/report-allowance` with `fix/one-report-per-mission` merged in)
@@ -29,6 +29,18 @@ transfer, and logs every plan change an admin makes.
 All four open questions went with the recommendation: email is in the payout
 CSV; the downloaded CSV is the payment record, and the page says so;
 `RATING_FLAG_BELOW = 3.5`; no reciprocity ratio on the page yet.
+
+## Where the build differs from the draft
+
+- **Membership periods come from the change log,** not the two columns. A
+  single join/leave pair would lose an earlier period when someone re-joins,
+  and rewrite a month already paid. The columns remain as current state.
+- **The change log on `/admin/users` is one panel of the latest 20 changes**
+  across all users, not a list per row.
+- **The cohort-feed tests live in `lib/__tests__/payouts.test.ts`** with the
+  rest of the pure arithmetic; there is no separate `cohort.test.ts`.
+- **A route test for `/api/admin/payouts`** (403 with no body for a non-admin;
+  a hostile name neutralised) sits in `app/api/admin/payouts/__tests__/`.
 
 ## Five things the brief does not say, found in the code
 

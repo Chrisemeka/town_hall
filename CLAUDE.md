@@ -37,6 +37,8 @@ lib/
   ai.ts               Gemini client + the analysis prompt
   allowance.ts        The report allowance arithmetic — pure, the only definition
   allowanceDb.ts      The ledger's reads and compare-and-append RPC calls
+  payouts.ts          Cohort pay arithmetic — rates, bonus, payable reports (pure)
+  cohortDb.ts         Cohort membership, feed filter and payout sheet reads
   plans.ts            Tier content and numbers — /pricing and /settings read it
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
@@ -53,7 +55,7 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Seven live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Eight live tables. Concepts match the UI except "feedback" — the table is `test_results`.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
@@ -63,6 +65,7 @@ profiles ──┬── accounts        one identity, two roles (builder + test
 missions ───────────┘  └── test_result_entries   one row per test-case step
 
 report_ledger     the report allowance, append-only — per profile
+admin_account_changes   every plan and cohort change an admin makes
 ```
 
 | Table          | Key columns |
@@ -73,6 +76,7 @@ report_ledger     the report allowance, append-only — per profile
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
 | `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
+| `admin_account_changes` | `id`, `account_id` (**set null**), `profile_id` (denormalised, no FK), `field` (`plan_id`\|`cohort`), `from_value`, `to_value`, `changed_by` (admin), `created_at`. **Service role only**, append-only — and the cohort membership history. |
 | `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**) |
 
 **`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
@@ -173,6 +177,35 @@ it is the invitation model, deferred by decision.
 - **Missed credits are visible, not silent.** `reportLanded` and `grantSignup`
   never throw and log `[allowance] missed credit`; `/admin` shows "Uncredited
   reports", which is healthy at zero.
+
+**The paid tester cohort is paid outside the product, against a sheet it
+computes.** `accounts.cohort_member_at` / `cohort_left_at` are the current
+state; the membership *history* is `admin_account_changes`, and the payout
+sheet reads the history, so removing someone never changes a month already
+paid. Only `set_account_field` writes either — the change and its log row in
+one transaction — through `setUserPlan` / `setCohortMember`.
+
+- **The cohort serves only paid-for slots:** Pro's monthly allowance and the
+  signup grant, never earned credit (`cohortEligible()`; compensation doc §8,
+  "this does not bend"). Per mission, cohort slots = net reserved slots from
+  those two pools; the first that many cohort reports, by `created_at`, are
+  payable.
+- **The feed filter is not the boundary.** Missions are publicly readable and
+  `GlobalSearch` queries them from the browser, so a cohort tester can reach
+  anything. `missionsForTester()` keeps unpaid missions out of their feed as a
+  courtesy; **`payableReports()` is what decides pay.** A cohort report beyond
+  the slots is an ordinary unpaid report and earns +1 like anyone's.
+- **Paid on submission — never on approval, never withheld on rating.**
+  `RATING_FLAG_BELOW` flags a row on `/admin/payouts` and does nothing else;
+  its value is undecided, and wiring it to anything automatic cuts someone's
+  income on a guess.
+- **Rates live in `PAYOUT_RATES`** (`lib/payouts.ts`) and nowhere else. Months
+  are Africa/Lagos via `monthOf()`, the same function the allowance uses.
+- **The downloaded CSV is the payment record.** The page is recomputed each
+  load; a submission deleted later changes the page, not the file.
+  `/api/admin/payouts` calls `requireAdmin()` itself — `app/api` has no
+  middleware. It includes emails, deliberately: it stays with admins, unlike
+  the builder export.
 
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
@@ -483,7 +516,7 @@ Canonical reference: `Test.md`. Every feature ships with:
   plan" rather than "read about plans". The balance is shown where it is
   spent, beside the publish button, and nowhere here. The call to action is
   `/contact`.
-- **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a money balance, or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.)
+- **Payments** — the product moves no money, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing is reciprocal; the paid cohort is paid by bank transfer from `/admin/payouts`' CSV, outside the product. Do not reintroduce a payout field, a money balance, a wallet, a tester-facing earnings view or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.)
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).
