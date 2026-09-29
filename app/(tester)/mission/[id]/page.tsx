@@ -10,6 +10,7 @@ import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
 /** `select("*, projects(*)")` — the whole mission with its whole project. */
 type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
 import AuditLogForm from "@/components/tester/AuditLogForm";
+import { isCohortTester, missionsForTester } from "@/lib/cohortDb";
 
 export default async function MissionDetailPage({
   params,
@@ -48,6 +49,13 @@ export default async function MissionDetailPage({
         .eq("mission_id", id)
         .eq("tester_id", user.id)
     : { count: 0 };
+
+  // A paid cohort tester can reach any mission by URL — missions are public.
+  // Tell them before they start if this one will not be paid; the payout
+  // sheet is what actually decides.
+  const unpaidForCohort =
+    !!user && !isOwner && !ownReports && (await isCohortTester(user.id)) &&
+    !(await missionsForTester(user.id, [id])).has(id);
 
   return (
     <div className="max-w-[800px] mx-auto px-6 py-10">
@@ -167,6 +175,12 @@ export default async function MissionDetailPage({
         </div>
       ) : (
         <div id="tour-mission-submit-form">
+          {unpaidForCohort && (
+            <p className="mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4">
+              This mission isn&apos;t paid for cohort testers. You can still test it — it earns you a
+              report, like anyone else.
+            </p>
+          )}
           <AuditLogForm
             missionId={mission.id}
             appUrl={project?.app_url ?? null}

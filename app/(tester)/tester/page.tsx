@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Compass, UserCog } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { requireAccount } from "@/lib/auth"
+import { missionsForTester } from "@/lib/cohortDb"
 import { isNewMission } from "@/lib/utils/mission"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { one } from "@/lib/utils/project"
@@ -93,9 +94,13 @@ export default async function TesterHomePage() {
   /* ── New missions strip ─────────────────────────────────────────────── */
 
   const submittedMissionIds = new Set(submissions.map((s) => s.missionId))
+  // A paid cohort tester sees only missions the cohort may be paid for.
+  const missionRows = (rawMissions ?? []) as unknown as MissionRow[]
+  const shown = await missionsForTester(userId, missionRows.map((m) => m.id))
 
-  const missions: StripMission[] = ((rawMissions ?? []) as unknown as MissionRow[])
+  const missions: StripMission[] = missionRows
     .filter((m) => {
+      if (!shown.has(m.id)) return false
       const project = one(m.projects)
       if (!project || project.flagged_at) return false
       // The same person may hold a Builder account too — they still can't test
