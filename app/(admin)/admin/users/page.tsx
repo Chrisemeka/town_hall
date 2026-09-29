@@ -7,6 +7,8 @@ import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
 import { RoleDistributionChart, type RoleSlice } from "@/components/admin/RoleDistributionChart"
 import { UserRowActions, type ModerationStatus } from "@/components/admin/UserRowActions"
 import { UserPlanControl } from "@/components/admin/UserPlanControl"
+import { CohortControl } from "@/components/admin/CohortControl"
+import { recentAccountChanges } from "@/lib/cohortDb"
 import { planIdFor, type PlanId } from "@/lib/vocabulary"
 
 export const metadata = { title: "Users — Admin · Twnhall" }
@@ -97,26 +99,32 @@ async function fetchAllAuthUsers(admin: ReturnType<typeof createAdminClient>) {
 export default async function AdminUsersPage() {
   const admin = createAdminClient()
 
-  const [authUsers, profilesRes, projectsRes, testResultsRes, accountsRes] = await Promise.all([
+  const [authUsers, profilesRes, projectsRes, testResultsRes, accountsRes, changes] = await Promise.all([
     fetchAllAuthUsers(admin),
     admin.from("profiles").select("id, full_name, avatar_url, email, role, moderation_status, ban_reason, banned_at"),
     admin.from("projects").select("owner_id"),
     admin.from("test_results").select("tester_id"),
     // plan_id is per-role, so it comes off the accounts row rather than the
     // profile. Only the builder account carries a meaningful one.
-    admin.from("accounts").select("user_id, type, plan_id"),
+    admin.from("accounts").select("user_id, type, plan_id, cohort_member_at, cohort_left_at"),
+    recentAccountChanges(),
   ])
 
   const profiles = (profilesRes.data ?? []) as ProfileRow[]
   const profileById = new Map(profiles.map((p) => [p.id, p]))
 
   const builderPlan = new Map<string, PlanId>()
+  /** Tester accounts, and whether each is in the paid cohort now. */
+  const cohort = new Map<string, boolean>()
   for (const row of (accountsRes.data ?? []) as {
     user_id: string
     type: string
     plan_id: string | null
+    cohort_member_at: string | null
+    cohort_left_at: string | null
   }[]) {
     if (row.type === "builder") builderPlan.set(row.user_id, planIdFor(row.plan_id))
+    if (row.type === "tester") cohort.set(row.user_id, !!row.cohort_member_at && !row.cohort_left_at)
   }
 
   const projectCounts = new Map<string, number>()
@@ -294,6 +302,11 @@ export default async function AdminUsersPage() {
                         planId={builderPlan.get(u.id) ?? "community"}
                         hasBuilderAccount={builderPlan.has(u.id)}
                       />
+                      <CohortControl
+                        userId={u.id}
+                        member={cohort.get(u.id) ?? false}
+                        hasTesterAccount={cohort.has(u.id)}
+                      />
                       <UserRowActions userId={u.id} status={u.moderationStatus} role={u.role} />
                     </div>
                   </td>
@@ -302,6 +315,34 @@ export default async function AdminUsersPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* The log set_account_field writes: every plan and cohort change, who
+          made it, and when. Only useful if someone can see it. */}
+      <div className="mt-8 bg-surface-raised border border-line rounded-[12px] overflow-hidden">
+        <div className="px-5 py-4 border-b border-line">
+          <h2 className="font-syne font-bold text-[16px] text-ink">Recent plan and cohort changes</h2>
+        </div>
+        {changes.length === 0 ? (
+          <p className="px-5 py-8 font-mono text-[13px] text-ink-muted">No changes recorded yet.</p>
+        ) : (
+          <ul>
+            {changes.map((c) => {
+              const who = profileById.get(c.profile_id)
+              const by = profileById.get(c.changed_by)
+              const label = (v: string | null) =>
+                c.field === "plan_id" ? (v === "pro" ? "Pro" : "Community") : v === "member" ? "in cohort" : "not in cohort"
+              return (
+                <li key={c.id} className="px-5 py-3 border-t border-line/60 font-mono text-[12px] text-ink flex flex-wrap gap-x-2">
+                  <span>{who?.full_name || who?.email || c.profile_id}</span>
+                  <span className="text-ink-muted">{c.field === "plan_id" ? "plan" : "cohort"}:</span>
+                  <span>{label(c.from_value)} → {label(c.to_value)}</span>
+                  <span className="text-ink-muted">by {by?.full_name || by?.email || c.changed_by} · {formatDate(c.created_at)}</span>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </div>
   )

@@ -111,47 +111,75 @@ export async function reactivateUser(targetUserId: string) {
 }
 
 /**
- * Records which plan an account is on.
- *
- * This is the whole manual upgrade path: there is no checkout, so a sale is
- * recorded here or it is not recorded at all. Without it the plan_id column
- * would be decorative.
+ * Applies an account change and logs it, in one transaction
+ * (set_account_field). A plan or cohort change without its record of who and
+ * when is the thing this exists to make impossible.
+ */
+async function setAccountField(
+  admin: ReturnType<typeof createAdminClient>,
+  adminUserId: string,
+  targetUserId: string,
+  role: AccountType,
+  field: "plan_id" | "cohort",
+  value: string | null,
+) {
+  const { data, error } = await admin.rpc("set_account_field", {
+    p_user_id: targetUserId,
+    p_type: role,
+    p_field: field,
+    p_value: value,
+    p_admin_id: adminUserId,
+  })
+  if (error) throw new Error(error.message)
+  if (data === "no_account") throw new Error(`That user has no ${role} account.`)
+  if (data !== "ok" && data !== "unchanged") throw new Error("Could not make that change.")
+}
+
+/**
+ * Records which plan an account is on — the whole manual upgrade path, since
+ * there is no checkout. Logged with who and when: this is the field that
+ * decides what a builder is entitled to.
  *
  * NOT moderation, so it deliberately does not call ensureModerable(): setting
- * an admin's own plan, or another admin's, is a billing fact rather than an
- * action taken against someone. The requireAdmin() guard is the whole
- * authorisation question here.
+ * an admin's own plan is a billing fact rather than an action against someone.
  *
- * Per-role by construction — `.eq("type", role)` — because plan_id lives on
- * accounts. Upgrading somebody's builder account must not touch their tester
- * one.
+ * Community is written as NULL, never 'community' — the plan_id migration's
+ * rule: "has not been assigned a plan" and "is on the free plan" are the same
+ * fact. planIdFor() reads both the same way.
  */
 export async function setUserPlan(
   targetUserId: string,
   role: AccountType,
   planId: string,
 ) {
-  const { admin } = await requireAdmin()
+  const { admin, adminUserId } = await requireAdmin()
 
   // The column has no CHECK constraint, so this parse is the only thing
   // between a typo and the database. Zod at the boundary, per CLAUDE.md.
   const parsed = planIdSchema.safeParse(planId)
   if (!parsed.success) throw new Error("Unknown plan.")
 
-  const { error, data } = await admin
-    .from("accounts")
-    // Explicit single-column write: this runs as service role, so anything
-    // reaching the UPDATE is written.
-    .update({ plan_id: parsed.data })
-    .eq("user_id", targetUserId)
-    .eq("type", role)
-    .select("id")
-
-  if (error) throw new Error(error.message)
-  if ((data?.length ?? 0) === 0) {
-    throw new Error(`That user has no ${role} account to put on a plan.`)
-  }
+  await setAccountField(
+    admin,
+    adminUserId,
+    targetUserId,
+    role,
+    "plan_id",
+    parsed.data === "community" ? null : parsed.data,
+  )
 
   revalidatePath("/admin/users")
   revalidatePath("/settings")
+}
+
+/**
+ * Adds a tester to the paid cohort, or takes them out. Tester accounts only —
+ * membership is a property of the tester role. Leaving records a leave date
+ * rather than clearing the join date, so a month already paid never changes.
+ */
+export async function setCohortMember(targetUserId: string, member: boolean) {
+  const { admin, adminUserId } = await requireAdmin()
+  await setAccountField(admin, adminUserId, targetUserId, "tester", "cohort", member ? "member" : "not_member")
+  revalidatePath("/admin/users")
+  revalidatePath("/admin/payouts")
 }
