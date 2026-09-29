@@ -12,9 +12,16 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ getActiveAccount: vi.fn() }))
 vi.mock("@/lib/ai", () => ({
-  generateAnalysis: vi.fn(async () => ({ text: "Looks solid.\nPOSITIVE" })),
+  generateAnalysis: vi.fn(async () => ({
+    text: "Looks solid.\nPOSITIVE",
+    usage: { inputTokens: 2400, outputTokens: 350 },
+    model: "gemini-3-flash-preview",
+  })),
   parseSentiment: vi.fn(() => "POSITIVE"),
+  townhallModel: { modelId: "gemini-3-flash-preview" },
 }))
+// lib/aiUsage is deliberately NOT mocked: the metering tests below need its
+// real swallow-every-failure behaviour, driven through the admin client.
 
 import { submitTestResult } from "@/actions/submissions"
 import { createClient } from "@/lib/supabase/server"
@@ -26,6 +33,7 @@ const TESTER_ID = "11111111-1111-4111-8111-111111111111"
 const OWNER_ID = "22222222-2222-4222-8222-222222222222"
 const MISSION_ID = "33333333-3333-4333-8333-333333333333"
 const RESULT_ID = "44444444-4444-4444-8444-444444444444"
+const PROJECT_ID = "88888888-8888-4888-8888-888888888888"
 const STEP_A = "55555555-5555-4555-8555-555555555555"
 const STEP_B = "66666666-6666-4666-8666-666666666666"
 
@@ -64,10 +72,25 @@ function formData(over: { entries?: unknown; comment?: string; files?: File[] } 
   return fd
 }
 
-/** Records the rpc call; `rpcError` makes the write fail. */
+/** Rows recordAiUsage inserted, and ai_summary updates made, since the last mocks(). */
+let usageRows: Record<string, unknown>[] = []
+let summaryUpdates: Record<string, unknown>[] = []
+
+/**
+ * Records the rpc call; `rpcError` makes the write fail. `meteringFails`
+ * makes the ai_usage_events insert throw.
+ */
 function mocks(
-  opts: { ownerId?: string; steps?: unknown; category?: string | null; rpcError?: { message: string } } = {},
+  opts: {
+    ownerId?: string
+    steps?: unknown
+    category?: string | null
+    rpcError?: { message: string }
+    meteringFails?: boolean
+  } = {},
 ) {
+  usageRows = []
+  summaryUpdates = []
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = []
 
   vi.mocked(createClient).mockResolvedValue({
@@ -78,7 +101,7 @@ function mocks(
           single: () =>
             Promise.resolve({
               data: {
-                project_id: "p",
+                project_id: PROJECT_ID,
                 test_steps: opts.steps ?? MISSION_STEPS,
                 category: opts.category === undefined ? "process_flow" : opts.category,
                 projects: { owner_id: opts.ownerId ?? OWNER_ID },
@@ -97,7 +120,21 @@ function mocks(
         error: opts.rpcError ?? null,
       })
     },
-    from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    from: (table: string) =>
+      table === "ai_usage_events"
+        ? {
+            insert: (row: Record<string, unknown>) => {
+              if (opts.meteringFails) throw new Error("relation does not exist")
+              usageRows.push(row)
+              return Promise.resolve({ error: null })
+            },
+          }
+        : {
+            update: (row: Record<string, unknown>) => {
+              summaryUpdates.push(row)
+              return { eq: () => Promise.resolve({ error: null }) }
+            },
+          },
   } as unknown as ReturnType<typeof createAdminClient>)
 
   return rpcCalls
@@ -325,5 +362,84 @@ describe("submitTestResult by mission category", () => {
     expect(designRpc[0].args.p_entries).toEqual(flowRpc[0].args.p_entries)
     const statuses = (designRpc[0].args.p_entries as { status: string }[]).map((e) => e.status)
     expect(statuses).toEqual(["pass", "blocked"])
+  })
+})
+
+describe("submitTestResult AI shadow metering", () => {
+  // after() is mocked to run inline but the action does not await it; one
+  // macrotask lets the background block finish before asserting on it.
+  const settle = () => new Promise((r) => setTimeout(r, 0))
+
+  it("records exactly one succeeded event for a successful analysis", async () => {
+    mocks()
+    const result = await submitTestResult(formData({ files: [png("a.png"), png("b.png")] }))
+    await settle()
+
+    expect(result.success).toBe(true)
+    expect(usageRows).toEqual([
+      expect.objectContaining({
+        test_result_id: RESULT_ID,
+        project_id: PROJECT_ID,
+        profile_id: OWNER_ID,
+        model: "gemini-3-flash-preview",
+        input_tokens: 2400,
+        output_tokens: 350,
+        image_count: 2,
+        estimated_cost_usd: 0.00225,
+        status: "succeeded",
+        error: null,
+      }),
+    ])
+  })
+
+  it("records exactly one failed event, with the error, when the analysis fails", async () => {
+    mocks()
+    vi.mocked(generateAnalysis).mockRejectedValueOnce(new Error("gemini down"))
+
+    const result = await submitTestResult(formData())
+    await settle()
+
+    expect(result.success).toBe(true)
+    expect(usageRows).toHaveLength(1)
+    expect(usageRows[0]).toMatchObject({
+      status: "failed",
+      error: "gemini down",
+      input_tokens: null,
+      estimated_cost_usd: null,
+    })
+    expect(summaryUpdates).toHaveLength(0)
+  })
+
+  it("keeps the submission and the ai_summary update when the metering insert fails", async () => {
+    const rpc = mocks({ meteringFails: true })
+
+    const result = await submitTestResult(formData())
+    await settle()
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+    expect(usageRows).toHaveLength(0)
+    expect(summaryUpdates).toEqual([{ ai_summary: "Looks solid.", ai_sentiment: "POSITIVE" }])
+  })
+
+  it("records null tokens and cost when the SDK returns no usage", async () => {
+    mocks()
+    vi.mocked(generateAnalysis).mockResolvedValueOnce({
+      text: "Looks solid.\nPOSITIVE",
+      usage: undefined as unknown as Awaited<ReturnType<typeof generateAnalysis>>["usage"],
+      model: "gemini-3-flash-preview",
+    })
+
+    const result = await submitTestResult(formData())
+    await settle()
+
+    expect(result.success).toBe(true)
+    expect(usageRows).toHaveLength(1)
+    expect(usageRows[0]).toMatchObject({
+      status: "succeeded",
+      input_tokens: null,
+      output_tokens: null,
+      estimated_cost_usd: null,
+    })
   })
 })
