@@ -6,6 +6,7 @@ import {
   ArrowRight, ShieldCheck, UserPlus, Flag, Activity, AlertTriangle, Mail,
 } from "lucide-react"
 import { LiveClock } from "@/components/admin/LiveClock"
+import { reportsWithoutCredit } from "@/lib/allowanceDb"
 import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
 
 /** Exactly what the feed selects below ask for. */
@@ -54,6 +55,7 @@ export default async function AdminHomePage() {
     submissionsCountRes,
     flaggedCountRes,
     aiReportsCountRes,
+    missingCredits,
   ] = await Promise.all([
     admin.from("profiles").select("*", { count: "exact", head: true }),
     admin.from("projects").select("*", { count: "exact", head: true }),
@@ -61,6 +63,9 @@ export default async function AdminHomePage() {
     admin.from("test_results").select("*", { count: "exact", head: true }),
     admin.from("projects").select("*", { count: "exact", head: true }).not("flagged_at", "is", null),
     admin.from("test_results").select("*", { count: "exact", head: true }).not("ai_summary", "is", null).neq("ai_summary", ""),
+    // The alert for a tester who wrote a report and was not credited. Zero is
+    // healthy; anything else is someone to make whole.
+    reportsWithoutCredit(),
   ])
 
   const usersCount       = usersCountRes.count ?? 0
@@ -173,13 +178,14 @@ export default async function AdminHomePage() {
       </div>
 
       {/* ── KPI strip ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
         <KpiTile icon={Users}         label="Users"        value={usersCount} />
         <KpiTile icon={FolderOpen}    label="Projects"     value={projectsCount} />
         <KpiTile icon={Target}        label="Missions"     value={missionsCount} />
         <KpiTile icon={MessageSquare} label="Submissions"  value={submissionsCount} />
         <KpiTile icon={Sparkles}      label="AI Reports"   value={aiReportsCount}   accent="#A78BFA" />
         <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
+        <KpiTile icon={AlertTriangle} label="Uncredited reports" value={missingCredits ?? "—"} accent={missingCredits ? "var(--color-danger-ink)" : "var(--color-ink-muted)"} />
       </div>
 
       {/* ── Nav cards ────────────────────────────────────────── */}
@@ -230,7 +236,7 @@ function KpiTile({
 }: {
   icon: React.ElementType
   label: string
-  value: number
+  value: number | string
   accent?: string
 }) {
   return (
