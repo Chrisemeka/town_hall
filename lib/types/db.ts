@@ -48,6 +48,9 @@ export type AccountRow = {
   verification_completed_at: string | null
   /** null means Community. Read by lib/allowanceDb.ts through planIdFor(). */
   plan_id: string | null
+  /** Paid tester cohort: joined, and left. Current state; history is admin_account_changes. */
+  cohort_member_at?: string | null
+  cohort_left_at?: string | null
 }
 
 /** report_ledger — append-only. Arithmetic in lib/allowance.ts. */
