@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { name: "Missions",    href: "/admin/missions" },
   { name: "Submissions", href: "/admin/submissions" },
   { name: "AI Reports",  href: "/admin/ai-reports" },
+  { name: "Payouts",     href: "/admin/payouts" },
   { name: "Email",       href: "/admin/email" },
 ]
 
