@@ -1,6 +1,6 @@
 # SPEC: AI Shadow Metering
 
-**Status:** Awaiting approval
+**Status:** Implemented on `feat/ai-shadow-metering` — migration not yet applied
 **Branch:** `feat/ai-shadow-metering`
 **Base:** `main` (at `2aaf99b`)
 **Depends on:** Nothing.
