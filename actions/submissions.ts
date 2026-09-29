@@ -2,7 +2,8 @@
 
 import { createClient, uploadToStorage, getPublicUrl } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { generateAnalysis, parseSentiment } from "@/lib/ai"
+import { generateAnalysis, parseSentiment, townhallModel } from "@/lib/ai"
+import { recordAiUsage } from "@/lib/aiUsage"
 import { revalidatePath } from "next/cache"
 import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
@@ -175,9 +176,23 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
         mediaType: file.type,
       })),
     )
+    // Who and what each analysis was for, for the cost record. Denormalised on
+    // purpose: the row must outlive the submission.
+    const metered = {
+      testResultId: resultId,
+      projectId: mission?.project_id ?? null,
+      profileId: projectOwnerId ?? null,
+      imageCount: images.length,
+    }
     after(async () => {
+      let recorded = false
       try {
-        const { text } = await generateAnalysis({ comment: comment ?? "", entries }, images)
+        const { text, usage, model } = await generateAnalysis({ comment: comment ?? "", entries }, images)
+        // ponytail: metering follows the Gemini call. When analysis moves from
+        // automatic to builder-triggered, this moves with it. recordAiUsage
+        // never throws, so it cannot cost the ai_summary update below.
+        await recordAiUsage({ ...metered, model, status: "succeeded", usage })
+        recorded = true
         const sentiment = parseSentiment(text)
         const aiSummary = text.replace(sentiment, "").replace(/[*#]/g, "").trim()
 
@@ -192,6 +207,12 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       } catch (err) {
         // AI analysis is non-critical — the row already exists without it.
         console.error("[submitTestResult] background analysis failed:", err)
+        // A failure after the Gemini call (the ai_summary update throwing) was
+        // still a paid, successful analysis — record a failure only if the
+        // call itself never produced one.
+        if (!recorded) {
+          await recordAiUsage({ ...metered, model: townhallModel.modelId, status: "failed", error: err })
+        }
       }
     })
 
