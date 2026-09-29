@@ -117,6 +117,7 @@ export default async function SettingsPage({
         hasFeedback={(owned.count ?? 0) > 0}
         activity={
           <GiveAndTake
+            active={active}
             stats={stats}
             hasTesterAccount={accountTypes.includes("tester")}
           />
