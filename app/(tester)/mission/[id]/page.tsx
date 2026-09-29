@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
-import { ChevronRight, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { getOwnerId, one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
@@ -38,6 +38,16 @@ export default async function MissionDetailPage({
   const steps = parsedSteps.success ? parsedSteps.data : [];
   if (project?.flagged_at) return notFound();
   const isOwner = user?.id === getOwnerId(mission.projects);
+
+  // One report per tester per mission (20260930_02). Read through the tester's
+  // own RLS, which lets them see their own submissions.
+  const { count: ownReports } = user && !isOwner
+    ? await supabase
+        .from("test_results")
+        .select("id", { count: "exact", head: true })
+        .eq("mission_id", id)
+        .eq("tester_id", user.id)
+    : { count: 0 };
 
   return (
     <div className="max-w-[800px] mx-auto px-6 py-10">
@@ -139,6 +149,20 @@ export default async function MissionDetailPage({
             className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
           >
             Go to Dashboard to view results
+          </Link>
+        </div>
+      ) : ownReports ? (
+        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+          <CheckCircle2 className="w-10 h-10 text-success-ink mb-4" aria-hidden="true" />
+          <h3 className="font-syne font-bold text-[20px] text-ink mb-2">You&apos;ve tested this mission</h3>
+          <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
+            Your report is with the builder. Each mission takes one report per tester.
+          </p>
+          <Link
+            href="/explore"
+            className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
+          >
+            Find another mission
           </Link>
         </div>
       ) : (

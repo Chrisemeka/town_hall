@@ -26,6 +26,8 @@ export type SubmissionResult =
   | { success: true }
   | { success: false; error: string; fieldErrors?: SubmissionFieldErrors }
 
+const ALREADY_SUBMITTED = "You've already submitted a report for this mission."
+
 export async function submitTestResult(formData: FormData): Promise<SubmissionResult> {
   try {
     const supabase = await createClient()
@@ -100,6 +102,17 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       return { success: false, error: "Developers cannot submit a test for your own project." }
     }
 
+    // One report per tester per mission. submit_audit_log enforces it under a
+    // lock; this earlier read only saves the upload and gives the plain answer
+    // before any storage is spent.
+    const { data: existing } = await createAdminClient()
+      .from("test_results")
+      .select("id")
+      .eq("mission_id", missionId)
+      .eq("tester_id", user.id)
+      .limit(1)
+    if (existing?.length) return { success: false, error: ALREADY_SUBMITTED }
+
     // The entries carry their own step text, because that snapshot is what the
     // audit log records. That makes it worth checking against the live mission
     // once, here: after the write nothing can falsify a snapshot, so a tester
@@ -164,6 +177,8 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       p_entries: entries,
     })
 
+    // 23505 from the function is the same rule, lost to a race — a double tap.
+    if (dbError?.code === "23505") return { success: false, error: ALREADY_SUBMITTED }
     if (dbError || !resultId) {
       console.error("[submitTestResult] submit_audit_log failed:", dbError)
       return { success: false, error: "Failed to save your feedback. Please try again." }

@@ -349,6 +349,10 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
   default does **not** fire for an explicit `NULL`. Any optional field added to the entry payload
   needs the same treatment, and the `revoke`/`grant` lines restated with it — never assume they
   survived a `create or replace`.
+  Since `20260930_02` it also refuses a second report from the same tester on
+  the same mission (`23505`, under a per-pair advisory lock). Not a unique
+  index — pre-existing duplicates would stop it building. This is a
+  per-tester rule, not the allowance: it never refuses a first report.
 - **`publish_mission`, `close_mission`, `report_landed`, `reports_without_credit`**
   — the allowance (`20260930_01`). Compare-and-append, same grants as above.
 - `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments

@@ -74,7 +74,13 @@ function formData(over: { entries?: unknown; comment?: string; files?: File[] } 
 
 /** Records the rpc call; `rpcError` makes the write fail. */
 function mocks(
-  opts: { ownerId?: string; steps?: unknown; category?: string | null; rpcError?: { message: string } } = {},
+  opts: {
+    ownerId?: string
+    steps?: unknown
+    category?: string | null
+    rpcError?: { message: string; code?: string }
+    alreadySubmitted?: boolean
+  } = {},
 ) {
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = []
 
@@ -105,7 +111,16 @@ function mocks(
         error: opts.rpcError ?? null,
       })
     },
-    from: () => ({ update: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    from: () => {
+      const existing = {
+        eq: () => existing,
+        limit: () => Promise.resolve({ data: opts.alreadySubmitted ? [{ id: "earlier" }] : [], error: null }),
+      }
+      return {
+        select: () => existing,
+        update: () => ({ eq: () => Promise.resolve({ error: null }) }),
+      }
+    },
   } as unknown as ReturnType<typeof createAdminClient>)
 
   return rpcCalls
@@ -305,6 +320,27 @@ describe("submitTestResult and the allowance", () => {
     const result = await submitTestResult(formData())
     expect(result.success).toBe(true)
     expect(reportBalance).not.toHaveBeenCalled()
+  })
+})
+
+describe("submitTestResult — one report per tester per mission", () => {
+  it("refuses a second report before uploading anything", async () => {
+    const rpc = mocks({ alreadySubmitted: true })
+    const { uploadToStorage } = await import("@/lib/supabase/server")
+
+    const result = await submitTestResult(formData())
+
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("gives the same answer when the database catches a double tap", async () => {
+    mocks({ rpcError: { message: "already_submitted", code: "23505" } })
+
+    const result = await submitTestResult(formData())
+
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
   })
 })
 
