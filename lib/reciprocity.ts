@@ -7,10 +7,9 @@
 // The monetisation plan calls the give/take ratio the highest-leverage number
 // in the business and notes that nothing measures it. This is what measures it.
 //
-// Nothing here is a budget or an allowance. There is no monthly report count
-// and no earned-report balance, because neither is enforced anywhere and a
-// number that looks like an allowance — on a page that has a plan section next
-// to it — will be read as one.
+// Nothing here is a budget or an allowance, and nothing here should become one.
+// The allowance is lib/allowance.ts, read from a ledger: `given` is a live
+// count that changes when history changes, and a credit must not.
 
 /** Counts, straight from `test_results`. */
 export type ReciprocityInput = {

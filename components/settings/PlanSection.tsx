@@ -14,8 +14,9 @@ import { SettingsSection } from "@/components/settings/SettingsSection"
  * never a Subscribe or Upgrade button.
  *
  * It also shows no usage. No "3 of 5 reports used", no meter, no renewal date:
- * nothing counts any of that, and a meter reading zero would be a lie about a
- * limit that is not enforced. CLAUDE.md's Do Not Touch entry on the pricing
+ * the balance is shown where it is spent, beside the publish button
+ * (components/missions/AllowanceNotice.tsx), and a meter here reads as a
+ * control. CLAUDE.md's Do Not Touch entry on the pricing
  * page's honesty applies here word for word.
  */
 export function PlanSection({ planId }: { planId: PlanId }) {

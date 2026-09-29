@@ -9,13 +9,10 @@
 // its numbers from this file too, so the settings page and the pricing page
 // cannot disagree about what Pro includes.
 //
-// NOTHING HERE IS ENFORCED — until `feat/report-allowance` lands. There is no
-// report counter, no per-mission tester ceiling and no active-mission limit
-// anywhere in the app. These lines describe the shape of the offer;
-// `accounts.plan_id` records which one an account is on. If you are about to
-// read a number here in order to block something, that is tier enforcement —
-// `feat/report-allowance` is that work, and it deletes this paragraph in
-// favour of a pointer to lib/allowance.ts.
+// ENFORCED at publish, by lib/allowance.ts (the arithmetic) and
+// lib/allowanceDb.ts (the ledger): monthlyReports, testersPerMission,
+// activeMissions and SIGNUP_GRANT are read there. Never at submission — see
+// CLAUDE.md. The AI-insight line is still content only; nothing counts it.
 
 import type { PlanId } from "@/lib/vocabulary"
 
@@ -33,7 +30,7 @@ export type Plan = {
   includes: readonly string[]
 }
 
-/** Reports every new profile starts with, once. Content here; nothing grants it yet. */
+/** Reports every new profile starts with, once. Granted in createAccount; the ledger's unique index makes it once. */
 export const SIGNUP_GRANT = 3
 
 export const PLANS: Record<PlanId, Plan> = {
