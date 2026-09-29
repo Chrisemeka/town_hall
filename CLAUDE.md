@@ -125,8 +125,9 @@ constraint: `PLAN_IDS` in `lib/vocabulary.ts` and `planIdSchema` are the
 vocabulary, same as everything else. **Nothing in the app reads it to block
 anything** — there is no report counter, no per-mission tester ceiling and no
 active-mission limit, and tier enforcement is separate work with its own
-sequencing. `lib/plans.ts` holds the tier content and reads the same
-monetisation plan §3 that `/pricing` renders, so the two cannot disagree. The
+sequencing. `lib/plans.ts` holds the tier content, from
+`docs/Twnhall_Cohort_Compensation_Model.md` §7–§8, and `/pricing` reads its
+numbers from it, so the two cannot disagree. The
 only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
 manual upgrade path because there is no checkout.
 
