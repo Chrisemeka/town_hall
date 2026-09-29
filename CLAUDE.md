@@ -35,6 +35,7 @@ lib/
   auth.ts             requireAccount(), requireAdmin(), requireProjectOwner()
   access.ts           accessFor() — the single pure function for route permissions
   ai.ts               Gemini client + the analysis prompt
+  aiUsage.ts          Shadow metering — dated rate map, cost, recordAiUsage()
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
   theme.ts            readTheme() — the public theme cookie, resolved in one place
@@ -50,7 +51,7 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Six live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Seven live tables. Concepts match the UI except "feedback" — the table is `test_results`.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
@@ -58,6 +59,8 @@ profiles ──┬── accounts        one identity, two roles (builder + test
            └── test_results    tester's submission on a mission
                     │  │
 missions ───────────┘  └── test_result_entries   one row per test-case step
+
+ai_usage_events   one row per AI analysis — a cost record, linked loosely
 ```
 
 | Table          | Key columns |
@@ -68,6 +71,17 @@ missions ───────────┘  └── test_result_entries   o
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
 | `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**) |
+| `ai_usage_events` | `id`, `test_result_id` → `test_results.id` (**set null**, not cascade), `project_id`, `profile_id` (project owner; both denormalised, no FK), `model`, `input_tokens`, `output_tokens`, `image_count`, `estimated_cost_usd` (numeric, **computed at write time**), `status` (`succeeded`\|`failed`), `error`. **Service role only** — RLS on, no policies. |
+
+**`ai_usage_events` is a cost record, not a quota ledger.** Shadow metering:
+every analysis in `submitTestResult`'s `after()` block writes one row,
+succeeded or failed, through `recordAiUsage()` in `lib/aiUsage.ts` — which
+swallows its own failures, so metering can never cost a submission or its
+`ai_summary` update. **Nothing reads it to block, limit or charge anyone**;
+doing that is tier enforcement, separate work. Cost is computed from the dated
+rate map in `lib/aiUsage.ts` when the row is written and never recomputed — a
+price change must not rewrite what past analyses cost. Not backfilled: data
+starts 2026-09-29. `/admin/ai-reports` is the one reader.
 
 **`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
 `20260907_01` the column is optional with a `''` default and the form calls it "Notes for Testers"
