@@ -131,6 +131,28 @@ export type TestResultEntryRow = {
   created_at: string
 }
 
+/**
+ * What one AI analysis cost. A cost record, not a quota ledger — nothing reads
+ * it to limit anyone. Service role only; see 20260929_01_ai_usage_events.sql.
+ */
+export type AiUsageEventRow = {
+  id: string
+  /** Null once the submission is deleted — the cost was still spent. */
+  test_result_id: string | null
+  project_id: string | null
+  /** The project owner: who the analysis was for. */
+  profile_id: string | null
+  model: string
+  input_tokens: number | null
+  output_tokens: number | null
+  image_count: number
+  /** numeric(12,8), computed at write time. Null when usage was absent. */
+  estimated_cost_usd: number | null
+  status: "succeeded" | "failed"
+  error: string | null
+  created_at: string
+}
+
 /** Public view. Exists so tester comments stay private while counts do not. */
 export type MissionFeedbackCountRow = {
   mission_id: string
