@@ -14,12 +14,19 @@ vi.mock("@/lib/auth", () => ({
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/allowanceDb", () => ({ publishMission: vi.fn(), closeMission: vi.fn() }))
+// The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
+// passes unless a test says otherwise, and never reaches the admin client.
+vi.mock("@/lib/rateLimitDb", () => ({
+  checkRateLimit: vi.fn(async () => ({ ok: true })),
+  clientIp: vi.fn(() => "203.0.113.7"),
+}))
 
 import { createMission, toggleMissionStatus, updateMission } from "@/actions/missions"
 import { closeMission, publishMission } from "@/lib/allowanceDb"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { checkRateLimit } from "@/lib/rateLimitDb"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
 const PROJECT_ID = "22222222-2222-4222-8222-222222222222"
@@ -411,5 +418,46 @@ describe("toggleMissionStatus", () => {
     vi.mocked(requireProjectOwner).mockRejectedValue(new Error("Not authorized"))
     await expect(toggleMissionStatus(MISSION_ID, PROJECT_ID, false)).rejects.toThrow("Not authorized")
     expect(closeMission).not.toHaveBeenCalled()
+  })
+})
+
+describe("the publish rate limit", () => {
+  const limited = () => vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, retryAfter: 600 })
+
+  it("refuses a create-and-publish before writing anything, keyed on the account", async () => {
+    const writes = fakeAdmin()
+    limited()
+    const state = await createMission(null, formData())
+    expect(state?.error).toBe("Too many attempts. Try again in 10 minutes.")
+    expect(writes).toHaveLength(0)
+    expect(publishMission).not.toHaveBeenCalled()
+    expect(checkRateLimit).toHaveBeenCalledWith(["publish:account", USER_ID])
+  })
+
+  it("does not count a draft save", async () => {
+    fakeAdmin()
+    await expect(createMission(null, formData({ intent: "draft" }))).rejects.toThrow("NEXT_REDIRECT")
+    expect(checkRateLimit).not.toHaveBeenCalled()
+  })
+
+  it("refuses an edit-and-publish before the update", async () => {
+    const writes = fakeAdmin()
+    limited()
+    const state = await updateMission(null, formData())
+    expect(state?.error).toMatch(/Try again/)
+    expect(writes).toHaveLength(0)
+  })
+
+  it("sends a limited reactivate back to the mission page, which says so", async () => {
+    limited()
+    await expect(toggleMissionStatus(MISSION_ID, PROJECT_ID, true)).rejects.toThrow(
+      `NEXT_REDIRECT:/dashboard/${PROJECT_ID}/mission/${MISSION_ID}?limited=600`,
+    )
+    expect(publishMission).not.toHaveBeenCalled()
+  })
+
+  it("never limits closing", async () => {
+    await toggleMissionStatus(MISSION_ID, PROJECT_ID, false)
+    expect(checkRateLimit).not.toHaveBeenCalled()
   })
 })
