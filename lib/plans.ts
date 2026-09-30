@@ -4,16 +4,18 @@
 // lib/testTemplates.ts: this is copy the team edits, not user data, and a
 // table would mean a migration every time a line changes.
 //
-// Source: docs/Twnhall_Monetisation_Plan_v4.docx §3 — the same source
-// app/(public)/pricing/page.tsx renders, so the settings page and the pricing
-// page cannot disagree about what Pro includes.
+// Source: docs/Twnhall_Cohort_Compensation_Model.md §7 and §8, which supersede
+// the monetisation plan v4's tier table. app/(public)/pricing/page.tsx renders
+// its numbers from this file too, so the settings page and the pricing page
+// cannot disagree about what Pro includes.
 //
-// NOTHING HERE IS ENFORCED. There is no report counter, no per-mission tester
-// ceiling and no active-mission limit anywhere in the app. These lines
-// describe the shape of the offer; `accounts.plan_id` records which one an
-// account is on. If you are about to read a number here in order to block
-// something, that is tier enforcement — separate work, with its own
-// sequencing, and the migration comment on plan_id says the same thing.
+// NOTHING HERE IS ENFORCED — until `feat/report-allowance` lands. There is no
+// report counter, no per-mission tester ceiling and no active-mission limit
+// anywhere in the app. These lines describe the shape of the offer;
+// `accounts.plan_id` records which one an account is on. If you are about to
+// read a number here in order to block something, that is tier enforcement —
+// `feat/report-allowance` is that work, and it deletes this paragraph in
+// favour of a pointer to lib/allowance.ts.
 
 import type { PlanId } from "@/lib/vocabulary"
 
@@ -23,9 +25,16 @@ export type Plan = {
   /** What it costs, as a line rather than a number — there is no checkout. */
   price: string
   summary: string
-  /** Verbatim from the plan's §3 table, in its order. */
+  /** Reports that arrive each calendar month. 0 on Community. */
+  monthlyReports: number
+  testersPerMission: number
+  activeMissions: number
+  /** The tier's lines, in order. lib/__tests__/plans.test.ts holds them to the numbers above. */
   includes: readonly string[]
 }
+
+/** Reports every new profile starts with, once. Content here; nothing grants it yet. */
+export const SIGNUP_GRANT = 3
 
 export const PLANS: Record<PlanId, Plan> = {
   community: {
@@ -34,9 +43,12 @@ export const PLANS: Record<PlanId, Plan> = {
     price: "Free",
     summary:
       "For builders who test as well as ship. Everything you need, paid for by taking part.",
+    monthlyReports: 0,
+    testersPerMission: 5,
+    activeMissions: 2,
     includes: [
       "Unlimited projects",
-      "5 tester reports a month",
+      "3 tester reports to get you started",
       "+1 report for every report you write as a tester",
       "Up to 5 testers on a mission",
       "2 active missions at once",
@@ -53,16 +65,21 @@ export const PLANS: Record<PlanId, Plan> = {
     price: "$19/month · ₦10–12k",
     summary:
       "For teams with nobody to spare for testing — usually an agency, or a founder on their own.",
+    monthlyReports: 10,
+    testersPerMission: 5,
+    activeMissions: 5,
+    // No "shareable report" and no "priority in the tester queue": neither
+    // exists, and a pricing line is a promise. feat/shareable-report puts the
+    // first back when it ships; the second waits on the invitation model
+    // (compensation doc §4).
     includes: [
       "Unlimited projects",
-      "20 tester reports a month",
+      "10 tester reports a month",
       "+1 report for every report you write as a tester",
-      "Up to 8 testers on a mission",
+      "Up to 5 testers on a mission",
       "5 active missions at once",
       "Unlimited AI insights",
       "CSV export",
-      "Shareable formatted report",
-      "Priority in the tester queue",
     ],
   },
 }

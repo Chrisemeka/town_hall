@@ -25,7 +25,7 @@ export const DEFAULT_TAB: SettingsTabId = "profile"
  * The tabs the active account sees.
  *
  * Plan is builder-only: it reads plan_id off the *builder* accounts row and
- * every line of the tier content is builder-side ("5 tester reports a month").
+ * every line of the tier content is builder-side ("10 tester reports a month").
  * A tester account has no plan, so showing one is the same mistake the account
  * switch made — Settings assuming it is always the builder looking at it.
  */
