@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { missionsForTester } from "@/lib/cohortDb";
 import { BrowseMissions, type BrowseMission } from "@/components/BrowseMissions";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
@@ -33,7 +34,11 @@ export default async function BrowseMissionsPage() {
     .is("projects.flagged_at", null)
     .order("created_at", { ascending: false });
 
-  const rows = (raw ?? []) as BrowseRow[];
+  // A paid cohort tester sees only missions the cohort may be paid for.
+  const { data: { user } } = await supabase.auth.getUser();
+  const all = (raw ?? []) as BrowseRow[];
+  const shown = await missionsForTester(user?.id, all.map((m) => m.id));
+  const rows = all.filter((m) => shown.has(m.id));
   const missionIds = rows.map((m) => m.id);
   const countByMission: Record<string, number> = {};
   if (missionIds.length > 0) {

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { missionsForTester } from "@/lib/cohortDb";
 import { ExploreGrid, type ExploreProject } from "@/components/ExploreGrid";
 import type { MissionRow, ProjectRow } from "@/lib/types/db";
 
@@ -25,11 +26,16 @@ export default async function ExploreProjectsPage() {
 
   /* Collect all active mission IDs across every project */
   const rows = (raw ?? []) as ExploreRow[];
-  const allActiveMissionIds = rows.flatMap((p) =>
+  const liveIds = rows.flatMap((p) =>
     (p.missions ?? [])
       .filter((m) => m.is_active !== false)
       .map((m) => m.id),
   );
+  // A paid cohort tester sees only missions the cohort may be paid for.
+  // Everyone else gets every live mission back.
+  const { data: { user } } = await supabase.auth.getUser();
+  const shown = await missionsForTester(user?.id, liveIds);
+  const allActiveMissionIds = liveIds.filter((id) => shown.has(id));
 
   /* Counts come from the public view so tester comments stay private */
   const feedbacksByMission: Record<string, number> = {};
@@ -47,7 +53,7 @@ export default async function ExploreProjectsPage() {
   const projects: ExploreProject[] = rows
     .map((p) => {
       const allMissions = p.missions ?? [];
-      const active = allMissions.filter((m) => m.is_active !== false);
+      const active = allMissions.filter((m) => m.is_active !== false && shown.has(m.id));
       const missionCount  = active.length;
       const feedbackCount = active.reduce(
         (sum, m) => sum + (feedbacksByMission[m.id] ?? 0),

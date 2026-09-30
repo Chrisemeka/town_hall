@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { missionsForTester } from "@/lib/cohortDb"
 import { notFound } from "next/navigation"
 import type { MissionRow, ProjectRow } from "@/lib/types/db"
 
@@ -32,7 +33,11 @@ export default async function ProjectMissionsPage({
   const row = project as ProjectWithMissions | null
   if (!row || row.flagged_at) notFound()
 
-  const missions = (row.missions ?? []).filter((m) => m.is_active !== false)
+  const live = (row.missions ?? []).filter((m) => m.is_active !== false)
+  // A paid cohort tester sees only missions the cohort may be paid for.
+  const { data: { user } } = await supabase.auth.getUser()
+  const shown = await missionsForTester(user?.id, live.map((m) => m.id))
+  const missions = live.filter((m) => shown.has(m.id))
   const missionIds = missions.map((m) => m.id)
   const countByMission: Record<string, number> = {}
   if (missionIds.length > 0) {
