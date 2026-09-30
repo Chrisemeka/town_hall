@@ -9,10 +9,14 @@ import { Download } from "lucide-react"
  * Above Danger Zone on purpose: both are operations on your own data, and
  * export-then-delete is the familiar pairing.
  *
- * A link rather than a form submit — the route is a GET, the browser handles
- * the download from Content-Disposition, and a link keeps open-in-new-tab and
- * "save link as" working. The scope is a query parameter on that link, so
- * there is no state to submit.
+ * A link rather than a form submit — the route is a GET, and a link keeps
+ * open-in-new-tab and "save link as" working. The scope is a query parameter
+ * on that link, so there is no state to submit.
+ *
+ * A plain click fetches instead of navigating, so a refusal (the rate limit's
+ * 429, or a failed build) can be said here in the app's own alert rather than
+ * as the browser's failed-download notice. The route's plain-text body is the
+ * message; it never states the limit.
  */
 export function ExportPanel({
   projects,
@@ -23,6 +27,34 @@ export function ExportPanel({
   hasFeedback: boolean
 }) {
   const [scope, setScope] = useState("all")
+  const [error, setError] = useState<string | null>(null)
+  const href = `/api/export/feedback?project=${encodeURIComponent(scope)}`
+
+  async function download(e: React.MouseEvent<HTMLAnchorElement>) {
+    // Modified clicks keep the link's own behaviour (new tab, save as).
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    setError(null)
+    const res = await fetch(href)
+    // requireAccount() redirected (session gone, role unverified): go where it said.
+    if (res.redirected) {
+      window.location.href = res.url
+      return
+    }
+    if (!res.ok) {
+      setError((await res.text()) || "Could not build the export.")
+      return
+    }
+    const name =
+      /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ??
+      "twnhall-feedback.csv"
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement("a")
+    a.href = url
+    a.download = name
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div>
@@ -70,7 +102,8 @@ export function ExportPanel({
             </div>
 
             <a
-              href={`/api/export/feedback?project=${encodeURIComponent(scope)}`}
+              href={href}
+              onClick={download}
               download
               className="h-10 px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
             >
@@ -78,6 +111,12 @@ export function ExportPanel({
               Download CSV
             </a>
           </div>
+
+          {error && (
+            <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mt-4">
+              {error}
+            </p>
+          )}
 
           <p className="font-mono text-[12px] text-ink-muted mt-4 leading-5">
             Includes each tester&apos;s display name. It never includes email
