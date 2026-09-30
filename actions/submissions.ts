@@ -9,6 +9,8 @@ import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import { getActiveAccount } from "@/lib/auth"
 import { reportLanded } from "@/lib/allowanceDb"
+import { checkRateLimit } from "@/lib/rateLimitDb"
+import { tooManyMessage } from "@/lib/rateLimit"
 import {
   auditLogSchemaFor,
   storedTestStepsSchema,
@@ -151,6 +153,17 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
         error: step ? `Step ${step}: ${issue.message}` : issue.message,
       }
     }
+
+    // The abuse guard, not the allowance: nothing here reads the ledger. Fails
+    // closed — each submission fires a Gemini call and, from a cohort tester,
+    // a payable report. Checked last among the refusals and before the upload,
+    // so a refused report costs no storage and a mistake costs no attempt. It
+    // bounds uploads too: the only upload path is the one below, so screenshots
+    // are capped at this limit times MAX_SCREENSHOTS.
+    // ponytail: analysis rides on this limit because it runs in after(). When
+    // generation becomes builder-triggered it needs its own key.
+    const rate = await checkRateLimit(["submit:account", user.id])
+    if (!rate.ok) return { success: false, error: tooManyMessage(rate.retryAfter) }
 
     // Upload in parallel, preserving the tester's ordering in the result array.
     const publicUrls = await Promise.all(
