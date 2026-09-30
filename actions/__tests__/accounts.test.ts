@@ -9,11 +9,13 @@ vi.mock("next/headers", () => ({ cookies: vi.fn() }))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ accountRowsFor: vi.fn() }))
+vi.mock("@/lib/allowanceDb", () => ({ grantSignup: vi.fn() }))
 
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { accountRowsFor } from "@/lib/auth"
+import { grantSignup } from "@/lib/allowanceDb"
 import { createAccount, switchAccount } from "@/actions/accounts"
 import type { AccountType } from "@/lib/access"
 
@@ -22,12 +24,19 @@ const VERIFIED_AT = "2026-08-16T10:00:00.000Z"
 
 type Row = { type: AccountType; verification_completed_at: string | null }
 
-function given(opts: { user?: boolean; rows?: Row[]; upsertError?: { message: string } }) {
+function given(opts: { user?: boolean; rows?: Row[]; upsertError?: { message: string }; created?: boolean }) {
   vi.mocked(createClient).mockResolvedValue({
     auth: { getUser: async () => ({ data: { user: opts.user === false ? null : { id: USER_ID } } }) },
   } as unknown as Awaited<ReturnType<typeof createClient>>)
 
-  const upsert = vi.fn(async () => ({ error: opts.upsertError ?? null }))
+  // upsert(...).select("id") — the returned rows are what was inserted, so an
+  // account that already existed comes back empty.
+  const upsert = vi.fn(() => ({
+    select: async () => ({
+      data: opts.created ? [{ id: "acct-new" }] : [],
+      error: opts.upsertError ?? null,
+    }),
+  }))
   vi.mocked(createAdminClient).mockReturnValue({
     from: () => ({ upsert }),
   } as unknown as ReturnType<typeof createAdminClient>)
@@ -70,6 +79,18 @@ describe("createAccount", () => {
     const { set } = given({ upsertError: { message: "boom" } })
     await expect(createAccount("builder")).rejects.toThrow("Could not create that account")
     expect(set).not.toHaveBeenCalled()
+  })
+
+  it("grants the signup reports when the account is new", async () => {
+    given({ created: true, rows: [{ type: "builder", verification_completed_at: null }] })
+    await expect(createAccount("builder")).rejects.toThrow("REDIRECT:/verify/builder")
+    expect(grantSignup).toHaveBeenCalledWith(USER_ID, "acct-new")
+  })
+
+  it("does not ask for a grant when the account already existed", async () => {
+    given({ rows: [{ type: "tester", verification_completed_at: VERIFIED_AT }] })
+    await expect(createAccount("tester")).rejects.toThrow("REDIRECT:/explore")
+    expect(grantSignup).not.toHaveBeenCalled()
   })
 
   it("rejects an unknown type", async () => {

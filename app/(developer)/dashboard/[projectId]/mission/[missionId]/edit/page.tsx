@@ -6,6 +6,8 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EditMissionForm from "@/components/EditMissionForm";
+import { AllowanceNotice } from "@/components/missions/AllowanceNotice";
+import { reportBalance } from "@/lib/allowanceDb";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
 
 export const metadata = { title: "Edit Mission — Twnhall" };
@@ -86,6 +88,9 @@ export default async function EditMissionPage({
         initialTemplateId={mission.template_id ?? null}
         initialCategory={mission.category ?? ""}
         isActive={mission.is_active !== false}
+        allowance={
+          mission.is_active === false ? <AllowanceNotice view={await reportBalance(userId)} /> : null
+        }
       />
 
     </div>

@@ -11,6 +11,13 @@ vi.mock("@/lib/supabase/server", () => ({
 }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ getActiveAccount: vi.fn() }))
+// Only reportLanded is on the submission path. Anything that reads a balance
+// is mocked to throw, so a test fails if the path ever starts consulting one.
+vi.mock("@/lib/allowanceDb", () => ({
+  reportLanded: vi.fn(async () => {}),
+  reportBalance: vi.fn(async () => { throw new Error("submission read the allowance") }),
+  publishMission: vi.fn(async () => { throw new Error("submission touched publish") }),
+}))
 vi.mock("@/lib/ai", () => ({
   generateAnalysis: vi.fn(async () => ({
     text: "Looks solid.\nPOSITIVE",
@@ -28,6 +35,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getActiveAccount } from "@/lib/auth"
 import { generateAnalysis } from "@/lib/ai"
+import { reportBalance, reportLanded } from "@/lib/allowanceDb"
 
 const TESTER_ID = "11111111-1111-4111-8111-111111111111"
 const OWNER_ID = "22222222-2222-4222-8222-222222222222"
@@ -315,6 +323,25 @@ describe("submitTestResult", () => {
     const result = await submitTestResult(formData())
 
     expect(result.success).toBe(false)
+    expect(reportLanded).not.toHaveBeenCalled()
+  })
+})
+
+describe("submitTestResult and the allowance", () => {
+  it("credits the tester after the submission is written", async () => {
+    mocks()
+    const result = await submitTestResult(formData())
+    expect(result.success).toBe(true)
+    expect(reportLanded).toHaveBeenCalledWith(RESULT_ID)
+  })
+
+  it("succeeds with the builder at zero balance — nothing on this path reads one", async () => {
+    // The mission was published; the tester's work is owed. reportBalance is
+    // mocked to throw, so any read of the allowance here would fail the test.
+    mocks()
+    const result = await submitTestResult(formData())
+    expect(result.success).toBe(true)
+    expect(reportBalance).not.toHaveBeenCalled()
   })
 })
 

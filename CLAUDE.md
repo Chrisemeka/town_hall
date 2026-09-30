@@ -36,6 +36,9 @@ lib/
   access.ts           accessFor() — the single pure function for route permissions
   ai.ts               Gemini client + the analysis prompt
   aiUsage.ts          Shadow metering — dated rate map, cost, recordAiUsage()
+  allowance.ts        The report allowance arithmetic — pure, the only definition
+  allowanceDb.ts      The ledger's reads and compare-and-append RPC calls
+  plans.ts            Tier content and numbers — /pricing and /settings read it
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
   theme.ts            readTheme() — the public theme cookie, resolved in one place
@@ -51,7 +54,7 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Seven live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Eight live tables. Concepts match the UI except "feedback" — the table is `test_results`.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
@@ -61,15 +64,17 @@ profiles ──┬── accounts        one identity, two roles (builder + test
 missions ───────────┘  └── test_result_entries   one row per test-case step
 
 ai_usage_events   one row per AI analysis — a cost record, linked loosely
+report_ledger     the report allowance, append-only — per profile
 ```
 
 | Table          | Key columns |
 |----------------|-------------|
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
-| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable, nothing enforces it**). Unique on `(user_id, type)`. |
+| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable; null is Community; read at publish**). Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`\|`changes_requested`), `rating`, `review_note`, `reviewed_at` |
+| `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
 | `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**) |
 | `ai_usage_events` | `id`, `test_result_id` → `test_results.id` (**set null**, not cascade), `project_id`, `profile_id` (project owner; both denormalised, no FK), `model`, `input_tokens`, `output_tokens`, `image_count`, `estimated_cost_usd` (numeric, **computed at write time**), `status` (`succeeded`\|`failed`), `error`. **Service role only** — RLS on, no policies. |
 
@@ -132,18 +137,55 @@ audit log and carry only this. Every surface that renders a submission must hand
 `components/submissions/SubmissionBody.tsx` is the one place that branches, don't add a ninth
 conditional elsewhere.
 
-**`accounts.plan_id` records a plan; it does not enforce one.** Nullable, and
+**`accounts.plan_id` decides the allowance, read at publish.** Nullable, and
 null means Community — "has not been assigned a plan" and "is on the free plan"
 are the same fact, so existing rows are deliberately not backfilled. No CHECK
 constraint: `PLAN_IDS` in `lib/vocabulary.ts` and `planIdSchema` are the
-vocabulary, same as everything else. **Nothing in the app reads it to block
-anything** — there is no report counter, no per-mission tester ceiling and no
-active-mission limit, and tier enforcement is separate work with its own
-sequencing. `lib/plans.ts` holds the tier content, from
+vocabulary, same as everything else; read it through `planIdFor()`, never raw.
+The `20260924_01` migration comment saying nothing enforces it is history — the
+migration is applied and stays untouched; this paragraph supersedes it.
+`lib/plans.ts` holds the tier content, from
 `docs/Twnhall_Cohort_Compensation_Model.md` §7–§8, and `/pricing` reads its
 numbers from it, so the two cannot disagree. The
 only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
 manual upgrade path because there is no checkout.
+
+**The report allowance is a ledger, spent at publish, never at submission.**
+`submitTestResult` is a one-shot post — nothing represents a report in
+progress — so refusing a submission for want of balance would destroy work a
+tester has already done. Instead publishing a mission reserves its slots
+(`missions.testers_needed`) and closing it returns what went unused. **A
+submission is never refused by the allowance, at any balance, and nothing on
+the tester's path reads it.** Do not add a draft or claim state to change that;
+it is the invitation model, deferred by decision.
+
+- **The arithmetic is `lib/allowance.ts`, pure and import-free, and nowhere
+  else.** Three pools: monthly (from the plan, derived — never stored, never
+  reset by a job), the one-time grant, earned (+1 per report written, one per
+  tester per mission). Spend order monthly → grant → earned; release is the
+  reverse. A reservation spanning pools writes one row per pool.
+- **The database only refuses stale work.** `publish_mission` and
+  `close_mission` take the ledger row count the caller computed against and
+  answer `stale` if it moved — rows are only appended, so the count is a
+  version. `lib/allowanceDb.ts` re-reads and retries. Do not move the
+  arithmetic into plpgsql; that is two definitions.
+- **Capped, not refused.** A partial balance opens a smaller mission and says
+  so; only zero (or the active-mission limit) refuses, and the mission stays a
+  draft. The notice lives in `components/missions/AllowanceNotice.tsx`, beside
+  the publish button — the one place a balance is shown.
+- **A mission closes itself when full** (`report_landed`, after the
+  submission commits). Missions live before the ledger hold nothing, never
+  self-close, and release nothing.
+- **Per profile, not per account**, and `account_id` is `set null`, not
+  cascade: credits are earned on the tester side and spent on the builder side,
+  and deleting an account must not delete the grant row (it would re-trigger)
+  or a reservation (the cohort is paid against them). Grant-once and
+  credit-once are unique indexes.
+- **The month is Africa/Lagos** (`monthOf()`), and a monthly release returns to
+  the month it was reserved in, expiring with it.
+- **Missed credits are visible, not silent.** `reportLanded` and `grantSignup`
+  never throw and log `[allowance] missed credit`; `/admin` shows "Uncredited
+  reports", which is healthy at zero.
 
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
@@ -320,6 +362,8 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
   default does **not** fire for an explicit `NULL`. Any optional field added to the entry payload
   needs the same treatment, and the `revoke`/`grant` lines restated with it — never assume they
   survived a `create or replace`.
+- **`publish_mission`, `close_mission`, `report_landed`, `reports_without_credit`**
+  — the allowance (`20260930_01`). Compare-and-append, same grants as above.
 - `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments
   were removed from the product entirely. Named here only because the pattern they used is the one
   to follow; nothing in Twnhall moves money.
@@ -426,15 +470,12 @@ Canonical reference: `Test.md`. Every feature ships with:
 
 ## Do Not Touch
 
-- **The pricing page's honesty.** `/pricing` describes tiers that **no code
-  enforces** — there is no report counter, no per-mission tester ceiling, no
-  active-mission limit. That is the monetisation plan's Phase 2 on purpose, and
-  it binds the page: it describes the shape of the offer, never the state of an
-  account (no "you're on Community", no usage meter), the Pro call to action
-  opens a conversation at `/contact` and is never a Subscribe or Upgrade
-  button, and nothing unshipped is listed. When tier enforcement lands, the
-  page changes with it — until then, do not add a control implying a
-  transaction that does not exist.
+- **The pricing page's honesty.** The tiers are enforced at publish, but there
+  is still no payment, and that binds the page: it describes the shape of the
+  offer, never the state of an account (no "you're on Community", no usage
+  meter), the Pro call to action opens a conversation at `/contact` and is
+  never a Subscribe or Upgrade button, and nothing unshipped is listed. Do not
+  add a control implying a transaction that does not exist.
 - **What leaves in a CSV.** `app/api/export/feedback` includes a tester's
   display name, because the builder already sees it in the app. It must never
   include **email addresses**, user ids or avatar URLs — a downloaded file is
@@ -448,9 +489,10 @@ Canonical reference: `Test.md`. Every feature ships with:
   the other tier includes, and that is all: **no usage meter, no "3 of 5
   reports used", no renewal date, no Subscribe or Upgrade control.** It sits
   inside an account, so anything resembling a control reads as "change my
-  plan" rather than "read about plans", and a meter reading zero would be a
-  lie about a limit nothing enforces. The call to action is `/contact`.
-- **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a balance, or a `paid` state without that being the explicit ask.
+  plan" rather than "read about plans". The balance is shown where it is
+  spent, beside the publish button, and nowhere here. The call to action is
+  `/contact`.
+- **Payments** — Twnhall has none, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing here is reciprocal and unpaid. Do not reintroduce a payout field, a money balance, or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.)
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).

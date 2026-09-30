@@ -24,11 +24,10 @@ export const metadata: Metadata = {
  * tiers from docs/Twnhall_Cohort_Compensation_Model.md §7 and §8. The tier
  * numbers are read from lib/plans.ts, the same source /settings renders.
  *
- * NOTHING ON THIS PAGE IS ENFORCED IN CODE YET — until `feat/report-allowance`
- * lands. There is no report counter, no per-mission tester ceiling and no
- * active-mission limit. That is deliberate (it is
- * the plan's Phase 2: ration honestly, no payment, the upgrade button opens a
- * conversation) and it binds this page in three ways:
+ * The report, tester-per-mission and active-mission numbers are enforced at
+ * publish (lib/allowance.ts). There is still no payment — rationing honestly,
+ * with the upgrade button opening a conversation — and that binds this page in
+ * three ways:
  *
  *   1. It describes the shape of the offer, never the state of an account.
  *      No "you're on Community", no usage meter, no upgrade toggle.

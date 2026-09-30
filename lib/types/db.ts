@@ -46,8 +46,23 @@ export type AccountRow = {
   type: string
   created_at: string
   verification_completed_at: string | null
-  /** null means Community. Display and admin override only — nothing enforces it. */
+  /** null means Community. Read by lib/allowanceDb.ts through planIdFor(). */
   plan_id: string | null
+}
+
+/** report_ledger — append-only. Arithmetic in lib/allowance.ts. */
+export type ReportLedgerRow = {
+  id: string
+  profile_id: string
+  account_id: string | null
+  mission_id: string | null
+  kind: string
+  bucket: string
+  /** Monthly bucket only: the Lagos month the slots belong to. */
+  period: string | null
+  /** Negative on a reserved row. */
+  slots: number
+  created_at: string
 }
 
 export type ProjectRow = {

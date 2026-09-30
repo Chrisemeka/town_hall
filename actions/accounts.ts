@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { accountRowsFor } from "@/lib/auth"
+import { grantSignup } from "@/lib/allowanceDb"
 import { ACCOUNT_COOKIE, landingFor, type AccountType } from "@/lib/access"
 
 const VALID: AccountType[] = ["builder", "tester"]
@@ -37,14 +38,20 @@ export async function createAccount(type: AccountType) {
   if (!user) redirect("/")
 
   const admin = createAdminClient()
-  const { error } = await admin
+  const { data: created, error } = await admin
     .from("accounts")
     .upsert({ user_id: user.id, type }, { onConflict: "user_id,type", ignoreDuplicates: true })
+    .select("id")
 
   if (error) {
     console.error("[createAccount] insert failed:", error.message)
     throw new Error("Could not create that account. Please try again.")
   }
+
+  // The signup grant, once per profile. `created` is empty when the account
+  // already existed; when it is new, the unique index on report_ledger still
+  // refuses a second grant — a person's second account, or one re-created.
+  if (created?.[0]) await grantSignup(user.id, created[0].id as string)
 
   // Read back rather than assumed unverified: picking a type already held and
   // verified is a switch, and belongs at home.

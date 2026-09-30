@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache"
 import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import { getActiveAccount } from "@/lib/auth"
+import { reportLanded } from "@/lib/allowanceDb"
 import {
   auditLogSchemaFor,
   storedTestStepsSchema,
@@ -168,6 +169,12 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       console.error("[submitTestResult] submit_audit_log failed:", dbError)
       return { success: false, error: "Failed to save your feedback. Please try again." }
     }
+
+    // The submission is committed. The tester's earned credit, and the mission
+    // closing itself once full, happen after it and cannot undo it:
+    // reportLanded never throws. Nothing before this point reads the allowance —
+    // a submission is never refused by it, at any balance.
+    await reportLanded(resultId)
     // Read the screenshot bytes now (while the in-memory Files are in scope) so
     // the analysis can inline them instead of refetching the public URLs.
     const images = await Promise.all(

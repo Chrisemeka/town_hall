@@ -13,8 +13,10 @@ vi.mock("@/lib/auth", () => ({
 }))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+vi.mock("@/lib/allowanceDb", () => ({ publishMission: vi.fn(), closeMission: vi.fn() }))
 
-import { createMission, updateMission } from "@/actions/missions"
+import { createMission, toggleMissionStatus, updateMission } from "@/actions/missions"
+import { closeMission, publishMission } from "@/lib/allowanceDb"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -107,6 +109,7 @@ beforeEach(() => {
   signedIn()
   vi.mocked(requireAccount).mockResolvedValue({ userId: USER_ID })
   vi.mocked(requireProjectOwner).mockResolvedValue(undefined)
+  vi.mocked(publishMission).mockResolvedValue({ status: "published", slots: 5, requested: 5 })
 })
 
 describe("createMission", () => {
@@ -312,11 +315,11 @@ describe("updateMission", () => {
     await expect(updateMission(null, formData())).rejects.toThrow(/NEXT_REDIRECT/)
 
     // project_id is not writable, and template_id is set once at creation —
-    // an edit must not rewrite where a mission came from.
+    // an edit must not rewrite where a mission came from. is_active is not
+    // writable either: going live spends the allowance, through publishMission.
     expect(Object.keys(writes[0].values).sort()).toEqual([
       "category",
       "device_target",
-      "is_active",
       "task_description",
       "test_steps",
       "title",
@@ -334,11 +337,79 @@ describe("updateMission", () => {
     expect(writes[0].values.task_description).toBe("")
   })
 
+  it("publishes a draft through the allowance, never by writing is_active", async () => {
+    fakeAdmin()
+    await expect(updateMission(null, formData())).rejects.toThrow(/NEXT_REDIRECT/)
+    expect(publishMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+  })
+
+  it("does not publish when saving a draft", async () => {
+    fakeAdmin()
+    await expect(updateMission(null, formData({ intent: "draft" }))).rejects.toThrow(/NEXT_REDIRECT/)
+    expect(publishMission).not.toHaveBeenCalled()
+  })
+
   it("scopes the write to the owned project as well as the mission", async () => {
     const writes = fakeAdmin()
 
     await expect(updateMission(null, formData())).rejects.toThrow(/NEXT_REDIRECT/)
 
     expect(writes[0].filters).toEqual({ id: MISSION_ID, project_id: PROJECT_ID })
+  })
+})
+
+describe("createMission — the allowance", () => {
+  it("always inserts a draft; going live is publishMission's job", async () => {
+    const writes = fakeAdmin()
+    await expect(createMission(null, formData())).rejects.toThrow(/NEXT_REDIRECT/)
+    expect(writes[0].values.is_active).toBe(false)
+    expect(publishMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+  })
+
+  it("does not publish a draft", async () => {
+    fakeAdmin()
+    await expect(createMission(null, formData({ intent: "draft" }))).rejects.toThrow(
+      `NEXT_REDIRECT:/dashboard/${PROJECT_ID}`,
+    )
+    expect(publishMission).not.toHaveBeenCalled()
+  })
+
+  it("lands a full publish on the project", async () => {
+    fakeAdmin()
+    await expect(createMission(null, formData())).rejects.toThrow(
+      new RegExp(`NEXT_REDIRECT:/dashboard/${PROJECT_ID}$`),
+    )
+  })
+
+  it("lands a capped publish on the mission, which says why", async () => {
+    fakeAdmin()
+    vi.mocked(publishMission).mockResolvedValue({ status: "published", slots: 3, requested: 5 })
+    await expect(createMission(null, formData())).rejects.toThrow(
+      `NEXT_REDIRECT:/dashboard/${PROJECT_ID}/mission/${MISSION_ID}`,
+    )
+  })
+
+  it("keeps the draft and lands on it when there is nothing to spend", async () => {
+    const writes = fakeAdmin()
+    vi.mocked(publishMission).mockResolvedValue({ status: "empty" })
+    await expect(createMission(null, formData())).rejects.toThrow(
+      `NEXT_REDIRECT:/dashboard/${PROJECT_ID}/mission/${MISSION_ID}`,
+    )
+    expect(writes).toHaveLength(1)
+  })
+})
+
+describe("toggleMissionStatus", () => {
+  it("reopens through publishMission and closes through closeMission", async () => {
+    await toggleMissionStatus(MISSION_ID, PROJECT_ID, true)
+    expect(publishMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+    await toggleMissionStatus(MISSION_ID, PROJECT_ID, false)
+    expect(closeMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+  })
+
+  it("refuses a project the caller does not own", async () => {
+    vi.mocked(requireProjectOwner).mockRejectedValue(new Error("Not authorized"))
+    await expect(toggleMissionStatus(MISSION_ID, PROJECT_ID, false)).rejects.toThrow("Not authorized")
+    expect(closeMission).not.toHaveBeenCalled()
   })
 })

@@ -19,9 +19,12 @@ import {
 export default function AddMissionForm({
   projectId,
   projectName,
+  allowance,
 }: {
   projectId: string
   projectName: string
+  /** What publishing will spend — rendered by the page, which can read the ledger. */
+  allowance?: React.ReactNode
 }) {
   const [state, formAction] = useActionState(createMission, null)
   const [title,       setTitle]       = useState("")
@@ -163,6 +166,7 @@ export default function AddMissionForm({
             Publishing puts this mission — and your project — on the Explore feed where testers
             pick it up. Drafts stay private, and a project with no published mission stays hidden.
           </p>
+          {allowance}
         </div>
 
       </form>

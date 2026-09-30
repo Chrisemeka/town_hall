@@ -41,10 +41,10 @@ export const metadata: Metadata = {
  * vocabulary strings still appear.
  *
  * One thing this guide must NOT say: that a builder chooses how many testers to
- * put on a mission. missions.testers_needed exists in the schema and the tester
- * page reads it, but neither createMission nor updateMission writes it — it has
- * been unused since the load-test migration. Section 6 below therefore explains
- * the five-tester rule as method and mission sizing, not as a field.
+ * put on a mission. They don't: publishing asks for the plan's five, capped by
+ * the report balance, and writes the result to missions.testers_needed.
+ * Section 6 below therefore explains the five-tester rule as method and mission
+ * sizing, not as a field.
  */
 
 const TEMPLATE_COUNT = TEST_TEMPLATES.length
