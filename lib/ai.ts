@@ -88,7 +88,9 @@ export const generateAnalysis = async (
   input: AnalysisInput,
   images: { data: Uint8Array; mediaType: string }[],
 ) => {
-  const { text } = await generateText({
+  // usage's fields are typed optional per provider (AI SDK 6 names:
+  // inputTokens/outputTokens) — recordAiUsage stores null for an absent one.
+  const { text, usage } = await generateText({
     model: townhallModel,
     messages: [
       {
@@ -106,7 +108,7 @@ export const generateAnalysis = async (
       },
     ],
   })
-  return { text }
+  return { text, usage, model: townhallModel.modelId }
 }
 
 export const parseSentiment = (analysis: string): "POSITIVE" | "NEUTRAL" | "FRUSTRATED" => {

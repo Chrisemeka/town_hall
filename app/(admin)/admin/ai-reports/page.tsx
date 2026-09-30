@@ -2,10 +2,10 @@ import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
 import { createAdminClient } from "@/lib/supabase/admin"
 import {
-  Sparkles, ShieldCheck, Smile, Frown, AlertTriangle, Meh,
+  Sparkles, ShieldCheck, Smile, Frown, AlertTriangle, Meh, CircleDollarSign, Gauge, Activity,
 } from "lucide-react"
 import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
-import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+import type { AiUsageEventRow, MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
 
 /** Exactly what the four selects below ask for. */
 type ResultLite = Pick<
@@ -15,6 +15,7 @@ type ResultLite = Pick<
 type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">
 type ProjectLite = Pick<ProjectRow, "id" | "name">
 type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
+type UsageLite = Pick<AiUsageEventRow, "status" | "estimated_cost_usd">
 
 export const metadata = { title: "AI Reports — Admin · Twnhall" }
 
@@ -49,6 +50,16 @@ function formatDateTime(iso: string) {
 }
 
 
+/** Nearest-rank percentile of an ascending array; null when empty. */
+function percentile(sorted: number[], p: number): number | null {
+  if (sorted.length === 0) return null
+  return sorted[Math.max(0, Math.ceil(p * sorted.length) - 1)]
+}
+
+function usd(n: number | null) {
+  return n === null ? "—" : `$${n.toFixed(4)}`
+}
+
 function normalizeSentiment(s: string | null): Sentiment {
   if (!s) return "UNKNOWN"
   const u = s.toUpperCase()
@@ -68,7 +79,13 @@ function sentimentStyle(s: Sentiment) {
 export default async function AdminAIReportsPage() {
   const admin = createAdminClient()
 
-  const [resultsRes, missionsRes, projectsRes, profilesRes] = await Promise.all([
+  // Async Server Component: renders once per request on the server, so
+  // reading the clock here is the intent.
+  const now = Date.now()
+  const today = new Date(now)
+  const monthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)).toISOString()
+
+  const [resultsRes, missionsRes, projectsRes, profilesRes, usageRes] = await Promise.all([
     admin
       .from("test_results")
       .select("id, mission_id, tester_id, tester_comment, ai_summary, ai_sentiment, created_at")
@@ -76,7 +93,20 @@ export default async function AdminAIReportsPage() {
     admin.from("missions").select("id, title, project_id"),
     admin.from("projects").select("id, name"),
     admin.from("profiles").select("id, full_name, email, avatar_url"),
+    // Cost record, not a quota ledger — read here only to be looked at.
+    admin.from("ai_usage_events").select("status, estimated_cost_usd").gte("created_at", monthStart),
   ])
+
+  const usage = (usageRes.data ?? []) as UsageLite[]
+  // numeric can arrive as a string from PostgREST; Number() covers both.
+  const costs = usage
+    .filter((u) => u.status === "succeeded" && u.estimated_cost_usd !== null)
+    .map((u) => Number(u.estimated_cost_usd))
+    .sort((a, b) => a - b)
+  const monthSpend = costs.reduce((sum, c) => sum + c, 0)
+  const monthAnalyses = usage.length
+  const monthFailed = usage.filter((u) => u.status === "failed").length
+  const failureRate = monthAnalyses > 0 ? `${Math.round((monthFailed / monthAnalyses) * 100)}%` : "—"
 
   const missionById = new Map(
     ((missionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, { title: m.title, projectId: m.project_id }]),
@@ -142,12 +172,6 @@ export default async function AdminAIReportsPage() {
   })
 
   // Reports per day for last 30 days
-  // Async Server Component: this renders once per request on the server, so
-  // reading the clock here is the intent, not a hazard. The rule guards client
-  // re-render determinism, which cannot apply to a component that never
-  // re-renders on the client.
-  // eslint-disable-next-line react-hooks/purity
-  const now = Date.now()
   const reportsByDay: SignupPoint[] = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(now - (29 - i) * ONE_DAY_MS)
     return { date: d.toISOString().slice(0, 10), count: 0 }
@@ -171,6 +195,17 @@ export default async function AdminAIReportsPage() {
       </h1>
       <p className="font-mono text-[14px] text-ink-muted mb-8">
         Monitor AI-generated summaries and sentiment classifications across every submission.
+      </p>
+
+      {/* AI cost, this month (UTC). Shadow metering: recorded, never enforced. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+        <KpiCard icon={CircleDollarSign} label="Spend this month" value={costs.length ? usd(monthSpend) : "—"} />
+        <KpiCard icon={Gauge}            label="Median / p95"     value={`${usd(percentile(costs, 0.5))} / ${usd(percentile(costs, 0.95))}`} />
+        <KpiCard icon={Activity}         label="Analyses this month" value={monthAnalyses} />
+        <KpiCard icon={AlertTriangle}    label="Failure rate"     value={failureRate} />
+      </div>
+      <p className="font-mono text-[12px] text-ink-muted mb-8">
+        Estimated from token counts at the rate on the day each analysis ran. Recorded since 29 Sep 2026 — earlier analyses have no cost data.
       </p>
 
       {/* KPIs */}
