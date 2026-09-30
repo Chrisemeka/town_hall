@@ -1,6 +1,6 @@
 # SPEC: Rate Limiting
 
-**Status:** Draft — awaiting approval
+**Status:** Implemented on `feat/rate-limiting` — migration not yet applied
 **Branch:** `feat/rate-limiting`
 **Base:** `main` (at `10ad1d1`)
 **Depends on:** Nothing.
@@ -307,7 +307,23 @@ TownHall_Checklist (1).xlsx
 docs/specs/SPEC-rate-limiting.md                          new
 ```
 
-## Open questions
+## Decisions taken at approval
+
+All four open questions went with the recommendation: the numbers as drafted,
+the callback redirects to `/login?error=rate_limited`, `ExportPanel` fetches,
+and `.env.example` documents only the kill switch.
+
+## Where the build differs from the draft
+
+- **Mission publish is checked before any write**, not just before
+  `publishMission()`: a limited create-and-publish creates no draft, so a
+  resend of the form cannot leave a duplicate. A limited Reactivate redirects
+  back to the mission page with `?limited=<seconds>`, which renders the message
+  above the allowance notice — a form action has no state to return.
+- **The submission check sits after the one-report-per-mission check**, so a
+  refused second report spends no attempt.
+
+## Open questions (resolved)
 
 1. **Numbers.** The tables in §2 are my picks. Submission at 10/hour is the
    one that touches paid cohort testers — raise it if a cohort tester could
