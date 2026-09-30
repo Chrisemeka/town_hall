@@ -93,8 +93,9 @@ function mocks(
     ownerId?: string
     steps?: unknown
     category?: string | null
-    rpcError?: { message: string }
+    rpcError?: { message: string; code?: string }
     meteringFails?: boolean
+    alreadySubmitted?: boolean
   } = {},
 ) {
   usageRows = []
@@ -128,21 +129,29 @@ function mocks(
         error: opts.rpcError ?? null,
       })
     },
-    from: (table: string) =>
-      table === "ai_usage_events"
-        ? {
-            insert: (row: Record<string, unknown>) => {
-              if (opts.meteringFails) throw new Error("relation does not exist")
-              usageRows.push(row)
-              return Promise.resolve({ error: null })
-            },
-          }
-        : {
-            update: (row: Record<string, unknown>) => {
-              summaryUpdates.push(row)
-              return { eq: () => Promise.resolve({ error: null }) }
-            },
+    from: (table: string) => {
+      if (table === "ai_usage_events") {
+        return {
+          insert: (row: Record<string, unknown>) => {
+            if (opts.meteringFails) throw new Error("relation does not exist")
+            usageRows.push(row)
+            return Promise.resolve({ error: null })
           },
+        }
+      }
+      // test_results: the earlier-report lookup, and the ai_summary update.
+      const existing = {
+        eq: () => existing,
+        limit: () => Promise.resolve({ data: opts.alreadySubmitted ? [{ id: "earlier" }] : [], error: null }),
+      }
+      return {
+        select: () => existing,
+        update: (row: Record<string, unknown>) => {
+          summaryUpdates.push(row)
+          return { eq: () => Promise.resolve({ error: null }) }
+        },
+      }
+    },
   } as unknown as ReturnType<typeof createAdminClient>)
 
   return rpcCalls
@@ -342,6 +351,27 @@ describe("submitTestResult and the allowance", () => {
     const result = await submitTestResult(formData())
     expect(result.success).toBe(true)
     expect(reportBalance).not.toHaveBeenCalled()
+  })
+})
+
+describe("submitTestResult — one report per tester per mission", () => {
+  it("refuses a second report before uploading anything", async () => {
+    const rpc = mocks({ alreadySubmitted: true })
+    const { uploadToStorage } = await import("@/lib/supabase/server")
+
+    const result = await submitTestResult(formData())
+
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("gives the same answer when the database catches a double tap", async () => {
+    mocks({ rpcError: { message: "already_submitted", code: "23505" } })
+
+    const result = await submitTestResult(formData())
+
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
   })
 })
 
