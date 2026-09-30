@@ -1,6 +1,8 @@
+import { timingSafeEqual } from "node:crypto"
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendFeedbackNotification } from "@/lib/mail"
+import { checkRateLimit, clientIp, tooManyResponse } from "@/lib/rateLimitDb"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -27,15 +29,27 @@ function truncate(input: string, max = 240): string {
   return s.slice(0, max - 1).trimEnd() + "…"
 }
 
+/** Constant-time, so response timing does not reveal how much of a guess matched. */
+function secretMatches(presented: string | null, expected: string): boolean {
+  if (!presented) return false
+  const a = Buffer.from(presented)
+  const b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
 export async function POST(req: Request) {
+  // Unauthenticated by nature, so keyed on IP. Generous: the legitimate caller
+  // is Supabase itself, and this caps a flood rather than metering submissions.
+  const rate = await checkRateLimit(["webhook:ip", clientIp(req.headers)])
+  if (!rate.ok) return tooManyResponse(rate.retryAfter)
+
   const expected = process.env.WEBHOOK_SECRET
   if (!expected) {
     console.error("[webhook/submission] WEBHOOK_SECRET not configured")
     return NextResponse.json({ error: "Server misconfigured" }, { status: 500 })
   }
 
-  const presented = req.headers.get("x-webhook-secret")
-  if (!presented || presented !== expected) {
+  if (!secretMatches(req.headers.get("x-webhook-secret"), expected)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

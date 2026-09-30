@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 // either here would make this route a way around them.
 import { requireAccount } from "@/lib/auth"
 import { CSV_BOM, toCsv } from "@/lib/csv"
+import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
 
 /*
@@ -89,6 +90,11 @@ export async function GET(request: Request) {
   // Next turns that into a 307, which is the right answer for a link a
   // browser follows.
   const { userId } = await requireAccount("builder")
+
+  // Tier 2 at an API path: an expensive query and a bulk-exfiltration path on
+  // a stolen session. Keyed on the account, fails closed.
+  const rate = await checkRateLimit(["export:account", userId])
+  if (!rate.ok) return tooManyResponse(rate.retryAfter)
 
   const scope = new URL(request.url).searchParams.get("project") ?? "all"
   const admin = createAdminClient()
