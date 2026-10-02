@@ -81,6 +81,9 @@ export default function AuditLogForm({
       if (!saved) return
       const parsed = JSON.parse(saved) as DraftEntry[]
       const byStep = new Map(parsed.map((e) => [e.step_id, e]))
+      // The form is mounted only once unlocked; a restored draft behind the
+      // "Open Project" button reads as a lost one.
+      if (draftStarted(parsed)) setUnlocked(true)
       setEntries((current) =>
         current.map((entry) => {
           const restored = byStep.get(entry.step_id)
@@ -98,7 +101,14 @@ export default function AuditLogForm({
   useEffect(() => {
     if (!hasSteps || isSuccess) return
     try {
-      window.localStorage.setItem(draftKey(missionId), JSON.stringify(entries))
+      // Only a started draft is written. On mount this runs before the restore
+      // above has landed, and writing the blank initial entries let Strict
+      // Mode's second restore read them back over the real draft.
+      if (draftStarted(entries)) {
+        window.localStorage.setItem(draftKey(missionId), JSON.stringify(entries))
+      } else {
+        window.localStorage.removeItem(draftKey(missionId))
+      }
     } catch {
       // Private browsing, or storage full. Losing the draft is survivable;
       // failing the form over it is not.
@@ -518,6 +528,11 @@ export default function AuditLogForm({
 /** Whether the tester has answered anything yet. */
 function draftStarted(entries: DraftEntry[]): boolean {
   return entries.some(
-    (e) => e.status !== "" || e.actual_result.trim() !== "" || e.issue_summary.trim() !== "",
+    // Optional chaining: this also reads drafts saved by older builds of the form.
+    (e) =>
+      !!e.status ||
+      !!e.actual_result?.trim() ||
+      !!e.issue_summary?.trim() ||
+      !!e.steps_to_reproduce?.trim(),
   )
 }
