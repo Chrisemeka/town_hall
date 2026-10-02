@@ -49,30 +49,19 @@ describe("auditEntrySchema by status", () => {
     expect(auditEntrySchema.safeParse(rest).success).toBe(true)
   })
 
-  it("ENT-02 rejects a failure with no actual_result", () => {
-    const parsed = auditEntrySchema.safeParse(
-      payload(draft({
-        status: "fail",
-        actual_result: "",
-        issue_summary: "Nothing happened",
-        steps_to_reproduce: "1. Click submit",
-      })),
-    )
-    expect(parsed.success).toBe(false)
-    expect(parsed.error?.issues.map((i) => i.path.join("."))).toContain("actual_result")
-  })
-
-  it("ENT-03 rejects a blocked step with no actual_result", () => {
-    const parsed = auditEntrySchema.safeParse(
-      payload(draft({
-        status: "blocked",
-        actual_result: "",
-        issue_summary: "Blocked by step 2",
-        steps_to_reproduce: "1. Try step 2",
-      })),
-    )
-    expect(parsed.success).toBe(false)
-    expect(parsed.error?.issues.map((i) => i.path.join("."))).toContain("actual_result")
+  it("ENT-02 accepts a fail or blocked step with no actual_result", () => {
+    // The summary carries it — the two fields asked for the same thing.
+    for (const status of ["fail", "blocked"] as const) {
+      const parsed = auditEntrySchema.safeParse(
+        payload(draft({
+          status,
+          actual_result: "",
+          issue_summary: "Nothing happened",
+          steps_to_reproduce: "1. Click submit",
+        })),
+      )
+      expect(parsed.success, `${status} was rejected`).toBe(true)
+    }
   })
 
   it("ENT-04 rejects a blocked step with no issue_summary", () => {
@@ -139,7 +128,7 @@ describe("auditEntrySchema by status", () => {
   })
 
   it("every refine names its own field, so the focus hook can reach it", () => {
-    const parsed = auditEntrySchema.safeParse(payload(draft({ status: "blocked", actual_result: "" })))
+    const parsed = auditEntrySchema.safeParse(payload(draft({ status: "blocked", issue_summary: "", steps_to_reproduce: "" })))
     expect(parsed.success).toBe(false)
     for (const issue of parsed.error!.issues) {
       expect(issue.path.length, `an issue with no path: ${issue.message}`).toBeGreaterThan(0)

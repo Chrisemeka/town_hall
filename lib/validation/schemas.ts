@@ -286,10 +286,10 @@ export const auditEntrySchema = z
     step_action: z.string().trim().min(1).max(STEP_ACTION_MAX),
     step_expected: z.string().trim().min(1).max(STEP_EXPECTED_MAX),
     status: z.enum(ENTRY_STATUSES, { message: "Mark this step pass, fail, or blocked." }),
-    // Asked of a failure and of a blocked step, not of a pass — see the
-    // refines below. A passing step has already said what happened, in
-    // expected_result, and asking twice is how the column fills with "as
-    // expected".
+    // Not asked of any status outside ui_design: on a fail or blocked step it
+    // asked for the same thing as issue_summary, and testers wrote it twice.
+    // Still accepted, since ui_design requires it (auditLogSchemaFor) and older
+    // drafts carry it.
     actual_result: z
       .string()
       .trim()
@@ -310,10 +310,6 @@ export const auditEntrySchema = z
   // with nothing they could act on.
   //
   // Every path is set so the focus hook can move the tester to the field.
-  .refine((e) => e.status === "pass" || !!e.actual_result?.trim(), {
-    message: "Say what actually happened.",
-    path: ["actual_result"],
-  })
   .refine((e) => e.status === "pass" || !!e.issue_summary?.trim(), {
     message: "Summarise the issue.",
     path: ["issue_summary"],

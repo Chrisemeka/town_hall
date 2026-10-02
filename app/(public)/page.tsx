@@ -25,7 +25,6 @@ const TEMPLATE = TEST_TEMPLATES.find((t) => t.id === "auth-flow")!;
 
 type LogEntry = {
   status: EntryStatus;
-  actual_result?: string;
   issue_summary?: string;
   steps_to_reproduce?: string;
 };
@@ -37,20 +36,17 @@ const LOG: LogEntry[] = [
   { status: "pass" },
   {
     status: "fail",
-    actual_result: "No email arrived. Waited ten minutes and checked spam.",
     issue_summary: "Verification email never sends on signup",
     steps_to_reproduce:
       "1. Sign up with a new address. 2. Wait on the confirm screen. 3. Nothing arrives, and Resend does nothing either.",
   },
   {
     status: "blocked",
-    actual_result: "Sign-in refuses the account — it is still unverified.",
     issue_summary: "Cannot reach the signed-in app at all",
     steps_to_reproduce: "1. Finish step 2. 2. Sign out. 3. Sign in with the same details.",
   },
   {
     status: "blocked",
-    actual_result: "Never reached a signed-in state to test this from.",
     issue_summary: "Blocked by the same missing email as step 3",
     steps_to_reproduce: "1. As step 4 — sign-in is refused before a wrong password can be tried.",
   },
@@ -285,7 +281,6 @@ export default function LandingPage() {
                         result, already on the row. */}
                     {entry.status !== "pass" && (
                       <div className="flex flex-col gap-4 pl-0 sm:pl-9">
-                        <Answer label="What happened">{entry.actual_result}</Answer>
                         <Answer label="The issue">{entry.issue_summary}</Answer>
                         <Answer label="To reproduce">
                           {entry.steps_to_reproduce}

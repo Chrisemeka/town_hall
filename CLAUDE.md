@@ -106,7 +106,9 @@ directly below it.
 `lib/validation/schemas.ts`, and mirrored by `firstIncompleteEntry` in
 `components/tester/AuditLogSteps.tsx`. A **pass** owes nothing but its status — what it confirms is
 the builder's `step_expected`, already snapshotted on the row. A **fail** and a **blocked** step owe
-`actual_result`, `issue_summary` and `steps_to_reproduce`; blocked is not a lighter kind of failure,
+`issue_summary` and `steps_to_reproduce` — not `actual_result`, which asked for what the summary
+already says and was dropped from the form (`ui_design` still asks it, below; older rows keep
+theirs, and every reader already omits it when empty). Blocked is not a lighter kind of failure,
 and collecting nothing for it meant the one status meaning "something stopped me" reached the
 builder with nothing actionable. If you change either definition, change both —
 `lib/validation/__tests__/auditEntry.test.ts` crosses every combination and will tell you.
