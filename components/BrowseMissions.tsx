@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import Link from "next/link"
 import { Search, ArrowRight } from "lucide-react"
+import { MissionChips } from "@/components/missions/TestCaseView"
 
 /** How many cards a page shows, and how many each "Load more" adds. */
 const PAGE_SIZE = 6
@@ -11,6 +12,8 @@ export type BrowseMission = {
   id: string
   title: string
   created_at: string
+  category: string | null
+  deviceTarget: string | null
   projectId: string
   projectName: string
   projectHandle: string
@@ -128,6 +131,12 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                   <p className="font-syne font-bold text-[18px] text-ink leading-6 truncate">
                     {mission.title}
                   </p>
+
+                  <MissionChips
+                    category={mission.category}
+                    deviceTarget={mission.deviceTarget}
+                    className="mt-2"
+                  />
 
                   {/* Feedback count */}
                   {mission.feedbackCount > 0 && (

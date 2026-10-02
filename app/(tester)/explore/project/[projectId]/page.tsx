@@ -8,10 +8,11 @@ type ProjectWithMissions = Pick<
   ProjectRow,
   "id" | "name" | "description" | "app_url" | "flagged_at"
 > & {
-  missions: Pick<MissionRow, "id" | "title" | "is_active" | "created_at">[] | null
+  missions: Pick<MissionRow, "id" | "title" | "is_active" | "created_at" | "category" | "device_target">[] | null
 }
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { MissionChips } from "@/components/missions/TestCaseView"
 
 export default async function ProjectMissionsPage({
   params,
@@ -25,7 +26,7 @@ export default async function ProjectMissionsPage({
     .from("projects")
     .select(`
       id, name, description, app_url, flagged_at,
-      missions (id, title, is_active, created_at)
+      missions (id, title, is_active, created_at, category, device_target)
     `)
     .eq("id", projectId)
     .single()
@@ -115,6 +116,11 @@ export default async function ProjectMissionsPage({
                 <p className="font-syne font-bold text-[18px] text-ink leading-6 truncate mt-1">
                   {mission.title}
                 </p>
+                <MissionChips
+                  category={mission.category}
+                  deviceTarget={mission.device_target}
+                  className="mt-2"
+                />
                 {feedbackCount > 0 && (
                   <p className="font-mono text-[12px] text-ink-muted mt-1">
                     {feedbackCount} feedback{feedbackCount !== 1 ? "s" : ""}
