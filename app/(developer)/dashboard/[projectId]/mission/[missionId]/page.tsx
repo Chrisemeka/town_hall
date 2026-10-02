@@ -148,6 +148,19 @@ export default async function DeveloperMissionDetailPage({
         </div>
       </div>
 
+      {/* Why this is still a draft, above the fold: below the test case it
+          went unseen, and a refused publish is the first thing to know. */}
+      {!isActive && (
+        <div className="mb-8 max-w-3xl">
+          {limited > 0 && (
+            <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mb-4">
+              {tooManyMessage(limited)}
+            </p>
+          )}
+          <AllowanceNotice view={allowance} />
+        </div>
+      )}
+
       {/* Mission header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
@@ -182,19 +195,8 @@ export default async function DeveloperMissionDetailPage({
           <TestCaseView steps={mission.test_steps} />
         </div>
 
-        {isActive ? (
-          mission.testers_needed != null && (
-            <CappedNotice testers={mission.testers_needed} max={allowance.testersPerMission} />
-          )
-        ) : (
-          <div className="mt-6 max-w-3xl">
-            {limited > 0 && (
-              <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mb-4">
-                {tooManyMessage(limited)}
-              </p>
-            )}
-            <AllowanceNotice view={allowance} />
-          </div>
+        {isActive && mission.testers_needed != null && (
+          <CappedNotice testers={mission.testers_needed} max={allowance.testersPerMission} />
         )}
       </div>
 

@@ -50,7 +50,17 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
     body = <>You have {total} reports available. Publishing opens this mission to {testersPerMission} testers.</>
   }
 
-  return <p className="font-mono text-[12px] text-ink leading-5">{body}</p>
+  // Empty or at the limit means publishing is refused, so it reads as an
+  // error; a capped or full balance is information.
+  const refused = total === 0 || activeMissions >= activeLimit
+  return (
+    <p
+      role={refused ? "alert" : undefined}
+      className={`font-mono text-[12px] leading-5 ${refused ? "text-danger-ink" : "text-ink"}`}
+    >
+      {body}
+    </p>
+  )
 }
 
 /**
