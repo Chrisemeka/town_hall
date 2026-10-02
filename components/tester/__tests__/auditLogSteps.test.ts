@@ -64,11 +64,8 @@ describe("firstIncompleteEntry", () => {
     // nothing to act on.
     expect(firstIncompleteEntry([entry({ status: "blocked", actual_result: "" })])).toEqual({
       index: 0,
-      field: "actual_result",
+      field: "issue_summary",
     })
-    expect(
-      firstIncompleteEntry([entry({ status: "blocked", actual_result: "Could not reach it" })]),
-    ).toEqual({ index: 0, field: "issue_summary" })
     expect(
       firstIncompleteEntry([
         entry({ status: "blocked", actual_result: "Could not reach it", issue_summary: "Step 2" }),
@@ -89,8 +86,8 @@ describe("firstIncompleteEntry", () => {
 
   it("does not accept whitespace as an answer", () => {
     expect(
-      firstIncompleteEntry([entry({ status: "fail", actual_result: "   " })]),
-    ).toEqual({ index: 0, field: "actual_result" })
+      firstIncompleteEntry([entry({ status: "fail", issue_summary: "   " })]),
+    ).toEqual({ index: 0, field: "issue_summary" })
   })
 
   it("AUD-23 treats a pass as complete once its status is set", () => {

@@ -2,11 +2,21 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CHOOSE_ACCOUNT_PATH, homeFor, type AccountType } from '@/lib/access'
+import { checkRateLimit, clientIp } from '@/lib/rateLimitDb'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next')
+
+  // Code-exchange attempts, per IP, degrading to in-memory if the store is
+  // down. A redirect rather than a 429: this is a top-level navigation and
+  // every other answer from it is a redirect, so /login says it in the
+  // app's own alert instead of the browser's error page.
+  const rate = await checkRateLimit(['callback:ip', clientIp(request.headers)])
+  if (!rate.ok) {
+    return NextResponse.redirect(`${origin}/login?error=rate_limited&retry=${rate.retryAfter}`)
+  }
 
   if (code) {
     const supabase = await createClient()

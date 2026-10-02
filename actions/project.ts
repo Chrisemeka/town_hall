@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
+import { checkRateLimit } from "@/lib/rateLimitDb"
+import { tooManyMessage } from "@/lib/rateLimit"
 import { redirect } from "next/navigation"
 import {
   projectSchema,
@@ -47,6 +49,9 @@ export async function createProject(
   }
 
   const { name, app_url, description, category } = parsed.data
+
+  const rate = await checkRateLimit(["project:account", user.id])
+  if (!rate.ok) return { error: tooManyMessage(rate.retryAfter) }
 
   // Service role, with owner_id pinned to the caller: there is no existing row
   // to check ownership against on a create, so the guarantee is that a builder

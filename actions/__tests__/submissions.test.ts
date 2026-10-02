@@ -11,6 +11,12 @@ vi.mock("@/lib/supabase/server", () => ({
 }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ getActiveAccount: vi.fn() }))
+// The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
+// passes unless a test says otherwise, and never reaches the admin client.
+vi.mock("@/lib/rateLimitDb", () => ({
+  checkRateLimit: vi.fn(async () => ({ ok: true })),
+  clientIp: vi.fn(() => "203.0.113.7"),
+}))
 // Only reportLanded is on the submission path. Anything that reads a balance
 // is mocked to throw, so a test fails if the path ever starts consulting one.
 vi.mock("@/lib/allowanceDb", () => ({
@@ -36,6 +42,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getActiveAccount } from "@/lib/auth"
 import { generateAnalysis } from "@/lib/ai"
 import { reportBalance, reportLanded } from "@/lib/allowanceDb"
+import { checkRateLimit } from "@/lib/rateLimitDb"
 
 const TESTER_ID = "11111111-1111-4111-8111-111111111111"
 const OWNER_ID = "22222222-2222-4222-8222-222222222222"
@@ -498,5 +505,26 @@ describe("submitTestResult AI shadow metering", () => {
       output_tokens: null,
       estimated_cost_usd: null,
     })
+  })
+})
+
+describe("the submission rate limit", () => {
+  it("refuses before any upload or write, keyed on the account", async () => {
+    const rpc = mocks()
+    const { uploadToStorage } = await import("@/lib/supabase/server")
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, retryAfter: 60 })
+
+    const result = await submitTestResult(formData())
+
+    expect(result).toEqual({ success: false, error: "Too many attempts. Try again in a minute." })
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+    expect(checkRateLimit).toHaveBeenCalledWith(["submit:account", TESTER_ID])
+  })
+
+  it("a second report on the same mission is refused without spending an attempt", async () => {
+    mocks({ alreadySubmitted: true })
+    await submitTestResult(formData())
+    expect(checkRateLimit).not.toHaveBeenCalled()
   })
 })

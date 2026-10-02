@@ -38,6 +38,8 @@ lib/
   aiUsage.ts          Shadow metering — dated rate map, cost, recordAiUsage()
   allowance.ts        The report allowance arithmetic — pure, the only definition
   allowanceDb.ts      The ledger's reads and compare-and-append RPC calls
+  rateLimit.ts        Rate limit rules and fixed-window arithmetic — pure
+  rateLimitDb.ts      checkRateLimit() — the store, failure modes, kill switch
   payouts.ts          Cohort pay arithmetic — rates, bonus, payable reports (pure)
   cohortDb.ts         Cohort membership, feed filter and payout sheet reads
   plans.ts            Tier content and numbers — /pricing and /settings read it
@@ -56,7 +58,7 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Nine live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Ten live tables. Concepts match the UI except "feedback" — the table is `test_results`.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
@@ -68,6 +70,7 @@ missions ───────────┘  └── test_result_entries   o
 ai_usage_events   one row per AI analysis — a cost record, linked loosely
 report_ledger     the report allowance, append-only — per profile
 admin_account_changes   every plan and cohort change an admin makes
+rate_limits       fixed-window abuse counters — service role only, garbage
 ```
 
 | Table          | Key columns |
@@ -103,7 +106,9 @@ directly below it.
 `lib/validation/schemas.ts`, and mirrored by `firstIncompleteEntry` in
 `components/tester/AuditLogSteps.tsx`. A **pass** owes nothing but its status — what it confirms is
 the builder's `step_expected`, already snapshotted on the row. A **fail** and a **blocked** step owe
-`actual_result`, `issue_summary` and `steps_to_reproduce`; blocked is not a lighter kind of failure,
+`issue_summary` and `steps_to_reproduce` — not `actual_result`, which asked for what the summary
+already says and was dropped from the form (`ui_design` still asks it, below; older rows keep
+theirs, and every reader already omits it when empty). Blocked is not a lighter kind of failure,
 and collecting nothing for it meant the one status meaning "something stopped me" reached the
 builder with nothing actionable. If you change either definition, change both —
 `lib/validation/__tests__/auditEntry.test.ts` crosses every combination and will tell you.
@@ -219,6 +224,48 @@ one transaction — through `setUserPlan` / `setCohortMember`.
   `/api/admin/payouts` calls `requireAdmin()` itself — `app/api` has no
   middleware. It includes emails, deliberately: it stays with admins, unlike
   the builder export.
+
+**A rate limit is not an allowance.** The allowance is a business quota
+spent at publish (`lib/allowance.ts`); a rate limit is a short-window abuse
+guard (`lib/rateLimit.ts`). Separate modules, separate vocabulary, and neither
+imports the other — a limited request must never read as "quota exceeded".
+
+- **The store is Postgres**, table `rate_limits` and RPC `rate_limit_hit`
+  (`20261002_01`): one fixed-window upsert per key, atomic under the row lock,
+  sweeping rows older than a day on ~1 call in 100. Service role only, same
+  grants as `submit_audit_log`. At ~100× today's traffic this wants a KV store;
+  `lib/rateLimitDb.ts` is the one file that would change.
+- **Every number is in `RATE_LIMITS`** (`lib/rateLimit.ts`) and nowhere else.
+- **Two failure modes, deliberately different.** Tier 1 (sign-up, sign-in,
+  reset, resend, the auth callback, the webhook) is `degrade`: store down →
+  a stricter per-instance in-memory limit, logged loudly, never a lockout.
+  Tier 2 (submission, mission publish, project create, feedback export) is
+  `closed`: store down → refused, "try again in a minute". Each submission is
+  a Gemini call and, from a cohort tester, a payable report. Authentication
+  never consults the limiter; a degraded one means less throttling, never
+  access without credentials.
+- **Kill switch: `RATE_LIMIT_DISABLED=true`.** Every check passes and logs
+  `[rate-limit] DISABLED` on every call. Recovery from a limiter bug is an env
+  change and a redeploy of the same build, not a code change.
+- **Checks live in the action or the route, never in middleware.** Server
+  Actions are POSTs to the page route, and middleware cannot tell which action
+  a POST carries; `app/api` is outside the matcher and stays outside it.
+- **Sign-in keys on IP *and* normalised email**, because an attacker rotates
+  IPs and the target address does not. The cost: anyone can spend a victim's
+  email bucket and block their *password* sign-in for up to 15 minutes; Google
+  sign-in and reset stay open. CAPTCHA is the fix if that is ever abused.
+- **The limiter runs before any Supabase Auth call** and knows nothing about
+  whether an address exists, so a limited answer is identical for a real and
+  an invented one. Keep it ahead of the auth call.
+- **Messages come from `tooManyMessage()` only** — when to try again, never
+  the limit, count or window. API routes answer 429 + `Retry-After`; the auth
+  callback redirects to `/login?error=rate_limited` instead, and
+  `ExportPanel` fetches so a 429 renders in the app's alert.
+- **Screenshot upload and AI analysis have no key of their own**: both run
+  only inside `submitTestResult`, after its check. A new upload path or
+  builder-triggered generation needs one.
+- **No server-side contact form exists** (`lib/contact.ts` is a `mailto:`).
+  If one is ever built, it needs a Tier 1 limit before it ships.
 
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,

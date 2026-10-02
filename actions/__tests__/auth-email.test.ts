@@ -7,6 +7,13 @@ vi.mock("next/navigation", () => ({
   }),
 }))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
+vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }))
+// The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
+// passes unless a test says otherwise, and never reaches the admin client.
+vi.mock("@/lib/rateLimitDb", () => ({
+  checkRateLimit: vi.fn(async () => ({ ok: true })),
+  clientIp: vi.fn(() => "203.0.113.7"),
+}))
 
 import {
   requestPasswordReset,
@@ -16,6 +23,7 @@ import {
   updatePassword,
 } from "@/actions/auth"
 import { createClient } from "@/lib/supabase/server"
+import { checkRateLimit } from "@/lib/rateLimitDb"
 
 type AuthStub = {
   signUp?: ReturnType<typeof vi.fn>
@@ -259,5 +267,47 @@ describe("updatePassword", () => {
     )
     expect(r.success === false && r.fieldErrors?.confirm_password).toBeTruthy()
     expect(auth.getUser).not.toHaveBeenCalled()
+  })
+})
+
+describe("the auth rate limits", () => {
+  const limited = () => vi.mocked(checkRateLimit).mockResolvedValue({ ok: false, retryAfter: 600 })
+  beforeEach(() => vi.mocked(checkRateLimit).mockResolvedValue({ ok: true }))
+
+  it("a limited sign-in is identical for a registered and an unregistered address, and never calls Supabase", async () => {
+    limited()
+    const auth = given({
+      // Would answer differently per address if it were ever reached.
+      signInWithPassword: vi.fn(async ({ email }: { email: string }) => ({
+        error: email === "ada@twnhall.com" ? { code: "invalid_credentials" } : { code: "user_not_found" },
+      })),
+    })
+
+    const real = await signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "wrongwrong" }))
+    const invented = await signInWithEmail(null, fd({ email: "nobody@nowhere.com", password: "wrongwrong" }))
+
+    expect(real).toEqual(invented)
+    expect(real).toEqual({ success: false, error: "Too many attempts. Try again in 10 minutes." })
+    expect(auth.signInWithPassword).not.toHaveBeenCalled()
+  })
+
+  it("sign-in counts the IP and the normalised address separately", async () => {
+    given({ signInWithPassword: vi.fn(async () => ({ error: null })) })
+    await expect(
+      signInWithEmail(null, fd({ email: "Ada@Twnhall.com", password: "correcthorse" })),
+    ).rejects.toThrow("NEXT_REDIRECT")
+    expect(checkRateLimit).toHaveBeenCalledWith(["signin:ip", "203.0.113.7"], ["signin:email", "ada@twnhall.com"])
+  })
+
+  it("limits sign-up, resend and reset before any email is sent", async () => {
+    limited()
+    const auth = given({ signUp: vi.fn(), resend: vi.fn(), resetPasswordForEmail: vi.fn() })
+
+    expect((await signUpWithEmail(null, fd(VALID_SIGNUP))).success).toBe(false)
+    expect((await resendConfirmation(null, fd({ email: "ada@twnhall.com" }))).success).toBe(false)
+    expect((await requestPasswordReset(null, fd({ email: "ada@twnhall.com" }))).success).toBe(false)
+    expect(auth.signUp).not.toHaveBeenCalled()
+    expect(auth.resend).not.toHaveBeenCalled()
+    expect(auth.resetPasswordForEmail).not.toHaveBeenCalled()
   })
 })

@@ -10,6 +10,7 @@ type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
+import { tooManyMessage } from "@/lib/rateLimit";
 import { ChevronLeft, Pencil, Power, PowerOff } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
@@ -20,12 +21,17 @@ import { reportBalance } from "@/lib/allowanceDb";
 
 export default async function DeveloperMissionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string; missionId: string }>;
+  searchParams: Promise<{ limited?: string }>;
 }) {
   const supabase = await createClient();
   const { userId } = await requireAccount("builder");
   const { projectId, missionId } = await params;
+  // Set by toggleMissionStatus when Reactivate hit the rate limit. Only ever
+  // rendered through tooManyMessage(), which states no parameters.
+  const limited = Number((await searchParams).limited) || 0;
 
   const [missionRes, resultsRes] = await Promise.all([
     supabase.from("missions").select("*, projects(*)").eq("id", missionId).single(),
@@ -142,6 +148,19 @@ export default async function DeveloperMissionDetailPage({
         </div>
       </div>
 
+      {/* Why this is still a draft, above the fold: below the test case it
+          went unseen, and a refused publish is the first thing to know. */}
+      {!isActive && (
+        <div className="mb-8 max-w-3xl">
+          {limited > 0 && (
+            <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mb-4">
+              {tooManyMessage(limited)}
+            </p>
+          )}
+          <AllowanceNotice view={allowance} />
+        </div>
+      )}
+
       {/* Mission header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
@@ -176,14 +195,8 @@ export default async function DeveloperMissionDetailPage({
           <TestCaseView steps={mission.test_steps} />
         </div>
 
-        {isActive ? (
-          mission.testers_needed != null && (
-            <CappedNotice testers={mission.testers_needed} max={allowance.testersPerMission} />
-          )
-        ) : (
-          <div className="mt-6 max-w-3xl">
-            <AllowanceNotice view={allowance} />
-          </div>
+        {isActive && mission.testers_needed != null && (
+          <CappedNotice testers={mission.testers_needed} max={allowance.testersPerMission} />
         )}
       </div>
 

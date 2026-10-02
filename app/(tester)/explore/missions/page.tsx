@@ -5,7 +5,7 @@ import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
 
 /** Exactly what the select below asks for. */
-type BrowseRow = Pick<MissionRow, "id" | "title" | "created_at"> & {
+type BrowseRow = Pick<MissionRow, "id" | "title" | "created_at" | "category" | "device_target"> & {
   projects: Embedded<Pick<ProjectRow, "id" | "name" | "app_url" | "flagged_at">>;
 };
 
@@ -27,7 +27,7 @@ export default async function BrowseMissionsPage() {
   const { data: raw } = await supabase
     .from("missions")
     .select(`
-      id, title, created_at,
+      id, title, created_at, category, device_target,
       projects!inner (id, name, app_url, flagged_at)
     `)
     .eq("is_active", true)
@@ -58,6 +58,8 @@ export default async function BrowseMissionsPage() {
       id:             m.id,
       title:          m.title,
       created_at:     m.created_at,
+      category:       m.category,
+      deviceTarget:   m.device_target,
       projectId:      project?.id ?? "",
       projectName:    project?.name ?? "Unknown",
       projectHandle:  handleFromUrl(project?.app_url ?? null, project?.name ?? ""),

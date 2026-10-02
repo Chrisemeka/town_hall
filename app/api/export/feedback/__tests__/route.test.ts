@@ -2,10 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/auth", () => ({ requireAccount: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+vi.mock("server-only", () => ({}))
+// The real tooManyResponse, a stubbed check: the store is rateLimitDb.test.ts's.
+vi.mock("@/lib/rateLimitDb", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/rateLimitDb")>()),
+  checkRateLimit: vi.fn(async () => ({ ok: true })),
+}))
 
 import { GET } from "@/app/api/export/feedback/route"
 import { requireAccount } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { checkRateLimit } from "@/lib/rateLimitDb"
 
 const ME = "11111111-1111-4111-8111-111111111111"
 const TESTER = "22222222-2222-4222-8222-222222222222"
@@ -240,5 +247,20 @@ describe("failure", () => {
     expect(res.status).toBe(500)
     // A partial CSV is worse than no CSV: it looks like a complete export.
     expect(await body(res)).not.toContain("Project,Mission")
+  })
+})
+
+describe("the export rate limit", () => {
+  it("answers 429 with Retry-After, keyed on the account, before the query", async () => {
+    const queries = fakeAdmin()
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, retryAfter: 1200 })
+
+    const res = await GET(req())
+
+    expect(res.status).toBe(429)
+    expect(res.headers.get("Retry-After")).toBe("1200")
+    expect(await body(res)).toBe("Too many attempts. Try again in 20 minutes.")
+    expect(queries).toHaveLength(0)
+    expect(checkRateLimit).toHaveBeenCalledWith(["export:account", ME])
   })
 })

@@ -90,7 +90,6 @@ export function firstIncompleteEntry(
     // definitions of "complete" drifting apart is the failure this file is
     // most exposed to, and components/tester/__tests__ crosses them directly.
     if (e.status !== "pass") {
-      if (!given(e.actual_result)) return { index, field: "actual_result" }
       if (!given(e.issue_summary)) return { index, field: "issue_summary" }
       if (!given(e.steps_to_reproduce)) return { index, field: "steps_to_reproduce" }
     }
@@ -237,19 +236,8 @@ export function AuditLogSteps({
           */}
           {entry.status !== "" && entry.status !== "pass" && (
             <>
-              {/* Already asked above on a design step. process_flow and
-                  component keep it here, and optional on a pass. */}
-              {!design && <Field
-                name={entryFieldName(index, "actual_result")}
-                label="What actually happened"
-                value={entry.actual_result}
-                onChange={(v) => edit(index, { actual_result: v })}
-                placeholder={
-                  entry.status === "blocked"
-                    ? "Could not reach this step — step 2 never completed"
-                    : "The form submitted but nothing appeared to happen"
-                }
-              />}
+              {/* No "What actually happened" here: it asked for what the
+                  summary already says. A design step asks it above. */}
               <Field
                 name={entryFieldName(index, "issue_summary")}
                 label="Summary of the issue"

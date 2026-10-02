@@ -1,7 +1,10 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { checkRateLimit, clientIp } from "@/lib/rateLimitDb";
+import { normaliseEmail, tooManyMessage, type RateLimitName } from "@/lib/rateLimit";
 import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH } from "@/lib/access";
 import {
   emailOnlySchema,
@@ -83,6 +86,25 @@ function callbackUrl(): string {
   return `${site}/api/auth/callback`
 }
 
+/**
+ * The per-IP (and per-address) limit on the public auth forms. It runs before
+ * any Supabase Auth call and knows nothing about whether the address exists, so
+ * a limited answer is identical for a real address and an invented one — same
+ * body, and no auth round trip in either case. Layered on GoTrue's own per-user
+ * email limits, not replacing them: those cannot see one actor working through
+ * a list of addresses.
+ */
+async function limited(
+  ipRule: RateLimitName,
+  emailRule?: RateLimitName,
+  email?: string,
+): Promise<string | null> {
+  const checks: [RateLimitName, string][] = [[ipRule, clientIp(await headers())]]
+  if (emailRule && email) checks.push([emailRule, normaliseEmail(email)])
+  const result = await checkRateLimit(...checks)
+  return result.ok ? null : tooManyMessage(result.retryAfter)
+}
+
 export async function signUpWithEmail(
   _prev: unknown,
   formData: FormData,
@@ -102,6 +124,9 @@ export async function signUpWithEmail(
   }
 
   const { full_name, email, password } = parsed.data
+  const tooMany = await limited("signup:ip")
+  if (tooMany) return { success: false, error: tooMany }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
     email,
@@ -140,6 +165,9 @@ export async function signInWithEmail(
     }
   }
 
+  const tooMany = await limited("signin:ip", "signin:email", parsed.data.email)
+  if (tooMany) return { success: false, error: tooMany }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword(parsed.data)
 
@@ -165,12 +193,11 @@ export async function signInWithEmail(
 /**
  * Re-send the confirmation link.
  *
- * The 60-second cooldown is GoTrue's, not ours — the project's per-user minimum
- * interval between emails. Rebuilding a rate limiter in app code would be a
- * second, weaker answer to a question auth.users.confirmation_sent_at already
- * answers, and it would need a column we have deliberately not added. What this
- * does is refuse to swallow the refusal: without one, this button is an email
- * bomb pointed at whatever address was typed.
+ * The 60-second per-address cooldown is GoTrue's, not ours, and this does not
+ * rebuild it. What `limited()` adds is the other half — per IP, so one actor
+ * cannot walk a list of addresses. The branch below refuses to swallow GoTrue's
+ * refusal: without it, this button is an email bomb pointed at whatever address
+ * was typed.
  */
 export async function resendConfirmation(
   _prev: unknown,
@@ -184,6 +211,9 @@ export async function resendConfirmation(
       fieldErrors: toFieldErrors<EmailOnlyInput>(parsed.error),
     }
   }
+
+  const tooMany = await limited("resend:ip", "resend:email", parsed.data.email)
+  if (tooMany) return { success: false, error: tooMany }
 
   const supabase = await createClient()
   const { error } = await supabase.auth.resend({
@@ -221,6 +251,9 @@ export async function requestPasswordReset(
       fieldErrors: toFieldErrors<EmailOnlyInput>(parsed.error),
     }
   }
+
+  const tooMany = await limited("reset:ip", "reset:email", parsed.data.email)
+  if (tooMany) return { success: false, error: tooMany }
 
   const supabase = await createClient()
   const site = callbackUrl().replace("/api/auth/callback", "")

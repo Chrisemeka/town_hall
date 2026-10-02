@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { closeMission, publishMission } from "@/lib/allowanceDb"
+import { checkRateLimit } from "@/lib/rateLimitDb"
+import { tooManyMessage } from "@/lib/rateLimit"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import {
@@ -28,6 +30,17 @@ export type UpdateMissionState =
       error?: string
       fieldErrors?: FieldErrors<UpdateMissionInput>
     }
+
+/**
+ * The abuse guard on going live, counted on the publish intent. It does not
+ * read the allowance and the allowance does not read it: a publish the
+ * allowance would refuse still counts here. Checked before any write, so a
+ * limited publish changes nothing and the form can simply be sent again.
+ */
+async function publishLimit(userId: string): Promise<number | null> {
+  const rate = await checkRateLimit(["publish:account", userId])
+  return rate.ok ? null : rate.retryAfter
+}
 
 export async function createMission(
   _prevState: CreateMissionState,
@@ -66,6 +79,11 @@ export async function createMission(
   // Service role bypasses RLS, so ownership is checked here rather than by the
   // database. See requireProjectOwner() for why the move was made.
   await requireProjectOwner(projectId, user.id)
+
+  if (intent === "publish") {
+    const retryAfter = await publishLimit(user.id)
+    if (retryAfter) return { error: tooManyMessage(retryAfter) }
+  }
 
   // Always inserted as a draft. Publishing is a separate step because it spends
   // the allowance: if the builder has nothing to spend, the draft still exists
@@ -135,6 +153,11 @@ export async function updateMission(
 
   await requireProjectOwner(projectId, user.id)
 
+  if (intent === "publish") {
+    const retryAfter = await publishLimit(user.id)
+    if (retryAfter) return { error: tooManyMessage(retryAfter) }
+  }
+
   // Explicit column list, and neither template_id nor is_active is in it:
   // provenance is set once at creation, and going live spends the allowance,
   // so it goes through publishMission below rather than a column write.
@@ -200,8 +223,12 @@ export async function toggleMissionStatus(missionId: string, projectId: string, 
   // Reopening is a fresh reservation; closing returns what was not used. The
   // mission page reads the outcome back from the mission's own state, so there
   // is nothing to return here.
-  if (newStatus) await publishMission(missionId, user.id)
-  else await closeMission(missionId, user.id)
+  if (newStatus) {
+    // A form action with no state to return, so the page says it from the URL.
+    const retryAfter = await publishLimit(user.id)
+    if (retryAfter) redirect(`/dashboard/${projectId}/mission/${missionId}?limited=${retryAfter}`)
+    await publishMission(missionId, user.id)
+  } else await closeMission(missionId, user.id)
 
   revalidatePath(`/dashboard/${projectId}`)
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
