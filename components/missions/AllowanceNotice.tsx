@@ -20,16 +20,23 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
     </Link>
   )
 
+  // Each case says what publishing reserves and what it leaves, not just the
+  // balance: "3 available" read as a per-mission number, and a builder whose
+  // second mission stayed a draft took it for a one-mission limit.
+  const reports = (n: number) => `${n} ${n === 1 ? "report" : "reports"}`
+  const slots = `${activeMissions} of ${activeLimit} active missions in use.`
+
   let body: React.ReactNode
   if (total === 0) {
     body = (
       <>
-        You have no reports available, so publishing will keep this as a draft. {earn} to earn
-        one, or{" "}
+        You have no reports available — each live mission holds one per tester it is open to.
+        Publishing will keep this as a draft. {earn} to earn one, close a live mission to get its
+        unused reports back, or{" "}
         <a href={mailto("Twnhall Pro")} className={LINK_INLINE}>
           get in touch about Pro
         </a>
-        .
+        . {slots}
       </>
     )
   } else if (activeMissions >= activeLimit) {
@@ -39,15 +46,22 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
         publish another.
       </>
     )
-  } else if (total < testersPerMission) {
+  } else if (total <= testersPerMission) {
+    // Spends the whole balance — say so, or the next mission's draft is a surprise.
     body = (
       <>
-        You have {total} {total === 1 ? "report" : "reports"} available, so this mission opens
-        to {total} {total === 1 ? "tester" : "testers"}. {earn} to earn more.
+        You have {reports(total)} available. Publishing reserves {total === 1 ? "it" : `all ${total}`}{" "}
+        — one per tester — so this mission opens to {total} {total === 1 ? "tester" : "testers"} and
+        your next one waits until you earn more. {earn} to earn one. {slots}
       </>
     )
   } else {
-    body = <>You have {total} reports available. Publishing opens this mission to {testersPerMission} testers.</>
+    body = (
+      <>
+        You have {reports(total)} available. Publishing reserves {testersPerMission}, one per
+        tester, leaving {reports(total - testersPerMission)} for your next mission. {slots}
+      </>
+    )
   }
 
   // Empty or at the limit means publishing is refused, so it reads as an
