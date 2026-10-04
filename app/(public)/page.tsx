@@ -106,8 +106,10 @@ export default function LandingPage() {
 
       {/* ── Features ─────────────────────────────────────────────────────
           Cursor-style feature cards, alternating sides. See Features. */}
+      {/* Wider than the 1200px column on purpose: the windows are the point,
+          and boxed to 1200 on a wide screen they read as squeezed. */}
       <section id="tour" className="w-full border-t border-line scroll-mt-16">
-        <div className="max-w-[1200px] mx-auto px-6 lg:px-8 py-20 lg:py-28">
+        <div className="max-w-[1680px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
           <motion.h2 {...rise} variants={up} className={`${H2} max-w-2xl mb-12`}>
             From test case to fix list.
           </motion.h2>
