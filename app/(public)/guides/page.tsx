@@ -28,7 +28,6 @@ export default function GuidesIndexPage() {
   return (
     <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
       <PageHeader
-        eyebrow="Guides"
         title="Two sides of the same loop."
         lede="Most people here are both — you test other people's products to earn feedback on your own. Read whichever half you are about to do."
       />

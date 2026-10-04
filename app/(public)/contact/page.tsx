@@ -41,7 +41,6 @@ export default function ContactPage() {
   return (
     <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
       <PageHeader
-        eyebrow="Contact"
         title="Talk to us."
         lede="Twnhall is small enough that a real person reads everything that comes in. Usually a reply within a day or two."
       />

@@ -53,7 +53,6 @@ export default function BuilderGuidePage() {
   return (
     <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
       <PageHeader
-        eyebrow="Guide · Builders"
         title="Getting feedback worth having."
         lede="You get structured reports from real people. You pay for them by testing other people's work — that is the whole deal. This is how to ask for something specific enough that what comes back is useful."
       />

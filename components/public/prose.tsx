@@ -18,10 +18,6 @@ export const P_SMALL = "font-sans text-[14px] leading-7 text-ink"
 /** Metadata and captions. Label tier (≥4.5:1), never a paragraph. */
 export const META = "font-mono text-[12px] leading-5 text-ink-muted"
 
-/** Small-caps eyebrow above a page or section title. */
-export const EYEBROW =
-  "font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px]"
-
 export const H2 =
   "font-syne font-bold text-[28px] leading-9 text-ink"
 
@@ -44,17 +40,14 @@ export const LINK_INLINE =
   `text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] ${FOCUS}`
 
 export function PageHeader({
-  eyebrow,
   title,
   lede,
 }: {
-  eyebrow: string
   title: string
   lede?: string
 }) {
   return (
     <div className="flex flex-col gap-4 mb-12">
-      <p className={EYEBROW}>{eyebrow}</p>
       <h1 className="font-syne font-bold text-[40px] leading-[48px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink">
         {title}
       </h1>

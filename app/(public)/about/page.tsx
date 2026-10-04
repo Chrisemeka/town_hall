@@ -12,7 +12,6 @@ export default function AboutPage() {
   return (
     <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
       <PageHeader
-        eyebrow="About"
         title="Built for people with no one to test on."
         lede="Most developers ship to an audience of nobody. Friends say it looks nice, and the first real user finds the broken thing in forty seconds. Twnhall is the room in between."
       />

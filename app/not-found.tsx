@@ -19,9 +19,6 @@ export default function NotFound() {
         </span>
 
         <div className="relative z-10 flex flex-col items-center">
-          <p tabIndex={0} className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
-            Error 404
-          </p>
           <h1 tabIndex={0} className="font-syne font-bold text-[40px] leading-[46px] tracking-[-0.5px] text-ink mb-3">
             Page not found.
           </h1>

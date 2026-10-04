@@ -7,7 +7,6 @@ export default function TermsPage() {
   return (
     <div className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
 
-        <p className="font-mono text-[12px] text-accent-ink uppercase tracking-[1.5px] mb-4">Legal</p>
         <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Terms of Service
         </h1>

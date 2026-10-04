@@ -58,7 +58,6 @@ export default function TesterGuidePage() {
   return (
     <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
       <PageHeader
-        eyebrow="Guide · Testers"
         title="Writing a report someone can act on."
         lede="A mission takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
       />
