@@ -659,12 +659,16 @@ accent-ink link. No email field.
 **① Hero**
 - Centred: H1 Display (40 → 64 → 80px Syne, second line `text-accent-ink`),
   18px DM Sans subcopy, 14px DM Mono `ink-muted` line about the cohort.
-- `HeroDemo`: test-case window behind (`lg` only), report window in front,
-  offset by overlapping grid columns. The report fills in one step at a time
-  and loops, holding the finished frame first so the server render and first
-  paint agree. A hidden full copy reserves the height, so nothing shifts.
-- It loops, so it carries a **Pause / Play animation** button (WCAG 2.2.2).
-  Reduced motion: the finished report, no loop, no button.
+- `HeroDemo`: one app window (icon rail, role chip, path) playing the whole
+  loop on a 28s clock — **01 Builder** types and publishes the test case,
+  **02 Tester** marks each step and types the failure, then sends the report
+  (+1 earned), **03 Builder** reads it with the AI summary. Every frame is a
+  pure function of the clock. Fixed stage height, so nothing shifts.
+- The scene bar under the stage names who is acting, shows progress with an
+  `accent-ink` border, and jumps to a scene on click. It loops, so it carries
+  a **Pause / Play** button (WCAG 2.2.2). The stage is `aria-hidden`; the
+  figure label describes the loop. Reduced motion: no clock, no pause — it
+  opens on the finished report and each scene button shows that scene done.
 - `.th-glow` (globals.css): a 10% Voltage radial behind the windows, **dark
   only** — on the light ground it is invisible or a smudge.
 
