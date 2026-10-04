@@ -530,7 +530,7 @@ function Browser({
       aria-label={label}
       className="rounded-[12px] border border-line bg-surface-raised shadow-card overflow-hidden"
     >
-      <div aria-hidden="true" className="h-12 px-4 flex items-center gap-4 border-b border-line bg-surface">
+      <div aria-hidden="true" className="h-12 px-4 flex items-center gap-4 border-b border-line bg-surface-raised">
         <div className="flex gap-2 shrink-0">
           <span className="w-3 h-3 rounded-full bg-line" />
           <span className="w-3 h-3 rounded-full bg-line" />
@@ -578,7 +578,7 @@ function Browser({
             Settings
           </span>
         </div>
-        <div className="flex-1 min-w-0">{children}</div>
+        <div className="flex-1 min-w-0 bg-surface">{children}</div>
       </div>
     </figure>
   )
