@@ -19,7 +19,9 @@ const NAV: { href: string; label: string }[] = [
 export function PublicHeader({ theme }: { theme: Theme }) {
   return (
     <header className="sticky top-0 z-50 h-16 bg-surface/85 backdrop-blur-md border-b border-line">
-      <div className="max-w-[1200px] mx-auto px-6 lg:px-8 h-full flex items-center justify-between gap-4">
+      {/* Full width with a fixed inset, not the 1200px content column: on a
+          wide screen the column left the logo and CTA ~350px from the edges. */}
+      <div className="px-6 lg:px-10 h-full flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
           <Logo size={32} />
           <span className="font-syne font-bold text-[18px] tracking-tight text-ink">

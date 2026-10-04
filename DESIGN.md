@@ -644,73 +644,64 @@ width rather than moving into the sheet.
 
 ### 6.1 Landing Page
 
-**Goal:** Communicate the peer-testing concept clearly and convert developers to signups.  
-**Primary CTA:** "Start Testing Free" (nav + footer + final strip) — all trigger Google sign-in via `signInWithGoogle` form action.
+**Goal:** Show what a Twnhall report is, then convert builders to signups.
+**Shape:** GitHub's homepage pattern — centred hero over a product window,
+then a tabbed tour — with every window drawn in JSX from the semantic tokens
+(`components/public/HomeMockups.tsx`). No screenshots or video: those cannot
+follow the theme and go stale against the app. The windows render the real
+`auth-flow` template and the real `SubmissionBody` / `PassRate`.
+
+**CTA:** the header's "Get started" is the page's one Voltage fill and is on
+screen at every scroll position, so nothing on the page is a Voltage fill.
+Hero actions are a secondary button ("See how it works", `#tour`) and an
+accent-ink link. No email field.
 
 **① Hero**
-- Centered single-column copy stack: headline → subtitle → CTA → full-width dashboard mockup below
-- Headline (Display, 52→80px, Syne Bold, `tracking-[-1.5px]`): *"Ship better. Test each other."*
-- Subtitle (Body Large, 18px DM Mono, `leading-7→8`, `max-w-2xl`): the submit → test → feedback loop in 1–2 sentences
-- Single CTA: Ghost "Explore Projects →" (with trailing `ArrowRight` icon) — triggers Google sign-in
-- Background: `#F5F5F7` Bone + subtle dot-grid overlay `rgba(0,0,0,0.03)`
-- Padding: `py-16 lg:py-24` (64–96px)
-- Hero mockup: `/images/hero-wireframe.svg` — full-width, `rounded-[16px]`, `shadow-[0_16px_40px_rgba(0,0,0,0.2)]`
+- Centred: H1 Display (40 → 64 → 80px Syne, second line `text-accent-ink`),
+  18px DM Sans subcopy, 14px DM Mono `ink-muted` line about the cohort.
+- `HeroDemo`: one app window (icon rail, role chip, path) playing the whole
+  loop on a 28s clock — **01 Builder** types and publishes the test case,
+  **02 Tester** marks each step and types the failure, then sends the report
+  (+1 earned), **03 Builder** reads it with the AI summary. Every frame is a
+  pure function of the clock. Fixed stage height, so nothing shifts.
+- The scene bar under the stage names who is acting, shows progress with an
+  `accent-ink` border, and jumps to a scene on click. It loops, so it carries
+  a **Pause / Play** button (WCAG 2.2.2). The stage is `aria-hidden`; the
+  figure label describes the loop. Reduced motion: no clock, no pause — it
+  opens on the finished report and each scene button shows that scene done.
+- `.th-glow` (globals.css): a 10% Voltage radial behind the windows, **dark
+  only** — on the light ground it is invisible or a smudge.
 
-**② How The Loop Works** *(critical — explains the reciprocity model upfront)*
-- 3-step grid with hairline divider treatment — `border-y border-midnight/10` framing the row, `divide-x divide-midnight/10` between cards on desktop (`divide-y` between cards on mobile)
-- Grid spans edge-to-edge of the 1,200px container via `-mx-6 lg:-mx-8`; each card re-applies `px-6 lg:px-8 pt-14 pb-10 lg:pt-16 lg:pb-12` so content aligns with the section heading above
-- Card minimum height: `240px` for uniform card heights regardless of copy length
-- Step number: small label `01 / 02 / 03` in top-right corner — Syne Bold 12px, `tracking-[1px]`, Midnight 30% (replaced the large background watermark)
-- Each card: 44×44 Graphite icon tile (`rounded-[8px]`, `border border-iron`) with Voltage icon (20×20) → H4 title (22px Syne Bold) → Body Small copy (14px DM Mono, Midnight 60%, `leading-6`)
-- Section eyebrow: "THE LOOP" — Label 12px DM Mono Medium, Forest, uppercase, `tracking-[1px]`
-- Section heading: "How it works." (H2)
-- Background: `#F5F5F7` Bone (light theme — sits in the page's light flow, not the dark contrast strip from v1)
-- Padding: `py-20 lg:py-28`
+**② Features** (`#tour`) — "From test case to fix list."
+- Cursor-style cards, one per capability, stacked 64px apart (96px from `lg`): copy on one
+  side (24px Syne title, 18px DM Sans body, optional accent-ink guide link),
+  the product on a `.th-stage` dot grid on the other, alternating sides from
+  `lg` (4/8 columns). Each window is a browser — address bar with a real
+  route, the app's sidebar (copied from `Sidebar.tsx`, folded below `md`),
+  then the page. The section runs to 1680px, not the 1200px column.
+  Inside the window (sidebar and page) the type is **DM Sans**, not DM Mono —
+  a deliberate exception so the cards read as a website; the wordmark keeps
+  Syne and the address bar keeps mono. The hero window stays DM Mono.
+  Three shades, Cursor-style, all from tokens: the title bar
+  `surface-raised`, sidebar and page `surface`, panels and inputs on the page
+  `bg-ink/[0.04]`. `ink`
+  flips with the theme, so the ramp lightens upward in dark and darkens in
+  light. Templates (the real library), the tester's step, the
+  builder's review, the AI summary, the CSV export.
+- **Only the AI summary moves**: it streams in once when scrolled to, in
+  under 5s, so it needs no pause control. Writing, testing and reviewing are
+  already animated in the hero; repeating them here is repetition.
 
-**③ For Submitters**
-- 2-col grid (6/6 on desktop), `items-center`: copy left + UI mockup right
-- Section eyebrow: "FOR SUBMITTERS" (Forest, uppercase, `tracking-[1px]`)
-- Heading (H2): *"Structured feedback,<br />not guesses."*
-- Description: 3-sentence narrative paragraph (16px DM Mono, Midnight 70%, `leading-8`, `max-w-md`) — no bullet list, no inline CTA. Length is tuned so the text block visually balances the image height.
-- Mockup: `/images/submit-project-form.svg` (600×440, `rounded-[16px]`, soft shadow)
-- Padding: `py-20 lg:py-28`
+**③ The loop** — "Test one, earn one." DM Sans paragraph about the cohort
+beside a numbered three-step list. No figures.
 
-**④ For Testers**
-- Mirrored 2-col grid: UI mockup left + copy right (orders flip on mobile so mockup stacks below copy)
-- Same heading/description/no-CTA treatment as For Submitters
-- Mockup: `/images/mission-card.svg` (600×370)
-- Section divider: hairline `border-t border-midnight/10` above this section
-- Padding: `py-20 lg:py-28`
+**④ Close** — short H2 and two accent-ink links (builder guide, pricing).
 
-**⑤ Community Proof**
-- Centered heading block: H2 ("Projects waiting for your feedback right now") + sub-paragraph (15px DM Mono, Midnight 60%, `leading-7`), wrapped in `max-w-2xl mx-auto`
-- Below: full-width `community-cards.svg` mockup (1,104×226) — 3 sample project cards
-- Section divider: hairline above
-- Padding: `py-20 lg:py-28`
+**Not on the page, by decision:** logo strip, stats and testimonials — none
+are real yet. Add them when they are, never as placeholders.
 
-**⑥ Final CTA Strip**
-- Centered single column inside the 1,200px container
-- Headline (H1, 36→56px Syne Bold, `max-w-3xl`): *"Your next release deserves real feedback."*
-- Single CTA: Primary XL "Start Testing Free" (Voltage, Obsidian text, `h-14 px-8`, 16px radius optional) — triggers Google sign-in
-- Section divider: hairline above
-- Background: `#F5F5F7` Bone (no longer dark)
-- Padding: `py-20 lg:py-28`
-
-**⑦ Footer**
-- Two-region layout: brand block left + 2 link columns right (`flex-col lg:flex-row lg:justify-between`)
-- **Brand block** (`max-w-sm`):
-  - BugPlay icon (24×24, Voltage) + "Twnhall" wordmark (22px Syne Bold, Chalk)
-  - Tagline: "Ship with confidence. Test each other." (14px DM Mono, Ash 80%, `leading-6`)
-  - Outlined pill CTA: "Start Testing Free" — `h-10 px-5`, `rounded-full`, `border border-ash/30`, Chalk text, DM Mono Medium 13px. Hover: `bg-chalk/[0.06]` + `border-chalk/40`. Triggers Google sign-in.
-- **Link columns** (gap `64–96px`):
-  - **Product**: How it Works · Explore Projects
-  - **Community**: Guidelines · X (Twitter)
-  - Column heading: DM Mono Medium 13px, Chalk, `mb-2`
-  - Link items: DM Mono 13px, Ash, hover Chalk
-- **Bottom row**: inline copyright + Privacy Policy · Terms of Service, separated by middle-dot `·` glyphs (Ash 30%, 10px). All items DM Mono 12px, Ash 60%, hover Chalk on links.
-- Divider between upper area and bottom row: `border-t border-iron pt-6` (the outer `border-top` from v1 is removed)
-- Background: `#0E0E10` Obsidian
-- Padding: `py-16 lg:py-20` (64–80px)
+Sections sit on `bg-surface`, separated by `border-t border-line`; windows
+are `surface-raised` + `border-line` + `shadow-card`. Footer: §5.9.
 
 ---
 
