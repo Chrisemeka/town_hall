@@ -155,6 +155,16 @@
 }
 
 /*
+ * The stage a homepage feature window sits on: a dot grid in the divider
+ * colour, so it follows the theme and stays quieter than the window.
+ */
+.th-stage {
+  background-color: var(--color-surface);
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/*
  * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
  *
  * A keyframe rather than a transition on an always-mounted element. The form

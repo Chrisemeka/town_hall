@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useReducedMotion } from "framer-motion"
+import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { useInView, useReducedMotion } from "framer-motion"
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Compass,
   ImageIcon,
@@ -11,7 +13,6 @@ import {
   MessageSquareText,
   Pause,
   Play,
-  Plus,
   Star,
 } from "lucide-react"
 import { TEST_TEMPLATES } from "@/lib/testTemplates"
@@ -471,27 +472,34 @@ export function HeroDemo() {
   )
 }
 
-/* ── tour panels ─────────────────────────────────────────────────────── */
+/* ── feature panels ─────────────────────────────────────────────────────── */
 
-function WriteMock() {
+/** The real template library — the first four, with the one in use loaded below. */
+function TemplateMock() {
   return (
-    <Window title="New mission" label="The mission form: a category, a template, and the test steps.">
-      <div className="p-5 flex flex-col gap-4">
-        <div className="flex flex-wrap gap-2">
-          <span className="font-mono text-[12px] font-medium text-ink border border-ink-muted rounded-[4px] px-2 py-0.5">
-            Process flow
-          </span>
-          <span className="font-mono text-[12px] text-ink-muted border border-line rounded-[4px] px-2 py-0.5">
-            Template: {TEMPLATE.name}
-          </span>
-        </div>
+    <Window
+      title="New mission — choose a template"
+      label={`The template picker: ${TEST_TEMPLATES.length} templates including Authentication Flow, Password Reset and Checkout, with Authentication Flow's steps loaded.`}
+    >
+      <div className="p-5 flex flex-col gap-3">
+        <p className={LABEL}>{TEST_TEMPLATES.length} templates</p>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {TEST_TEMPLATES.slice(0, 4).map((t) => (
+            <li
+              key={t.id}
+              className={`rounded-[8px] border bg-surface px-3 py-2 ${t.id === TEMPLATE.id ? "border-accent-ink" : "border-line"}`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-mono text-[12px] font-medium leading-5 text-ink truncate">{t.name}</p>
+                <span className="font-mono text-[11px] text-ink-muted shrink-0">{t.steps.length} steps</span>
+              </div>
+              <p className="font-mono text-[11px] leading-4 text-ink-muted truncate">{t.description}</p>
+            </li>
+          ))}
+        </ul>
         <div className="rounded-[8px] border border-line bg-surface overflow-hidden">
           <TestCaseList />
         </div>
-        <span className="self-start inline-flex items-center gap-2 h-10 px-4 rounded-[8px] border border-line font-mono text-[13px] text-ink-muted">
-          <Plus size={14} aria-hidden="true" />
-          Add step
-        </span>
       </div>
     </Window>
   )
@@ -609,31 +617,80 @@ const INSIGHTS: { status: "pass" | "warn" | "fail"; title: string; description: 
   },
 ]
 
-function SummaryMock() {
+const SUMMARY_MS = 4600
+const INSIGHT_GAP = 1300
+const INSIGHT_FROM = 600
+
+/**
+ * The one feature that streams, the way the analysis does. `at` is how far in
+ * it is; left out, it is finished. Untyped text is still laid out, invisibly,
+ * so the window is its final height from the first frame.
+ */
+function SummaryMock({ at = SUMMARY_MS }: { at?: number }) {
+  const done = at >= SUMMARY_MS - 100
   return (
     <Window title="Test report" label="The AI summary: what failed first, what went untested, what worked, and an overall read of the session.">
       <div className="p-5 flex flex-col gap-5">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center justify-between gap-4 flex-wrap min-h-6">
           <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">AI generated</p>
-          <Badge variant="negative">Frustrated</Badge>
+          {done ? (
+            <Badge variant="negative" className="th-fade-in">Frustrated</Badge>
+          ) : (
+            <span className="font-mono text-[12px] text-ink-muted">
+              {at < INSIGHT_FROM ? "Reading the report…" : "Writing the summary…"}
+            </span>
+          )}
         </div>
         <div className="grid gap-5 sm:grid-cols-3">
-          {INSIGHTS.map((item) => (
-            <div key={item.title}>
-              <div className="flex items-start gap-2 mb-2">
-                {item.status === "pass" ? (
-                  <CheckCircle2 size={16} aria-hidden="true" className="text-success-ink shrink-0 mt-0.5" />
-                ) : (
-                  <AlertTriangle size={16} aria-hidden="true" className="text-accent-ink shrink-0 mt-0.5" />
-                )}
-                <p className="font-mono text-[13px] font-medium leading-5 text-ink">{item.title}</p>
+          {INSIGHTS.map((item, i) => {
+            const start = INSIGHT_FROM + i * INSIGHT_GAP
+            const text = typed(item.description, at, start + 200, 100)
+            return (
+              <div key={item.title} className={at >= start ? "th-fade-in" : "invisible"}>
+                <div className="flex items-start gap-2 mb-2">
+                  {item.status === "pass" ? (
+                    <CheckCircle2 size={16} aria-hidden="true" className="text-success-ink shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertTriangle size={16} aria-hidden="true" className="text-accent-ink shrink-0 mt-0.5" />
+                  )}
+                  <p className="font-mono text-[13px] font-medium leading-5 text-ink">{item.title}</p>
+                </div>
+                <p className="font-mono text-[12px] leading-5 text-ink-muted">
+                  {text.shown}
+                  <Caret on={text.typing} />
+                  <span className="invisible">{item.description.slice(text.shown.length)}</span>
+                </p>
               </div>
-              <p className="font-mono text-[12px] leading-5 text-ink-muted">{item.description}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </Window>
+  )
+}
+
+/** Plays once, the first time it is scrolled to. Under five seconds, so no pause control. */
+function StreamingSummary() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: "-120px" })
+  const still = useReducedMotion()
+  const [at, setAt] = useState(0)
+
+  useEffect(() => {
+    if (!inView || still) return
+    const t0 = performance.now()
+    const id = setInterval(() => {
+      const elapsed = performance.now() - t0
+      setAt(Math.min(elapsed, SUMMARY_MS))
+      if (elapsed >= SUMMARY_MS) clearInterval(id)
+    }, TICK)
+    return () => clearInterval(id)
+  }, [inView, still])
+
+  return (
+    <div ref={ref}>
+      <SummaryMock at={still ? SUMMARY_MS : at} />
+    </div>
   )
 }
 
@@ -669,120 +726,75 @@ function ExportMock() {
   )
 }
 
-/* ── tour ────────────────────────────────────────────────────────────── */
+/* ── features ────────────────────────────────────────────────────────── */
 
-const TABS = [
+const LINK =
+  "inline-flex items-center gap-2 self-start font-mono text-[14px] text-accent-ink underline underline-offset-4 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+
+const FEATURES: {
+  title: string
+  body: string
+  link?: { href: string; label: string }
+  Mock: () => React.ReactNode
+}[] = [
   {
-    id: "write",
-    label: "Write",
-    title: "Write the test case.",
-    body: "Pick a template or start blank. Each step is one thing to do and what should happen when you do it. That is the whole brief, so nobody has to guess what you wanted checked.",
-    mock: WriteMock,
+    title: "Start from a template.",
+    body: `${TEST_TEMPLATES.length} ready-made test cases for the flows every product has: sign-up, password reset, checkout and more. Pick one, change what you need, publish.`,
+    link: { href: "/guides/builder", label: "How to write a test case" },
+    Mock: TemplateMock,
   },
   {
-    id: "test",
-    label: "Test",
-    title: "A tester works through it.",
-    body: "Every step is marked pass, fail or blocked. A pass is one click. A fail or a blocked step asks for the issue and how to reproduce it, with screenshots, so nothing reaches you without something to act on.",
-    mock: TestMock,
+    title: "Every step, answered on its own terms.",
+    body: "A pass is one click. A fail or a blocked step comes with the issue, how to reproduce it and screenshots, so nothing reaches you without something to act on.",
+    link: { href: "/guides/tester", label: "How testers work" },
+    Mock: TestMock,
   },
   {
-    id: "review",
-    label: "Review",
-    title: "You review the report.",
-    body: "See at a glance how many steps passed, then read the ones that did not. Approve the report or ask for changes, and rate how useful it was.",
-    mock: ReviewMock,
+    title: "Read it at a glance.",
+    body: "How many steps passed sits at the top. Approve the report or ask for changes, and rate how useful it was.",
+    Mock: ReviewMock,
   },
   {
-    id: "summarise",
-    label: "Summarise",
     title: "AI reads it first.",
-    body: "Every report gets a short summary that leads with what failed and why it matters, and an overall read of how the session went. The full log is always one click away.",
-    mock: SummaryMock,
+    body: "Every report gets a short summary that leads with what failed and why it matters, and an overall read of how the session went. The full log is one click away.",
+    Mock: StreamingSummary,
   },
   {
-    id: "export",
-    label: "Export",
     title: "Take it with you.",
-    body: "Download every report on a project as a CSV, one row per step, ready for your tracker or a spreadsheet. Testers' email addresses never leave the app.",
-    mock: ExportMock,
+    body: "Export every report on a project as a CSV, one row per step, for your tracker or a spreadsheet. Testers' email addresses never leave the app.",
+    Mock: ExportMock,
   },
-] as const
+]
 
 /**
- * The WAI-ARIA tabs pattern: roving tabindex, arrows move and select,
- * Home/End jump. Selection follows focus — panels are cheap to swap.
+ * Cursor-style feature cards: copy on one side, the product on a dotted stage
+ * on the other, alternating. Only the AI summary moves — the hero has already
+ * animated writing, testing and reviewing, and doing it again here would be
+ * repetition, not explanation.
  */
-export function Tour() {
-  const [active, setActive] = useState(0)
-  const tab = TABS[active]
-  const Mock = tab.mock
-
-  const go = (i: number) => {
-    const next = (i + TABS.length) % TABS.length
-    setActive(next)
-    document.getElementById(`tour-tab-${TABS[next].id}`)?.focus()
-  }
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    const to =
-      e.key === "ArrowRight" ? active + 1
-      : e.key === "ArrowLeft" ? active - 1
-      : e.key === "Home" ? 0
-      : e.key === "End" ? TABS.length - 1
-      : null
-    if (to === null) return
-    e.preventDefault()
-    go(to)
-  }
-
+export function Features() {
   return (
-    <div className="flex flex-col gap-10">
-      <div
-        role="tablist"
-        aria-label="How Twnhall works"
-        onKeyDown={onKeyDown}
-        className="flex gap-1 overflow-x-auto border-b border-line"
-      >
-        {TABS.map((t, i) => {
-          const selected = i === active
-          return (
-            <button
-              key={t.id}
-              id={`tour-tab-${t.id}`}
-              role="tab"
-              type="button"
-              aria-selected={selected}
-              aria-controls={`tour-panel-${t.id}`}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setActive(i)}
-              className={`shrink-0 h-12 px-4 -mb-px border-b-2 font-mono text-[14px] transition-colors duration-150 rounded-t-[4px] ${FOCUS} ${
-                selected
-                  ? "border-accent-ink text-ink font-medium"
-                  : "border-transparent text-ink-muted hover:text-ink"
-              }`}
-            >
-              <span className="text-accent-ink mr-2">{String(i + 1).padStart(2, "0")}</span>
-              {t.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <div
-        key={tab.id}
-        id={`tour-panel-${tab.id}`}
-        role="tabpanel"
-        aria-labelledby={`tour-tab-${tab.id}`}
-        tabIndex={0}
-        className={`th-fade-in grid gap-8 lg:gap-16 lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:items-start rounded-[4px] ${FOCUS}`}
-      >
-        <div className="flex flex-col gap-4 lg:pt-8">
-          <h3 className="font-syne font-bold text-[28px] leading-9 text-ink">{tab.title}</h3>
-          <p className="font-sans text-[16px] leading-8 text-ink">{tab.body}</p>
-        </div>
-        <Mock />
-      </div>
+    <div className="flex flex-col gap-6">
+      {FEATURES.map(({ title, body, link, Mock }, i) => (
+        <article
+          key={title}
+          className="grid gap-8 lg:gap-12 grid-cols-[minmax(0,1fr)] lg:grid-cols-12 lg:items-center rounded-[16px] border border-line bg-surface-raised p-3 sm:p-6 lg:p-8"
+        >
+          <div className={`lg:col-span-5 flex flex-col gap-4 px-2 pt-4 sm:pt-0 lg:px-4 ${i % 2 ? "lg:order-2" : ""}`}>
+            <h3 className="font-syne font-bold text-[24px] leading-8 text-ink">{title}</h3>
+            <p className="font-sans text-[18px] leading-8 text-ink">{body}</p>
+            {link && (
+              <Link href={link.href} className={LINK}>
+                {link.label}
+                <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            )}
+          </div>
+          <div className={`lg:col-span-7 th-stage rounded-[12px] border border-line p-3 sm:p-8 lg:p-12 ${i % 2 ? "lg:order-1" : ""}`}>
+            <Mock />
+          </div>
+        </article>
+      ))}
     </div>
   )
 }
