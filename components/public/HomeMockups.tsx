@@ -10,15 +10,23 @@ import {
   Compass,
   ImageIcon,
   LayoutDashboard,
+  LayoutGrid,
+  Lock,
+  MessageSquare,
   MessageSquareText,
   Pause,
   Play,
+  RotateCw,
+  Settings,
   Star,
+  Target,
+  Telescope,
 } from "lucide-react"
 import { TEST_TEMPLATES } from "@/lib/testTemplates"
 import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabulary"
 import { PassRate, StatusPill, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { Badge } from "@/components/ui/Badge"
+import { Logo } from "@/components/Logo"
 
 /*
  * The homepage's product windows. Drawn in JSX from the semantic tokens rather
@@ -472,13 +480,116 @@ export function HeroDemo() {
   )
 }
 
+/* ── browser ─────────────────────────────────────────────────────────── */
+
+/*
+ * The app's own sidebar, as components/layout/Sidebar.tsx lists it. Copied
+ * rather than imported: that file pulls in the sign-out server action, and a
+ * marketing mock has no business bundling it. Keep the names in step.
+ */
+const APP_NAV = {
+  builder: {
+    heading: "My Work",
+    links: [
+      { name: "My Projects", icon: LayoutDashboard },
+      { name: "My Missions", icon: Target },
+      { name: "Feedback Received", icon: MessageSquare },
+    ],
+  },
+  tester: {
+    heading: "Tester",
+    links: [
+      { name: "Tester Home", icon: LayoutGrid },
+      { name: "Available Missions", icon: Compass },
+      { name: "Explore Projects", icon: Telescope },
+    ],
+  },
+} as const
+
+/**
+ * A browser window with the signed-in app inside it: address bar, sidebar,
+ * page. What makes a feature card read as the product rather than a widget.
+ * The sidebar folds away below `md`, where the page needs the width.
+ */
+function Browser({
+  url,
+  account,
+  active,
+  label,
+  children,
+}: {
+  url: string
+  account: keyof typeof APP_NAV
+  active: string
+  label: string
+  children: React.ReactNode
+}) {
+  const nav = APP_NAV[account]
+  return (
+    <figure
+      aria-label={label}
+      className="rounded-[12px] border border-line bg-surface-raised shadow-card overflow-hidden"
+    >
+      <div aria-hidden="true" className="h-12 px-4 flex items-center gap-4 border-b border-line">
+        <div className="flex gap-2 shrink-0">
+          <span className="w-3 h-3 rounded-full bg-line" />
+          <span className="w-3 h-3 rounded-full bg-line" />
+          <span className="w-3 h-3 rounded-full bg-line" />
+        </div>
+        <div className="flex-1 min-w-0 max-w-[360px] mx-auto h-8 px-3 flex items-center gap-2 rounded-[8px] border border-line bg-surface text-ink-muted">
+          <Lock size={12} className="shrink-0" />
+          <span className="flex-1 min-w-0 truncate text-center font-mono text-[12px]">{url}</span>
+          <RotateCw size={12} className="shrink-0" />
+        </div>
+        <div className="w-[52px] shrink-0 hidden sm:block" />
+      </div>
+
+      <div className="flex">
+        <div aria-hidden="true" className="hidden md:flex w-52 shrink-0 flex-col gap-6 p-4 border-r border-line">
+          <div className="flex items-center gap-2 px-2">
+            <Logo size={20} />
+            <span className="font-syne font-bold text-[14px] text-ink">Twnhall</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p className="px-2 mb-1 font-mono text-[10px] font-medium uppercase tracking-[1px] text-ink-muted">
+              {nav.heading}
+            </p>
+            {nav.links.map(({ name, icon: Icon }) => (
+              <span
+                key={name}
+                className={`h-8 px-2 flex items-center gap-2 rounded-[8px] font-mono text-[12px] ${
+                  name === active ? "bg-ink/[0.06] text-ink" : "text-ink-muted"
+                }`}
+              >
+                <Icon size={14} className={`shrink-0 ${name === active ? "text-accent-ink" : ""}`} />
+                <span className="truncate">{name}</span>
+              </span>
+            ))}
+          </div>
+          <span
+            className={`mt-auto h-8 px-2 flex items-center gap-2 rounded-[8px] font-mono text-[12px] ${
+              active === "Settings" ? "bg-ink/[0.06] text-ink" : "text-ink-muted"
+            }`}
+          >
+            <Settings size={14} className={`shrink-0 ${active === "Settings" ? "text-accent-ink" : ""}`} />
+            Settings
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">{children}</div>
+      </div>
+    </figure>
+  )
+}
+
 /* ── feature panels ─────────────────────────────────────────────────────── */
 
 /** The real template library — the first four, with the one in use loaded below. */
 function TemplateMock() {
   return (
-    <Window
-      title="New mission — choose a template"
+    <Browser
+      url="twnhall.com/dashboard/acme/mission/new"
+      account="builder"
+      active="My Missions"
       label={`The template picker: ${TEST_TEMPLATES.length} templates including Authentication Flow, Password Reset and Checkout, with Authentication Flow's steps loaded.`}
     >
       <div className="p-5 flex flex-col gap-3">
@@ -501,7 +612,7 @@ function TemplateMock() {
           <TestCaseList />
         </div>
       </div>
-    </Window>
+    </Browser>
   )
 }
 
@@ -525,7 +636,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
 function TestMock() {
   const entry = ENTRIES[2]
   return (
-    <Window title="Mission — Authentication Flow" label="A tester marking step 3 as failed, with the issue and steps to reproduce filled in.">
+    <Browser url="twnhall.com/mission/auth-flow" account="tester" active="Available Missions" label="A tester marking step 3 as failed, with the issue and steps to reproduce filled in.">
       <div className="p-5 flex flex-col gap-4">
         <p className={LABEL}>Step 3 of {ENTRIES.length}</p>
         <div className="flex flex-col gap-1">
@@ -554,13 +665,13 @@ function TestMock() {
           ))}
         </div>
       </div>
-    </Window>
+    </Browser>
   )
 }
 
 function ReviewMock() {
   return (
-    <Window title="Feedback — Authentication Flow" label="The builder's review: the pass rate, screenshots, approve or request changes, and a rating.">
+    <Browser url="twnhall.com/dashboard/feedback" account="builder" active="Feedback Received" label="The builder's review: the pass rate, screenshots, approve or request changes, and a rating.">
       <div className="p-5 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <p className="font-mono text-[13px] font-medium text-ink">Tester 01</p>
@@ -595,7 +706,7 @@ function ReviewMock() {
           </div>
         </div>
       </div>
-    </Window>
+    </Browser>
   )
 }
 
@@ -629,7 +740,7 @@ const INSIGHT_FROM = 600
 function SummaryMock({ at = SUMMARY_MS }: { at?: number }) {
   const done = at >= SUMMARY_MS - 100
   return (
-    <Window title="Test report" label="The AI summary: what failed first, what went untested, what worked, and an overall read of the session.">
+    <Browser url="twnhall.com/dashboard/acme/mission/auth-flow" account="builder" active="My Missions" label="The AI summary: what failed first, what went untested, what worked, and an overall read of the session.">
       <div className="p-5 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4 flex-wrap min-h-6">
           <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">AI generated</p>
@@ -665,7 +776,7 @@ function SummaryMock({ at = SUMMARY_MS }: { at?: number }) {
           })}
         </div>
       </div>
-    </Window>
+    </Browser>
   )
 }
 
@@ -698,7 +809,7 @@ function StreamingSummary() {
 function ExportMock() {
   const cols = ["Step", "Action", "Step status", "Issue summary"]
   return (
-    <Window title="twnhall-feedback.csv" label="A CSV export with one row per step: the step number, the action, its status and the issue.">
+    <Browser url="twnhall.com/settings" account="builder" active="Settings" label="A CSV export with one row per step: the step number, the action, its status and the issue.">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] font-mono text-[12px] leading-5 text-left">
           <thead>
@@ -722,7 +833,7 @@ function ExportMock() {
           </tbody>
         </table>
       </div>
-    </Window>
+    </Browser>
   )
 }
 
@@ -780,7 +891,7 @@ export function Features() {
           key={title}
           className="grid gap-8 lg:gap-12 grid-cols-[minmax(0,1fr)] lg:grid-cols-12 lg:items-center rounded-[16px] border border-line bg-surface-raised p-3 sm:p-6 lg:p-8"
         >
-          <div className={`lg:col-span-5 flex flex-col gap-4 px-2 pt-4 sm:pt-0 lg:px-4 ${i % 2 ? "lg:order-2" : ""}`}>
+          <div className={`lg:col-span-4 flex flex-col gap-4 px-2 pt-4 sm:pt-0 lg:px-4 ${i % 2 ? "lg:order-2" : ""}`}>
             <h3 className="font-syne font-bold text-[24px] leading-8 text-ink">{title}</h3>
             <p className="font-sans text-[18px] leading-8 text-ink">{body}</p>
             {link && (
@@ -790,7 +901,7 @@ export function Features() {
               </Link>
             )}
           </div>
-          <div className={`lg:col-span-7 th-stage rounded-[12px] border border-line p-3 sm:p-8 lg:p-12 ${i % 2 ? "lg:order-1" : ""}`}>
+          <div className={`lg:col-span-8 th-stage rounded-[12px] border border-line p-3 sm:p-8 lg:p-12 ${i % 2 ? "lg:order-1" : ""}`}>
             <Mock />
           </div>
         </article>
