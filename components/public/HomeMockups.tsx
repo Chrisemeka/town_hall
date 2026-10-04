@@ -530,13 +530,13 @@ function Browser({
       aria-label={label}
       className="rounded-[12px] border border-line bg-surface-raised shadow-card overflow-hidden"
     >
-      <div aria-hidden="true" className="h-12 px-4 flex items-center gap-4 border-b border-line">
+      <div aria-hidden="true" className="h-12 px-4 flex items-center gap-4 border-b border-line bg-surface">
         <div className="flex gap-2 shrink-0">
           <span className="w-3 h-3 rounded-full bg-line" />
           <span className="w-3 h-3 rounded-full bg-line" />
           <span className="w-3 h-3 rounded-full bg-line" />
         </div>
-        <div className="flex-1 min-w-0 max-w-[360px] mx-auto h-8 px-3 flex items-center gap-2 rounded-[8px] border border-line bg-surface text-ink-muted">
+        <div className="flex-1 min-w-0 max-w-[360px] mx-auto h-8 px-3 flex items-center gap-2 rounded-[8px] border border-line bg-ink/[0.04] text-ink-muted">
           <Lock size={12} className="shrink-0" />
           <span className="flex-1 min-w-0 truncate text-center font-mono text-[12px]">{url}</span>
           <RotateCw size={12} className="shrink-0" />
@@ -548,7 +548,7 @@ function Browser({
           here, not as the DM Mono app. The wordmark keeps Syne; the address
           bar above keeps mono, like a real one. */}
       <div className="flex [&_*:not(.font-syne)]:font-sans!">
-        <div aria-hidden="true" className="hidden md:flex w-52 shrink-0 flex-col gap-6 p-4 border-r border-line">
+        <div aria-hidden="true" className="hidden md:flex w-52 shrink-0 flex-col gap-6 p-4 border-r border-line bg-surface">
           <div className="flex items-center gap-2 px-2">
             <Logo size={20} />
             <span className="font-syne font-bold text-[14px] text-ink">Twnhall</span>
@@ -601,7 +601,7 @@ function TemplateMock() {
           {TEST_TEMPLATES.slice(0, 4).map((t) => (
             <li
               key={t.id}
-              className={`rounded-[8px] border bg-surface px-3 py-2 ${t.id === TEMPLATE.id ? "border-accent-ink" : "border-line"}`}
+              className={`rounded-[8px] border bg-ink/[0.04] px-3 py-2 ${t.id === TEMPLATE.id ? "border-accent-ink" : "border-line"}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="font-mono text-[12px] font-medium leading-5 text-ink truncate">{t.name}</p>
@@ -611,7 +611,7 @@ function TemplateMock() {
             </li>
           ))}
         </ul>
-        <div className="rounded-[8px] border border-line bg-surface overflow-hidden">
+        <div className="rounded-[8px] border border-line bg-ink/[0.04] overflow-hidden">
           <TestCaseList />
         </div>
       </div>
@@ -629,7 +629,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="font-mono text-[12px] text-ink">{label}</span>
-      <p className="bg-surface border border-ink-muted rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink">
+      <p className="bg-ink/[0.04] border border-ink-muted rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink">
         {value}
       </p>
     </div>
@@ -651,7 +651,7 @@ function TestMock() {
             <span
               key={s}
               className={`h-10 px-4 inline-flex items-center rounded-[8px] border font-mono text-[13px] font-medium ${
-                s === entry.status ? STATUS_ACTIVE[s] : "border-line text-ink-muted bg-surface"
+                s === entry.status ? STATUS_ACTIVE[s] : "border-line text-ink-muted bg-ink/[0.04]"
               }`}
             >
               {entryStatusLabel(s)}
@@ -816,7 +816,7 @@ function ExportMock() {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] font-mono text-[12px] leading-5 text-left">
           <thead>
-            <tr className="border-b border-line">
+            <tr className="border-b border-line bg-ink/[0.04]">
               {cols.map((c) => (
                 <th key={c} scope="col" className="px-4 py-2 font-medium text-ink-muted whitespace-nowrap">
                   {c}

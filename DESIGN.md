@@ -681,7 +681,11 @@ accent-ink link. No email field.
   then the page. The section runs to 1680px, not the 1200px column.
   Inside the window (sidebar and page) the type is **DM Sans**, not DM Mono —
   a deliberate exception so the cards read as a website; the wordmark keeps
-  Syne and the address bar keeps mono. The hero window stays DM Mono. Templates (the real library), the tester's step, the
+  Syne and the address bar keeps mono. The hero window stays DM Mono.
+  Three shades, Cursor-style, all from tokens: chrome and sidebar `surface`,
+  the page `surface-raised`, panels and inputs on it `bg-ink/[0.04]`. `ink`
+  flips with the theme, so the ramp lightens upward in dark and darkens in
+  light. Templates (the real library), the tester's step, the
   builder's review, the AI summary, the CSV export.
 - **Only the AI summary moves**: it streams in once when scrolled to, in
   under 5s, so it needs no pause control. Writing, testing and reviewing are
