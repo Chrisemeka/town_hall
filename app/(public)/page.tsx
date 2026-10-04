@@ -77,14 +77,11 @@ export default function LandingPage() {
               <br />
               <span className="text-accent-ink">A test report.</span>
             </motion.h1>
-            <motion.p variants={up} className="font-sans text-[18px] leading-8 text-ink mt-8 max-w-2xl">
-              Write the steps you want checked. Real people work through them
-              and send back every step marked pass, fail or blocked, with the
-              issue, how to reproduce it, and screenshots.
-            </motion.p>
-            <motion.p variants={up} className="font-mono text-[14px] leading-6 text-ink-muted mt-4 max-w-xl">
-              Testers are a trained cohort, not a crowd. Test for someone else
-              and you earn another report on your own.
+            {/* One line, GitHub-style. The cohort and the earn-one loop have
+                their own section below; the hero only has to land the idea. */}
+            <motion.p variants={up} className="font-sans text-[18px] leading-8 text-ink mt-8 max-w-xl">
+              Write the steps. Real testers work through every one and tell
+              you exactly what broke, and how to break it again.
             </motion.p>
             <motion.div variants={up} className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
               <a
