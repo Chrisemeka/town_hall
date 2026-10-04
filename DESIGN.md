@@ -672,10 +672,15 @@ accent-ink link. No email field.
 - `.th-glow` (globals.css): a 10% Voltage radial behind the windows, **dark
   only** — on the light ground it is invisible or a smudge.
 
-**② Tour** (`#tour`) — "From test case to fix list."
-- WAI-ARIA tabs (roving tabindex, arrows, Home/End): Write, Test, Review,
-  Summarise, Export. Each panel is a 28px Syne title + DM Sans body beside a
-  window. The tab list scrolls horizontally on phones; the page never does.
+**② Features** (`#tour`) — "From test case to fix list."
+- Cursor-style cards, one per capability, stacked with 24px gaps: copy on one
+  side (24px Syne title, 18px DM Sans body, optional accent-ink guide link),
+  the product window on a `.th-stage` dot grid on the other, alternating
+  sides from `lg`. Templates (the real library), the tester's step, the
+  builder's review, the AI summary, the CSV export.
+- **Only the AI summary moves**: it streams in once when scrolled to, in
+  under 5s, so it needs no pause control. Writing, testing and reviewing are
+  already animated in the hero; repeating them here is repetition.
 
 **③ The loop** — "Test one, earn one." DM Sans paragraph about the cohort
 beside a numbered three-step list. No figures.
