@@ -2,7 +2,9 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { isCurrent } from "@/components/public/DesktopNav";
 
 /**
  * The marketing nav below 768px.
@@ -24,6 +26,7 @@ export function MobileNav({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   const close = () => ref.current?.close();
 
@@ -65,17 +68,23 @@ export function MobileNav({
           </div>
 
           <nav className="mt-4 flex flex-col">
-            {links.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                // Client-side navigation leaves the dialog open otherwise.
-                onClick={close}
-                className="flex min-h-11 items-center rounded-[8px] px-2 font-mono text-[16px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-              >
-                {label}
-              </Link>
-            ))}
+            {links.map(({ href, label }) => {
+              const current = isCurrent(pathname, href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={current ? "page" : undefined}
+                  // Client-side navigation leaves the dialog open otherwise.
+                  onClick={close}
+                  className={`flex min-h-11 items-center rounded-[8px] px-2 font-mono text-[16px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+                    current ? "font-medium underline decoration-accent-ink decoration-2 underline-offset-8" : ""
+                  }`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </dialog>

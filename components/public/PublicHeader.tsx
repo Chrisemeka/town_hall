@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { DesktopNav } from "@/components/public/DesktopNav";
 import { MobileNav } from "@/components/public/MobileNav";
 import { ThemeToggle } from "@/components/public/ThemeToggle";
 import type { Theme } from "@/lib/theme";
@@ -30,17 +31,7 @@ export function PublicHeader({ theme }: { theme: Theme }) {
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <nav className="hidden md:flex items-center gap-8">
-            {NAV.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className="text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
+          <DesktopNav links={NAV} />
 
           <ThemeToggle theme={theme} />
 
