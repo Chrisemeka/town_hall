@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowDown, ArrowRight } from "lucide-react";
-import { HeroDemo, Tour } from "@/components/public/HomeMockups";
+import { Features, HeroDemo } from "@/components/public/HomeMockups";
 
 /*
  * The homepage shows the product rather than describing it: every window on
@@ -104,14 +104,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Tour ─────────────────────────────────────────────────────────
-          GitHub's tabbed feature row, one tab per stage of a report. */}
+      {/* ── Features ─────────────────────────────────────────────────────
+          Cursor-style feature cards, alternating sides. See Features. */}
       <section id="tour" className="w-full border-t border-line scroll-mt-16">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-8 py-20 lg:py-28">
           <motion.h2 {...rise} variants={up} className={`${H2} max-w-2xl mb-12`}>
             From test case to fix list.
           </motion.h2>
-          <Tour />
+          <Features />
         </div>
       </section>
 
