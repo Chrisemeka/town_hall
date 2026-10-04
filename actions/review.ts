@@ -18,7 +18,7 @@ export type ReviewState =
   | { success: false; error: string; fieldErrors?: FieldErrors<ReviewInput> }
 
 /**
- * Builder approves / requests changes on / pays out a tester submission.
+ * Builder approves and rates a tester submission.
  *
  * Writes go through the service-role client rather than an RLS policy on
  * purpose: RLS can gate *rows* but not *columns*, so a builder UPDATE policy on
@@ -36,7 +36,6 @@ export async function reviewSubmission(
     resultId: formData.get("resultId"),
     action: formData.get("action"),
     rating: formData.get("rating") ?? undefined,
-    note: formData.get("note") ?? undefined,
   })
 
   if (!parsed.success) {
@@ -47,7 +46,7 @@ export async function reviewSubmission(
     }
   }
 
-  const { resultId, action, rating, note } = parsed.data
+  const { resultId, action, rating } = parsed.data
   const admin = createAdminClient()
 
   const { data, error: readError } = await admin
@@ -79,16 +78,12 @@ export async function reviewSubmission(
   const current = toStatus(row.status)
   const next = nextStatus(current, action)
 
-  // Unreachable while every transition is legal, and kept deliberately: it is
-  // the guard that catches the day nextStatus starts refusing one.
   if (next === null) {
-    return { success: false, error: "That review can't be applied to this submission." }
+    return { success: false, error: "This submission is already approved." }
   }
 
-  const patch: Record<string, unknown> = { status: next, reviewed_at: new Date().toISOString() }
-  if (rating !== undefined) patch.rating = rating
-  if (action === "request_changes") patch.review_note = note || null
-  if (action === "approve") patch.review_note = null
+  // review_note is cleared, not dropped: legacy changes_requested rows carry one.
+  const patch = { status: next, rating, review_note: null, reviewed_at: new Date().toISOString() }
 
   const { error: writeError } = await admin
     .from("test_results")

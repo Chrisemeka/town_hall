@@ -1,5 +1,5 @@
-// The submission review flow: pending -> approved or changes_requested, and
-// nothing after that. Payments were removed, and these assertions are what stop
+// The submission review flow: pending -> approved, and nothing after that.
+// changes_requested survives only on legacy rows; nothing produces it. Payments were removed, and these assertions are what stop
 // `paid` or `mark_paid` coming back in by accident — the type union alone only
 // catches it where a literal is written down. Run with: npm test
 
@@ -15,7 +15,7 @@ import {
 import { reviewSchema } from "../lib/validation/schemas.ts"
 import { isNewMission } from "../lib/utils/mission.ts"
 
-const ACTIONS: ReviewAction[] = ["approve", "request_changes"]
+const ACTIONS: ReviewAction[] = ["approve"]
 
 /* ── the vocabulary ──────────────────────────────────────────────────── */
 
@@ -42,18 +42,15 @@ for (const status of SUBMISSION_STATUSES) {
 const approved = nextStatus("pending", "approve")
 assert.equal(approved, "approved")
 
-/* ── request changes, then approve ───────────────────────────────────── */
+/* ── a legacy changes_requested row can still be approved ────────────── */
 
-const needsChanges = nextStatus("pending", "request_changes")
-assert.equal(needsChanges, "changes_requested")
-assert.equal(nextStatus(needsChanges!, "approve"), "approved", "a fixed submission can still be approved")
+assert.equal(nextStatus("changes_requested", "approve"), "approved")
 
-/* ── approval is not terminal ────────────────────────────────────────── */
+/* ── approval is terminal ───────────────────────────────────────────── */
 
-// Deliberate, and worth an assertion rather than an absence: `paid` used to be
-// the terminal state, and removing it left approval reversible. If terminal
-// approval is ever wanted, this is the line that has to change first.
-assert.equal(nextStatus("approved", "request_changes"), "changes_requested")
+// With no way to send a report back (one report per tester per mission),
+// an approved report has nowhere to go.
+assert.equal(nextStatus("approved", "approve"), null)
 
 /* ── completion ──────────────────────────────────────────────────────── */
 
@@ -95,18 +92,13 @@ assert.equal(
   true,
 )
 
-// A rating is required on both remaining actions — there is no longer an action
-// exempt from it.
-for (const action of ACTIONS) {
-  const noRating = reviewSchema.safeParse({ resultId: RESULT_ID, action, note: "Fix the header." })
-  assert.equal(noRating.success, false, `${action} without a rating must be rejected`)
-}
+// Approval carries a rating.
+assert.equal(reviewSchema.safeParse({ resultId: RESULT_ID, action: "approve" }).success, false)
 
-// "Needs changes" with no reason stays unactionable.
-assert.equal(
-  reviewSchema.safeParse({ resultId: RESULT_ID, action: "request_changes", rating: 3 }).success,
-  false,
-)
+// request_changes is gone: a tester files one report per mission, so there is
+// nothing for them to change it into.
+const sendBack = reviewSchema.safeParse({ resultId: RESULT_ID, action: "request_changes", rating: 3, note: "x" })
+assert.equal(sendBack.success, false, "request_changes must not parse")
 
 /* ── new-mission window ──────────────────────────────────────────────── */
 

@@ -413,31 +413,21 @@ export const screenshotsSchema = z
  * Submission review (builder side)
  * ──────────────────────────────────────────────────────────── */
 
-export const REVIEW_NOTE_MAX = 500
-
 export const reviewSchema = z
   .object({
     resultId: z.string().uuid("Invalid submission id."),
-    action: z.enum(["approve", "request_changes"], {
-      message: "Choose approve or request changes.",
-    }),
+    action: z.literal("approve", { message: "Approve is the only review action." }),
     rating: z.coerce
       .number()
       .int()
       .min(1, "Rate the tester from 1 to 5.")
       .max(5, "Rate the tester from 1 to 5.")
       .optional(),
-    note: z.string().trim().max(REVIEW_NOTE_MAX).optional().or(z.literal("")),
   })
-  // Both remaining actions are a judgement of the work, so both carry a rating.
+  // Approval is a judgement of the work, so it carries a rating.
   .refine((d) => d.rating !== undefined, {
     message: "Rate the tester from 1 to 5.",
     path: ["rating"],
-  })
-  // "Needs changes" with no reason is unactionable for the tester.
-  .refine((d) => d.action !== "request_changes" || !!d.note, {
-    message: "Tell the tester what needs changing.",
-    path: ["note"],
   })
 
 export type ReviewInput = z.infer<typeof reviewSchema>
