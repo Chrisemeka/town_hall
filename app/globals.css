@@ -142,6 +142,19 @@
 }
 
 /*
+ * The homepage hero's glow. Dark only: Voltage is 1.02:1 on the light ground,
+ * so there a glow is invisible or a smudge, and the window's border and
+ * shadow-card do the separating instead.
+ */
+[data-theme="dark"] .th-glow {
+  background: radial-gradient(
+    60% 50% at 60% 40%,
+    color-mix(in srgb, var(--color-accent) 10%, transparent),
+    transparent 70%
+  );
+}
+
+/*
  * Feedback form unlock — Design.md §9: fade in over 300ms, ease-out.
  *
  * A keyframe rather than a transition on an always-mounted element. The form
