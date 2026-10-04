@@ -673,7 +673,7 @@ accent-ink link. No email field.
   only** — on the light ground it is invisible or a smudge.
 
 **② Features** (`#tour`) — "From test case to fix list."
-- Cursor-style cards, one per capability, stacked with 24px gaps: copy on one
+- Cursor-style cards, one per capability, stacked 48px apart (64px from `lg`): copy on one
   side (24px Syne title, 18px DM Sans body, optional accent-ink guide link),
   the product window on a `.th-stage` dot grid on the other, alternating
   sides from `lg`. Templates (the real library), the tester's step, the

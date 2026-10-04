@@ -774,7 +774,7 @@ const FEATURES: {
  */
 export function Features() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-12 lg:gap-16">
       {FEATURES.map(({ title, body, link, Mock }, i) => (
         <article
           key={title}
