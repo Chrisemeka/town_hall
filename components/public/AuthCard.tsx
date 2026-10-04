@@ -2,6 +2,7 @@ import Link from "next/link"
 import { signInWithGoogle } from "@/actions/auth"
 import { Logo } from "@/components/Logo"
 import { errorId } from "@/lib/focus"
+import { PasswordInput } from "@/components/public/PasswordInput"
 
 /**
  * The chrome shared by /signup, /login, /forgot-password and /reset-password:
@@ -81,6 +82,8 @@ export function AuthField({
   helper?: string
 }) {
   const hasError = !!errors?.length
+  // Every password field gets the show/hide toggle.
+  const Input = type === "password" ? PasswordInput : "input"
   return (
     <div className="flex flex-col gap-2">
       <label
@@ -89,10 +92,10 @@ export function AuthField({
       >
         {label}
       </label>
-      <input
+      <Input
         id={name}
         name={name}
-        type={type}
+        {...(type === "password" ? {} : { type })}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         // aria-invalid only when it is true: every unerrored input announcing
