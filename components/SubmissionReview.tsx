@@ -1,9 +1,9 @@
 "use client"
 
 import { useActionState, useState } from "react"
-import { Check, RotateCcw, Star } from "lucide-react"
+import { Check, Star } from "lucide-react"
 import { reviewSubmission, type ReviewState } from "@/actions/review"
-import { STATUS_LABEL, type ReviewAction, type SubmissionStatus } from "@/lib/review"
+import { STATUS_LABEL, type SubmissionStatus } from "@/lib/review"
 import { Button } from "@/components/ui/Button"
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; dot: string }> = {
@@ -66,7 +66,7 @@ export default function SubmissionReview({
   reviewNote: string | null
 }) {
   const [state, formAction, pending] = useActionState<ReviewState, FormData>(reviewSubmission, null)
-  const [draft, setDraft] = useState<ReviewAction | null>(null)
+  const [ratingOpen, setRatingOpen] = useState(false)
   const [stars, setStars] = useState(rating ?? 0)
 
   const errors = state && !state.success ? state.fieldErrors : undefined
@@ -86,42 +86,31 @@ export default function SubmissionReview({
           )}
         </div>
 
-        {!draft && (
-          <div className="flex items-center gap-2">
-            {status !== "approved" && (
-              <Button size="sm" onClick={() => setDraft("approve")} className="gap-1.5">
-                <Check className="w-3.5 h-3.5" /> Approve
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setDraft("request_changes")}
-              className="gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Request Changes
-            </Button>
-          </div>
+        {!ratingOpen && status !== "approved" && (
+          <Button size="sm" onClick={() => setRatingOpen(true)} className="gap-1.5">
+            <Check className="w-3.5 h-3.5" /> Approve
+          </Button>
         )}
       </div>
 
+      {/* Legacy: changes_requested can no longer be produced, but older rows
+          carry it and their note. */}
       {reviewNote && status === "changes_requested" && (
         <p className="font-mono text-[13px] leading-5 text-ink-muted bg-ember/5 border-l-2 border-danger-ink rounded-r-[6px] px-3 py-2">
           {reviewNote}
         </p>
       )}
 
-      {/* Rating prompt — opens after the builder picks a decision, because a
-          decision without a rating leaves the tester's reputation unmoved. */}
-      {draft && (
+      {/* Rating prompt — opens on Approve, because an approval without a
+          rating leaves the tester's reputation unmoved. Closes once approved. */}
+      {ratingOpen && status !== "approved" && (
         <form action={formAction} className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4">
           <input type="hidden" name="resultId" value={resultId} />
-          <input type="hidden" name="action" value={draft} />
+          <input type="hidden" name="action" value="approve" />
 
           <div>
             <p className="font-mono text-[13px] text-ink mb-2">
-              {draft === "approve" ? "Approving this submission." : "Sending this back for changes."}
-              {" "}How was the tester&apos;s work?
+              Approving this submission. How was the tester&apos;s work?
             </p>
             <RatingPicker value={stars} onChange={setStars} />
             {errors?.rating && (
@@ -129,30 +118,11 @@ export default function SubmissionReview({
             )}
           </div>
 
-          {draft === "request_changes" && (
-            <div>
-              <label htmlFor={`note-${resultId}`} className="font-mono text-[12px] text-ink-muted block mb-1.5">
-                What needs changing?
-              </label>
-              <textarea
-                id={`note-${resultId}`}
-                name="note"
-                rows={3}
-                defaultValue={reviewNote ?? ""}
-                placeholder="e.g. The repro steps aren't clear — which screen were you on?"
-                className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent-ink transition-colors duration-150"
-              />
-              {errors?.note && (
-                <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.note[0]}</p>
-              )}
-            </div>
-          )}
-
           <div className="flex items-center gap-2">
             <Button size="sm" type="submit" disabled={pending}>
-              {pending ? "Saving…" : draft === "approve" ? "Approve + rate" : "Request changes"}
+              {pending ? "Saving…" : "Approve + rate"}
             </Button>
-            <Button size="sm" variant="secondary" type="button" onClick={() => setDraft(null)}>
+            <Button size="sm" variant="secondary" type="button" onClick={() => setRatingOpen(false)}>
               Cancel
             </Button>
           </div>

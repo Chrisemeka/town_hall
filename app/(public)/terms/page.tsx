@@ -42,7 +42,7 @@ export default function TermsPage() {
               <span className="text-ink font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
             </p>
             <p>
-              A submission moves from Pending Review to Approved or Needs Changes. Builders are expected to review submissions in good faith and within a reasonable time. Requesting changes must be accompanied by a specific, actionable reason. Withholding approval from work that meets the mission brief is a violation of these terms.
+              A submission moves from Pending Review to Approved, with a rating. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the mission brief is a violation of these terms.
             </p>
           </Section>
 

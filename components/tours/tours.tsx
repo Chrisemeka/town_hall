@@ -186,7 +186,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🧪",
         title: "This is your Tester Home",
-        content: <>Everything you need as a tester lives here — missions open for testing, and every submission you&apos;ve filed with where the builder took it. Work sits at <span className="font-medium">Pending Review</span> until they approve it or send it back.</>,
+        content: <>Everything you need as a tester lives here — missions open for testing, and every submission you&apos;ve filed with where the builder took it. Work sits at <span className="font-medium">Pending Review</span> until they approve and rate it.</>,
         selector: "#tour-tester-header",
         side: "bottom",
         showControls: true,

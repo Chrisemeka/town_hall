@@ -244,9 +244,9 @@ export default function BuilderGuidePage() {
 
         <Section number="8" title="Review and rate every report">
           <p className={P}>
-            A report arrives pending. You either approve it or send it back
-            asking for changes with a note, and both carry a rating out of five.
-            The rating is required on either outcome — a decision without one
+            A report arrives pending, and you approve it with a rating out of
+            five. There is no sending it back: a tester files one report per
+            mission. The rating is required — an approval without one
             leaves the tester nothing to build a reputation on, and reputation
             is the only thing Twnhall has to offer testers.
           </p>

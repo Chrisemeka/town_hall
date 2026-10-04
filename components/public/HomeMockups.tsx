@@ -674,7 +674,7 @@ function TestMock() {
 
 function ReviewMock() {
   return (
-    <Browser url="twnhall.com/dashboard/feedback" account="builder" active="Feedback Received" label="The builder's review: the pass rate, screenshots, approve or request changes, and a rating.">
+    <Browser url="twnhall.com/dashboard/feedback" account="builder" active="Feedback Received" label="The builder's review: the pass rate, screenshots, approval, and a rating.">
       <div className="p-5 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <p className="font-mono text-[13px] font-medium text-ink">Tester 01</p>
@@ -702,9 +702,6 @@ function ReviewMock() {
           <div className="flex flex-wrap gap-2">
             <span className="h-10 px-4 inline-flex items-center rounded-[8px] border border-success-ink text-success-ink font-mono text-[13px] font-medium">
               Approve
-            </span>
-            <span className="h-10 px-4 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono text-[13px]">
-              Request changes
             </span>
           </div>
         </div>

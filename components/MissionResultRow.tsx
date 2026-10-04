@@ -208,7 +208,7 @@ export default function MissionResultRow({
         </div>
       )}
 
-      {/* REVIEW — approve / request changes / rate */}
+      {/* REVIEW — approve + rate */}
       <SubmissionReview
         resultId={result.id}
         status={toStatus(result.status)}

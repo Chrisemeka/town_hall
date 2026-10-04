@@ -20,7 +20,6 @@ const FILTERS: { label: string; status: SubmissionStatus | null }[] = [
   { label: "All", status: null },
   { label: "Pending", status: "pending" },
   { label: "Approved", status: "approved" },
-  { label: "Needs Changes", status: "changes_requested" },
 ]
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; bg: string; border: string }> = {
