@@ -4,7 +4,7 @@
 
 export const CONTACT_EMAIL = "twnhallhq@gmail.com"
 
-export const X_URL = "https://x.com/Khrisemeka"
+export const X_URL = "https://x.com/UseTwnhall"
 
 /** A mailto with the subject prefilled, so replies arrive pre-sorted. */
 export function mailto(subject?: string): string {
