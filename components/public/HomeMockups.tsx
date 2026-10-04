@@ -2,10 +2,21 @@
 
 import { useEffect, useState } from "react"
 import { useReducedMotion } from "framer-motion"
-import { AlertTriangle, CheckCircle2, ImageIcon, Pause, Play, Plus, Star } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Compass,
+  ImageIcon,
+  LayoutDashboard,
+  MessageSquareText,
+  Pause,
+  Play,
+  Plus,
+  Star,
+} from "lucide-react"
 import { TEST_TEMPLATES } from "@/lib/testTemplates"
 import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabulary"
-import { PassRate, SubmissionBody, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+import { PassRate, StatusPill, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { Badge } from "@/components/ui/Badge"
 
 /*
@@ -109,75 +120,353 @@ function TestCaseList() {
 
 /* ── hero ────────────────────────────────────────────────────────────── */
 
-const STEP_MS = 1400
-const HOLD_MS = 3600
+/*
+ * One app window playing the whole loop, GitHub-style: the builder writes and
+ * publishes a test case, a tester works through it, the builder reads what
+ * came back. Every frame is a pure function of one clock, `t`, so a scene can
+ * be jumped to, paused, or shown finished without any state to unwind.
+ */
+
+const SCENES = [
+  { role: "Builder", step: "writes the test case", path: "My projects / New mission", icon: LayoutDashboard, ms: 9000 },
+  { role: "Tester", step: "works through it", path: "Explore / Authentication Flow", icon: Compass, ms: 10000 },
+  { role: "Builder", step: "reads the report", path: "Feedback / Authentication Flow", icon: MessageSquareText, ms: 9000 },
+] as const
+
+const STARTS = SCENES.map((_, i) => SCENES.slice(0, i).reduce((sum, s) => sum + s.ms, 0))
+const TOTAL = STARTS[STARTS.length - 1] + SCENES[SCENES.length - 1].ms
+const TICK = 50
+
+function sceneAt(t: number) {
+  let i = SCENES.length - 1
+  while (t < STARTS[i]) i--
+  return i
+}
+
+/** `text` typed from `from` ms at `cps` characters a second, as of `at`. */
+function typed(text: string, at: number, from: number, cps: number) {
+  const n = Math.floor(((at - from) * cps) / 1000)
+  return { shown: text.slice(0, Math.max(0, n)), typing: n > 0 && n < text.length }
+}
+
+function Caret({ on }: { on: boolean }) {
+  return on ? <span className="inline-block w-[2px] h-4 ml-px align-middle bg-ink animate-pulse" /> : null
+}
+
+function Toast({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="th-fade-in inline-flex items-center gap-2 h-8 px-3 rounded-[8px] border border-success-ink font-mono text-[12px] text-ink">
+      <CheckCircle2 size={14} aria-hidden="true" className="text-success-ink" />
+      {children}
+    </span>
+  )
+}
+
+/** A control the scene "clicks": outlined, then filled with a hover tint once pressed. */
+function MockButton({ pressed, children }: { pressed: boolean; children: React.ReactNode }) {
+  return (
+    <span
+      className={`inline-flex items-center h-8 px-3 rounded-[8px] border border-accent-ink font-mono text-[12px] font-medium text-ink transition-colors duration-150 ${
+        pressed ? "bg-ink/[0.12]" : ""
+      }`}
+    >
+      {children}
+    </span>
+  )
+}
+
+const STEP_GAP = 1100
+
+function WriteScene({ at }: { at: number }) {
+  const title = typed(TEMPLATE.name, at, 300, 24)
+  const first = 1300
+  const publish = first + TEMPLATE.steps.length * STEP_GAP + 300
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1">
+        <span className={LABEL}>Mission</span>
+        <p className="h-10 flex items-center bg-surface border border-ink-muted rounded-[8px] px-3 font-mono text-[14px] text-ink">
+          {title.shown}
+          <Caret on={title.typing || at < 300} />
+        </p>
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className={LABEL}>Test case · Process flow</span>
+        <ol className="flex flex-col rounded-[8px] border border-line bg-surface overflow-hidden">
+          {TEMPLATE.steps.map((step, i) => {
+            const start = first + i * STEP_GAP
+            if (at < start) return null
+            const action = typed(step.action, at, start, 70)
+            return (
+              <li
+                key={step.action}
+                className={`flex gap-3 px-4 py-2 border-b border-line last:border-b-0 ${i > 2 ? "hidden sm:flex" : ""}`}
+              >
+                <span className="font-mono text-[12px] font-medium leading-5 text-accent-ink shrink-0">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="flex flex-col min-w-0">
+                  <p className="font-mono text-[12px] leading-5 text-ink">
+                    {action.shown}
+                    <Caret on={action.typing} />
+                  </p>
+                  {at >= start + 900 && (
+                    <p className="th-fade-in font-mono text-[11px] leading-4 text-ink-muted truncate">
+                      Expect: {step.expected_result}
+                    </p>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ol>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <MockButton pressed={at >= publish}>Publish mission</MockButton>
+        {at >= publish + 400 && <Toast>Published · 3 testers needed</Toast>}
+      </div>
+    </div>
+  )
+}
+
+/** When each step gets its status, in scene time. */
+const MARKED_AT = [800, 1500, 2200, 6400, 7000]
+const ISSUE = "Verification email never sends on signup"
+const REPRO = "1. Sign up. 2. Wait on the confirm screen. 3. Nothing arrives."
+
+function TestScene({ at }: { at: number }) {
+  const issue = typed(ISSUE, at, 2500, 30)
+  const repro = typed(REPRO, at, 4000, 40)
+  const submit = 8000
+
+  return (
+    <div className="flex flex-col gap-3">
+      <ol className="flex flex-col gap-2">
+        {ENTRIES.map((entry, i) => {
+          const marked = at >= MARKED_AT[i]
+          return (
+            <li key={entry.id} className="rounded-[8px] border border-line bg-surface px-4 py-2 flex flex-col gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="flex gap-3 min-w-0 flex-1">
+                  <span className="font-mono text-[12px] font-medium leading-5 text-accent-ink shrink-0">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <p className="font-mono text-[12px] leading-5 text-ink truncate">{entry.step_action}</p>
+                </div>
+                <div className="flex gap-1 shrink-0 pl-8 sm:pl-0">
+                  {ENTRY_STATUSES.map((s) => (
+                    <span
+                      key={s}
+                      className={`h-6 px-2 inline-flex items-center rounded-[4px] border font-mono text-[11px] font-medium transition-colors duration-150 ${
+                        marked && s === entry.status ? STATUS_ACTIVE[s] : "border-line text-ink-muted"
+                      }`}
+                    >
+                      {entryStatusLabel(s)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 3 is typed out; 4 and 5 arrive filled — the point is made once. */}
+              {i === 2 && marked && (
+                <div className="th-fade-in flex flex-col gap-2 pl-8">
+                  <p className="font-mono text-[12px] leading-5 text-ink border border-ink-muted rounded-[4px] px-2 py-1 min-h-8">
+                    <span className="text-ink-muted">Issue: </span>
+                    {issue.shown}
+                    <Caret on={issue.typing} />
+                  </p>
+                  {at >= 3900 && (
+                    <p className="font-mono text-[12px] leading-5 text-ink border border-ink-muted rounded-[4px] px-2 py-1 min-h-8">
+                      <span className="text-ink-muted">Reproduce: </span>
+                      {repro.shown}
+                      <Caret on={repro.typing} />
+                    </p>
+                  )}
+                </div>
+              )}
+              {i > 2 && marked && (
+                <p className="th-fade-in pl-8 font-mono text-[12px] leading-5 text-ink-muted truncate">
+                  Issue: {entry.issue_summary}
+                </p>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+      <div className="flex flex-wrap items-center gap-3">
+        <MockButton pressed={at >= submit}>Submit report</MockButton>
+        {at >= submit + 400 && <Toast>Report sent · +1 report earned</Toast>}
+      </div>
+    </div>
+  )
+}
+
+function ReviewScene({ at }: { at: number }) {
+  const rows = Math.min(ENTRIES.length, Math.max(0, Math.floor((at - 300) / 350) + 1))
+  const summaryAt = 2400
+
+  return (
+    <div className="grid gap-4 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-start">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <p className="font-mono text-[13px] font-medium text-ink">Tester 01</p>
+          <Badge>Pending</Badge>
+        </div>
+        <PassRate entries={ENTRIES} />
+        <ol className="flex flex-col gap-2">
+          {ENTRIES.slice(0, rows).map((entry) => (
+            <li key={entry.id} className="th-fade-in border-l-[3px] border-line pl-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[12px] font-medium text-accent-ink">
+                  {String(entry.step_index + 1).padStart(2, "0")}
+                </span>
+                <StatusPill status={entry.status} />
+                <p className="font-mono text-[12px] leading-5 text-ink truncate">{entry.step_action}</p>
+              </div>
+              {entry.issue_summary && (
+                <p className="font-mono text-[12px] leading-5 text-ink-muted truncate">Issue: {entry.issue_summary}</p>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {at >= summaryAt && (
+        <div className="th-fade-in rounded-[8px] border border-line bg-surface p-4 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">AI summary</p>
+            <Badge variant="negative">Frustrated</Badge>
+          </div>
+          {INSIGHTS.map((item, i) =>
+            at >= summaryAt + 400 + i * 500 ? (
+              <div key={item.title} className="th-fade-in flex items-start gap-2">
+                {item.status === "pass" ? (
+                  <CheckCircle2 size={14} aria-hidden="true" className="text-success-ink shrink-0 mt-1" />
+                ) : (
+                  <AlertTriangle size={14} aria-hidden="true" className="text-accent-ink shrink-0 mt-1" />
+                )}
+                <div className="min-w-0">
+                  <p className="font-mono text-[12px] font-medium leading-5 text-ink">{item.title}</p>
+                  <p className="font-mono text-[11px] leading-4 text-ink-muted">{item.description}</p>
+                </div>
+              </div>
+            ) : null,
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const STAGES = [WriteScene, TestScene, ReviewScene]
 
 /**
- * The test case behind, the report filling in step by step in front.
- *
- * It loops, so it carries a pause control (WCAG 2.2.2: anything moving for
- * more than five seconds). Someone who asked for less motion gets the finished
- * report and no control, since nothing moves. It starts on the finished frame
- * and holds it, so the server render and the first paint agree and nothing
- * jumps when the loop begins.
+ * Loops, so it carries a pause control (WCAG 2.2.2). Someone who asked for
+ * less motion gets no clock: each scene button shows that scene finished, and
+ * the page opens on the report. The stage itself is aria-hidden — a
+ * typewriter is noise to a screen reader — and the figure's label says the
+ * same thing in one sentence.
  */
 export function HeroDemo() {
   const still = useReducedMotion()
-  const [shown, setShown] = useState(ENTRIES.length)
+  const [t, setT] = useState(0)
   const [paused, setPaused] = useState(false)
   const running = !still && !paused
 
   useEffect(() => {
     if (!running) return
-    const done = shown >= ENTRIES.length
-    const t = setTimeout(() => setShown(done ? 1 : shown + 1), done ? HOLD_MS : STEP_MS)
-    return () => clearTimeout(t)
-  }, [running, shown])
+    const id = setInterval(() => setT((x) => (x + TICK) % TOTAL), TICK)
+    return () => clearInterval(id)
+  }, [running])
 
-  const visible = still ? ENTRIES : ENTRIES.slice(0, shown)
+  // Reduced motion opens on the finished report rather than an empty form.
+  const now = still && t === 0 ? TOTAL - 1 : t
+  const scene = sceneAt(now)
+  const local = now - STARTS[scene]
+  const Stage = STAGES[scene]
+  const jump = (i: number) => setT(still ? STARTS[i] + SCENES[i].ms - 1 : STARTS[i])
 
   return (
     <div className="relative">
       {/* Dark-only glow; see .th-glow in globals.css. */}
       <div aria-hidden="true" className="th-glow pointer-events-none absolute -inset-x-8 -top-16 -bottom-8" />
 
-      <div className="relative grid lg:grid-cols-12">
-        <Window
-          title="Authentication Flow — test case"
-          label="The builder's test case: five steps, each with what should happen."
-          className="hidden lg:block lg:row-start-1 lg:col-start-1 lg:col-span-7 self-start"
-        >
-          <TestCaseList />
-        </Window>
+      <Window
+        title={`twnhall · ${SCENES[scene].path}`}
+        label="A builder writes and publishes a five-step test case, a tester marks each step pass, fail or blocked and describes the failure, and the builder reads the report with an AI summary."
+        className="relative max-w-[1040px] mx-auto"
+      >
+        <div className="flex">
+          <div aria-hidden="true" className="hidden sm:flex flex-col items-center gap-2 w-14 shrink-0 py-4 border-r border-line">
+            {SCENES.map((s, i) => {
+              const Icon = s.icon
+              return (
+                <span
+                  key={i}
+                  className={`w-10 h-10 rounded-[8px] flex items-center justify-center ${
+                    i === scene ? "bg-ink/[0.06] text-accent-ink" : "text-ink-muted"
+                  }`}
+                >
+                  <Icon size={18} />
+                </span>
+              )
+            })}
+          </div>
 
-        <Window
-          title="Report from Tester 01"
-          label="A tester's report on the same five steps: two passed, one failed, two blocked, each problem with an issue and steps to reproduce."
-          className="lg:row-start-1 lg:col-start-6 lg:col-span-7 lg:mt-16 z-10"
-        >
-          {/* Both copies share one grid cell: the full report, invisible,
-              holds the height so the page does not move as steps arrive. */}
-          <div className="grid p-5 lg:p-6">
-            <div aria-hidden="true" className="invisible [grid-area:1/1]">
-              <SubmissionBody entries={ENTRIES} comment={null} />
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="h-12 px-5 flex items-center gap-3 border-b border-line">
+              <Badge variant={SCENES[scene].role === "Tester" ? "role-tester" : "default"}>
+                {SCENES[scene].role}
+              </Badge>
+              <span className="font-mono text-[12px] text-ink-muted truncate">{SCENES[scene].path}</span>
             </div>
-            <div className="[grid-area:1/1] motion-safe:[&_li:last-child]:animate-[th-fade-in_300ms_ease-out_both]">
-              <SubmissionBody entries={visible} comment={null} />
+            {/* Fixed height so scenes never move the page; the mask softens
+                whatever a narrow screen has to clip. */}
+            <div
+              aria-hidden="true"
+              className="h-[440px] sm:h-[460px] overflow-hidden p-5 [mask-image:linear-gradient(to_bottom,black_88%,transparent)]"
+            >
+              <div key={scene} className="th-fade-in">
+                <Stage at={local} />
+              </div>
             </div>
           </div>
-        </Window>
-      </div>
+        </div>
 
-      {!still && (
-        <button
-          type="button"
-          onClick={() => setPaused((p) => !p)}
-          className={`relative z-10 mt-4 ml-auto flex h-11 px-4 items-center gap-2 rounded-[8px] border border-ink-muted font-mono text-[13px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 ${FOCUS}`}
-        >
-          {paused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
-          {paused ? "Play animation" : "Pause animation"}
-        </button>
-      )}
+        <div className="flex items-stretch border-t border-line">
+          {SCENES.map((s, i) => {
+            const active = i === scene
+            const pct = active ? (still ? 100 : (local / s.ms) * 100) : 0
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => jump(i)}
+                aria-current={active ? "step" : undefined}
+                className={`relative flex-1 min-w-0 h-12 px-3 sm:px-4 text-left font-mono text-[12px] border-r border-line transition-colors duration-150 hover:bg-ink/[0.06] ${FOCUS} ${
+                  active ? "text-ink" : "text-ink-muted"
+                }`}
+              >
+                <span aria-hidden="true" className="absolute left-0 top-0 border-t-2 border-accent-ink" style={{ width: `${pct}%` }} />
+                <span className="text-accent-ink mr-2">{String(i + 1).padStart(2, "0")}</span>
+                {s.role}
+                <span className="hidden md:inline"> {s.step}</span>
+              </button>
+            )
+          })}
+          {!still && (
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              aria-label={paused ? "Play animation" : "Pause animation"}
+              className={`w-12 h-12 shrink-0 flex items-center justify-center text-ink hover:bg-ink/[0.06] transition-colors duration-150 ${FOCUS}`}
+            >
+              {paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+            </button>
+          )}
+        </div>
+      </Window>
     </div>
   )
 }

@@ -130,7 +130,7 @@ export function PassRate({ entries }: { entries: SubmissionEntry[] }) {
 }
 
 /** Colour is paired with the label every time — Design.md §5.4. */
-function StatusPill({ status, count }: { status: string; count?: number }) {
+export function StatusPill({ status, count }: { status: string; count?: number }) {
   const tone =
     status === "pass"
       ? "text-success-ink bg-mint/[0.12] border-success-ink/30"
