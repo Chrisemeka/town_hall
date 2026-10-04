@@ -544,7 +544,10 @@ function Browser({
         <div className="w-[52px] shrink-0 hidden sm:block" />
       </div>
 
-      <div className="flex">
+      {/* DM Sans inside the page, by request: the mocks read as a website
+          here, not as the DM Mono app. The wordmark keeps Syne; the address
+          bar above keeps mono, like a real one. */}
+      <div className="flex [&_*:not(.font-syne)]:font-sans!">
         <div aria-hidden="true" className="hidden md:flex w-52 shrink-0 flex-col gap-6 p-4 border-r border-line">
           <div className="flex items-center gap-2 px-2">
             <Logo size={20} />
