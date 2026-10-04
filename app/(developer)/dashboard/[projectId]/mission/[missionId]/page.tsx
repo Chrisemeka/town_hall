@@ -10,8 +10,9 @@ type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
+import { MissionStatusButton } from "@/components/missions/MissionStatusButton";
 import { tooManyMessage } from "@/lib/rateLimit";
-import { ChevronLeft, Pencil, Power, PowerOff } from "lucide-react";
+import { ChevronLeft, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import DeleteMissionButton from "@/components/DeleteMissionButton";
@@ -130,20 +131,7 @@ export default async function DeveloperMissionDetailPage({
               await toggleMissionStatus(mission.id, projectId, !isActive);
             }}
           >
-            <button
-              type="submit"
-              className={`h-8 px-3 rounded-[6px] font-mono text-[13px] transition-colors duration-150 flex items-center gap-1.5 cursor-pointer ${
-                isActive
-                  ? "bg-ember/10 border border-danger-ink/30 text-danger-ink hover:bg-ember/20"
-                  : "bg-voltage/10 border border-accent-ink/30 text-accent-ink hover:bg-voltage/20"
-              }`}
-            >
-              {isActive ? (
-                <><PowerOff className="w-3 h-3" /> Deactivate</>
-              ) : (
-                <><Power className="w-3 h-3" /> Reactivate</>
-              )}
-            </button>
+            <MissionStatusButton isActive={isActive} />
           </form>
         </div>
       </div>
