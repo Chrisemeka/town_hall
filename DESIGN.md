@@ -675,8 +675,10 @@ accent-ink link. No email field.
 **② Features** (`#tour`) — "From test case to fix list."
 - Cursor-style cards, one per capability, stacked 64px apart (96px from `lg`): copy on one
   side (24px Syne title, 18px DM Sans body, optional accent-ink guide link),
-  the product window on a `.th-stage` dot grid on the other, alternating
-  sides from `lg`. Templates (the real library), the tester's step, the
+  the product on a `.th-stage` dot grid on the other, alternating sides from
+  `lg` (4/8 columns). Each window is a browser — address bar with a real
+  route, the app's sidebar (copied from `Sidebar.tsx`, folded below `md`),
+  then the page. The section runs to 1680px, not the 1200px column. Templates (the real library), the tester's step, the
   builder's review, the AI summary, the CSV export.
 - **Only the AI summary moves**: it streams in once when scrolled to, in
   under 5s, so it needs no pause control. Writing, testing and reviewing are
