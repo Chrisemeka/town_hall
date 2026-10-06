@@ -113,10 +113,11 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                       <span>Submitted {formatDate(s.createdAt)}</span>
                       <span className="text-line">·</span>
                       <span>{s.screenshots.length} screenshot{s.screenshots.length !== 1 ? "s" : ""}</span>
-                      {needsChanges && s.reviewNote && (
+                      {/* The builder's note: legacy send-back, or an approval note. */}
+                      {s.reviewNote && (
                         <>
                           <span className="text-line">·</span>
-                          <span className="text-danger-ink truncate max-w-[280px]">{s.reviewNote}</span>
+                          <span className={`${needsChanges ? "text-danger-ink" : "text-ink"} truncate max-w-[280px]`}>{s.reviewNote}</span>
                         </>
                       )}
                     </div>

@@ -413,6 +413,8 @@ export const screenshotsSchema = z
  * Submission review (builder side)
  * ──────────────────────────────────────────────────────────── */
 
+export const REVIEW_NOTE_MAX = 1000
+
 export const reviewSchema = z
   .object({
     resultId: z.string().uuid("Invalid submission id."),
@@ -423,6 +425,14 @@ export const reviewSchema = z
       .min(1, "Rate the tester from 1 to 5.")
       .max(5, "Rate the tester from 1 to 5.")
       .optional(),
+    // Optional, and the only written feedback a tester gets on their own work.
+    // Blank means no note: stored as null, left out of the approval email.
+    reviewNote: z
+      .string()
+      .trim()
+      .max(REVIEW_NOTE_MAX, `Keep the note under ${REVIEW_NOTE_MAX} characters.`)
+      .optional()
+      .transform((s) => s || null),
   })
   // Approval is a judgement of the work, so it carries a rating.
   .refine((d) => d.rating !== undefined, {

@@ -1,7 +1,7 @@
 # Twnhall — Email Notifications
 
 Server-side transactional email via [Resend](https://resend.com) and
-[React Email](https://react.email). Three flows:
+[React Email](https://react.email). Four flows:
 
 1. **Welcome (automated)** — someone finishes setup → `completeVerification`
    in `actions/verification.ts` → one email with the three next steps for
@@ -9,7 +9,11 @@ Server-side transactional email via [Resend](https://resend.com) and
 2. **Feedback notification (automated)** — a tester submits a test result
    → Supabase database webhook → `/api/webhooks/submission` → the project
    owner gets an email. Template: `feedback-notification.tsx`.
-3. **Admin broadcast (manual)** — an admin uses
+3. **Approval notification (automated)** — a builder approves a report →
+   `reviewSubmission` in `actions/review.ts` → the tester gets the mission,
+   the rating and the builder's optional note. Template:
+   `approval-notification.tsx`.
+4. **Admin broadcast (manual)** — an admin uses
    `/admin/email` to send a custom message to a single user or every account.
    Template: `admin-broadcast.tsx`.
 
@@ -49,6 +53,20 @@ Content is **not written in the template**. It arrives as props from
 same source the completion screen renders, so the email cannot say something
 different from the page the person read a minute earlier. To change what the
 email says, change `lib/setup.ts`.
+
+## The approval notification
+
+Fires from `reviewSubmission`, **not** a webhook: an UPDATE webhook on
+`test_results` would also fire on the `ai_summary` write every submission
+gets seconds after it lands. It sends only when the guarded update
+(`.neq("status", "approved")`) returned a row, so a repeat or racing
+approval sends nothing. Sent inside `after()`; `sendApprovalNotification`
+swallows every failure, and the tester lookup is wrapped at the call site —
+the approval is saved before any of it runs.
+
+Neutral copy: a 1 and a 5 are the same sentence with a different number. No
+pay, credit or standing. The link goes to `/tester`, where the report shows
+as Approved with the note; the rating itself is only in the email.
 
 ## Environment variables
 
@@ -122,6 +140,8 @@ Note: the free ngrok tier issues a new URL each time you start the tunnel
 ```
 emails/
   feedback-notification.tsx     React Email template — feedback flow
+  approval-notification.tsx     React Email template — approval flow
+  welcome.tsx                   React Email template — welcome flow
   admin-broadcast.tsx           React Email template — admin broadcast
   README.md                     This file
 

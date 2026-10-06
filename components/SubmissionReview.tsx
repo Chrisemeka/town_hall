@@ -5,6 +5,8 @@ import { Check, Star } from "lucide-react"
 import { reviewSubmission, type ReviewState } from "@/actions/review"
 import { STATUS_LABEL, type SubmissionStatus } from "@/lib/review"
 import { Button } from "@/components/ui/Button"
+import { Textarea } from "@/components/ui/Textarea"
+import { REVIEW_NOTE_MAX } from "@/lib/validation/schemas"
 
 const STATUS_STYLE: Record<SubmissionStatus, { color: string; dot: string }> = {
   pending: { color: "var(--color-accent-ink)", dot: "var(--color-accent-ink)" },
@@ -101,6 +103,12 @@ export default function SubmissionReview({
         </p>
       )}
 
+      {reviewNote && status === "approved" && (
+        <p className="font-mono text-[13px] leading-5 text-ink-muted border-l-2 border-line pl-3 py-1 whitespace-pre-wrap">
+          {reviewNote}
+        </p>
+      )}
+
       {/* Rating prompt — opens on Approve, because an approval without a
           rating leaves the tester's reputation unmoved. Closes once approved. */}
       {ratingOpen && status !== "approved" && (
@@ -115,6 +123,25 @@ export default function SubmissionReview({
             <RatingPicker value={stars} onChange={setStars} />
             {errors?.rating && (
               <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.rating[0]}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor={`reviewNote-${resultId}`} className="font-mono text-[13px] text-ink block mb-2">
+              Note to the tester <span className="text-ink-muted">(optional)</span>
+            </label>
+            <Textarea
+              id={`reviewNote-${resultId}`}
+              name="reviewNote"
+              maxLength={REVIEW_NOTE_MAX}
+              placeholder="What was useful, what you'd want more of next time."
+              className="border-ink-muted"
+            />
+            <p className="font-mono text-[12px] text-ink-muted mt-1">
+              Sent to the tester with the approval email.
+            </p>
+            {errors?.reviewNote && (
+              <p className="font-mono text-[12px] text-danger-ink mt-1">{errors.reviewNote[0]}</p>
             )}
           </div>
 
