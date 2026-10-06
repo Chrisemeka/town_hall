@@ -45,6 +45,7 @@ lib/
   plans.ts            Tier content and numbers — /pricing and /settings read it
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
+  testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
@@ -267,6 +268,33 @@ imports the other — a limited request must never read as "quota exceeded".
 - **No server-side contact form exists** (`lib/contact.ts` is a `mailto:`).
   If one is ever built, it needs a Tier 1 limit before it ships.
 
+**Tester anonymity: a builder is never sent who tested.** Not a name, not an
+email, not `tester_id` — on screen, in the RSC payload, in the CSV, in the
+notification email or through the API. A builder tells testers apart only by
+`testerNumbers()` (`lib/testerNumbers.ts`): "Tester 2" is the second report on
+*that* mission, the same number on the mission page, `/dashboard/feedback` and
+the CSV, and a different person on the next mission. The tester is likewise
+never sent the builder's `owner_id`.
+
+- **Admin is exempt, deliberately.** Admins pay the cohort and handle support;
+  every `app/(admin)/` surface keeps real names and emails. Do not "finish the
+  job" there.
+- **The shape of the bug is `select("*")` on a table with a person foreign
+  key** — `test_results.tester_id`, `projects.owner_id`, `projects.flagged_by`.
+  The mission page once did exactly that and passed the rows to a client
+  component, so every tester_id rode to the browser with nothing rendering it.
+  Name the columns. A row type handed to a `"use client"` component is a
+  `Pick<>` of what it renders (`MissionResult`), never the whole row type.
+  `scripts/anonymity.test.mts` fails on either shape.
+- **What this cannot deliver, stated so nobody believes otherwise.** The product
+  stops telling the builder who tested; it cannot stop them finding out.
+  Screenshots carry profile photos, logged-in headers and email fields,
+  unfiltered. Testers write their own email into steps. With a pool this small,
+  style and timing correlate. The one defence is the line beside the screenshot
+  control in `AuditLogForm`.
+- **Copy says "we don't share your name with builders", never "anonymous".**
+  The first is true; the second is a guarantee screenshots break.
+
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
 `DEVICE_TARGETS`, `ENTRY_STATUSES`. `scripts/vocabulary.test.mts` covers each.
@@ -405,8 +433,8 @@ RLS is on. Reads are policy-driven, writes are not. The pattern is deliberate.
 - **Ownership is checked in code, not by the database.** `requireProjectOwner()` in `lib/auth.ts`
   replaced the owner-scoped RLS policies those migrations removed. Service role bypasses RLS, so a
   write action that skips this guard has *no* ownership check at all. Call it.
-- **Reads need the same guard, and it is easy to forget.** `projects` and `missions` are readable by
-  anyone, so an owner-scoped *page* has to compare `owner_id` itself — `accessFor()` only proves the
+- **Reads need the same guard, and it is easy to forget.** Owner-scoped pages read through
+  service role (`owner_id` is not readable otherwise), so an owner-scoped *page* has to compare `owner_id` itself — `accessFor()` only proves the
   caller is a builder, not which builder. Every `/dashboard/[projectId]` page does this and answers
   `notFound()`, never a 403: distinguishing "not yours" from "no such project" confirms it exists.
   On the mission pages the check is against the **mission's own project**, not the `projectId` in the
@@ -421,11 +449,15 @@ on their own row** straight through PostgREST with the public anon key, includin
 the live database before being closed. (`payout_cents` has since been dropped — the hole was real
 when it was found.)
 
-**Read policies still exist and are not uniform.** `projects` and `missions` are readable by anyone
-(`using (true)` — the Explore feed depends on it, including logged out). `test_results` has a
-tester-own read *and* a project-ownership read that the builder feedback pages rely on through the
-anon client; its definition is not in this repo, so do not drop or "tidy" it without probing first.
-`test_result_entries` has RLS on with no policy at all — service role only.
+**Read policies still exist and are not uniform — and since `20261006_01`, column grants sit
+above them.** RLS limits rows, never columns. `missions` is readable by anyone (`using (true)` —
+the Explore feed depends on it, including logged out). `projects` is too, but only as `id, name,
+description, app_url, category, created_at, flagged_at`: `owner_id`, `flag_reason` and `flagged_by`
+are service role only. `test_results` has **no** anon or authenticated read grant; its tester-own
+and project-ownership policies remain but are inert, and every read goes through service role,
+scoped in code. `test_result_entries` has RLS on with no policy at all — service role only. A page
+that needs a private column reads it through `createAdminClient()` after its ownership check, and
+never hands the column to a client component.
 
 Follow this. Do not add RLS policies to solve auth — solve it in the server action with
 `requireAccount()` + `requireProjectOwner()` + service-role client + explicit column list.
@@ -560,11 +592,11 @@ Canonical reference: `Test.md`. Every feature ships with:
   meter), the Pro call to action opens a conversation at `/contact` and is
   never a Subscribe or Upgrade button, and nothing unshipped is listed. Do not
   add a control implying a transaction that does not exist.
-- **What leaves in a CSV.** `app/api/export/feedback` includes a tester's
-  display name, because the builder already sees it in the app. It must never
-  include **email addresses**, user ids or avatar URLs — a downloaded file is
-  out of your control the moment it exists, and the app shows a builder none
-  of those. Every field also passes through `neutralise()` in `lib/csv.ts`
+- **What leaves in a CSV.** `app/api/export/feedback` identifies a tester
+  only by their number within the mission (`lib/testerNumbers.ts`) — never a
+  name, **email address**, user id or avatar URL. A downloaded file is out of
+  your control the moment it exists, and builders never learn who tested
+  (Tester anonymity, above). Every field also passes through `neutralise()` in `lib/csv.ts`
   before quoting, and **the order matters**: reversed, the apostrophe lands
   outside the quotes and the formula runs. Every field in that file is written
   by a tester and opened by a builder.

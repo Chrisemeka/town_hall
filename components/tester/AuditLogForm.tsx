@@ -347,6 +347,13 @@ export default function AuditLogForm({
           {MAX_SCREENSHOTS}. Capture the whole journey, not just the final screen: the more steps you
           show, the more the builder can act on.
         </p>
+        {/* The one real defence tester anonymity has: we don't share a tester's
+            name with builders, but a screenshot can show it anyway. Never
+            "anonymous" — that is a guarantee screenshots break. */}
+        <p className="font-mono text-[13px] text-ink-muted mb-4 leading-5">
+          We don&apos;t share your name with builders, but your screenshots go to them as they are.
+          Crop out anything that shows your name, email or photo.
+        </p>
 
         {/* Thumbnail strip — drag to reorder, × to remove */}
         {shots.length > 0 && (
