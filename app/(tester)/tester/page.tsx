@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Compass, UserCog } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { missionsForTester } from "@/lib/cohortDb"
 import { isNewMission } from "@/lib/utils/mission"
@@ -49,12 +49,14 @@ const QUICK_ACTIONS = [
 
 export default async function TesterHomePage() {
   const { userId } = await requireAccount("tester")
-  const supabase = await createClient()
+  // Service role: test_results and projects.owner_id are not readable by a
+  // signed-in user (20261006_01). The tester_id filter scopes the first read;
+  // the second is the public mission list, and owner_id only drops the
+  // caller's own projects below — it never leaves this file.
+  const admin = createAdminClient()
 
   const [{ data: rawSubs }, { data: rawMissions }] = await Promise.all([
-    // Readable thanks to the "testers read own submissions" RLS policy — before
-    // that migration this returns nothing and the feed renders empty.
-    supabase
+    admin
       .from("test_results")
       .select(`
         id, created_at, status, review_note, screenshot_url, screenshot_urls, mission_id,
@@ -63,7 +65,7 @@ export default async function TesterHomePage() {
       .eq("tester_id", userId)
       .order("created_at", { ascending: false }),
 
-    supabase
+    admin
       .from("missions")
       .select(`
         id, title, created_at, category, load_test_at, testers_needed,

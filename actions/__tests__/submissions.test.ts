@@ -111,22 +111,25 @@ function mocks(
 
   vi.mocked(createClient).mockResolvedValue({
     auth: { getUser: () => Promise.resolve({ data: { user: { id: TESTER_ID } } }) },
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: () =>
-            Promise.resolve({
-              data: {
-                project_id: PROJECT_ID,
-                test_steps: opts.steps ?? MISSION_STEPS,
-                category: opts.category === undefined ? "process_flow" : opts.category,
-                projects: { owner_id: opts.ownerId ?? OWNER_ID },
-              },
-            }),
-        }),
+  } as unknown as Awaited<ReturnType<typeof createClient>>)
+
+  // The mission read goes through service role: projects.owner_id is not
+  // readable by a signed-in user (20261006_01).
+  const missionRead = {
+    select: () => ({
+      eq: () => ({
+        single: () =>
+          Promise.resolve({
+            data: {
+              project_id: PROJECT_ID,
+              test_steps: opts.steps ?? MISSION_STEPS,
+              category: opts.category === undefined ? "process_flow" : opts.category,
+              projects: { owner_id: opts.ownerId ?? OWNER_ID },
+            },
+          }),
       }),
     }),
-  } as unknown as Awaited<ReturnType<typeof createClient>>)
+  }
 
   vi.mocked(createAdminClient).mockReturnValue({
     rpc: (name: string, args: Record<string, unknown>) => {
@@ -137,6 +140,7 @@ function mocks(
       })
     },
     from: (table: string) => {
+      if (table === "missions") return missionRead
       if (table === "ai_usage_events") {
         return {
           insert: (row: Record<string, unknown>) => {

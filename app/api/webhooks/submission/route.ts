@@ -17,7 +17,6 @@ type WebhookPayload = {
   record?: {
     id?: string
     mission_id?: string
-    tester_id?: string
     tester_comment?: string | null
     ai_summary?: string | null
   }
@@ -65,7 +64,7 @@ export async function POST(req: Request) {
   }
 
   const record = payload.record
-  if (!record?.id || !record.mission_id || !record.tester_id) {
+  if (!record?.id || !record.mission_id) {
     return NextResponse.json(
       { error: "Missing required fields on record" },
       { status: 400 },
@@ -97,16 +96,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, skipped: "owner missing" })
     }
 
-    const [ownerRes, testerRes, submissionRes] = await Promise.all([
+    // No tester lookup: the email never names who tested.
+    const [ownerRes, submissionRes] = await Promise.all([
       admin
         .from("profiles")
         .select("id, full_name, email")
         .eq("id", project.owner_id)
-        .maybeSingle(),
-      admin
-        .from("profiles")
-        .select("id, full_name")
-        .eq("id", record.tester_id)
         .maybeSingle(),
       admin
         .from("test_results")
@@ -116,7 +111,6 @@ export async function POST(req: Request) {
     ])
 
     if (ownerRes.error) throw new Error(`owner lookup: ${ownerRes.error.message}`)
-    if (testerRes.error) throw new Error(`tester lookup: ${testerRes.error.message}`)
 
     const ownerEmail = ownerRes.data?.email
     if (!ownerEmail) {
@@ -141,7 +135,6 @@ export async function POST(req: Request) {
     await sendFeedbackNotification({
       to: ownerEmail,
       ownerName: ownerRes.data?.full_name || "",
-      testerName: testerRes.data?.full_name || "A tester",
       projectName: project.name ?? "your project",
       missionTitle: mission.title ?? "your mission",
       submissionSummary: truncate(rawSummary),

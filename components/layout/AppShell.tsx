@@ -8,14 +8,12 @@ import type { AccountType } from "@/lib/access"
 
 export function AppShell({
   children,
-  userId = null,
   avatarUrl,
   displayName,
   seenTours,
   account = "builder",
 }: {
   children: React.ReactNode
-  userId?: string | null
   avatarUrl?: string | null
   displayName?: string | null
   seenTours?: string[]
@@ -32,7 +30,6 @@ export function AppShell({
           avatarUrl={avatarUrl ?? null}
           displayName={displayName ?? null}
           account={account}
-          userId={userId}
         />
         <Sidebar
           isOpen={sidebarOpen}

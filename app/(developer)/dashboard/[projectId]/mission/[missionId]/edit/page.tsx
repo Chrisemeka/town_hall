@@ -1,8 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { one } from "@/lib/utils/project";
 import type { Embedded, ProjectRow } from "@/lib/types/db";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import EditMissionForm from "@/components/EditMissionForm";
@@ -17,15 +17,12 @@ export default async function EditMissionPage({
 }: {
   params: Promise<{ projectId: string; missionId: string }>;
 }) {
-  const supabase = await createClient();
   const { projectId, missionId } = await params;
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/explore");
-
   const { userId } = await requireAccount("builder");
 
-  const { data: mission } = await supabase
+  // Service role: projects.owner_id is not readable by a signed-in user
+  // (20261006_01). The owner check below is the scoping.
+  const { data: mission } = await createAdminClient()
     .from("missions")
     .select("*, projects(id, name, owner_id)")
     .eq("id", missionId)

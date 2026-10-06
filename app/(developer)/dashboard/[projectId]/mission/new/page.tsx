@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import AddMissionForm from "@/components/AddMissionForm";
@@ -14,15 +14,11 @@ export default async function NewMissionPage({
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  const supabase = await createClient();
   const { projectId } = await params;
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/explore");
-
   const { userId } = await requireAccount("builder");
 
-  const { data: project } = await supabase
+  // Service role: owner_id is not readable by a signed-in user (20261006_01).
+  const { data: project } = await createAdminClient()
     .from("projects")
     .select("id, name, owner_id")
     .eq("id", projectId)

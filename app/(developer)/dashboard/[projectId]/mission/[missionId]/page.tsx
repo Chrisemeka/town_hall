@@ -1,12 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
 import { requireAccount } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 import { one } from "@/lib/utils/project";
-import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
-
-/** `select("*, projects(*)")` — the whole mission with its whole project. */
-type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
+import type { Embedded, ProjectRow } from "@/lib/types/db";
+import { testerNumbers } from "@/lib/testerNumbers";
+import type { MissionResult } from "@/components/MissionResultRow";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { toggleMissionStatus } from "@/actions/missions";
@@ -27,18 +25,31 @@ export default async function DeveloperMissionDetailPage({
   params: Promise<{ projectId: string; missionId: string }>;
   searchParams: Promise<{ limited?: string }>;
 }) {
-  const supabase = await createClient();
   const { userId } = await requireAccount("builder");
+  // Service role: test_results and projects.owner_id are not readable by a
+  // signed-in user (20261006_01). The ownership check below is the scoping.
+  const admin = createAdminClient();
   const { projectId, missionId } = await params;
   // Set by toggleMissionStatus when Reactivate hit the rate limit. Only ever
   // rendered through tooManyMessage(), which states no parameters.
   const limited = Number((await searchParams).limited) || 0;
 
   const [missionRes, resultsRes] = await Promise.all([
-    supabase.from("missions").select("*, projects(*)").eq("id", missionId).single(),
-    supabase
+    admin
+      .from("missions")
+      .select(
+        "id, project_id, title, task_description, is_active, category, device_target, test_steps, testers_needed, projects(name, app_url, owner_id)",
+      )
+      .eq("id", missionId)
+      .single(),
+    // An explicit list, never "*": a wildcard here once shipped every
+    // tester_id to the browser through MissionResultRow, a client component.
+    // Builders never learn who tested (CLAUDE.md, Tester anonymity).
+    admin
       .from("test_results")
-      .select("*, missions!inner(title, project_id)")
+      .select(
+        "id, mission_id, created_at, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, status, rating, review_note",
+      )
       .eq("mission_id", missionId)
       .order("created_at", { ascending: false }),
   ]);
@@ -52,20 +63,21 @@ export default async function DeveloperMissionDetailPage({
   // someone else's mission through it. The project_id match is the other half:
   // it keeps the breadcrumb honest. notFound rather than a 403, so a refusal
   // does not confirm the mission exists.
-  const missionProject = one(missionRes.data.projects as Embedded<ProjectRow>);
+  const missionProject = one(
+    missionRes.data.projects as Embedded<Pick<ProjectRow, "name" | "app_url" | "owner_id">>,
+  );
   if (missionProject?.owner_id !== userId) return notFound();
   if (missionRes.data.project_id !== projectId) return notFound();
 
   const mission = missionRes.data;
-  const results = resultsRes.data || [];
+  const results = (resultsRes.data ?? []) as unknown as MissionResult[];
+  const numbers = testerNumbers(results);
 
-  // Entries come through the service-role client because test_result_entries has
-  // RLS on with no policy. Scoping is inherited rather than re-derived: the ids
-  // come from the query above, which the caller's own RLS already limited to
-  // submissions they may see, so this cannot widen what they get.
+  // Entries are keyed off the ids above, which the ownership check already
+  // scoped, so this cannot widen what the caller sees.
   const resultIds = results.map((r) => r.id)
   const { data: entryRows } = resultIds.length
-    ? await createAdminClient()
+    ? await admin
         .from("test_result_entries")
         .select(
           "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
@@ -81,7 +93,7 @@ export default async function DeveloperMissionDetailPage({
     entriesByResult.set(row.test_result_id, list)
   }
 
-  const project = one((mission as MissionWithProject).projects);
+  const project = missionProject;
   const isActive = mission.is_active !== false;
   // Drafts say what publishing would spend, which is also why a refused
   // publish left this a draft. Live missions need only the cap, from the row.
@@ -204,7 +216,7 @@ export default async function DeveloperMissionDetailPage({
               <MissionResultRow
                 result={result}
                 entries={entriesByResult.get(result.id) ?? null}
-                index={i}
+                testerNumber={numbers.get(result.id)}
                 appUrl={project?.app_url ?? null}
               />
             </div>

@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAccount } from "@/lib/auth";
+import { testerNumbers } from "@/lib/testerNumbers";
 import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 import type { MissionRow, TestResultRow } from "@/lib/types/db";
 
@@ -9,7 +10,6 @@ type ResultLite = Pick<
   TestResultRow,
   "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at" | "mission_id"
 >;
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { MessageSquare } from "lucide-react";
 import { FeedbackListPaged, type FeedbackEntry } from "@/components/FeedbackListPaged";
@@ -18,16 +18,17 @@ import { Button } from "@/components/ui/Button";
 export const metadata = { title: "Feedback Received — Twnhall" };
 
 export default async function FeedbackReceivedPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/explore");
+  const { userId } = await requireAccount("builder");
+  // Service role throughout: test_results and projects.owner_id are not
+  // readable by a signed-in user (20261006_01). The owner_id filter on the
+  // first read is the scoping, and every later read is keyed off its ids.
+  const admin = createAdminClient();
 
   /* 1 — user's projects */
-  const { data: projects } = await supabase
+  const { data: projects } = await admin
     .from("projects")
     .select("id, name")
-    .eq("owner_id", user.id);
+    .eq("owner_id", userId);
 
   const projectIds = (projects ?? []).map((p) => p.id);
   const projectMap = Object.fromEntries((projects ?? []).map((p) => [p.id, p.name]));
@@ -35,7 +36,7 @@ export default async function FeedbackReceivedPage() {
   /* 2 — missions belonging to those projects */
   const { data: missions } =
     projectIds.length > 0
-      ? await supabase
+      ? await admin
           .from("missions")
           .select("id, title, project_id")
           .in("project_id", projectIds)
@@ -54,22 +55,21 @@ export default async function FeedbackReceivedPage() {
       ]),
     );
 
-  /* 3 — all test_results, flat list ordered asc (so Developer #01 = first tester) */
+  /* 3 — all test_results on those missions */
   const { data: rawResults } =
     missionIds.length > 0
-      ? await supabase
+      ? await admin
           .from("test_results")
           .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id")
           .in("mission_id", missionIds)
           .order("created_at", { ascending: true })
       : { data: [] as ResultLite[] };
 
-  /* 3b — entries, via service role: test_result_entries has RLS on with no
-     policy. Keyed off the ids the query above returned, so the caller's own
-     scoping carries over and this cannot widen what they see. */
+  /* 3b — entries, keyed off the ids above, so this cannot widen the scope */
   const resultIds = (rawResults ?? []).map((r) => r.id)
+  const numbers = testerNumbers((rawResults ?? []) as ResultLite[])
   const { data: entryRows } = resultIds.length
-    ? await createAdminClient()
+    ? await admin
         .from("test_result_entries")
         .select(
           "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
@@ -98,6 +98,7 @@ export default async function FeedbackReceivedPage() {
       screenshot_url: r.screenshot_url,
       screenshot_urls: r.screenshot_urls,
       created_at:    r.created_at,
+      testerNumber:  numbers.get(r.id),
       entries:       entriesByResult.get(r.id) ?? null,
     }));
 

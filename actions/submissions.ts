@@ -80,7 +80,9 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     const { missionId, comment, entries } = parsed.data
     const files = filesParsed.data
 
-    const { data: missionData } = await supabase
+    // Service role: projects.owner_id is not readable by a signed-in user
+    // (20261006_01), and the own-project refusal below needs it.
+    const { data: missionData } = await createAdminClient()
       .from("missions")
       .select(`
         project_id,

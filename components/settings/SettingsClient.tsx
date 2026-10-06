@@ -1,5 +1,6 @@
 "use client"
 
+import type { ExportProject } from "@/components/settings/ExportPanel"
 import { useState } from "react"
 import { SettingsForm, type ProfileValues } from "@/components/SettingsForm"
 import { AccountPanel } from "@/components/settings/AccountPanel"
@@ -45,8 +46,8 @@ export function SettingsClient({
   /** Every account type this person holds. */
   types: AccountType[]
   theme: Theme
-  /** The caller's own projects, for the export scope select. */
-  projects: { id: string; name: string }[]
+  /** The caller's own projects with reports, for the export selects. */
+  projects: ExportProject[]
   hasFeedback: boolean
   activity: React.ReactNode
   plan: React.ReactNode

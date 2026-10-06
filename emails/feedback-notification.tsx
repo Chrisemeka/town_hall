@@ -10,9 +10,11 @@ import {
   Text,
 } from "@react-email/components"
 
+// No tester name, anywhere — the preview line included, which the inbox shows
+// before the email is opened. Builders never learn who tested (CLAUDE.md,
+// Tester anonymity).
 export interface FeedbackNotificationProps {
   ownerName: string
-  testerName: string
   projectName: string
   missionTitle: string
   submissionSummary: string
@@ -21,13 +23,12 @@ export interface FeedbackNotificationProps {
 
 export default function FeedbackNotification({
   ownerName,
-  testerName,
   projectName,
   missionTitle,
   submissionSummary,
   feedbackUrl,
 }: FeedbackNotificationProps) {
-  const previewText = `${testerName} left new feedback on ${projectName}`
+  const previewText = `New feedback on ${projectName}`
 
   return (
     <Html>
@@ -43,8 +44,7 @@ export default function FeedbackNotification({
           <Section style={content}>
             <Text style={greeting}>Hi {ownerName || "there"},</Text>
             <Text style={paragraph}>
-              <strong style={strong}>{testerName || "A tester"}</strong> just
-              submitted feedback on your project{" "}
+              A tester just submitted feedback on your project{" "}
               <strong style={strong}>{projectName}</strong>.
             </Text>
 
