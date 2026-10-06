@@ -7,7 +7,20 @@ import { screenshotList } from "@/lib/utils/screenshots"
 import SubmissionReview from "@/components/SubmissionReview"
 import { toStatus } from "@/lib/review"
 import type { TestResultRow } from "@/lib/types/db"
+import { testerLabel } from "@/lib/testerNumbers"
 import { SubmissionBody, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+
+/**
+ * Exactly the columns the mission page selects. This component is "use client",
+ * so whatever its `result` holds is serialised into the page — which is how a
+ * `select("*")` once sent every tester_id to the builder's browser. Never widen
+ * this to TestResultRow.
+ */
+export type MissionResult = Pick<
+  TestResultRow,
+  | "id" | "mission_id" | "created_at" | "screenshot_url" | "screenshot_urls" | "tester_comment"
+  | "ai_summary" | "ai_sentiment" | "status" | "rating" | "review_note"
+>
 
 type InsightItem = {
   status: "pass" | "warn" | "fail"
@@ -54,13 +67,14 @@ function formatDate(iso: string) {
 export default function MissionResultRow({
   result,
   entries,
-  index,
+  testerNumber,
   appUrl,
 }: {
-  result: TestResultRow
+  result: MissionResult
   /** Absent on the 24 submissions that predate the audit log. */
   entries?: SubmissionEntry[] | null
-  index: number
+  /** Per mission, from lib/testerNumbers — the same number the CSV carries. */
+  testerNumber: number | undefined
   appUrl: string | null
 }) {
   const [insightOpen, setInsightOpen] = useState(false)
@@ -71,7 +85,6 @@ export default function MissionResultRow({
   const current = shots[active] ?? shots[0] ?? null
   const step = (delta: number) => setActive((i) => (i + delta + shots.length) % shots.length)
 
-  const developerNum = String(index + 1).padStart(2, "0")
   const date = formatDate(result.created_at)
   const displayUrl = appUrl ? appUrl.replace(/^https?:\/\//, "") : null
   const sentimentVariant = getSentimentVariant(result.ai_sentiment)
@@ -155,7 +168,7 @@ export default function MissionResultRow({
           <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex-1 flex flex-col justify-between">
             <SubmissionBody entries={entries} comment={result.tester_comment} />
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-line">
-              <span className="font-mono text-[12px] text-ink-muted">Developer #{developerNum}</span>
+              <span className="font-mono text-[12px] text-ink-muted">{testerLabel(testerNumber)}</span>
               <span className="font-mono text-[12px] text-ink-muted">{date}</span>
             </div>
           </div>

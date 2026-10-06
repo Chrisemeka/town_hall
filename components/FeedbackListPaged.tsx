@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+import { testerLabel } from "@/lib/testerNumbers"
 
 export type FeedbackEntry = {
   id: string
@@ -19,6 +20,8 @@ export type FeedbackEntry = {
   screenshot_url: string | null
   screenshot_urls: string[] | null
   created_at: string
+  /** Per mission, from lib/testerNumbers — the same number the mission page and CSV show. */
+  testerNumber: number | undefined
 }
 
 function relTime(iso: string) {
@@ -71,7 +74,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
             </div>
 
             <div className="flex flex-col gap-4">
-              {group.entries.map((item, i) => (
+              {group.entries.map((item) => (
                 <Link
                   key={item.id}
                   href={`/dashboard/${item.projectId}/mission/${item.missionId}`}
@@ -79,7 +82,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-mono text-[12px] text-ink-muted">
-                      Developer #{(i + 1).toString().padStart(2, "0")}
+                      {testerLabel(item.testerNumber)}
                     </span>
                     <span className="font-mono text-[12px] text-ink-muted/40">·</span>
                     <span className="font-mono text-[12px] text-ink-muted/60">{relTime(item.created_at)}</span>
