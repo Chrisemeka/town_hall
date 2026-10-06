@@ -25,6 +25,14 @@ never change them** — Authentication → Emails → Templates is where that co
 lives. Worth knowing before someone spends an afternoon looking for the
 confirmation email in here.
 
+## The feedback notification names no one
+
+It tells the builder *that* a tester submitted, never *who*: no tester name in
+the props, the body or the preview line (which the inbox shows before the email
+is opened), and the webhook no longer looks one up. Builders never learn who
+tested — see CLAUDE.md, Tester anonymity. The summary is the tester's own
+words and stays; it is the attribution that went.
+
 ## The welcome email
 
 Fires from `completeVerification`, and only on the call whose guarded `UPDATE`
