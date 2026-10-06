@@ -421,6 +421,16 @@ swallows every failure and returns `void`, so no caller has to remember to wrap
 it. Confirmation and password-reset mail come from Supabase Auth's own
 dashboard templates and **cannot be changed from `emails/`**.
 
+**The approval email fires from `reviewSubmission`, not a webhook.** A
+Supabase webhook on UPDATE would fire on the `ai_summary` write too. The
+update is guarded with `.neq("status", "approved")` + `.select()`, and only a
+returned row authorises the send — the state machine, enforced on the write,
+is the double-send guard; there is no "sent" flag. Same non-fatal contract as
+the welcome email: `sendApprovalNotification` swallows everything, inside
+`after()`. `test_results.review_note` is live again as the builder's
+optional approval note (`reviewSchema.reviewNote`, blank → null) — it is the
+only written feedback a tester gets on their own work.
+
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 
 ## Data Mutations — RLS + service role
