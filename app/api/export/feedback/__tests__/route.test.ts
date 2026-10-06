@@ -20,11 +20,10 @@ const TESTER = "22222222-2222-4222-8222-222222222222"
 type Query = { table: string; filters: Record<string, unknown> }
 
 /**
- * The route's two reads: the submissions query (a chain ending in an await)
- * and the profile name lookup (`.in()`).
- *
- * `queries` records what was asked for, which is how the ownership assertions
- * check the filter rather than only the output.
+ * The route's one read: a chain ending in an await. `queries` records what was
+ * asked for, which is how the ownership assertions check the filter rather
+ * than only the output. `profiles` is offered so a test can prove it is never
+ * read.
  */
 function fakeAdmin(opts: {
   submissions?: unknown[]
@@ -62,7 +61,14 @@ function fakeAdmin(opts: {
   return queries
 }
 
-const req = (url = "http://localhost:3000/api/export/feedback") => new Request(url)
+const BASE = "http://localhost:3000/api/export/feedback"
+const req = (query = "") => new Request(`${BASE}${query}`)
+const ONE_MISSION = "?project=p1&mission=m-auth"
+const WHOLE_PROJECT = "?project=p1"
+
+const project = { name: "Recipe Book", owner_id: ME }
+const AUTH = { title: "Auth flow", created_at: "2026-09-01T00:00:00Z", category: "process_flow", device_target: "both", projects: project }
+const PAY = { title: "Payment flow", created_at: "2026-09-05T00:00:00Z", category: "component", device_target: "mobile", projects: project }
 
 /** A modern submission with two entries, on a project I own. */
 const MINE = {
@@ -74,12 +80,7 @@ const MINE = {
   tester_comment: "Nothing else to add.",
   ai_sentiment: "POSITIVE",
   screenshot_urls: ["a.png", "b.png"],
-  missions: {
-    title: "Authentication Flow",
-    category: "process_flow",
-    device_target: "both",
-    projects: { name: "My Project", owner_id: ME },
-  },
+  missions: AUTH,
   test_result_entries: [
     {
       step_index: 1,
@@ -119,36 +120,16 @@ beforeEach(() => {
 
 const body = async (r: Response) => await r.text()
 
-describe("tester numbers", () => {
-  const col = (row: string) => row.split(",")[5]
-
-  it("numbers testers per mission, oldest first, restarting on each mission", async () => {
-    fakeAdmin({
-      submissions: [
-        { ...LEGACY, id: "a2", mission_id: "A", created_at: "2026-09-02T10:00:00Z" },
-        { ...LEGACY, id: "b1", mission_id: "B", created_at: "2026-09-03T10:00:00Z" },
-        { ...LEGACY, id: "a1", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
-      ],
-    })
-    const [header, ...rows] = (await body(await GET(req()))).split("\r\n")
-
-    expect(col(header)).toBe("Tester # (per mission)")
-    expect(rows.map(col)).toEqual(["2", "1", "1"])
-  })
-
-  it("gives the same numbers on a second export of the same data", async () => {
-    const data = [
-      { ...LEGACY, id: "x", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
-      { ...LEGACY, id: "y", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
-    ]
-    fakeAdmin({ submissions: data })
-    const first = await body(await GET(req()))
-    fakeAdmin({ submissions: [...data].reverse() })
-    const second = await body(await GET(req()))
-
-    expect(second.split("\r\n").slice(1).sort()).toEqual(first.split("\r\n").slice(1).sort())
-  })
-})
+/**
+ * The workbook is a zip written uncompressed, so its XML is readable as text
+ * straight off the bytes: sheet names, and each sheet's cells in order.
+ */
+async function workbook(r: Response) {
+  const text = new TextDecoder().decode(await r.arrayBuffer())
+  const sheets = [...text.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1])
+  const sheetXml = [...text.matchAll(/<worksheet[\s\S]*?<\/worksheet>/g)].map((m) => m[0])
+  return { text, sheets, sheetXml }
+}
 
 describe("authentication", () => {
   it("is rejected, without touching the database", async () => {
@@ -157,90 +138,177 @@ describe("authentication", () => {
     const queries = fakeAdmin()
     vi.mocked(requireAccount).mockRejectedValue(new Error("NEXT_REDIRECT"))
 
-    await expect(GET(req())).rejects.toThrow("NEXT_REDIRECT")
+    await expect(GET(req(ONE_MISSION))).rejects.toThrow("NEXT_REDIRECT")
     expect(queries).toHaveLength(0)
   })
 
   it("asks for a verified builder specifically", async () => {
     fakeAdmin()
-    await GET(req())
+    await GET(req(ONE_MISSION))
     expect(requireAccount).toHaveBeenCalledWith("builder")
   })
 })
 
-describe("ownership", () => {
-  it("filters every read by the caller's own owner_id", async () => {
-    // Service role bypasses RLS, so this filter is the only thing keeping one
-    // builder's export out of another's.
+describe("scope and ownership", () => {
+  it("refuses a request with no project, before querying", async () => {
+    const queries = fakeAdmin()
+    const res = await GET(req())
+    expect(res.status).toBe(400)
+    expect(queries).toHaveLength(0)
+  })
+
+  it("always filters by the caller's own owner_id, and the project in addition", async () => {
+    // Service role bypasses RLS, so the owner filter is the only thing keeping
+    // one builder's export out of another's. A project id the caller does not
+    // own then matches nothing.
     const queries = fakeAdmin({ submissions: [MINE] })
-    await GET(req())
+    await GET(req(WHOLE_PROJECT))
     expect(queries[0].filters["missions.projects.owner_id"]).toBe(ME)
+    expect(queries[0].filters["missions.project_id"]).toBe("p1")
+    expect(queries[0].filters["mission_id"]).toBeUndefined()
   })
 
-  it("narrows by project IN ADDITION to the owner filter, never instead", async () => {
-    // A project id the caller does not own then matches nothing, rather than
-    // returning somebody else's feedback.
-    const queries = fakeAdmin({ submissions: [] })
-    await GET(req("http://localhost:3000/api/export/feedback?project=someone-elses"))
-
+  it("narrows to one mission in addition to the owner and project filters", async () => {
+    const queries = fakeAdmin({ submissions: [MINE] })
+    await GET(req(ONE_MISSION))
     expect(queries[0].filters["missions.projects.owner_id"]).toBe(ME)
-    expect(queries[0].filters["missions.project_id"]).toBe("someone-elses")
+    expect(queries[0].filters["missions.project_id"]).toBe("p1")
+    expect(queries[0].filters["mission_id"]).toBe("m-auth")
   })
 
-  it("exports nothing but a header when the scope matches nothing", async () => {
+  it("answers the same 404 for someone else's project and for no reports", async () => {
+    // Distinguishing "not yours" from "nothing yet" would confirm it exists.
     fakeAdmin({ submissions: [] })
-    const text = await body(await GET(req("http://localhost:3000/api/export/feedback?project=nope")))
-
-    expect(text).toContain("Project,Mission")
-    expect(text.trim().split("\r\n")).toHaveLength(1)
+    const a = await GET(req("?project=someone-elses"))
+    const b = await GET(req("?project=p1&mission=empty"))
+    expect(a.status).toBe(404)
+    expect(b.status).toBe(404)
+    expect(await body(a)).toBe(await body(b))
   })
 })
 
-describe("the rows", () => {
-  it("writes one per entry, in step order, repeating the submission columns", async () => {
-    fakeAdmin({ submissions: [MINE], profiles: [{ id: TESTER, full_name: "Ada Lovelace" }] })
-    const rows = (await body(await GET(req()))).split("\r\n")
+describe("one mission, as CSV", () => {
+  it("writes one row per entry, in step order, repeating the submission columns", async () => {
+    fakeAdmin({ submissions: [MINE] })
+    const rows = (await body(await GET(req(ONE_MISSION)))).split("\r\n")
 
     expect(rows).toHaveLength(3)
     // The fixture lists step 1 before step 0; the export sorts them.
     expect(rows[1]).toContain("Open the app")
     expect(rows[2]).toContain("Submit the form")
-    // Submission columns repeat on both.
-    expect(rows[1]).toContain("My Project")
-    expect(rows[2]).toContain("My Project")
+    expect(rows[1]).toContain("Recipe Book")
+    expect(rows[2]).toContain("Recipe Book")
   })
 
   it("gives a legacy comment-only submission one row, with empty step columns", async () => {
     // Twenty-four submissions predate the audit log. An entries loop that
     // skipped them would drop all twenty-four silently.
-    fakeAdmin({ submissions: [LEGACY], profiles: [{ id: TESTER, full_name: "Ada" }] })
-    const rows = (await body(await GET(req()))).split("\r\n")
+    fakeAdmin({ submissions: [LEGACY] })
+    const rows = (await body(await GET(req(ONE_MISSION)))).split("\r\n")
 
     expect(rows).toHaveLength(2)
     expect(rows[1]).toContain("The checkout felt slow")
-    // Columns 10-16 are the step columns: empty, so a run of commas.
     expect(rows[1]).toMatch(/,{7}/)
   })
 
   it("renders the vocabulary as labels rather than machine values", async () => {
-    fakeAdmin({ submissions: [MINE], profiles: [] })
-    const text = await body(await GET(req()))
+    fakeAdmin({ submissions: [MINE] })
+    const text = await body(await GET(req(ONE_MISSION)))
     expect(text).toContain("Process Flow Testing")
     expect(text).toContain("Mobile & Desktop")
     expect(text).not.toContain("process_flow")
   })
-})
 
-describe("what the file must and must not contain", () => {
   it("starts with the BOM bytes, or Excel mangles non-ASCII", async () => {
     // Checked as BYTES, not through .text(): the UTF-8 decode algorithm
     // strips a leading BOM, so reading the body as a string cannot tell a
     // file that has one from a file that does not. Excel reads bytes.
-    fakeAdmin({ submissions: [] })
-    const bytes = new Uint8Array(await (await GET(req())).arrayBuffer())
+    fakeAdmin({ submissions: [MINE] })
+    const bytes = new Uint8Array(await (await GET(req(ONE_MISSION))).arrayBuffer())
     expect([bytes[0], bytes[1], bytes[2]]).toEqual([0xef, 0xbb, 0xbf])
   })
 
+  it("is named for the project and mission", async () => {
+    fakeAdmin({ submissions: [MINE] })
+    const res = await GET(req(ONE_MISSION))
+    expect(res.headers.get("Content-Type")).toContain("text/csv")
+    expect(res.headers.get("Content-Disposition")).toMatch(
+      /attachment; filename="recipe-book-auth-flow-\d{4}-\d{2}-\d{2}\.csv"/,
+    )
+  })
+})
+
+describe("the whole project, as a workbook", () => {
+  const TWO_MISSIONS = [
+    { ...LEGACY, id: "a2", mission_id: "m-auth", created_at: "2026-09-02T10:00:00Z" },
+    { ...LEGACY, id: "p1", mission_id: "m-pay", missions: PAY, created_at: "2026-09-03T10:00:00Z" },
+    { ...LEGACY, id: "a1", mission_id: "m-auth", created_at: "2026-09-01T10:00:00Z" },
+  ]
+
+  it("is an .xlsx named for the project", async () => {
+    fakeAdmin({ submissions: TWO_MISSIONS })
+    const res = await GET(req(WHOLE_PROJECT))
+    expect(res.headers.get("Content-Type")).toBe(
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    expect(res.headers.get("Content-Disposition")).toMatch(
+      /attachment; filename="recipe-book-feedback-\d{4}-\d{2}-\d{2}\.xlsx"/,
+    )
+    // A zip: "PK".
+    const bytes = new Uint8Array(await res.arrayBuffer())
+    expect([bytes[0], bytes[1]]).toEqual([0x50, 0x4b])
+  })
+
+  it("has one sheet per mission, named for it, oldest mission first", async () => {
+    fakeAdmin({ submissions: TWO_MISSIONS })
+    const { sheets, sheetXml } = await workbook(await GET(req(WHOLE_PROJECT)))
+    expect(sheets).toEqual(["Auth flow", "Payment flow"])
+    expect(sheetXml[0]).toContain("Auth flow")
+    expect(sheetXml[0]).not.toContain("Payment flow")
+    expect(sheetXml[1]).toContain("Payment flow")
+  })
+
+  it("numbers testers within each mission, restarting on each sheet", async () => {
+    fakeAdmin({ submissions: TWO_MISSIONS })
+    const { sheetXml } = await workbook(await GET(req(WHOLE_PROJECT)))
+    // Column F is the tester number.
+    const numbers = (xml: string) => [...xml.matchAll(/<c r="F\d+"><v>(\d+)<\/v><\/c>/g)].map((m) => m[1])
+    // Sorted: the fake ignores .order(); the route sorts in the query.
+    expect(numbers(sheetXml[0]).sort()).toEqual(["1", "2"])
+    expect(numbers(sheetXml[1])).toEqual(["1"])
+  })
+})
+
+describe("tester numbers", () => {
+  const col = (row: string) => row.split(",")[5]
+
+  it("heads the column as per-mission, and numbers oldest first", async () => {
+    fakeAdmin({
+      submissions: [
+        { ...LEGACY, id: "a2", created_at: "2026-09-02T10:00:00Z" },
+        { ...LEGACY, id: "a1", created_at: "2026-09-01T10:00:00Z" },
+      ],
+    })
+    const [header, ...rows] = (await body(await GET(req(ONE_MISSION)))).split("\r\n")
+    expect(col(header)).toBe("Tester # (per mission)")
+    expect(rows.map(col).sort()).toEqual(["1", "2"])
+  })
+
+  it("gives the same numbers on a second export of the same data", async () => {
+    const data = [
+      { ...LEGACY, id: "x", created_at: "2026-09-01T10:00:00Z" },
+      { ...LEGACY, id: "y", created_at: "2026-09-01T10:00:00Z" },
+    ]
+    fakeAdmin({ submissions: data })
+    const first = await body(await GET(req(ONE_MISSION)))
+    fakeAdmin({ submissions: [...data].reverse() })
+    const second = await body(await GET(req(ONE_MISSION)))
+
+    expect(second.split("\r\n").slice(1).sort()).toEqual(first.split("\r\n").slice(1).sort())
+  })
+})
+
+describe("what the file must and must not contain", () => {
   it("carries no tester name, and never looks one up", async () => {
     // Builders do not learn who tested. The profiles read is gone, not merely
     // unused — this is what keeps it gone.
@@ -248,47 +316,37 @@ describe("what the file must and must not contain", () => {
       submissions: [MINE],
       profiles: [{ id: TESTER, full_name: "Ada Lovelace" }],
     })
-    const text = await body(await GET(req()))
-
-    expect(text).not.toContain("Ada Lovelace")
-    expect(text).not.toContain(TESTER)
-    expect(queries.map((q) => q.table)).toEqual(["test_results"])
+    for (const q of [ONE_MISSION, WHOLE_PROJECT]) {
+      const text = new TextDecoder().decode(await (await GET(req(q))).arrayBuffer())
+      expect(text).not.toContain("Ada Lovelace")
+      expect(text).not.toContain(TESTER)
+    }
+    expect(queries.every((q) => q.table === "test_results")).toBe(true)
   })
 
   it("never carries an email address", async () => {
     // A CSV leaves your control the moment it is downloaded. The route does
     // not select the column at all, and this is what keeps it that way.
-    const queries = fakeAdmin({
-      submissions: [MINE],
-      profiles: [{ id: TESTER, full_name: "Ada Lovelace" }],
-    })
-    const text = await body(await GET(req()))
+    const queries = fakeAdmin({ submissions: [MINE] })
+    const text = await body(await GET(req(ONE_MISSION)))
 
     expect(text).not.toMatch(/@\w+\.\w/)
     expect(JSON.stringify(queries)).not.toContain("email")
   })
 
-  it("offers a dated attachment filename", async () => {
-    fakeAdmin({ submissions: [] })
-    const res = await GET(req())
-    expect(res.headers.get("Content-Type")).toContain("text/csv")
-    expect(res.headers.get("Content-Disposition")).toMatch(
-      /attachment; filename="twnhall-feedback-\d{4}-\d{2}-\d{2}\.csv"/,
-    )
-  })
-
   it("is never cached — it is one person's own data", async () => {
-    fakeAdmin({ submissions: [] })
-    expect((await GET(req())).headers.get("Cache-Control")).toBe("no-store")
+    fakeAdmin({ submissions: [MINE] })
+    expect((await GET(req(ONE_MISSION))).headers.get("Cache-Control")).toBe("no-store")
+    expect((await GET(req(WHOLE_PROJECT))).headers.get("Cache-Control")).toBe("no-store")
   })
 })
 
 describe("failure", () => {
   it("answers 500 rather than a half-built file", async () => {
     fakeAdmin({ error: { message: "connection reset" } })
-    const res = await GET(req())
+    const res = await GET(req(ONE_MISSION))
     expect(res.status).toBe(500)
-    // A partial CSV is worse than no CSV: it looks like a complete export.
+    // A partial file is worse than no file: it looks like a complete export.
     expect(await body(res)).not.toContain("Project,Mission")
   })
 })
@@ -298,7 +356,7 @@ describe("the export rate limit", () => {
     const queries = fakeAdmin()
     vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, retryAfter: 1200 })
 
-    const res = await GET(req())
+    const res = await GET(req(ONE_MISSION))
 
     expect(res.status).toBe(429)
     expect(res.headers.get("Retry-After")).toBe("1200")

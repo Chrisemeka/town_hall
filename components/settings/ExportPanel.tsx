@@ -3,8 +3,13 @@
 import { useState } from "react"
 import { Download } from "lucide-react"
 
+/** A project and the missions on it that have reports — nothing else is offered. */
+export type ExportProject = { id: string; name: string; missions: { id: string; title: string }[] }
+
 /**
- * Export every piece of feedback on your own projects as CSV.
+ * Export the feedback on one of your projects: one mission as CSV, or every
+ * mission as an Excel workbook with a sheet each. A CSV cannot hold sheets,
+ * which is the only reason the format changes with the choice.
  *
  * Above Danger Zone on purpose: both are operations on your own data, and
  * export-then-delete is the familiar pairing.
@@ -22,13 +27,20 @@ export function ExportPanel({
   projects,
   hasFeedback,
 }: {
-  projects: { id: string; name: string }[]
+  projects: ExportProject[]
   /** Whether there is anything to export at all. */
   hasFeedback: boolean
 }) {
-  const [scope, setScope] = useState("all")
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? "")
+  // "" is every mission in the project, as a workbook.
+  const [missionId, setMissionId] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const href = `/api/export/feedback?project=${encodeURIComponent(scope)}`
+
+  const project = projects.find((p) => p.id === projectId)
+  const workbook = missionId === ""
+  const href =
+    `/api/export/feedback?project=${encodeURIComponent(projectId)}` +
+    (workbook ? "" : `&mission=${encodeURIComponent(missionId)}`)
 
   async function download(e: React.MouseEvent<HTMLAnchorElement>) {
     // Modified clicks keep the link's own behaviour (new tab, save as).
@@ -47,7 +59,7 @@ export function ExportPanel({
     }
     const name =
       /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ??
-      "twnhall-feedback.csv"
+      (workbook ? "twnhall-feedback.xlsx" : "twnhall-feedback.csv")
     const url = URL.createObjectURL(await res.blob())
     const a = document.createElement("a")
     a.href = url
@@ -62,7 +74,7 @@ export function ExportPanel({
         Export your data
       </h5>
 
-      {!hasFeedback ? (
+      {!hasFeedback || projects.length === 0 ? (
         // Saying so beats downloading a file with only a header row, which
         // looks like a broken export rather than an empty one.
         <p className="font-sans text-[14px] leading-6 text-ink">
@@ -72,30 +84,51 @@ export function ExportPanel({
       ) : (
         <>
           <p className="font-sans text-[14px] leading-6 text-ink mb-6">
-            Every report on your projects as a CSV — one row per test-case
-            step, with what the tester did, what happened, and how to reproduce
-            it. Opens in Excel, Numbers or Google Sheets.
+            The reports on a project — one row per test-case step, with what
+            the tester did, what happened, and how to reproduce it. Pick one
+            mission for a CSV, or all of them for an Excel workbook with a sheet
+            per mission. Both open in Excel, Numbers or Google Sheets.
           </p>
 
           <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="flex flex-col gap-2 flex-1 min-w-0">
-              <label
-                htmlFor="project"
-                className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]"
-              >
-                Scope
+              <label htmlFor="project" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
+                Project
               </label>
               <select
                 id="project"
                 name="project"
-                value={scope}
-                onChange={(e) => setScope(e.target.value)}
+                value={projectId}
+                onChange={(e) => {
+                  setProjectId(e.target.value)
+                  // Another project's mission id would match nothing.
+                  setMissionId("")
+                }}
                 className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
               >
-                <option value="all">All projects</option>
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1 min-w-0">
+              <label htmlFor="mission" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
+                Mission
+              </label>
+              <select
+                id="mission"
+                name="mission"
+                value={missionId}
+                onChange={(e) => setMissionId(e.target.value)}
+                className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
+              >
+                <option value="">All missions — one sheet each</option>
+                {(project?.missions ?? []).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title}
                   </option>
                 ))}
               </select>
@@ -108,7 +141,7 @@ export function ExportPanel({
               className="h-10 px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
             >
               <Download size={14} aria-hidden="true" />
-              Download CSV
+              {workbook ? "Download Excel" : "Download CSV"}
             </a>
           </div>
 
@@ -119,8 +152,9 @@ export function ExportPanel({
           )}
 
           <p className="font-mono text-[12px] text-ink-muted mt-4 leading-5">
-            Includes each tester&apos;s display name. It never includes email
-            addresses — a downloaded file is out of your hands.
+            Testers appear as Tester 1, 2, 3 — numbered within each mission, so
+            Tester 1 on two missions is two different people. No names or email
+            addresses: a downloaded file is out of your hands.
           </p>
         </>
       )}

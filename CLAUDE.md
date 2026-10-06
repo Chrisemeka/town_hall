@@ -46,6 +46,7 @@ lib/
   testTemplates.ts    Curated test-case templates (static, not a table)
   sentences.ts        Sentence heuristic for the project summary rule
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
+  xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
@@ -592,14 +593,20 @@ Canonical reference: `Test.md`. Every feature ships with:
   meter), the Pro call to action opens a conversation at `/contact` and is
   never a Subscribe or Upgrade button, and nothing unshipped is listed. Do not
   add a control implying a transaction that does not exist.
-- **What leaves in a CSV.** `app/api/export/feedback` identifies a tester
-  only by their number within the mission (`lib/testerNumbers.ts`) — never a
-  name, **email address**, user id or avatar URL. A downloaded file is out of
-  your control the moment it exists, and builders never learn who tested
-  (Tester anonymity, above). Every field also passes through `neutralise()` in `lib/csv.ts`
-  before quoting, and **the order matters**: reversed, the apostrophe lands
-  outside the quotes and the formula runs. Every field in that file is written
-  by a tester and opened by a builder.
+- **What leaves in an export.** `app/api/export/feedback` is always scoped to
+  one project: `?project=P&mission=M` is one mission as CSV, `?project=P` is
+  every mission as an `.xlsx` with a sheet each (`lib/xlsx.ts`, dependency-free
+  — a CSV cannot hold sheets). Either identifies a tester only by their number
+  within the mission (`lib/testerNumbers.ts`) — never a name, **email
+  address**, user id or avatar URL. A downloaded file is out of your control
+  the moment it exists, and builders never learn who tested (Tester anonymity,
+  above). Every field is written by a tester and opened by a builder:
+  - **CSV:** every field passes through `neutralise()` in `lib/csv.ts` before
+    quoting, and **the order matters** — reversed, the apostrophe lands outside
+    the quotes and the formula runs.
+  - **XLSX:** every string is an inline-string cell, which Excel never
+    evaluates, so it is *not* neutralised — there the apostrophe would show as
+    a literal character. Never write a tester's text as a formula cell.
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
   the other tier includes, and that is all: **no usage meter, no "3 of 5

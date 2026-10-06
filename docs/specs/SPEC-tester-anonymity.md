@@ -90,7 +90,24 @@ session. Explore and its project page read only granted columns and are unchange
   "Is this your project?" is answered server-side as a boolean.
 - `test_results` read with `*` appears only on the mission page. §2 fixes it.
 
-## §1 — The CSV export
+## §1 — The export
+
+**Revised after QA-2.17-2.** The export took every project, or one, as a single
+CSV, so a builder could not pull one mission. It is now always one project, two
+ways. The settings panel offers a Project select and a Mission select, listing
+only missions with reports:
+
+- **One mission** → `?project=P&mission=M` → CSV, `recipe-book-auth-check-<date>.csv`.
+- **All missions** → `?project=P` → `.xlsx`, `recipe-book-feedback-<date>.xlsx`,
+  one sheet per mission (oldest first, named for it). A CSV cannot hold sheets.
+
+The cross-project "All projects" export is gone; one workbook per project
+replaces it. No project → 400. No reports, or not your project → the same 404,
+so a refusal does not confirm a project exists. The workbook comes from
+`lib/xlsx.ts`, a dependency-free writer. Its zip is uncompressed, and Excel's
+sheet-name rules are enforced in `sheetNames()`. Strings are inline-string cells,
+which Excel never evaluates, so the CSV's `neutralise()` prefix is not applied
+there; it would show as a literal apostrophe.
 
 `app/api/export/feedback/route.ts`:
 

@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { CSV_BOM, toCsv } from "@/lib/csv"
 import { testerNumbers } from "@/lib/testerNumbers"
+import { sheetNames, toXlsx, type Cell } from "@/lib/xlsx"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
 
@@ -78,6 +79,7 @@ type SubmissionRow = {
   screenshot_urls: string[] | null
   missions: {
     title: string
+    created_at: string
     category: string | null
     device_target: string | null
     projects: { name: string; owner_id: string } | null
@@ -85,59 +87,23 @@ type SubmissionRow = {
   test_result_entries: EntryRow[] | null
 }
 
-function filename(): string {
-  const today = new Date().toISOString().slice(0, 10)
-  return `twnhall-feedback-${today}.csv`
+/** Something safe in a Content-Disposition header: ASCII, no quotes. */
+function slug(text: string | undefined): string {
+  const s = (text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40)
+  return s || "export"
 }
 
-export async function GET(request: Request) {
-  // Redirects when the caller is not a verified builder. In a Route Handler
-  // Next turns that into a 307, which is the right answer for a link a
-  // browser follows.
-  const { userId } = await requireAccount("builder")
+const today = () => new Date().toISOString().slice(0, 10)
 
-  // Tier 2 at an API path: an expensive query and a bulk-exfiltration path on
-  // a stolen session. Keyed on the account, fails closed.
-  const rate = await checkRateLimit(["export:account", userId])
-  if (!rate.ok) return tooManyResponse(rate.retryAfter)
-
-  const scope = new URL(request.url).searchParams.get("project") ?? "all"
-  const admin = createAdminClient()
-
-  let query = admin
-    .from("test_results")
-    .select(
-      `id, mission_id, created_at, status, rating, tester_comment, ai_sentiment, screenshot_urls,
-       missions!inner(title, category, device_target, projects!inner(name, owner_id)),
-       test_result_entries(step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
-    )
-    // The ownership filter. Service role sees everything, so this is the only
-    // thing keeping one builder's export out of another's.
-    .eq("missions.projects.owner_id", userId)
-    .order("created_at", { ascending: false })
-
-  if (scope !== "all") {
-    // Narrowing by project is ADDITIONAL to the owner filter, never instead
-    // of it: a project id the caller does not own then matches nothing,
-    // rather than returning somebody else's feedback.
-    query = query.eq("missions.project_id", scope)
-  }
-
-  const { data, error } = await query
-  if (error) {
-    console.error("[export/feedback] query failed:", error.message)
-    return new Response("Could not build the export.", { status: 500 })
-  }
-
-  const submissions = (data ?? []) as unknown as SubmissionRow[]
-
-  // Every report of an exported mission is exported (scope narrows by
-  // project, never within a mission), so these numbers match the app's.
+/** One row per test-case step, or one for a legacy comment-only report. */
+function rowsFor(submissions: SubmissionRow[]): Cell[][] {
+  // Every report of an exported mission is exported (scope never narrows
+  // within a mission), so these numbers match the app's.
   const numbers = testerNumbers(submissions)
 
-  const rows: unknown[][] = []
+  const rows: Cell[][] = []
   for (const s of submissions) {
-    const shared = [
+    const shared: Cell[] = [
       s.missions?.projects?.name ?? "",
       s.missions?.title ?? "",
       s.missions?.category ? testCategoryLabel(s.missions.category) : "",
@@ -177,17 +143,98 @@ export async function GET(request: Request) {
       ])
     }
   }
+  return rows
+}
 
-  // The BOM is what makes Excel read this as UTF-8 rather than the local
-  // codepage, which is the difference between a Nigerian name and mojibake.
-  const body = CSV_BOM + toCsv(HEADERS, rows)
-
+/** A person's own feedback, assembled per request. Never a shared cache. */
+function download(body: BodyInit, type: string, name: string): Response {
   return new Response(body, {
     headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${filename()}"`,
-      // A person's own feedback, assembled per request. Never a shared cache.
+      "Content-Type": type,
+      "Content-Disposition": `attachment; filename="${name}"`,
       "Cache-Control": "no-store",
     },
   })
+}
+
+/**
+ * Two shapes, both scoped to one project:
+ *
+ *   ?project=P&mission=M   one mission, as CSV
+ *   ?project=P             every mission in the project, as .xlsx with one
+ *                          sheet per mission — a CSV cannot hold sheets
+ */
+export async function GET(request: Request) {
+  // Redirects when the caller is not a verified builder. In a Route Handler
+  // Next turns that into a 307, which is the right answer for a link a
+  // browser follows.
+  const { userId } = await requireAccount("builder")
+
+  // Tier 2 at an API path: an expensive query and a bulk-exfiltration path on
+  // a stolen session. Keyed on the account, fails closed.
+  const rate = await checkRateLimit(["export:account", userId])
+  if (!rate.ok) return tooManyResponse(rate.retryAfter)
+
+  const params = new URL(request.url).searchParams
+  const project = params.get("project")
+  const mission = params.get("mission")
+  if (!project) return new Response("Choose a project to export.", { status: 400 })
+
+  let query = createAdminClient()
+    .from("test_results")
+    .select(
+      `id, mission_id, created_at, status, rating, tester_comment, ai_sentiment, screenshot_urls,
+       missions!inner(title, created_at, category, device_target, projects!inner(name, owner_id)),
+       test_result_entries(step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
+    )
+    // The ownership filter. Service role sees everything, so this is the only
+    // thing keeping one builder's export out of another's.
+    .eq("missions.projects.owner_id", userId)
+    // Narrowing is ADDITIONAL to the owner filter, never instead of it: an id
+    // the caller does not own then matches nothing, rather than returning
+    // somebody else's feedback.
+    .eq("missions.project_id", project)
+    .order("created_at", { ascending: true })
+
+  if (mission) query = query.eq("mission_id", mission)
+
+  const { data, error } = await query
+  if (error) {
+    console.error("[export/feedback] query failed:", error.message)
+    return new Response("Could not build the export.", { status: 500 })
+  }
+
+  const submissions = (data ?? []) as unknown as SubmissionRow[]
+  // The same answer for "not yours" and "no reports yet", so a refusal does
+  // not confirm a project exists. A header-only file looks like a broken
+  // export, and a workbook with no sheets will not open at all.
+  if (submissions.length === 0) {
+    return new Response("Nothing to export there yet.", { status: 404 })
+  }
+
+  const projectName = submissions[0].missions?.projects?.name
+
+  if (mission) {
+    // The BOM is what makes Excel read this as UTF-8 rather than the local
+    // codepage, which is the difference between a Nigerian name and mojibake.
+    return download(
+      CSV_BOM + toCsv(HEADERS, rowsFor(submissions)),
+      "text/csv; charset=utf-8",
+      `${slug(projectName)}-${slug(submissions[0].missions?.title)}-${today()}.csv`,
+    )
+  }
+
+  // One sheet per mission, oldest mission first — the order they were run.
+  const byMission = new Map<string, SubmissionRow[]>()
+  for (const s of submissions) byMission.set(s.mission_id, [...(byMission.get(s.mission_id) ?? []), s])
+  const groups = [...byMission.values()].sort((a, b) =>
+    (a[0].missions?.created_at ?? "") < (b[0].missions?.created_at ?? "") ? -1 : 1,
+  )
+  const names = sheetNames(groups.map((g) => g[0].missions?.title ?? "Mission"))
+
+  return download(
+    toXlsx(groups.map((g, i) => ({ name: names[i], headers: HEADERS, rows: rowsFor(g) }))),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    `${slug(projectName)}-feedback-${today()}.xlsx`,
+  )
 }

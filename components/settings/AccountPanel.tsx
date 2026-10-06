@@ -1,5 +1,6 @@
 "use client"
 
+import type { ExportProject } from "@/components/settings/ExportPanel"
 import { useState } from "react"
 import { deleteAccountAction } from "@/actions/auth"
 import { AccountControl } from "@/components/settings/AccountControl"
@@ -30,7 +31,7 @@ export function AccountPanel({
 }: {
   active: AccountType
   holdsOther: boolean
-  projects: { id: string; name: string }[]
+  projects: ExportProject[]
   hasFeedback: boolean
 }) {
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm">("idle")

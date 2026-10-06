@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveAccount } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { SettingsClient } from "@/components/settings/SettingsClient";
+import type { ExportProject } from "@/components/settings/ExportPanel";
 import { GiveAndTake } from "@/components/settings/GiveAndTake";
 import { PlanSection } from "@/components/settings/PlanSection";
 import { planIdFor } from "@/lib/vocabulary";
@@ -12,6 +13,26 @@ import { cookies } from "next/headers";
 import { THEME_COOKIE, readTheme } from "@/lib/theme";
 
 export const metadata = { title: "Settings — Twnhall" };
+
+type OwnProject = {
+  id: string;
+  name: string;
+  missions: { id: string; title: string; created_at: string; test_results: { count: number }[] | null }[] | null;
+};
+
+/** Projects with at least one reported mission, each with only those missions, oldest first. */
+function exportable(projects: OwnProject[]): ExportProject[] {
+  return projects
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      missions: (p.missions ?? [])
+        .filter((m) => (m.test_results?.[0]?.count ?? 0) > 0)
+        .sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+        .map((m) => ({ id: m.id, title: m.title })),
+    }))
+    .filter((p) => p.missions.length > 0);
+}
 
 export default async function SettingsPage({
   searchParams,
@@ -73,7 +94,13 @@ export default async function SettingsPage({
       })
       .eq("missions.projects.owner_id", user.id),
     // The caller's own projects, for the export scope select.
-    admin.from("projects").select("id, name").eq("owner_id", user.id).order("name"),
+    // The caller's own projects and missions, for the export selects. Only
+    // missions with reports are offered: there is nothing to export from the rest.
+    admin
+      .from("projects")
+      .select("id, name, missions(id, title, created_at, test_results(count))")
+      .eq("owner_id", user.id)
+      .order("name"),
   ]);
 
   const givenRows = (mine.data ?? []) as { status: string; rating: number | null }[];
@@ -111,7 +138,7 @@ export default async function SettingsPage({
         active={active}
         types={accountTypes}
         theme={theme}
-        projects={(ownProjects.data ?? []) as { id: string; name: string }[]}
+        projects={exportable((ownProjects.data ?? []) as OwnProject[])}
         // The count the Activity tab already needed — "feedback received" and
         // "is there anything to export" are the same question.
         hasFeedback={(owned.count ?? 0) > 0}
