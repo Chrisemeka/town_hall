@@ -9,6 +9,9 @@ import AdminBroadcast, {
   type AdminBroadcastProps,
 } from "@/emails/admin-broadcast"
 import Welcome, { type WelcomeProps } from "@/emails/welcome"
+import ApprovalNotification, {
+  type ApprovalNotificationProps,
+} from "@/emails/approval-notification"
 
 // Until a custom Twnhall domain is verified in Resend, fall back to the
 // shared sandbox sender. Override per-env with MAIL_FROM_* if needed.
@@ -97,6 +100,42 @@ export async function sendWelcomeEmail(
     }
   } catch (err) {
     console.error("[mail.sendWelcomeEmail] unexpected error:", err)
+  }
+}
+
+/**
+ * Sent to the tester when a builder approves their report.
+ *
+ * Same non-fatal contract as sendWelcomeEmail, and it lives here for the same
+ * reason: the approval and its rating are already saved when this runs, and
+ * a mail problem must never reach the builder as an error.
+ */
+export async function sendApprovalNotification(
+  props: ApprovalNotificationProps & { to: string },
+): Promise<void> {
+  const resend = getResend()
+  if (!resend) return
+
+  try {
+    const { to, ...rest } = props
+    const html = await render(ApprovalNotification(rest))
+    const text = await render(ApprovalNotification(rest), { plainText: true })
+
+    const { error } = await resend.emails.send({
+      from: FROM_NOTIFICATIONS,
+      to,
+      // The mission, not the project: the tester did the mission and may not
+      // know the project by name.
+      subject: `Your report on "${rest.missionTitle}" was approved`,
+      html,
+      text,
+    })
+
+    if (error) {
+      console.error("[mail.sendApprovalNotification] Resend error:", error)
+    }
+  } catch (err) {
+    console.error("[mail.sendApprovalNotification] unexpected error:", err)
   }
 }
 
