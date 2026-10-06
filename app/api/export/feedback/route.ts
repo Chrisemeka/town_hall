@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 // either here would make this route a way around them.
 import { requireAccount } from "@/lib/auth"
 import { CSV_BOM, toCsv } from "@/lib/csv"
+import { testerNumbers } from "@/lib/testerNumbers"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
 
@@ -34,7 +35,10 @@ const HEADERS = [
   "Test category",
   "Device target",
   "Submitted at",
-  "Tester",
+  // A number, never a name: builders do not learn who tested (CLAUDE.md,
+  // Tester anonymity). Per mission — the header says so, because "1" on two
+  // missions is two different people.
+  "Tester # (per mission)",
   "Submission status",
   "Rating",
   // Not in the original column list, and the export loses its legacy content
@@ -64,13 +68,14 @@ type EntryRow = {
 }
 
 type SubmissionRow = {
+  id: string
+  mission_id: string
   created_at: string
   status: string
   rating: number | null
   tester_comment: string | null
   ai_sentiment: string | null
   screenshot_urls: string[] | null
-  tester_id: string
   missions: {
     title: string
     category: string | null
@@ -102,7 +107,7 @@ export async function GET(request: Request) {
   let query = admin
     .from("test_results")
     .select(
-      `created_at, status, rating, tester_comment, ai_sentiment, screenshot_urls, tester_id,
+      `id, mission_id, created_at, status, rating, tester_comment, ai_sentiment, screenshot_urls,
        missions!inner(title, category, device_target, projects!inner(name, owner_id)),
        test_result_entries(step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
     )
@@ -126,20 +131,9 @@ export async function GET(request: Request) {
 
   const submissions = (data ?? []) as unknown as SubmissionRow[]
 
-  // One read for the names. The tester's display name is included because the
-  // builder already sees it in the app; their email address never is, because
-  // a CSV leaves your control the moment it is downloaded.
-  const testerIds = [...new Set(submissions.map((s) => s.tester_id))]
-  const names = new Map<string, string>()
-  if (testerIds.length > 0) {
-    const { data: profiles } = await admin
-      .from("profiles")
-      .select("id, full_name")
-      .in("id", testerIds)
-    for (const p of (profiles ?? []) as { id: string; full_name: string | null }[]) {
-      names.set(p.id, p.full_name ?? "")
-    }
-  }
+  // Every report of an exported mission is exported (scope narrows by
+  // project, never within a mission), so these numbers match the app's.
+  const numbers = testerNumbers(submissions)
 
   const rows: unknown[][] = []
   for (const s of submissions) {
@@ -149,7 +143,7 @@ export async function GET(request: Request) {
       s.missions?.category ? testCategoryLabel(s.missions.category) : "",
       s.missions?.device_target ? deviceTargetLabel(s.missions.device_target) : "",
       s.created_at,
-      names.get(s.tester_id) ?? "",
+      numbers.get(s.id),
       s.status,
       s.rating,
       s.tester_comment ?? "",

@@ -66,13 +66,14 @@ const req = (url = "http://localhost:3000/api/export/feedback") => new Request(u
 
 /** A modern submission with two entries, on a project I own. */
 const MINE = {
+  id: "r-mine",
+  mission_id: "m-auth",
   created_at: "2026-09-20T10:00:00.000Z",
   status: "approved",
   rating: 5,
   tester_comment: "Nothing else to add.",
   ai_sentiment: "POSITIVE",
   screenshot_urls: ["a.png", "b.png"],
-  tester_id: TESTER,
   missions: {
     title: "Authentication Flow",
     category: "process_flow",
@@ -104,6 +105,8 @@ const MINE = {
 /** A submission that predates the audit log: a comment and no entries. */
 const LEGACY = {
   ...MINE,
+  id: "r-legacy",
+  created_at: "2026-09-21T10:00:00.000Z",
   tester_comment: "The checkout felt slow but nothing broke.",
   screenshot_urls: ["only.png"],
   test_result_entries: [],
@@ -115,6 +118,37 @@ beforeEach(() => {
 })
 
 const body = async (r: Response) => await r.text()
+
+describe("tester numbers", () => {
+  const col = (row: string) => row.split(",")[5]
+
+  it("numbers testers per mission, oldest first, restarting on each mission", async () => {
+    fakeAdmin({
+      submissions: [
+        { ...LEGACY, id: "a2", mission_id: "A", created_at: "2026-09-02T10:00:00Z" },
+        { ...LEGACY, id: "b1", mission_id: "B", created_at: "2026-09-03T10:00:00Z" },
+        { ...LEGACY, id: "a1", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
+      ],
+    })
+    const [header, ...rows] = (await body(await GET(req()))).split("\r\n")
+
+    expect(col(header)).toBe("Tester # (per mission)")
+    expect(rows.map(col)).toEqual(["2", "1", "1"])
+  })
+
+  it("gives the same numbers on a second export of the same data", async () => {
+    const data = [
+      { ...LEGACY, id: "x", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
+      { ...LEGACY, id: "y", mission_id: "A", created_at: "2026-09-01T10:00:00Z" },
+    ]
+    fakeAdmin({ submissions: data })
+    const first = await body(await GET(req()))
+    fakeAdmin({ submissions: [...data].reverse() })
+    const second = await body(await GET(req()))
+
+    expect(second.split("\r\n").slice(1).sort()).toEqual(first.split("\r\n").slice(1).sort())
+  })
+})
 
 describe("authentication", () => {
   it("is rejected, without touching the database", async () => {
@@ -207,9 +241,18 @@ describe("what the file must and must not contain", () => {
     expect([bytes[0], bytes[1], bytes[2]]).toEqual([0xef, 0xbb, 0xbf])
   })
 
-  it("carries the tester's display name", async () => {
-    fakeAdmin({ submissions: [MINE], profiles: [{ id: TESTER, full_name: "Ada Lovelace" }] })
-    expect(await body(await GET(req()))).toContain("Ada Lovelace")
+  it("carries no tester name, and never looks one up", async () => {
+    // Builders do not learn who tested. The profiles read is gone, not merely
+    // unused — this is what keeps it gone.
+    const queries = fakeAdmin({
+      submissions: [MINE],
+      profiles: [{ id: TESTER, full_name: "Ada Lovelace" }],
+    })
+    const text = await body(await GET(req()))
+
+    expect(text).not.toContain("Ada Lovelace")
+    expect(text).not.toContain(TESTER)
+    expect(queries.map((q) => q.table)).toEqual(["test_results"])
   })
 
   it("never carries an email address", async () => {
