@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -10,13 +10,13 @@ export default async function EditProjectPage({
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  const supabase = await createClient();
   const { userId } = await requireAccount("builder");
   const { projectId } = await params;
 
-  const { data: project } = await supabase
+  // Service role: owner_id is not readable by a signed-in user (20261006_01).
+  const { data: project } = await createAdminClient()
     .from("projects")
-    .select("*")
+    .select("name, app_url, description, category, owner_id")
     .eq("id", projectId)
     .single();
 

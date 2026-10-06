@@ -19,14 +19,12 @@ export function TopNav({
   avatarUrl,
   displayName,
   account = "builder",
-  userId = null,
 }: {
   sidebarOpen: boolean
   onToggleSidebar: () => void
   avatarUrl?: string | null
   displayName?: string | null
   account?: AccountType
-  userId?: string | null
 }) {
   const cta = CTA[account]
   const CtaIcon = cta.icon
@@ -44,7 +42,7 @@ export function TopNav({
 
       {/* Center: Global Search */}
       <div className="flex-1 max-w-[320px] mx-2 sm:mx-4 md:mx-6">
-        <GlobalSearch account={account} userId={userId} />
+        <GlobalSearch account={account} />
       </div>
 
       {/* Right: Desktop actions */}

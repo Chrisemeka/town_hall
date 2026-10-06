@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAccount } from "@/lib/auth";
 import type { ProjectRow } from "@/lib/types/db";
 import Link from "next/link";
 import { ArrowRight, FolderOpen } from "lucide-react";
@@ -23,12 +24,12 @@ function getStatus(missionCount: number, feedbackCount: number): ProjectStatus {
 }
 
 export default async function MyProjectsPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const { userId } = await requireAccount("builder");
 
   // Fetch projects with mission and feedback counts
-  const { data: raw } = await supabase
+  // Service role: owner_id and test_results are not readable by a signed-in
+  // user (20261006_01). The owner_id filter is the scoping.
+  const { data: raw } = await createAdminClient()
     .from("projects")
     .select(`
       id, name, description, app_url, created_at,
@@ -37,7 +38,7 @@ export default async function MyProjectsPage() {
         test_results (count)
       )
     `)
-    .eq("owner_id", user?.id)
+    .eq("owner_id", userId)
     .order("created_at", { ascending: false });
 
   const projects = ((raw ?? []) as ProjectCard[]).map((p) => {

@@ -3,21 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Search, LayoutDashboard, Target, Loader2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
-import { one } from "@/lib/utils/project"
 import type { AccountType } from "@/lib/access"
 import { searchHref } from "@/lib/searchHref"
-import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db"
-
-/** Exactly what the mission half of the search asks for. */
-type MissionHit = Pick<MissionRow, "id" | "title" | "project_id"> & {
-  projects: Embedded<Pick<ProjectRow, "name" | "flagged_at" | "owner_id">>
-}
-
-type Result =
-  | { kind: "project"; id: string; name: string; description: string | null }
-  | { kind: "mission"; id: string; title: string; projectName: string; projectId: string }
+import { searchEverything, type SearchResult as Result } from "@/actions/search"
 
 /**
  * The two roles search different things and land in different places.
@@ -30,13 +19,10 @@ type Result =
  */
 export function GlobalSearch({
   account = "builder",
-  userId = null,
 }: {
   account?: AccountType
-  userId?: string | null
 }) {
   const router  = useRouter()
-  const supabase = createClient()
 
   const [query,     setQuery]     = useState("")
   const [open,      setOpen]      = useState(false)
@@ -56,57 +42,14 @@ export function GlobalSearch({
   const inputRef      = useRef<HTMLInputElement>(null)
 
   /* ── search ────────────────────────────────────────── */
+  // Server-side: a builder's search filters on projects.owner_id, which a
+  // signed-in user cannot read (20261006_01). See actions/search.ts.
   const search = useCallback(async (q: string) => {
-    const pattern = `%${q}%`
-    const mine = account === "builder" && userId
-
-    let projectQuery = supabase
-      .from("projects")
-      .select("id, name, description")
-      .is("flagged_at", null)
-      .ilike("name", pattern)
-
-    // !inner is what makes the embedded project filterable from here.
-    let missionQuery = supabase
-      .from("missions")
-      .select("id, title, project_id, projects!inner(name, flagged_at, owner_id)")
-      .eq("is_active", true)
-      .is("projects.flagged_at", null)
-      .ilike("title", pattern)
-
-    // A builder's results have to be things they can actually open. Every
-    // /dashboard route is theirs alone, so handing them someone else's project
-    // id is offering a door they have no key to.
-    if (mine) {
-      projectQuery = projectQuery.eq("owner_id", userId)
-      missionQuery = missionQuery.eq("projects.owner_id", userId)
-    }
-
-    const [projectRes, missionRes] = await Promise.all([
-      projectQuery.limit(5),
-      missionQuery.limit(5),
-    ])
-
-    const items: Result[] = []
-
-    for (const p of projectRes.data ?? []) {
-      items.push({ kind: "project", id: p.id, name: p.name, description: p.description })
-    }
-    for (const m of (missionRes.data ?? []) as MissionHit[]) {
-      const project = one(m.projects)
-      items.push({
-        kind:        "mission",
-        id:          m.id,
-        title:       m.title,
-        projectName: project?.name ?? "Unknown",
-        projectId:   m.project_id,
-      })
-    }
-
+    const items = await searchEverything(q)
     setFetched(items)
     setFetchedFor(q)
     setCursor(-1)
-  }, [supabase, account, userId])
+  }, [])
 
   /* debounce — schedules the search and nothing else */
   const longEnough = query.length >= 2

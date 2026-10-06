@@ -1,14 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
 import { CheckCircle2, ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
-import { getOwnerId, one } from "@/lib/utils/project";
-import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
-
-/** `select("*, projects(*)")` — the whole mission with its whole project. */
-type MissionWithProject = MissionRow & { projects: Embedded<ProjectRow> };
+import { one } from "@/lib/utils/project";
+import type { Embedded, ProjectRow } from "@/lib/types/db";
 import AuditLogForm from "@/components/tester/AuditLogForm";
 import { isCohortTester, missionsForTester } from "@/lib/cohortDb";
 
@@ -22,15 +20,19 @@ export default async function MissionDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Only what the page renders. The builder's owner_id is never read here: a
+  // tester is not told whose project this is (CLAUDE.md, Tester anonymity).
   const { data: mission } = await supabase
     .from("missions")
-    .select("*, projects(*)")
+    .select("id, title, task_description, category, device_target, test_steps, projects(id, name, app_url, description, flagged_at)")
     .eq("id", id)
     .single();
 
   if (!mission) return notFound();
 
-  const project = one((mission as MissionWithProject).projects);
+  const project = one(
+    mission.projects as Embedded<Pick<ProjectRow, "id" | "name" | "app_url" | "description" | "flagged_at">>,
+  );
 
   // Read schema, not the write schema: a mission with no steps is the normal
   // state for everything written before test cases, and the form falls back to
@@ -38,12 +40,22 @@ export default async function MissionDetailPage({
   const parsedSteps = storedTestStepsSchema.safeParse(mission.test_steps);
   const steps = parsedSteps.success ? parsedSteps.data : [];
   if (project?.flagged_at) return notFound();
-  const isOwner = user?.id === getOwnerId(mission.projects);
+  // Owner and earlier-report checks run server-side through service role and
+  // reach the page only as booleans: owner_id and test_results are not
+  // readable by a signed-in user (20261006_01).
+  const admin = createAdminClient();
+  const { count: owned } = user && project
+    ? await admin
+        .from("projects")
+        .select("id", { count: "exact", head: true })
+        .eq("id", project.id)
+        .eq("owner_id", user.id)
+    : { count: 0 };
+  const isOwner = !!owned;
 
-  // One report per tester per mission (20260930_02). Read through the tester's
-  // own RLS, which lets them see their own submissions.
+  // One report per tester per mission (20260930_02).
   const { count: ownReports } = user && !isOwner
-    ? await supabase
+    ? await admin
         .from("test_results")
         .select("id", { count: "exact", head: true })
         .eq("mission_id", id)

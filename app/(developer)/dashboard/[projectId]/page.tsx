@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, TestResultRow } from "@/lib/types/db";
@@ -34,18 +34,25 @@ export default async function ProjectDetailPage({
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  const supabase = await createClient();
   const { userId } = await requireAccount("builder");
+  // Service role: projects.owner_id and test_results are not readable by a
+  // signed-in user (20261006_01). The owner check below is the scoping.
+  const admin = createAdminClient();
   const { projectId } = await params;
 
   const [projectRes, missionsRes, resultsRes] = await Promise.all([
-    supabase.from("projects").select("*").eq("id", projectId).single(),
-    supabase
+    // Not flagged_by: which admin flagged it is not the owner's business.
+    admin
+      .from("projects")
+      .select("id, name, description, app_url, owner_id, flagged_at, flag_reason")
+      .eq("id", projectId)
+      .single(),
+    admin
       .from("missions")
       .select("id, title, task_description, created_at, is_active, category, device_target, test_results(count)")
       .eq("project_id", projectId)
       .order("created_at", { ascending: true }),
-    supabase
+    admin
       .from("test_results")
       .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, missions!inner(id, title, project_id)")
       .eq("missions.project_id", projectId)

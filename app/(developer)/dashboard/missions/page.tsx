@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAccount } from "@/lib/auth";
 import type { MissionRow } from "@/lib/types/db";
 
 /** Exactly what the select below asks for. */
 type PagedMissionRow = Pick<MissionRow, "id" | "title" | "is_active" | "project_id"> & {
   test_results: { count: number }[] | null;
 };
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Target } from "lucide-react";
 import { MissionListPaged, type PagedMission } from "@/components/MissionListPaged";
@@ -14,22 +14,23 @@ import { Button } from "@/components/ui/Button";
 export const metadata = { title: "My Missions — Twnhall" };
 
 export default async function MyMissionsPage() {
-  const supabase = await createClient();
+  const { userId } = await requireAccount("builder");
+  // Service role: owner_id and test_results are not readable by a signed-in
+  // user (20261006_01). The owner_id filter is the scoping; missions are keyed
+  // off its ids.
+  const admin = createAdminClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/explore");
-
-  const { data: projects } = await supabase
+  const { data: projects } = await admin
     .from("projects")
     .select("id, name")
-    .eq("owner_id", user.id);
+    .eq("owner_id", userId);
 
   const projectIds  = (projects ?? []).map((p) => p.id);
   const projectMap  = Object.fromEntries((projects ?? []).map((p) => [p.id, p.name]));
 
   const { data: rawMissions } =
     projectIds.length > 0
-      ? await supabase
+      ? await admin
           .from("missions")
           .select("id, title, is_active, project_id, test_results(count)")
           .in("project_id", projectIds)
