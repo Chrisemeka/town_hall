@@ -71,6 +71,9 @@ export default async function TesterHomePage() {
         id, title, created_at, category, load_test_at, testers_needed,
         projects ( name, owner_id, flagged_at )
       `)
+      // Live only. Without this, drafts and missions that closed when full
+      // took the strip's six slots ahead of missions a tester could open.
+      .eq("is_active", true)
       .order("created_at", { ascending: false }),
   ])
 
