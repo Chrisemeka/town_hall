@@ -247,11 +247,27 @@ export function normalizeSkills(skills: string[]): string[] {
   return out
 }
 
+// The locale is pinned, and "en-US" specifically — not undefined, not [], not
+// bare "en". Those defer to the runtime, and the runtime is not the same on
+// both sides of a render: Node's ICU build resolved FK to "Falkland Islands"
+// while the browser resolved it to "Falkland Islands (Islas Malvinas)", so the
+// server markup and the hydrated markup disagreed and React threw. Any region
+// with a disputed or aliased name can do this. Widening this back to a
+// runtime-dependent locale reintroduces the hydration error.
+const regionNames = new Intl.DisplayNames(["en-US"], { type: "region" })
+const countryCollator = new Intl.Collator("en-US")
+
+/** "NG" -> "Nigeria". The platform owns the names, so we don't ship a second list. */
+export function countryName(code: string): string {
+  return regionNames.of(code) ?? code
+}
+
 /**
  * ISO 3166-1 alpha-2, officially assigned codes. Stored as codes rather than
  * names so the display string can change (and be localised) without a data
- * migration. Kept as one whitespace-separated literal because 249 codes as an
- * array literal is 249 lines of noise for something nobody edits by hand.
+ * migration. Kept as one whitespace-separated literal, in code order for
+ * editing, because 249 codes as an array literal is 249 lines of noise for
+ * something nobody edits by hand.
  *
  * The `[string, ...string[]]` type is what Zod's `z.enum` needs — the runtime
  * shape is guaranteed by scripts/vocabulary.test.mts.
@@ -284,21 +300,14 @@ export const COUNTRIES = `
   ZA ZM ZW
 `
   .trim()
-  .split(/\s+/) as [string, ...string[]]
-
-// The locale is pinned, and "en-US" specifically — not undefined, not [], not
-// bare "en". Those defer to the runtime, and the runtime is not the same on
-// both sides of a render: Node's ICU build resolved FK to "Falkland Islands"
-// while the browser resolved it to "Falkland Islands (Islas Malvinas)", so the
-// server markup and the hydrated markup disagreed and React threw. Any region
-// with a disputed or aliased name can do this. Widening this back to a
-// runtime-dependent locale reintroduces the hydration error.
-const regionNames = new Intl.DisplayNames(["en-US"], { type: "region" })
-
-/** "NG" -> "Nigeria". The platform owns the names, so we don't ship a second list. */
-export function countryName(code: string): string {
-  return regionNames.of(code) ?? code
-}
+  .split(/\s+/)
+  // Sorted by the name the dropdown shows, not the code — by code, Germany (DE)
+  // sat under D and the United Kingdom (GB) under G. Collator pinned to en-US
+  // for the same hydration reason as regionNames above.
+  .sort((a, b) => countryCollator.compare(countryName(a), countryName(b))) as [
+  string,
+  ...string[],
+]
 
 /**
  * IANA timezone names, straight from the runtime. Sorted already, and it tracks
