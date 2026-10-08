@@ -431,9 +431,10 @@ the welcome email: `sendApprovalNotification` swallows everything, inside
 optional approval note (`reviewSchema.reviewNote`, blank → null) — it is the
 only written feedback a tester gets on their own work. The tester reads it in
 three places, all through `components/tester/BuilderNote.tsx` where it renders
-in the app: the approval email, their home feed (clamped to three lines) and
-`/mission/[id]` once tested (in full, with the rating). Never truncate it to one
-line again — a writeup cut to 35 characters is no writeup.
+in the app: the approval email, the dialog a card on their home feed opens (with
+the rating and dates — the card itself only says a note exists, so a 1,000
+character note never stretches it) and `/mission/[id]` once tested. Always in
+full: a writeup cut to 35 characters, as the feed once did, is no writeup.
 
 **Gate pattern for "must complete X before Y."** Precedent: `profiles.accepted_terms_at` is a nullable timestamp — middleware and `requireAccount()` refuse to let the user past protected surfaces until it is set. Verification uses the same shape but on `accounts` (per-role): `accounts.verification_completed_at`. When adding future gates, follow this pattern rather than inventing new mechanisms.
 
