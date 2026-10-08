@@ -222,6 +222,16 @@ describe("requestPasswordReset", () => {
     expect(unknown).toEqual(known)
   })
 
+  it("sends the link through the callback, which exchanges the code", async () => {
+    const auth = given({ resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }) })
+    await requestPasswordReset(null, fd({ email: "ada@twnhall.com" }))
+    // Straight to /reset-password, the PKCE code is never exchanged and every
+    // link reads as expired on arrival.
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith("ada@twnhall.com", {
+      redirectTo: expect.stringMatching(/\/api\/auth\/callback\?next=\/reset-password$/),
+    })
+  })
+
   it("still rejects a malformed address", async () => {
     const auth = given({ resetPasswordForEmail: vi.fn() })
     const r = await requestPasswordReset(null, fd({ email: "nope" }))
