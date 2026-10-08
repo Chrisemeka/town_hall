@@ -256,12 +256,15 @@ export async function requestPasswordReset(
   if (tooMany) return { success: false, error: tooMany }
 
   const supabase = await createClient()
-  const site = callbackUrl().replace("/api/auth/callback", "")
   // A failure here is logged, never surfaced: the caller is told the same thing
   // either way, and "we could not send that" leaks that there was somewhere to
   // send it to.
+  //
+  // Through the callback, never straight to /reset-password: the link carries a
+  // PKCE code, and only the callback exchanges it. Landing on the page directly
+  // left it with no session, so every link read as "expired" on arrival.
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${site}${RESET_PASSWORD_PATH}`,
+    redirectTo: `${callbackUrl()}?next=${RESET_PASSWORD_PATH}`,
   })
   if (error) console.error("Password reset request failed:", error.message)
 

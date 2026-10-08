@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { CHOOSE_ACCOUNT_PATH, homeFor, type AccountType } from '@/lib/access'
+import { CHOOSE_ACCOUNT_PATH, RESET_PASSWORD_PATH, homeFor, type AccountType } from '@/lib/access'
 import { checkRateLimit, clientIp } from '@/lib/rateLimitDb'
 
 export async function GET(request: Request) {
@@ -21,6 +21,12 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    // A recovery link goes straight to the form. The terms/account routing
+    // below would send an admin or a terms-pending user somewhere else, and
+    // they would never set the password they came to set.
+    if (!error && next === RESET_PASSWORD_PATH) {
+      return NextResponse.redirect(`${origin}${RESET_PASSWORD_PATH}`)
+    }
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
 
