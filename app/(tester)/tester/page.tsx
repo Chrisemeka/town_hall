@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Compass, UserCog } from "lucide-react"
+import { Compass } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { missionsForTester } from "@/lib/cohortDb"
@@ -46,7 +46,6 @@ const STRIP_LIMIT = 6
 
 const QUICK_ACTIONS = [
   { label: "Browse Missions", href: "/explore/missions", icon: Compass, primary: true },
-  { label: "Update Profile", href: "/settings", icon: UserCog, primary: false },
 ]
 
 export default async function TesterHomePage() {

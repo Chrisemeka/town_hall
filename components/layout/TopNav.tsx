@@ -2,16 +2,15 @@
 
 import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
-import { Menu, X, Plus, Search } from "lucide-react"
+import { Menu, X, Plus } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { homeFor, type AccountType } from "@/lib/access"
 
-// The primary CTA is whatever that account type is here to do.
-const CTA: Record<AccountType, { href: string; label: string; icon: React.ElementType }> = {
-  builder: { href: "/dashboard/new", label: "New Project", icon: Plus },
-  tester: { href: "/explore/missions", label: "Browse Missions", icon: Search },
-}
+// A builder's primary action, in the bar on every builder page. Testers get
+// none here: Tester Home carries its own Browse Missions button, and a second
+// Voltage CTA in the same view breaks Design.md's one-per-viewport rule.
+const BUILDER_CTA = { href: "/dashboard/new", label: "New Project" }
 
 export function TopNav({
   sidebarOpen,
@@ -26,8 +25,7 @@ export function TopNav({
   displayName?: string | null
   account?: AccountType
 }) {
-  const cta = CTA[account]
-  const CtaIcon = cta.icon
+  const cta = account === "builder" ? BUILDER_CTA : null
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[56px] bg-surface border-b border-line z-50 flex items-center px-4 md:px-6 justify-between">
@@ -47,14 +45,16 @@ export function TopNav({
 
       {/* Right: Desktop actions */}
       <div className="hidden md:flex items-center gap-4 shrink-0">
-        <Link
-          id="tour-new-project-btn"
-          href={cta.href}
-          className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 flex items-center gap-1.5"
-        >
-          <CtaIcon className="w-3.5 h-3.5" />
-          {cta.label}
-        </Link>
+        {cta && (
+          <Link
+            id="tour-new-project-btn"
+            href={cta.href}
+            className="h-9 px-4 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 flex items-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            {cta.label}
+          </Link>
+        )}
 
         <Link
           href="/settings"
@@ -78,14 +78,16 @@ export function TopNav({
 
       {/* Right: Mobile actions */}
       <div className="flex md:hidden items-center gap-2 shrink-0">
-        <Link
-          id="tour-new-project-btn-mobile"
-          href={cta.href}
-          aria-label={cta.label}
-          className="w-9 h-9 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
-        >
-          <CtaIcon className="w-5 h-5" />
-        </Link>
+        {cta && (
+          <Link
+            id="tour-new-project-btn-mobile"
+            href={cta.href}
+            aria-label={cta.label}
+            className="w-9 h-9 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
+          >
+            <Plus className="w-5 h-5" />
+          </Link>
+        )}
 
         <button
           className="p-2 text-ink-muted hover:text-ink transition-colors duration-150"

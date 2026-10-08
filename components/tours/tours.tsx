@@ -26,16 +26,6 @@ export const TOURS: Tour[] = [
         pointerPadding: 8,
         pointerRadius: 10,
       },
-      {
-        icon: "🚀",
-        title: "Submit your own work",
-        content: <>When you&apos;re ready to get feedback on something you&apos;ve built, hit <span className="font-medium">New Project</span> in the top-right.</>,
-        selector: "#tour-new-project-btn",
-        side: "bottom-right",
-        showControls: true,
-        pointerPadding: 6,
-        pointerRadius: 8,
-      },
     ],
   },
   {
