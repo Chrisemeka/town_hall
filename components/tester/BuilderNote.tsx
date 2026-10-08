@@ -3,16 +3,14 @@
  * legacy send-back). It is the only written feedback a tester gets on their own
  * work, so it is shown as a block of its own, never squeezed into a meta row.
  *
- * `clamp` keeps a list card to three lines; the mission page the card links to
- * shows the whole note.
+ * Always in full. Where space is short (the tester's feed) it goes in a dialog
+ * rather than being cut — a writeup cut short is no writeup.
  */
 export function BuilderNote({
   note,
-  clamp = false,
   danger = false,
 }: {
   note: string
-  clamp?: boolean
   /** A legacy changes_requested note reads as a problem, not praise. */
   danger?: boolean
 }) {
@@ -25,7 +23,6 @@ export function BuilderNote({
         className={[
           "font-mono text-[13px] leading-5 whitespace-pre-wrap break-words",
           danger ? "text-danger-ink" : "text-ink",
-          clamp ? "line-clamp-3" : "",
         ].join(" ")}
       >
         {note}

@@ -21,6 +21,8 @@ type SubmissionRow = {
   created_at: string
   status: string | null
   review_note: string | null
+  rating: number | null
+  reviewed_at: string | null
   screenshot_url: string | null
   screenshot_urls: string[] | null
   mission_id: string
@@ -59,7 +61,7 @@ export default async function TesterHomePage() {
     admin
       .from("test_results")
       .select(`
-        id, created_at, status, review_note, screenshot_url, screenshot_urls, mission_id,
+        id, created_at, status, review_note, rating, reviewed_at, screenshot_url, screenshot_urls, mission_id,
         missions ( title, projects ( name ) )
       `)
       .eq("tester_id", userId)
@@ -93,6 +95,8 @@ export default async function TesterHomePage() {
       createdAt: r.created_at,
       screenshots: screenshotList(r),
       reviewNote: r.review_note ?? null,
+      rating: r.rating ?? null,
+      reviewedAt: r.reviewed_at ?? null,
     }
   })
 
