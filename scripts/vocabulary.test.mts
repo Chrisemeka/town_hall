@@ -59,6 +59,11 @@ for (const code of COUNTRIES) {
   assert.notEqual(name, code, `${code} has no display name on this runtime`)
 }
 
+// The dropdowns render COUNTRIES in order, so it must be in name order: by
+// code, Germany (DE) sat under D and the United Kingdom (GB) under G.
+const shown = COUNTRIES.map(countryName)
+assert.deepEqual(shown, [...shown].sort(new Intl.Collator("en-US").compare), "COUNTRIES must be sorted by display name")
+
 /* ── timezones ───────────────────────────────────────────────────────── */
 
 noDuplicates(TIMEZONES, "TIMEZONES")
