@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Compass, UserCog } from "lucide-react"
+import { Compass } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { missionsForTester } from "@/lib/cohortDb"
@@ -21,6 +21,8 @@ type SubmissionRow = {
   created_at: string
   status: string | null
   review_note: string | null
+  rating: number | null
+  reviewed_at: string | null
   screenshot_url: string | null
   screenshot_urls: string[] | null
   mission_id: string
@@ -44,7 +46,6 @@ const STRIP_LIMIT = 6
 
 const QUICK_ACTIONS = [
   { label: "Browse Missions", href: "/explore/missions", icon: Compass, primary: true },
-  { label: "Update Profile", href: "/settings", icon: UserCog, primary: false },
 ]
 
 export default async function TesterHomePage() {
@@ -59,7 +60,7 @@ export default async function TesterHomePage() {
     admin
       .from("test_results")
       .select(`
-        id, created_at, status, review_note, screenshot_url, screenshot_urls, mission_id,
+        id, created_at, status, review_note, rating, reviewed_at, screenshot_url, screenshot_urls, mission_id,
         missions ( title, projects ( name ) )
       `)
       .eq("tester_id", userId)
@@ -71,6 +72,9 @@ export default async function TesterHomePage() {
         id, title, created_at, category, load_test_at, testers_needed,
         projects ( name, owner_id, flagged_at )
       `)
+      // Live only. Without this, drafts and missions that closed when full
+      // took the strip's six slots ahead of missions a tester could open.
+      .eq("is_active", true)
       .order("created_at", { ascending: false }),
   ])
 
@@ -90,6 +94,8 @@ export default async function TesterHomePage() {
       createdAt: r.created_at,
       screenshots: screenshotList(r),
       reviewNote: r.review_note ?? null,
+      rating: r.rating ?? null,
+      reviewedAt: r.reviewed_at ?? null,
     }
   })
 
