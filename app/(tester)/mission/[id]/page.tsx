@@ -9,6 +9,8 @@ import { one } from "@/lib/utils/project";
 import type { Embedded, ProjectRow } from "@/lib/types/db";
 import AuditLogForm from "@/components/tester/AuditLogForm";
 import { isCohortTester, missionsForTester } from "@/lib/cohortDb";
+import { toStatus } from "@/lib/review";
+import { BuilderNote } from "@/components/tester/BuilderNote";
 
 export default async function MissionDetailPage({
   params,
@@ -54,13 +56,23 @@ export default async function MissionDetailPage({
   const isOwner = !!owned;
 
   // One report per tester per mission (20260930_02).
-  const { count: ownReports } = user && !isOwner
+  // Read whole rather than counted: once reviewed, the builder's rating and
+  // note are shown here. Newest first and limited, not maybeSingle — rows from
+  // before 20260930_02 can hold a duplicate, which maybeSingle would throw on.
+  const { data: ownRows } = user && !isOwner
     ? await admin
         .from("test_results")
-        .select("id", { count: "exact", head: true })
+        .select("status, rating, review_note")
         .eq("mission_id", id)
         .eq("tester_id", user.id)
-    : { count: 0 };
+        .order("created_at", { ascending: false })
+        .limit(1)
+    : { data: [] };
+  const ownReport = (ownRows ?? [])[0] as
+    | { status: string | null; rating: number | null; review_note: string | null }
+    | undefined;
+  const ownReports = !!ownReport;
+  const ownStatus = toStatus(ownReport?.status);
 
   // A paid cohort tester can reach any mission by URL — missions are public.
   // Tell them before they start if this one will not be paid; the payout
@@ -175,9 +187,22 @@ export default async function MissionDetailPage({
         <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
           <CheckCircle2 className="w-10 h-10 text-success-ink mb-4" aria-hidden="true" />
           <h3 className="font-syne font-bold text-[20px] text-ink mb-2">You&apos;ve tested this mission</h3>
-          <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
-            Your report is with the builder. Each mission takes one report per tester.
-          </p>
+          {ownStatus === "approved" ? (
+            <p className="font-mono text-[14px] text-ink max-w-[400px]">
+              The builder approved your report
+              {ownReport?.rating != null && <> and rated it {ownReport.rating} out of 5</>}.
+            </p>
+          ) : (
+            <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
+              Your report is with the builder. Each mission takes one report per tester.
+            </p>
+          )}
+          {/* In full here — the feed card that links to this page clamps it. */}
+          {ownReport?.review_note && (
+            <div className="mt-6 w-full max-w-[480px]">
+              <BuilderNote note={ownReport.review_note} danger={ownStatus === "changes_requested"} />
+            </div>
+          )}
           <Link
             href="/explore"
             className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { BuilderNote } from "@/components/tester/BuilderNote"
 import { FileText } from "lucide-react"
 import { STATUS_LABEL, type SubmissionStatus } from "@/lib/review"
 
@@ -113,14 +114,10 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                       <span>Submitted {formatDate(s.createdAt)}</span>
                       <span className="text-line">·</span>
                       <span>{s.screenshots.length} screenshot{s.screenshots.length !== 1 ? "s" : ""}</span>
-                      {/* The builder's note: legacy send-back, or an approval note. */}
-                      {s.reviewNote && (
-                        <>
-                          <span className="text-line">·</span>
-                          <span className={`${needsChanges ? "text-danger-ink" : "text-ink"} truncate max-w-[280px]`}>{s.reviewNote}</span>
-                        </>
-                      )}
                     </div>
+                    {/* The builder's note: an approval note, or a legacy send-back.
+                        Three lines here; the mission page shows all of it. */}
+                    {s.reviewNote && <BuilderNote note={s.reviewNote} clamp danger={needsChanges} />}
                   </div>
 
                   {s.screenshots.length > 0 && (
