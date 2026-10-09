@@ -14,6 +14,7 @@ import {
   type TestStep,
 } from "@/lib/validation/schemas"
 import {
+  AuditLogIntro,
   AuditLogSteps,
   draftFor,
   draftIsComplete,
@@ -314,15 +315,7 @@ export default function AuditLogForm({
 
         {hasSteps && (
           <>
-            <p
-              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
-              style={{ letterSpacing: "1px" }}
-            >
-              Work through the test case
-            </p>
-            <p className="font-mono text-[13px] text-ink-muted leading-5 mb-4">
-              Each step shows what the builder asked for. Answer them in order.
-            </p>
+            <AuditLogIntro />
             <div className="mb-8">
               <AuditLogSteps
                 entries={entries}
