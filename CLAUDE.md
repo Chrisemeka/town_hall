@@ -28,7 +28,8 @@ app/
   api/                Route Handlers (webhooks, auth callback)
 components/           React components
   public/             The public shell — header, footer, theme toggle
-  missions/           TestCaseEditor (authoring), TestCaseView (display)
+  missions/           TestCaseEditor (authoring), TestCaseView (display),
+                      MissionBrief (the tester page's top), MissionPreview
   submissions/        SubmissionBody — the one place audit-log vs legacy branches
   tester/             AuditLogForm and the tester's own surfaces
 lib/
@@ -295,6 +296,21 @@ never sent the builder's `owner_id`.
   control in `AuditLogForm`.
 - **Copy says "we don't share your name with builders", never "anonymous".**
   The first is true; the second is a guarantee screenshots break.
+
+**The mission preview is the tester's page, never a copy of it.** The
+Preview button beside Publish (`components/missions/MissionPreview.tsx`)
+reads the mission form's own `FormData` — no save, no draft row — and renders
+`MissionBrief`, `AuditLogIntro` and `AuditLogSteps`, the components
+`/mission/[id]` itself renders. Change what a tester sees in those and the
+preview follows; give the preview its own markup and it starts lying.
+**`AuditLogSteps` is the shared piece; `AuditLogForm` is not for reuse** — it
+writes `localStorage` drafts keyed by mission and carries the submit button.
+The frame is a `<fieldset disabled inert>`: nothing in it takes focus or a
+click, and its textareas, which sit inside the mission form, never submit
+with it. A step that fails `testStepSchema` is named above the frame and left
+out of it, because a tester never receives one. Allowance, status and errors
+stay out of the frame. `components/missions/__tests__/missionPreview.test.ts`
+covers it.
 
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
