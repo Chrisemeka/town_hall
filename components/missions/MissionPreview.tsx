@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Eye, Monitor, Smartphone } from "lucide-react"
 import { MissionBrief } from "@/components/missions/MissionBrief"
 import { AuditLogIntro, AuditLogSteps, draftFor } from "@/components/tester/AuditLogSteps"
@@ -87,9 +87,10 @@ export function TesterView({
       inert
       aria-label="Tester preview"
       className={[
-        "mx-auto w-full min-w-0 m-0 bg-surface border border-line px-6 py-10",
-        // A phone, or a browser window with the tester page's own 800px column.
-        phone ? "max-w-[360px] rounded-[24px]" : "max-w-[1128px] rounded-[12px]",
+        "mx-auto w-full min-w-0 m-0 bg-surface px-6 py-10",
+        // A phone, or the whole screen as a browser window, edge to edge, with
+        // the tester page's own 800px column inside it.
+        phone ? "max-w-[360px] border border-line rounded-[24px]" : "min-h-full border-0",
       ].join(" ")}
     >
       <div className="max-w-[800px] mx-auto">
@@ -131,8 +132,15 @@ export function PreviewButton({ project }: { project: Project }) {
     // Starts on the device the mission targets; Phone for "both", since most
     // testers are on Android phones.
     setPhone(snapshot.deviceTarget !== "desktop")
+    // The page behind keeps its own scrollbar beside the top layer otherwise.
+    document.documentElement.style.overflow = "hidden"
     ref.current?.showModal()
   }
+
+  // Leaving the page with the preview open must not leave the next one locked.
+  useEffect(() => () => {
+    document.documentElement.style.overflow = ""
+  }, [])
 
   const unfinished = mission ? splitSteps(mission.steps).unfinished : []
   const close = () => ref.current?.close()
@@ -151,11 +159,14 @@ export function PreviewButton({ project }: { project: Project }) {
 
       <dialog
         ref={ref}
-        onClose={() => setMission(null)}
+        onClose={() => {
+          document.documentElement.style.overflow = ""
+          setMission(null)
+        }}
         aria-labelledby="mission-preview-title"
         // The whole viewport, and only the canvas below scrolls — the dialog
         // itself never does, so there is one scroll and no nested bars.
-        className="fixed inset-0 w-screen h-dvh max-w-none max-h-none m-0 p-0 border-0 overflow-hidden bg-surface-raised text-ink"
+        className="fixed inset-0 w-full h-dvh max-w-none max-h-none m-0 p-0 border-0 overflow-hidden bg-surface-raised text-ink"
       >
         {mission && (
           <div className="h-full flex flex-col">
@@ -204,11 +215,16 @@ export function PreviewButton({ project }: { project: Project }) {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 py-6 sm:px-8 sm:py-8">
+            <div
+              className={[
+                "flex-1 min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                phone ? "px-2 py-6 sm:px-8 sm:py-8" : "",
+              ].join(" ")}
+            >
               {unfinished.length > 0 && (
                 <p
                   role="status"
-                  className="max-w-[800px] mx-auto mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4"
+                  className={`max-w-[800px] mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4 ${phone ? "mx-auto" : "mt-6 mx-6 md:mx-auto"}`}
                 >
                   {unfinished.length === 1 ? "Step" : "Steps"} {unfinished.join(", ")}{" "}
                   {unfinished.length === 1 ? "isn't" : "aren't"} finished, so{" "}
