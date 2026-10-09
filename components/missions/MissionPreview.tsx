@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Eye, X } from "lucide-react"
+import { ArrowLeft, Eye, Monitor, Smartphone } from "lucide-react"
 import { MissionBrief } from "@/components/missions/MissionBrief"
 import { AuditLogIntro, AuditLogSteps, draftFor } from "@/components/tester/AuditLogSteps"
 import { testStepSchema, type TestStep } from "@/lib/validation/schemas"
@@ -87,10 +87,12 @@ export function TesterView({
       inert
       aria-label="Tester preview"
       className={[
-        "mx-auto w-full min-w-0 m-0 bg-surface border border-line rounded-[12px] px-6 py-10",
-        phone ? "max-w-[360px]" : "max-w-[800px]",
+        "mx-auto w-full min-w-0 m-0 bg-surface border border-line px-6 py-10",
+        // A phone, or a browser window with the tester page's own 800px column.
+        phone ? "max-w-[360px] rounded-[24px]" : "max-w-[1128px] rounded-[12px]",
       ].join(" ")}
     >
+      <div className="max-w-[800px] mx-auto">
       <MissionBrief
         title={mission.title}
         project={project}
@@ -105,27 +107,35 @@ export function TesterView({
           <AuditLogSteps entries={draftFor(ready)} category={mission.category} onChange={() => {}} />
         </>
       )}
+      </div>
     </fieldset>
   )
 }
 
-/** The Preview button beside Publish, and the dialog it opens. */
+/**
+ * The Preview button beside Publish, and the full-screen preview it opens —
+ * same tab, over the form, so the unsaved mission never has to travel
+ * anywhere. A native modal <dialog> still: Esc closes it, focus stays inside
+ * and returns to the button.
+ */
 export function PreviewButton({ project }: { project: Project }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [mission, setMission] = useState<MissionSnapshot | null>(null)
-  // Only consulted for "both"; mobile is always a phone, desktop never.
   const [phone, setPhone] = useState(true)
 
   function open(e: React.MouseEvent<HTMLButtonElement>) {
     const form = e.currentTarget.form
     if (!form) return
-    setMission(snapshotOf(form))
+    const snapshot = snapshotOf(form)
+    setMission(snapshot)
+    // Starts on the device the mission targets; Phone for "both", since most
+    // testers are on Android phones.
+    setPhone(snapshot.deviceTarget !== "desktop")
     ref.current?.showModal()
   }
 
-  const device = mission?.deviceTarget
-  const asPhone = device === "mobile" || (device !== "desktop" && phone)
   const unfinished = mission ? splitSteps(mission.steps).unfinished : []
+  const close = () => ref.current?.close()
 
   return (
     <>
@@ -142,73 +152,70 @@ export function PreviewButton({ project }: { project: Project }) {
       <dialog
         ref={ref}
         onClose={() => setMission(null)}
-        // A click on the backdrop lands on the dialog element itself.
-        onClick={(e) => e.target === e.currentTarget && ref.current?.close()}
         aria-labelledby="mission-preview-title"
-        // ponytail: the backdrop is a scrim — dark on both themes by design.
-        className="w-[calc(100%-16px)] max-w-[880px] max-h-[90vh] p-0 m-auto rounded-[12px] border border-line bg-surface-raised text-ink backdrop:bg-black/60"
+        // The whole viewport, and only the canvas below scrolls — the dialog
+        // itself never does, so there is one scroll and no nested bars.
+        className="fixed inset-0 w-screen h-dvh max-w-none max-h-none m-0 p-0 border-0 overflow-hidden bg-surface-raised text-ink"
       >
         {mission && (
-          <div className="flex flex-col max-h-[90vh]">
-            <div className="flex items-start justify-between gap-4 p-4 sm:p-6 border-b border-line">
-              <div className="min-w-0 flex flex-col gap-1">
-                <h2 id="mission-preview-title" className="font-syne font-bold text-[20px] leading-7 text-ink">
+          <div className="h-full flex flex-col">
+            {/* Builder chrome. Nothing up here is part of what testers see. */}
+            <div className="shrink-0 h-16 px-4 sm:px-6 flex items-center justify-between gap-4 border-b border-line bg-surface">
+              <button
+                type="button"
+                onClick={close}
+                className="h-10 px-3 -ml-3 rounded-[8px] flex items-center gap-2 font-mono text-[13px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back to editing</span>
+                <span className="sm:hidden">Back</span>
+              </button>
+
+              <div className="min-w-0 text-center">
+                <h2 id="mission-preview-title" className="font-syne font-bold text-[16px] leading-6 text-ink truncate">
                   What testers see
                 </h2>
                 {/* Without this, an inert Pass button reads as a broken page. */}
-                <p className="font-mono text-[13px] leading-5 text-ink-muted">
-                  A preview of this mission as it stands. Nothing here is live, and nothing is saved.
+                <p className="hidden md:block font-mono text-[12px] leading-4 text-ink-muted">
+                  Nothing here is live, and nothing is saved.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => ref.current?.close()}
-                aria-label="Close preview"
-                className="w-8 h-8 shrink-0 rounded-[8px] flex items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer"
-              >
-                <X size={16} />
-              </button>
+
+              <div role="group" aria-label="Preview width" className="flex p-1 gap-1 rounded-[8px] border border-line bg-surface-raised">
+                {[
+                  { value: true, label: "Phone", Icon: Smartphone },
+                  { value: false, label: "Desktop", Icon: Monitor },
+                ].map(({ value, label, Icon }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    aria-pressed={phone === value}
+                    aria-label={label}
+                    onClick={() => setPhone(value)}
+                    className={[
+                      "h-8 px-2 sm:px-3 rounded-[6px] flex items-center gap-2 font-mono text-[13px] transition-colors duration-150",
+                      phone === value ? "bg-surface text-ink border border-ink-muted" : "text-ink-muted hover:text-ink border border-transparent",
+                    ].join(" ")}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden sm:inline">{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="p-2 sm:p-6 flex flex-col gap-4 overflow-y-auto">
-              {/* Builder chrome, outside the frame: the tester sees neither. */}
-              {device !== "mobile" && device !== "desktop" && (
-                <div role="group" aria-label="Preview width" className="flex gap-2 self-center">
-                  {[true, false].map((p) => (
-                    <button
-                      key={String(p)}
-                      type="button"
-                      aria-pressed={phone === p}
-                      onClick={() => setPhone(p)}
-                      className={[
-                        "h-8 px-3 rounded-[6px] border font-mono text-[13px] transition-colors duration-150",
-                        phone === p
-                          ? "border-accent-ink text-accent-ink bg-voltage/5"
-                          : "border-line text-ink-muted hover:border-ink-muted hover:text-ink",
-                      ].join(" ")}
-                    >
-                      {p ? "Phone" : "Desktop"}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-2 py-6 sm:px-8 sm:py-8">
               {unfinished.length > 0 && (
-                <p role="status" className="font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4">
-                  {unfinished.length === 1 ? "Step" : "Steps"} {unfinished.join(", ")} {unfinished.length === 1 ? "isn't" : "aren't"} finished,
-                  so {unfinished.length === 1 ? "it's" : "they're"} left out below. Testers only ever see complete steps.
+                <p
+                  role="status"
+                  className="max-w-[800px] mx-auto mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4"
+                >
+                  {unfinished.length === 1 ? "Step" : "Steps"} {unfinished.join(", ")}{" "}
+                  {unfinished.length === 1 ? "isn't" : "aren't"} finished, so{" "}
+                  {unfinished.length === 1 ? "it's" : "they're"} left out below. Testers only ever see complete steps.
                 </p>
               )}
-              <TesterView mission={mission} project={project} phone={asPhone} />
-            </div>
-
-            <div className="p-4 sm:p-6 border-t border-line flex justify-end">
-              <button
-                type="button"
-                onClick={() => ref.current?.close()}
-                className="h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150"
-              >
-                Back to editing
-              </button>
+              <TesterView mission={mission} project={project} phone={phone} />
             </div>
           </div>
         )}
