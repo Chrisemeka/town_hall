@@ -7,12 +7,12 @@ import { checkRateLimit, clientIp } from "@/lib/rateLimitDb";
 import { normaliseEmail, tooManyMessage, type RateLimitName } from "@/lib/rateLimit";
 import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH } from "@/lib/access";
 import {
-  emailOnlySchema,
+  emailCaptchaSchema,
   resetPasswordSchema,
   signInSchema,
   signUpSchema,
   toFieldErrors,
-  type EmailOnlyInput,
+  type EmailCaptchaInput,
   type ResetPasswordInput,
   type SignInInput,
   type SignUpInput,
@@ -94,6 +94,25 @@ function callbackUrl(): string {
  * email limits, not replacing them: those cannot see one actor working through
  * a list of addresses.
  */
+/**
+ * GoTrue's answer to a missing, expired or already-spent Turnstile token. A
+ * field error on the widget, never "wrong password" and never a pretend
+ * success: it says nothing about whether the address exists, so surfacing it
+ * leaks nothing.
+ */
+function captchaFailed<T extends { captcha_token?: unknown }>(
+  error: { code?: string } | null,
+): ValidationFailure<T> | null {
+  if (error?.code !== "captcha_failed") return null
+  return {
+    success: false,
+    error: "Check the highlighted fields.",
+    fieldErrors: {
+      captcha_token: ["Verification expired. Complete it again and resubmit."],
+    } as ValidationFailure<T>["fieldErrors"],
+  }
+}
+
 async function limited(
   ipRule: RateLimitName,
   emailRule?: RateLimitName,
@@ -114,6 +133,7 @@ export async function signUpWithEmail(
     email: formData.get("email"),
     password: formData.get("password"),
     confirm_password: formData.get("confirm_password"),
+    captcha_token: formData.get("captcha_token"),
   })
   if (!parsed.success) {
     return {
@@ -123,7 +143,7 @@ export async function signUpWithEmail(
     }
   }
 
-  const { full_name, email, password } = parsed.data
+  const { full_name, email, password, captcha_token } = parsed.data
   const tooMany = await limited("signup:ip")
   if (tooMany) return { success: false, error: tooMany }
 
@@ -132,6 +152,7 @@ export async function signUpWithEmail(
     email,
     password,
     options: {
+      captchaToken: captcha_token,
       // Picked up by the profile backfill in app/api/auth/callback/route.ts.
       // The upsert there cannot fill it — see that file's comment.
       data: { full_name },
@@ -140,6 +161,8 @@ export async function signUpWithEmail(
   })
 
   if (error) {
+    const captcha = captchaFailed<SignUpInput>(error)
+    if (captcha) return captcha
     // Supabase obfuscates an existing confirmed address rather than saying so,
     // and we must not undo that: "already registered" on a public form tells an
     // attacker which addresses have accounts. A genuine error still surfaces.
@@ -156,6 +179,7 @@ export async function signInWithEmail(
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
+    captcha_token: formData.get("captcha_token"),
   })
   if (!parsed.success) {
     return {
@@ -169,9 +193,16 @@ export async function signInWithEmail(
   if (tooMany) return { success: false, error: tooMany }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword(parsed.data)
+  const { email, password, captcha_token } = parsed.data
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: captcha_token },
+  })
 
   if (error) {
+    const captcha = captchaFailed<SignInInput>(error)
+    if (captcha) return captcha
     // An unconfirmed address must not read as a wrong password — that sends
     // people off to reset a password that is fine. Supabase distinguishes the
     // two; pass the distinction on.
@@ -202,13 +233,16 @@ export async function signInWithEmail(
 export async function resendConfirmation(
   _prev: unknown,
   formData: FormData,
-): Promise<AuthResult<EmailOnlyInput>> {
-  const parsed = emailOnlySchema.safeParse({ email: formData.get("email") })
+): Promise<AuthResult<EmailCaptchaInput>> {
+  const parsed = emailCaptchaSchema.safeParse({
+    email: formData.get("email"),
+    captcha_token: formData.get("captcha_token"),
+  })
   if (!parsed.success) {
     return {
       success: false,
       error: "Check the highlighted fields.",
-      fieldErrors: toFieldErrors<EmailOnlyInput>(parsed.error),
+      fieldErrors: toFieldErrors<EmailCaptchaInput>(parsed.error),
     }
   }
 
@@ -219,10 +253,12 @@ export async function resendConfirmation(
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: parsed.data.email,
-    options: { emailRedirectTo: callbackUrl() },
+    options: { emailRedirectTo: callbackUrl(), captchaToken: parsed.data.captcha_token },
   })
 
   if (error) {
+    const captcha = captchaFailed<EmailCaptchaInput>(error)
+    if (captcha) return captcha
     if (error.code === "over_email_send_rate_limit") {
       return {
         success: false,
@@ -242,13 +278,16 @@ export async function resendConfirmation(
 export async function requestPasswordReset(
   _prev: unknown,
   formData: FormData,
-): Promise<AuthResult<EmailOnlyInput>> {
-  const parsed = emailOnlySchema.safeParse({ email: formData.get("email") })
+): Promise<AuthResult<EmailCaptchaInput>> {
+  const parsed = emailCaptchaSchema.safeParse({
+    email: formData.get("email"),
+    captcha_token: formData.get("captcha_token"),
+  })
   if (!parsed.success) {
     return {
       success: false,
       error: "Check the highlighted fields.",
-      fieldErrors: toFieldErrors<EmailOnlyInput>(parsed.error),
+      fieldErrors: toFieldErrors<EmailCaptchaInput>(parsed.error),
     }
   }
 
@@ -256,7 +295,8 @@ export async function requestPasswordReset(
   if (tooMany) return { success: false, error: tooMany }
 
   const supabase = await createClient()
-  // A failure here is logged, never surfaced: the caller is told the same thing
+  // A failure here is logged, never surfaced — except a captcha refusal, which
+  // is about the widget, not the address: the caller is told the same thing
   // either way, and "we could not send that" leaks that there was somewhere to
   // send it to.
   //
@@ -265,7 +305,10 @@ export async function requestPasswordReset(
   // left it with no session, so every link read as "expired" on arrival.
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${callbackUrl()}?next=${RESET_PASSWORD_PATH}`,
+    captchaToken: parsed.data.captcha_token,
   })
+  const captcha = captchaFailed<EmailCaptchaInput>(error)
+  if (captcha) return captcha
   if (error) console.error("Password reset request failed:", error.message)
 
   return { success: true }

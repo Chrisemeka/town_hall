@@ -10,6 +10,7 @@ import {
   AuthSubmit,
   GoogleBlock,
 } from "@/components/public/AuthCard"
+import { Turnstile } from "@/components/public/auth/Turnstile"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import {
   signInSchema,
@@ -29,6 +30,7 @@ export function SignInForm() {
     const parsed = signInSchema.safeParse({
       email: fd.get("email"),
       password: fd.get("password"),
+      captcha_token: fd.get("captcha_token"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -76,6 +78,7 @@ export function SignInForm() {
             Forgot password?
           </Link>
         </div>
+        <Turnstile resetKey={state} errors={errors.captcha_token} />
         <AuthSubmit pending={pending}>{pending ? "Signing you in…" : "Sign in"}</AuthSubmit>
       </form>
       {/* Surfaced only on the unconfirmed-email failure, which is the one case

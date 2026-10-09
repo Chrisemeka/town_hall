@@ -19,6 +19,7 @@ import {
   requestPasswordReset,
   resendConfirmation,
   signInWithEmail,
+  signInWithGoogle,
   signUpWithEmail,
   updatePassword,
 } from "@/actions/auth"
@@ -26,6 +27,7 @@ import { createClient } from "@/lib/supabase/server"
 import { checkRateLimit } from "@/lib/rateLimitDb"
 
 type AuthStub = {
+  signInWithOAuth?: ReturnType<typeof vi.fn>
   signUp?: ReturnType<typeof vi.fn>
   signInWithPassword?: ReturnType<typeof vi.fn>
   resend?: ReturnType<typeof vi.fn>
@@ -41,9 +43,11 @@ function given(auth: AuthStub) {
   return auth
 }
 
-const fd = (fields: Record<string, string>) => {
+/** Every auth form now carries a Turnstile token; `null` leaves it off. */
+const fd = (fields: Record<string, string>, captcha: string | null = "tok") => {
   const f = new FormData()
   for (const [k, v] of Object.entries(fields)) f.append(k, v)
+  if (captcha !== null) f.append("captcha_token", captcha)
   return f
 }
 
@@ -229,6 +233,7 @@ describe("requestPasswordReset", () => {
     // link reads as expired on arrival.
     expect(auth.resetPasswordForEmail).toHaveBeenCalledWith("ada@twnhall.com", {
       redirectTo: expect.stringMatching(/\/api\/auth\/callback\?next=\/reset-password$/),
+      captchaToken: "tok",
     })
   })
 
@@ -319,5 +324,74 @@ describe("the auth rate limits", () => {
     expect(auth.signUp).not.toHaveBeenCalled()
     expect(auth.resend).not.toHaveBeenCalled()
     expect(auth.resetPasswordForEmail).not.toHaveBeenCalled()
+  })
+})
+
+describe("the Turnstile token", () => {
+  const CAPTCHA_FAILED = { error: { code: "captcha_failed", message: "captcha protection" } }
+  const forms = [
+    ["signUpWithEmail", () => signUpWithEmail, VALID_SIGNUP],
+    ["signInWithEmail", () => signInWithEmail, { email: "ada@twnhall.com", password: "correcthorse" }],
+    ["resendConfirmation", () => resendConfirmation, { email: "ada@twnhall.com" }],
+    ["requestPasswordReset", () => requestPasswordReset, { email: "ada@twnhall.com" }],
+  ] as const
+  const allAuth = () =>
+    given({
+      signUp: vi.fn(async () => CAPTCHA_FAILED),
+      signInWithPassword: vi.fn(async () => CAPTCHA_FAILED),
+      resend: vi.fn(async () => CAPTCHA_FAILED),
+      resetPasswordForEmail: vi.fn(async () => CAPTCHA_FAILED),
+    })
+
+  beforeEach(() => vi.mocked(checkRateLimit).mockResolvedValue({ ok: true }))
+
+  it.each(forms)("%s refuses a missing token as a field error, before Supabase or the limiter", async (_, action, fields) => {
+    const auth = allAuth()
+    const r = await action()(null, fd(fields, null))
+    expect(r.success === false && r.fieldErrors?.captcha_token).toEqual(["Complete the verification above."])
+    expect(checkRateLimit).not.toHaveBeenCalled()
+    for (const call of Object.values(auth)) expect(call).not.toHaveBeenCalled()
+  })
+
+  it.each(forms)("%s answers GoTrue's captcha refusal as a widget error — after spending a rate-limit hit", async (_, action, fields) => {
+    // Not "wrong password", and on reset not the pretend success: a captcha
+    // refusal says nothing about the address. The hit is spent because the
+    // limiter runs first, and checking the token first would need the secret
+    // key in the app (SPEC-turnstile §5).
+    allAuth()
+    const r = await action()(null, fd(fields))
+    expect(r.success === false && r.fieldErrors?.captcha_token?.[0]).toMatch(/expired/)
+    expect(checkRateLimit).toHaveBeenCalledTimes(1)
+  })
+
+  it("reaches every Supabase call as captchaToken", async () => {
+    const auth = given({
+      signUp: vi.fn(async () => ({ error: null })),
+      signInWithPassword: vi.fn(async () => ({ error: null })),
+      resend: vi.fn(async () => ({ error: null })),
+      resetPasswordForEmail: vi.fn(async () => ({ error: null })),
+    })
+    await expect(signUpWithEmail(null, fd(VALID_SIGNUP))).rejects.toThrow("NEXT_REDIRECT")
+    await expect(
+      signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "correcthorse" })),
+    ).rejects.toThrow("NEXT_REDIRECT")
+    await resendConfirmation(null, fd({ email: "ada@twnhall.com" }))
+    await requestPasswordReset(null, fd({ email: "ada@twnhall.com" }))
+
+    const opts = { options: expect.objectContaining({ captchaToken: "tok" }) }
+    expect(auth.signUp).toHaveBeenCalledWith(expect.objectContaining(opts))
+    expect(auth.signInWithPassword).toHaveBeenCalledWith(expect.objectContaining(opts))
+    expect(auth.resend).toHaveBeenCalledWith(expect.objectContaining(opts))
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith(
+      "ada@twnhall.com",
+      expect.objectContaining({ captchaToken: "tok" }),
+    )
+  })
+  it("is not asked of Google sign-in, which has no form post to carry one", async () => {
+    const auth = given({
+      signInWithOAuth: vi.fn(async () => ({ data: { url: "https://accounts.google.com/x" }, error: null })),
+    })
+    await expect(signInWithGoogle()).rejects.toThrow("NEXT_REDIRECT:https://accounts.google.com/x")
+    expect(JSON.stringify(auth.signInWithOAuth!.mock.calls)).not.toMatch(/captcha/i)
   })
 })

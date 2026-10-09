@@ -10,6 +10,7 @@ import {
   AuthSubmit,
   GoogleBlock,
 } from "@/components/public/AuthCard"
+import { Turnstile } from "@/components/public/auth/Turnstile"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import {
   PASSWORD_MIN,
@@ -35,6 +36,7 @@ export function SignUpForm() {
       email: fd.get("email"),
       password: fd.get("password"),
       confirm_password: fd.get("confirm_password"),
+      captcha_token: fd.get("captcha_token"),
     })
     if (!parsed.success) {
       e.preventDefault()
@@ -92,6 +94,7 @@ export function SignUpForm() {
           autoComplete="new-password"
           errors={errors.confirm_password}
         />
+        <Turnstile resetKey={state} errors={errors.captcha_token} />
         <AuthSubmit pending={pending}>{pending ? "Creating your account…" : "Create account"}</AuthSubmit>
       </form>
       <p className="mt-6 font-mono text-[13px] text-ink-muted">
