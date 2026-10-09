@@ -270,6 +270,27 @@ imports the other — a limited request must never read as "quota exceeded".
 - **No server-side contact form exists** (`lib/contact.ts` is a `mailto:`).
   If one is ever built, it needs a Tier 1 limit before it ships.
 
+**Turnstile protects sign-up, sign-in, password reset and resend** —
+GoTrue enforces it on all four (resend too, undocumented, verified live), and
+refuses each with `captcha_failed` when no token arrives. `components/public/auth/Turnstile.tsx`
+renders Cloudflare's script directly; the token is a hidden `captcha_token`
+input in the form, travels through `FormData`, is required by the schema and
+reaches Supabase as `captchaToken`. `captcha_failed` comes back as a field
+error on the widget — never "wrong password", never reset's pretend success.
+
+- **The site key is public** (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`). **The secret
+  is Supabase-side only**; the app never calls `siteverify`. Do not add it to
+  Vercel.
+- **A token is single-use**, spent on every call right or wrong. Each form
+  passes its `useActionState` result as `resetKey` so the widget resets after
+  every submission — without it, wrong-password-then-right-password fails.
+- **Google sign-in is exempt.** `signInWithOAuth` is a redirect with no form
+  post, and Google does the bot filtering. Do not add a widget for symmetry.
+- **Captcha failures still spend a rate-limit hit**, by decision: the limiter
+  runs first, and checking the token first means the secret in the app.
+- **Local dev needs `localhost` in the widget's hostname allowlist**
+  (Cloudflare dashboard), or the widget shows its load-failure line.
+
 **Tester anonymity: a builder is never sent who tested.** Not a name, not an
 email, not `tester_id` — on screen, in the RSC payload, in the CSV, in the
 notification email or through the API. A builder tells testers apart only by
