@@ -20,7 +20,7 @@ export default async function NewMissionPage({
   // Service role: owner_id is not readable by a signed-in user (20261006_01).
   const { data: project } = await createAdminClient()
     .from("projects")
-    .select("id, name, owner_id")
+    .select("id, name, app_url, description, owner_id")
     .eq("id", projectId)
     .single();
 
@@ -54,7 +54,8 @@ export default async function NewMissionPage({
 
       <AddMissionForm
         projectId={projectId}
-        projectName={project.name}
+        // Named, not the row: the row carries owner_id, and this is a client component.
+        project={{ name: project.name, app_url: project.app_url, description: project.description }}
         allowance={<AllowanceNotice view={await reportBalance(userId)} />}
       />
 
