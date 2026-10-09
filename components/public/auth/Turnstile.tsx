@@ -69,7 +69,11 @@ export function Turnstile({
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
   useEffect(() => {
-    if (!siteKey) return
+    // Three causes share one message on screen; the console says which.
+    if (!siteKey) {
+      console.error("[turnstile] NEXT_PUBLIC_TURNSTILE_SITE_KEY is not set in this build")
+      return
+    }
     let cancelled = false
     loadTurnstile().then(
       (turnstile) => {
@@ -89,10 +93,16 @@ export function Turnstile({
           // a fresh one rather than letting the form submit a dead token.
           "refresh-expired": "auto",
           callback: () => setBroken(false),
-          "error-callback": () => setBroken(true),
+          // Codes: developers.cloudflare.com/turnstile/troubleshooting/client-side-errors
+          // — 110200 is this hostname missing from the widget's allowlist.
+          "error-callback": (code: string) => {
+            console.error(`[turnstile] widget error ${code}`)
+            setBroken(true)
+          },
         })
       },
       () => {
+        console.error("[turnstile] script failed to load from challenges.cloudflare.com")
         if (!cancelled) setBroken(true)
       },
     )
