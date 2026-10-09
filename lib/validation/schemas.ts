@@ -789,6 +789,15 @@ const passwordSchema = z
  * inference, and the refine stops type-checking — which is the one thing the
  * helper existed to keep honest.
  */
+/**
+ * The Turnstile token. Supabase validates it, not us — the secret key lives
+ * only in the Supabase dashboard. This only makes a missing one a field error
+ * rather than a GoTrue refusal. The key is also the hidden input's name, set
+ * through Turnstile's `response-field-name` (components/public/auth/Turnstile).
+ */
+export const CAPTCHA_REQUIRED = "Complete the verification above."
+const captchaTokenSchema = z.string({ error: CAPTCHA_REQUIRED }).min(1, CAPTCHA_REQUIRED)
+
 const PASSWORDS_MATCH = {
   message: "Passwords do not match.",
   path: ["confirm_password"],
@@ -800,6 +809,7 @@ export const signUpSchema = z
     email: emailSchema,
     password: passwordSchema,
     confirm_password: z.string(),
+    captcha_token: captchaTokenSchema,
   })
   .refine((v) => v.password === v.confirm_password, PASSWORDS_MATCH)
 export type SignUpInput = z.input<typeof signUpSchema>
@@ -818,11 +828,17 @@ export const signInSchema = z.object({
   // current minimum, and telling someone their password is too short at the
   // sign-in box is both useless and a disclosure about what is stored.
   password: z.string().min(1, "Password is required."),
+  captcha_token: captchaTokenSchema,
 })
 export type SignInInput = z.input<typeof signInSchema>
 
 export const emailOnlySchema = z.object({ email: emailSchema })
 export type EmailOnlyInput = z.input<typeof emailOnlySchema>
+
+/** Reset and resend. Not emailOnlySchema itself: /confirm-email parses its
+ *  query string with that, and a query string carries no token. */
+export const emailCaptchaSchema = emailOnlySchema.extend({ captcha_token: captchaTokenSchema })
+export type EmailCaptchaInput = z.input<typeof emailCaptchaSchema>
 
 
 /**
