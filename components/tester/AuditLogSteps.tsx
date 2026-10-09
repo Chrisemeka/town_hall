@@ -102,6 +102,23 @@ export function draftIsComplete(entries: DraftEntry[], category?: string | null)
   return firstIncompleteEntry(entries, category) === null
 }
 
+/** The heading over the steps — here so the builder's preview shares it. */
+export function AuditLogIntro() {
+  return (
+    <>
+      <p
+        className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
+        style={{ letterSpacing: "1px" }}
+      >
+        Work through the test case
+      </p>
+      <p className="font-mono text-[13px] text-ink-muted leading-5 mb-4">
+        Each step shows what the builder asked for. Answer them in order.
+      </p>
+    </>
+  )
+}
+
 export function AuditLogSteps({
   entries,
   category,

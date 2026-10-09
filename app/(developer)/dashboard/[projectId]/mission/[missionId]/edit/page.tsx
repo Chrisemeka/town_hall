@@ -24,7 +24,7 @@ export default async function EditMissionPage({
   // (20261006_01). The owner check below is the scoping.
   const { data: mission } = await createAdminClient()
     .from("missions")
-    .select("*, projects(id, name, owner_id)")
+    .select("*, projects(id, name, app_url, description, owner_id)")
     .eq("id", missionId)
     .single();
 
@@ -37,7 +37,7 @@ export default async function EditMissionPage({
   // someone else's mission through it. The project_id match is the other half:
   // it keeps the breadcrumb honest. notFound rather than a 403, so a refusal
   // does not confirm the mission exists.
-  const missionProject = one(mission.projects as Embedded<Pick<ProjectRow, "id" | "name" | "owner_id">>);
+  const missionProject = one(mission.projects as Embedded<Pick<ProjectRow, "id" | "name" | "app_url" | "description" | "owner_id">>);
   if (missionProject?.owner_id !== userId) return notFound();
   if (mission.project_id !== projectId) return notFound();
 
@@ -77,7 +77,11 @@ export default async function EditMissionPage({
       <EditMissionForm
         missionId={missionId}
         projectId={projectId}
-        projectName={projectName}
+        project={{
+          name: projectName,
+          app_url: missionProject?.app_url ?? null,
+          description: missionProject?.description ?? null,
+        }}
         initialTitle={mission.title}
         initialDescription={mission.task_description}
         initialDeviceTarget={mission.device_target ?? "both"}

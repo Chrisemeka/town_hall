@@ -10,6 +10,7 @@ import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import { MissionNotes } from "@/components/missions/MissionNotes"
+import { PreviewButton } from "@/components/missions/MissionPreview"
 import {
   MISSION_TITLE_MAX,
   createMissionSchema,
@@ -18,11 +19,12 @@ import {
 
 export default function AddMissionForm({
   projectId,
-  projectName,
+  project,
   allowance,
 }: {
   projectId: string
-  projectName: string
+  /** What the preview's project card shows — the tester page's own fields. */
+  project: { name: string; app_url: string | null; description: string | null }
   /** What publishing will spend — rendered by the page, which can read the ledger. */
   allowance?: React.ReactNode
 }) {
@@ -95,7 +97,7 @@ export default function AddMissionForm({
           href={`/dashboard/${projectId}`}
           className="text-ink hover:underline"
         >
-          {projectName}
+          {project.name}
         </Link>
       </p>
 
@@ -155,8 +157,9 @@ export default function AddMissionForm({
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 pt-2">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <PublishButton />
+            <PreviewButton project={project} />
             <DraftButton />
             <Button variant="ghost" size="lg" asChild>
               <Link href={`/dashboard/${projectId}`}>Cancel</Link>
