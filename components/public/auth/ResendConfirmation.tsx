@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react"
 import { resendConfirmation } from "@/actions/auth"
 import { AuthBanner, AuthSubmit } from "@/components/public/AuthCard"
+import { Turnstile } from "@/components/public/auth/Turnstile"
 
 /** Matches the project's per-user minimum interval between emails. The real
  *  enforcement is GoTrue's — this is the countdown that explains it. */
@@ -41,8 +42,12 @@ export function ResendConfirmation({ email }: { email: string }) {
           Sent. Check your inbox.
         </p>
       )}
-      <form action={formAction}>
+      <form action={formAction} className="flex flex-col gap-3">
         <input type="hidden" name="email" value={email} />
+        <Turnstile
+          resetKey={state}
+          errors={state?.success === false ? state.fieldErrors?.captcha_token : undefined}
+        />
         {/* Counting down is a statement about the server's cooldown, not about
             the form being incomplete — which is the disabled state CLAUDE.md
             forbids. The label says which it is. */}

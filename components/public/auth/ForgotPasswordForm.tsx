@@ -9,6 +9,7 @@ import {
   AuthField,
   AuthSubmit,
 } from "@/components/public/AuthCard"
+import { Turnstile } from "@/components/public/auth/Turnstile"
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(requestPasswordReset, null)
@@ -49,6 +50,10 @@ export function ForgotPasswordForm() {
           type="email"
           autoComplete="email"
           errors={state?.success === false ? state.fieldErrors?.email : undefined}
+        />
+        <Turnstile
+          resetKey={state}
+          errors={state?.success === false ? state.fieldErrors?.captcha_token : undefined}
         />
         <AuthSubmit pending={pending}>{pending ? "Sending…" : "Send reset link"}</AuthSubmit>
       </form>
