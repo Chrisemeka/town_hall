@@ -1,7 +1,7 @@
 # SPEC: Mission Preview
 
 **Status:** Implemented. Revised 2026-10-09: a Preview button opening a
-dialog, at the product owner's request, in place of the prompt's side-by-side
+full-screen preview, at the product owner's request, in place of the prompt's side-by-side
 live layout (its §6) and its published-mission link (its §7)
 **Branch:** `feat/mission-preview`
 **Base:** `main`
@@ -82,25 +82,29 @@ The "Work through the test case" heading and its line moved from
 `AuditLogForm` into `AuditLogSteps.tsx` as `AuditLogIntro`, so the preview
 shares it rather than copying it. The form renders the same markup.
 
-## §3 — The preview dialog
+## §3 — The full-screen preview
 
 `components/missions/MissionPreview.tsx`: `PreviewButton` and `TesterView`.
 
-- **Native `<dialog>`**, the same pattern as `SubmissionsFeed`'s report
-  dialog: focus trapping, Esc and the top layer come free, and closing returns
-  focus to the Preview button. The scrim is literal, marked `ponytail:`.
-- **Header:** "What testers see" and the line *"A preview of this mission as
-  it stands. Nothing here is live, and nothing is saved."* Footer: **Back to
-  editing**. Neither is inside the frame.
+- **Full screen, same tab.** On the builder's request it opens over the whole
+  form like a design tool's preview, not as a popup. Same tab, so the unsaved
+  mission never has to travel. A new tab would need to pass the draft through
+  storage. It is still a native modal `<dialog>`, sized to the viewport: Esc
+  closes it, focus stays inside and returns to the Preview button.
+- **Top bar (builder chrome, outside the frame):** "Back to editing", the
+  title "What testers see" with "Nothing here is live, and nothing is saved."
+  (hidden below md), and a Phone / Desktop toggle.
+- **One scroll, no bars.** The dialog never scrolls. The canvas under the bar
+  is the only scroll container, with its scrollbar hidden and
+  `overscroll-contain`, so the form behind stays put.
 - **The frame is `<fieldset disabled inert>`.** Inert takes every descendant
   out of focus and pointer events. Disabled does the same natively, and it also
   keeps the frame's textareas out of the mission form's `FormData`. The dialog
   sits inside that form, so without it they would be submitted with the
   mission.
-- **Device:**
-  - `mobile`: a 360px frame.
-  - `desktop`: 800px, the tester page's own max width.
-  - `both`: a Phone / Desktop toggle outside the frame, defaulting to Phone.
+- **Device:** Phone is a 360px frame. Desktop is a browser-width frame with
+  the tester page's own 800px column inside it. The preview opens on Phone
+  unless the mission targets desktop only, and the toggle is always offered.
 - **Unfinished steps.** A step failing `testStepSchema` is left out of the
   frame and named above it: "Step 2 isn't finished, so it's left out below.
   Testers only ever see complete steps." A tester can never see a half-written
@@ -155,8 +159,8 @@ you ask.**
 1. Write a mission from scratch, press Preview, close it, edit, and press it
    again. The change shows, and nothing has saved.
 2. Write "Check the thing works" and look at it beside the three buttons.
-3. Tab inside the open dialog: focus moves between Close, the width toggle and
-   Back to editing, and never into the frame.
+3. Tab inside the open preview: focus moves between Back to editing and the
+   Phone / Desktop toggle, and never into the frame.
 4. A `ui_design` mission shows "What you saw" on every step.
 5. Save after previewing. The mission saves exactly what the editor holds,
    with no `entries.*` fields sent.
