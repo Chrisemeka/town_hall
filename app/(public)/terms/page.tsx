@@ -1,11 +1,14 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DocLayout } from "@/components/public/DocNav";
+import { ANCHOR } from "@/components/public/prose";
+import { docSection } from "@/lib/docNav";
 
 export const metadata: Metadata = { title: "Terms of Service — Twnhall" };
 
 export default function TermsPage() {
   return (
-    <div className="flex-1 max-w-[720px] w-full mx-auto px-6 py-16">
+    <DocLayout slug="terms">
 
         <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Terms of Service
@@ -18,11 +21,11 @@ export default function TermsPage() {
 
         <div className="flex flex-col gap-10">
 
-          <Section number="1" title="User Agreement">
+          <Section {...docSection("terms", "agreement")}>
             <p>By using Twnhall, you agree to comply with all applicable laws and regulations.</p>
           </Section>
 
-          <Section number="2" title="Accounts and Account Types">
+          <Section {...docSection("terms", "accounts")}>
             <p>
               Twnhall has two account types: a <span className="text-ink">Builder</span> account, which submits projects and missions and reviews the feedback that comes back, and a <span className="text-ink">Tester</span> account, which picks up missions and submits feedback.
             </p>
@@ -37,7 +40,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="3" title="Missions and Review">
+          <Section {...docSection("terms", "missions")}>
             <p>
               <span className="text-ink font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
             </p>
@@ -46,7 +49,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="4" title="Ratings and Reputation">
+          <Section {...docSection("terms", "ratings")}>
             <p>
               When a Builder approves a submission or requests changes, they rate the Tester&apos;s work from 1 to 5. Those ratings are recorded against the Tester&apos;s account. Twnhall does not currently display an aggregate rating or a rank to Testers; the underlying ratings are kept, and this section will be updated before any of it is surfaced.
             </p>
@@ -58,7 +61,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="5" title="Your Content">
+          <Section {...docSection("terms", "content")}>
             <p>
               You keep ownership of what you submit — your project details, mission briefs, written feedback, and screenshots.
             </p>
@@ -74,7 +77,7 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="6" title="Privacy Policy">
+          <Section {...docSection("terms", "privacy")}>
             <p>
               We respect your privacy. Please review our{" "}
               <Link href="/privacy" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Privacy Policy</Link>
@@ -82,14 +85,14 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="7" title="User Conduct">
+          <Section {...docSection("terms", "conduct")}>
             <p>Users are prohibited from engaging in activities that violate our Community Guidelines, including but not limited to harassment, hate speech, and illegal content sharing.</p>
             <p>
               Submitting low-effort feedback, submitting feedback for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
             </p>
           </Section>
 
-          <Section number="8" title="Liability and Disclaimers">
+          <Section {...docSection("terms", "liability")}>
             <p>Twnhall is not liable for any damages or losses incurred while using the app.</p>
             <p>Users acknowledge that they use Twnhall at their own risk.</p>
             <p>
@@ -97,25 +100,25 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <Section number="9" title="Termination Policy">
+          <Section {...docSection("terms", "termination")}>
             <p>Twnhall reserves the right to suspend or terminate accounts that violate our terms and conditions.</p>
             <p>
               You may delete your account at any time from Settings. Where you hold both a Builder and a Tester account, deletion removes both, along with the projects, missions, submissions, and reputation attached to them.
             </p>
           </Section>
 
-          <Section number="10" title="Updates and Changes">
+          <Section {...docSection("terms", "updates")}>
             <p>We may update our terms and conditions from time to time. Users will be notified of any changes.</p>
             <p>
               Changes that materially affect how missions, submissions, or reviews work will be communicated before they take effect.
             </p>
           </Section>
 
-          <Section number="11" title="Jurisdiction and Governing Law">
+          <Section {...docSection("terms", "jurisdiction")}>
             <p>These terms and conditions are governed by the laws of Nigeria. Any disputes shall be resolved in the courts of Nigeria.</p>
           </Section>
 
-          <Section number="12" title="Contact Information">
+          <Section {...docSection("terms", "contact")}>
             <p>
               For inquiries, support, or complaints, please contact us at{" "}
               <a href="mailto:twnhallhq@gmail.com" className="text-accent-ink  underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
@@ -131,14 +134,14 @@ export default function TermsPage() {
           </div>
 
         </div>
-    </div>
+    </DocLayout>
   );
 }
 
-function Section({ number, title, children }: { number: string; title: string; children: React.ReactNode }) {
+function Section({ id, number, title, children }: { id: string; number?: string; title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="font-syne font-bold text-[20px] text-ink mb-4">
+      <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-4 ${ANCHOR}`}>
         <span className="text-accent-ink font-mono text-[14px] mr-2">{number}.</span>
         {title}
       </h2>

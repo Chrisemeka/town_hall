@@ -1,5 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { DocLayout } from "@/components/public/DocNav"
+import { docSection } from "@/lib/docNav"
 import {
   H3,
   LINK_INLINE,
@@ -50,14 +52,14 @@ const TEMPLATE_COUNT = TEST_TEMPLATES.length
 
 export default function BuilderGuidePage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <DocLayout slug="builder">
       <PageHeader
         title="Getting feedback worth having."
         lede="You get structured reports from real people. You pay for them by testing other people's work — that is the whole deal. This is how to ask for something specific enough that what comes back is useful."
       />
 
       <div className="flex flex-col gap-12">
-        <Section number="1" title="Start with a project">
+        <Section {...docSection("builder", "project")}>
           <p className={P}>
             A project is the thing you built: a name, a URL testers can reach, a
             category, and a summary.
@@ -76,7 +78,7 @@ export default function BuilderGuidePage() {
           </p>
         </Section>
 
-        <Section number="2" title="Decide what kind of test you need">
+        <Section {...docSection("builder", "test-kind")}>
           <p className={P}>
             Missions come in three kinds. Picking the right one changes who
             self-selects into your mission and what they look at.
@@ -103,7 +105,7 @@ export default function BuilderGuidePage() {
           </dl>
         </Section>
 
-        <Section number="3" title="Write the test case">
+        <Section {...docSection("builder", "test-case")}>
           <p className={P}>
             The test case is the brief. It is an ordered list of steps, and each
             step is two things: <strong>an action</strong> the tester takes, and{" "}
@@ -143,7 +145,7 @@ export default function BuilderGuidePage() {
           </p>
         </Section>
 
-        <Section number="4" title="Notes for testers are optional">
+        <Section {...docSection("builder", "notes")}>
           <p className={P}>
             There is a notes field, tucked behind a disclosure, and it is
             genuinely optional. It is notes — a login you want them to use, a
@@ -156,7 +158,7 @@ export default function BuilderGuidePage() {
           </p>
         </Section>
 
-        <Section number="5" title="Say where it should be tested">
+        <Section {...docSection("builder", "device")}>
           <p className={P}>
             Three answers, and{" "}
             <strong>{deviceTargetLabel("both")}</strong> is a real choice rather
@@ -170,7 +172,7 @@ export default function BuilderGuidePage() {
           </ul>
         </Section>
 
-        <Section number="6" title="How many testers, and why five">
+        <Section {...docSection("builder", "five-testers")}>
           <p className={P}>
             Five people find around 85% of the usability problems in what
             they&apos;re testing. Past five you are mostly paying to rediscover
@@ -198,7 +200,7 @@ export default function BuilderGuidePage() {
           </p>
         </Section>
 
-        <Section number="7" title="Reading the audit log">
+        <Section {...docSection("builder", "audit-log")}>
           <p className={P}>
             A report comes back as one row per step, in your order, with your
             wording. Each row carries a status:
@@ -241,7 +243,7 @@ export default function BuilderGuidePage() {
           </p>
         </Section>
 
-        <Section number="8" title="Review and rate every report">
+        <Section {...docSection("builder", "review")}>
           <p className={P}>
             A report arrives pending, and you approve it with a rating out of
             five. There is no sending it back: a tester files one report per
@@ -266,6 +268,6 @@ export default function BuilderGuidePage() {
           Read the tester guide →
         </Link>
       </div>
-    </div>
+    </DocLayout>
   )
 }

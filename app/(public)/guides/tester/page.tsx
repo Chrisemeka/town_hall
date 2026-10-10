@@ -1,5 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { DocLayout } from "@/components/public/DocNav"
+import { docSection } from "@/lib/docNav"
 import {
   H3,
   LINK_INLINE,
@@ -56,14 +58,14 @@ const REQUIRED_ON_PROBLEM = [
 
 export default function TesterGuidePage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <DocLayout slug="tester">
       <PageHeader
         title="Writing a report someone can act on."
         lede="A mission takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
       />
 
       <div className="flex flex-col gap-12">
-        <Section number="1" title="What a mission is">
+        <Section {...docSection("tester", "mission")}>
           <p className={P}>
             One project, one thing to test, and a test case to work through. The
             builder has written an ordered list of steps: each one is an action
@@ -75,7 +77,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="2" title="Read the whole test case first">
+        <Section {...docSection("tester", "read-first")}>
           <p className={P}>
             Before you open anything, read every step. You will spot a flow that
             needs an account, or a step that depends on the one before it, and
@@ -89,7 +91,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="3" title="Pass, fail, or blocked">
+        <Section {...docSection("tester", "statuses")}>
           <p className={P}>
             Every step gets one of three answers, and the third one is the one
             people get wrong.
@@ -129,7 +131,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="4" title="What each field wants">
+        <Section {...docSection("tester", "fields")}>
           <p className={P}>
             <strong>A passing step asks nothing else of you.</strong> Mark it
             and move on — what it confirms is the builder&apos;s own expected
@@ -163,7 +165,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="5" title="Screenshots">
+        <Section {...docSection("tester", "screenshots")}>
           <p className={P}>
             At least one screenshot is required on every report, and you can
             attach up to {MAX_SCREENSHOTS}. PNG, JPG or WEBP, under{" "}
@@ -187,7 +189,7 @@ export default function TesterGuidePage() {
           </ul>
         </Section>
 
-        <Section number="6" title="Anything else">
+        <Section {...docSection("tester", "anything-else")}>
           <p className={P}>
             There is one free-text box at the end of the report. It is optional,
             and it is for the things that did not belong to any single step: the
@@ -201,7 +203,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="7" title="What gets rated well">
+        <Section {...docSection("tester", "rated-well")}>
           <p className={P}>
             The builder reviews every report and rates it out of five. Ratings
             are the whole of your standing here — there is no payment, and
@@ -241,6 +243,6 @@ export default function TesterGuidePage() {
           Read the builder guide →
         </Link>
       </div>
-    </div>
+    </DocLayout>
   )
 }
