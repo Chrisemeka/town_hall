@@ -161,16 +161,15 @@ describe("createProject", () => {
     expect(writes).toHaveLength(0)
   })
 
-  it("rejects a three-sentence summary", async () => {
+  // Round 2 dropped the two-sentence rule: the character cap is the only one.
+  it("saves a three-sentence summary", async () => {
     const writes = fakeClient()
 
-    const result = await createProject(
-      null,
-      formData({ ...VALID, description: "One thing. Two things. Three things." }),
-    )
+    await expect(
+      createProject(null, formData({ ...VALID, description: "One thing. Two things. Three things." })),
+    ).rejects.toThrow(/NEXT_REDIRECT/)
 
-    expect(result?.fieldErrors?.description).toBeTruthy()
-    expect(writes).toHaveLength(0)
+    expect(writes[0].values.description).toBe("One thing. Two things. Three things.")
   })
 
   it("accepts a summary with no full stop at all", async () => {
