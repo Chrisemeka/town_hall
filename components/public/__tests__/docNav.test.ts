@@ -62,8 +62,10 @@ describe("DocLayout", () => {
     expect(html).not.toContain('aria-label="Documents"')
   })
 
-  it("links every section of the current document", () => {
-    for (const { id } of DOCS[0].sections) expect(html).toContain(`href="#${id}"`)
+  it("links every section of the current document, unnumbered", () => {
+    for (const { id, title } of DOCS[0].sections) {
+      expect(html).toMatch(new RegExp(`href="#${id}"[^>]*>${title.replace(/'/g, "&#x27;")}</a>`))
+    }
   })
 
   it("is collapsed by default on a phone", () => {

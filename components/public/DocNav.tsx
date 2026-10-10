@@ -10,6 +10,7 @@ const ITEM = `block rounded-[4px] py-1 font-mono text-[13px] leading-5 text-ink 
 
 /**
  * Navigation for the four long documents: the current document's sections,
+ * unnumbered (the headings on the page keep their numbers),
  * from lib/docNav.ts — the same data the page's headings are rendered from.
  * No switcher across documents, by decision; the guides link each other at
  * the foot of the page and the footer links all four.
@@ -22,7 +23,7 @@ export function DocNav({ slug }: { slug: DocSlug }) {
     <nav aria-label="On this page">
       <p className={`${META} uppercase tracking-[0.5px] mb-2`}>On this page</p>
       <ol className="flex flex-col">
-        {headingsFor(slug).map(({ id, number, title }) => (
+        {headingsFor(slug).map(({ id, title }) => (
           <li key={id}>
             <a
               href={`#${id}`}
@@ -34,7 +35,6 @@ export function DocNav({ slug }: { slug: DocSlug }) {
               }}
               className={ITEM}
             >
-              {number && <span className="text-accent-ink mr-2">{number}.</span>}
               {title}
             </a>
           </li>
