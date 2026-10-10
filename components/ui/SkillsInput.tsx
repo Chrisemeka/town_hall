@@ -1,8 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useReducer, useState } from "react"
 import { Field, inputClass } from "@/components/ui/Field"
-import { addSkill, removeSkill, suggestionsFor } from "@/lib/skills"
+import {
+  SKILLS_COMBO_INITIAL,
+  addSkill,
+  enterValue,
+  isExpanded,
+  removeSkill,
+  skillsCombo,
+  suggestionsFor,
+} from "@/lib/skills"
 import { SKILLS_MAX } from "@/lib/vocabulary"
 
 /**
@@ -36,23 +44,34 @@ export function SkillsInput({
     "h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-accent-ink hover:bg-accent-ink hover:text-surface-raised transition-colors duration-150"
   const DROPDOWN =
     "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
+  // The highlighted option is underlined as well as tinted: colour never
+  // carries state alone.
   const OPTION =
-    "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
+    "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink cursor-pointer hover:bg-ink/[0.06] aria-selected:bg-ink/[0.06] aria-selected:underline underline-offset-2 transition-colors duration-150"
 
-  const [input, setInput] = useState("")
-  const [open, setOpen] = useState(false)
+  const [combo, dispatch] = useReducer(skillsCombo, SKILLS_COMBO_INITIAL)
+  const { input, active } = combo
   // Errors from trying to add one skill are separate from the list's own
   // errors: "you already added that" is about the attempt, not about the list.
   const [addError, setAddError] = useState<string | null>(null)
 
   const suggestions = suggestionsFor(input, value)
+  const expanded = isExpanded(combo, suggestions.length)
+  const optionId = (index: number) => `skill-option-${index}`
+
+  // Keep the highlighted option visible as arrows walk past the list's height.
+  useEffect(() => {
+    if (expanded && active >= 0) {
+      document.getElementById(optionId(active))?.scrollIntoView({ block: "nearest" })
+    }
+  }, [expanded, active])
 
   function add(raw: string) {
     const { skills, error: rejected } = addSkill(value, raw)
     setAddError(rejected)
     if (rejected) return
     onChange(skills)
-    setInput("")
+    dispatch({ type: "added" })
   }
 
   return (
@@ -68,45 +87,57 @@ export function SkillsInput({
           value={input}
           autoComplete="off"
           role="combobox"
-          aria-expanded={open && suggestions.length > 0}
+          aria-expanded={expanded}
           aria-controls="skill-suggestions"
+          aria-autocomplete="list"
+          aria-activedescendant={expanded && active >= 0 ? optionId(active) : undefined}
           placeholder="Add a skill and press Enter"
           onChange={(e) => {
-            setInput(e.target.value)
+            dispatch({ type: "type", input: e.target.value })
             setAddError(null)
           }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
+          onFocus={() => dispatch({ type: "focus" })}
+          onBlur={() => dispatch({ type: "blur" })}
           onKeyDown={(e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault()
+              dispatch({ type: "arrow", step: e.key === "ArrowDown" ? 1 : -1, count: suggestions.length })
+            }
             // Enter belongs to the combo box here, not to the form — without
-            // this it would submit with the tag still unadded.
+            // this it would submit with the tag still unadded. It adds the
+            // highlighted option, or the typed text when none is highlighted.
             if (e.key === "Enter") {
               e.preventDefault()
-              add(input)
+              add(enterValue(combo, suggestions))
             }
-            if (e.key === "Escape") setOpen(false)
+            if (e.key === "Escape") dispatch({ type: "escape" })
           }}
           className={inputClass(!!addError || !!error?.length)}
         />
 
-        {open && suggestions.length > 0 && (
+        {expanded && (
           <ul
             id="skill-suggestions"
+            role="listbox"
+            aria-label="Skill suggestions"
             className={DROPDOWN}
           >
-            {suggestions.map((skill) => (
-              <li key={skill}>
-                <button
-                  type="button"
-                  // Blur fires before click, which would close the list out
-                  // from under the pointer. Suppressing the blur keeps the
-                  // click on the row that was actually under the cursor.
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => add(skill)}
-                  className={OPTION}
-                >
-                  {skill}
-                </button>
+            {suggestions.map((skill, index) => (
+              // An option, not a button: focus never leaves the input, and the
+              // input points at the highlighted row with aria-activedescendant.
+              <li
+                key={skill}
+                id={optionId(index)}
+                role="option"
+                aria-selected={index === active}
+                // Blur fires before click, which would close the list out
+                // from under the pointer. Suppressing the blur keeps the
+                // click on the row under the cursor — and focus in the input.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => add(skill)}
+                className={OPTION}
+              >
+                {skill}
               </li>
             ))}
           </ul>

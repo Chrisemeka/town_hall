@@ -67,3 +67,58 @@ export function suggestionsFor(input: string, current: string[]): string[] {
   const taken = new Set(current.map((s) => s.toLowerCase()))
   return SKILLS.filter((s) => !taken.has(s.toLowerCase()) && s.toLowerCase().includes(needle))
 }
+
+/**
+ * The combo box's open/closed and highlighted-option state, as a reducer so
+ * the transitions can be tested without a DOM.
+ *
+ * `active` is an index into the current suggestions, or -1 for none — in which
+ * case Enter adds the typed text, which is how custom skills get in.
+ */
+export type SkillsComboState = { input: string; open: boolean; active: number }
+
+export type SkillsComboEvent =
+  | { type: "type"; input: string }
+  | { type: "focus" }
+  | { type: "blur" }
+  | { type: "escape" }
+  /** A skill was added — picked or typed. */
+  | { type: "added" }
+  | { type: "arrow"; step: 1 | -1; count: number }
+
+export const SKILLS_COMBO_INITIAL: SkillsComboState = { input: "", open: false, active: -1 }
+
+export function skillsCombo(state: SkillsComboState, event: SkillsComboEvent): SkillsComboState {
+  switch (event.type) {
+    // Typing reopens the list — after a pick, and after Escape.
+    case "type":
+      return { input: event.input, open: true, active: -1 }
+    case "focus":
+      return { ...state, open: true }
+    case "blur":
+    case "escape":
+      return { ...state, open: false, active: -1 }
+    // Closed on a pick, so the list stops covering the rest of the form. Focus
+    // stays in the input, so the next keystroke reopens it.
+    case "added":
+      return { input: "", open: false, active: -1 }
+    case "arrow": {
+      if (event.count === 0) return state
+      const active =
+        state.open && state.active >= 0
+          ? (state.active + event.step + event.count) % event.count
+          : event.step > 0 ? 0 : event.count - 1
+      return { ...state, open: true, active }
+    }
+  }
+}
+
+/** What aria-expanded reports: open, and with something in the list. */
+export function isExpanded(state: SkillsComboState, suggestionCount: number): boolean {
+  return state.open && suggestionCount > 0
+}
+
+/** What Enter adds: the highlighted suggestion if there is one, else the text. */
+export function enterValue(state: SkillsComboState, suggestions: string[]): string {
+  return (isExpanded(state, suggestions.length) && suggestions[state.active]) || state.input
+}
