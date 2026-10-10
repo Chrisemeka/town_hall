@@ -1,11 +1,12 @@
 # SPEC: Bug Fix Round 2 + Doc Navigation
 
-**Status:** Draft — awaiting approval
+**Status:** Built — §2 decided **(b)**, §4.3 decided **arrows in**
 **Branch:** `fix/terms-copy-summary-docnav-skills`
 **Base:** `main`
 **Migration:** none
-**Risk:** low. §2 changes what a project summary may contain only if (b) is
-chosen; nothing else changes what the server accepts.
+**Risk:** low. §2 (b) loosens what a project summary may contain — three
+sentences under 200 characters now save. Nothing else changes what the server
+accepts.
 
 ## Summary
 
@@ -83,7 +84,7 @@ one is its own commit.
 - `countSentences` has exactly one production caller, the refine above, plus
   `lib/__tests__/sentences.test.ts`.
 
-### 2.2 — Decision needed
+### 2.2 — Decision: (b)
 
 | | Label | Rule | Consequence |
 |---|---|---|---|
@@ -96,12 +97,13 @@ under every option.
 
 ### 2.3 — Tests (the record of the decision)
 
-- **(a):** a three-sentence summary under 200 characters is **rejected** by
-  `projectSchema` with "Keep it to two sentences — say what it does and who
-  it's for." Two sentences pass. Neither form source contains "(2 sentences)",
-  and both helpers contain "Two sentences is plenty".
-- **(b):** the same three-sentence summary **parses**. Neither form contains
-  "(2 sentences)".
+**Chosen: (b).** `lib/validation/__tests__/projectSummary.test.ts`: a
+three-sentence summary under 200 characters **parses**; one over 200 is still
+rejected. Neither form label contains "(2 sentences)". `lib/sentences.ts` and
+its test are deleted — the refine was their only caller. The builder guide now
+names only the character cap. `lib/setup.ts` still suggests "two sentences on
+what it does" in the setup completion copy; that is advice, not a rule, and is
+left alone.
 
 ---
 
@@ -227,7 +229,7 @@ The combo box state (`input`, `open`, `active`) moves into a pure reducer,
 - Custom skills go through the same `add(raw)` path as before, so
   `canonicalSkill()` / `normalizeSkills()` are unchanged.
 
-### 4.3 — Decision needed: arrow keys
+### 4.3 — Decision: arrow keys added
 
 **Recommended: add them.** ArrowDown/ArrowUp move an active option, tracked as
 `aria-activedescendant` with ids on the options. Enter adds the active option
