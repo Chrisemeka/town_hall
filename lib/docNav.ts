@@ -18,7 +18,6 @@ export const DOCS = [
   {
     slug: "builder",
     href: "/guides/builder",
-    label: "Builder guide",
     numbered: true,
     sections: [
       { id: "project", title: "Start with a project" },
@@ -34,7 +33,6 @@ export const DOCS = [
   {
     slug: "tester",
     href: "/guides/tester",
-    label: "Tester guide",
     numbered: true,
     sections: [
       { id: "mission", title: "What a mission is" },
@@ -49,7 +47,6 @@ export const DOCS = [
   {
     slug: "terms",
     href: "/terms",
-    label: "Terms of Service",
     numbered: true,
     sections: [
       { id: "agreement", title: "User Agreement" },
@@ -69,7 +66,6 @@ export const DOCS = [
   {
     slug: "privacy",
     href: "/privacy",
-    label: "Privacy Policy",
     numbered: false,
     sections: [
       { id: "collect", title: "Information We Collect" },

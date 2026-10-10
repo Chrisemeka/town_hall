@@ -17,7 +17,7 @@ one is its own commit.
    Terms of Service and the Privacy Policy.
 2. The project summary label reads "WHAT IS IT? (2 SENTENCES)". The schema
    enforces that rule, so the hint can't just be deleted.
-3. Section navigation and a document switcher for `/terms`, `/privacy`,
+3. Section navigation for `/terms`, `/privacy`,
    `/guides/builder` and `/guides/tester`.
 4. The skills dropdown stays open after a pick.
 
@@ -150,11 +150,12 @@ New file `components/public/DocNav.tsx`. All four pages use it. It wraps the
 page's existing `max-w-[720px]` column:
 
 - **≥ lg:** two columns. A sticky sidebar (`lg:sticky lg:top-24`) holds "On this
-  page" (the current doc's sections) and "Documents" (all four, with the current
-  one marked `aria-current="page"`).
+  page" (the current doc's sections). The prompt's switcher across all four
+  documents was built and then **removed at review, by decision** — the
+  guides link each other at their foot and the footer links all four.
 - **< lg, down to 360px:** a native `<details>` at the top with no `open`
   attribute, so it's **collapsed by default** without JavaScript. The summary
-  reads "On this page". Inside are the same two lists. The sidebar is hidden.
+  reads "On this page". Inside is the same list. The sidebar is hidden.
 - Semantic tokens only: `ink`, `ink-muted`, `line`, `accent-ink`,
   `surface-raised`. No hex.
 
@@ -171,8 +172,8 @@ doesn't get a second copy. The jump logic is one exported function,
 
 ### 3.4 — Scroll-spy
 
-**Not included.** Navigation ships first, as the prompt asks. The current doc
-is marked in the switcher, and that's enough until someone asks for more.
+**Not included.** Navigation ships first, as the prompt asks. Add it only if
+someone asks.
 
 ### 3.5 — Tests
 
@@ -183,10 +184,9 @@ is marked in the switcher, and that's enough until someone asks for more.
     (no `title="` left on a `Section`). This is asserted by looping over the
     data, not by hand.
   - Every doc `href` maps to an existing `page.tsx`.
-  - The rendered `DocNav` (via `renderToStaticMarkup`) links all four hrefs and
-    every `#id` of the current doc. Its `<details>` has no `open` attribute
-    (collapsed by default at 360px), and the current doc carries
-    `aria-current="page"`.
+  - The rendered `DocNav` (via `renderToStaticMarkup`) links every `#id` of the
+    current doc and none of the four document hrefs. Its `<details>` has no
+    `open` attribute (collapsed by default at 360px).
   - `jumpToSection` focuses the heading with `preventScroll: true`, and scrolls
     with `"auto"` when reduced motion is set and `"smooth"` otherwise.
 - Both themes: `scripts/tokens.test.mts` already fails on any palette hex. The

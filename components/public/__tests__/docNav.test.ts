@@ -16,7 +16,7 @@ describe("doc nav data matches the pages", () => {
     describe(doc.href, () => {
       const source = readFileSync(pageFile(doc.href), "utf8")
 
-      it("exists, so the switcher never links a 404", () => {
+      it("exists", () => {
         expect(existsSync(pageFile(doc.href))).toBe(true)
       })
 
@@ -57,10 +57,9 @@ describe("doc nav data matches the pages", () => {
 describe("DocLayout", () => {
   const html = renderToStaticMarkup(createElement(DocLayout, { slug: "builder" }, "body"))
 
-  it("switches to all four documents and marks the current one", () => {
-    for (const doc of DOCS) expect(html).toContain(`href="${doc.href}"`)
-    expect(html).toMatch(/aria-current="page"[^>]*href="\/guides\/builder"|href="\/guides\/builder"[^>]*aria-current="page"/)
-    expect(html).toContain("(you are here)")
+  it("has no document switcher — only this document's sections", () => {
+    for (const doc of DOCS) expect(html).not.toContain(`href="${doc.href}"`)
+    expect(html).not.toContain('aria-label="Documents"')
   })
 
   it("links every section of the current document", () => {

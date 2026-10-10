@@ -337,8 +337,8 @@ covers it.
 `/guides/builder` and `/guides/tester` never write a section title: each
 heading spreads `docSection(slug, id)` from `lib/docNav.ts`, and
 `components/public/DocNav.tsx` renders the sidebar, the phone disclosure
-(native `<details>`, collapsed by default) and the switcher across all four
-from the same list. Add or rename a section there, not on the page —
+(native `<details>`, collapsed by default) from the same list. There is no
+switcher across the four documents, by decision. Add or rename a section there, not on the page —
 `components/public/__tests__/docNav.test.ts` fails on drift in either
 direction. Ids are written out rather than slugged from titles, because they
 end up in shared links; reword a title freely, but leave its id alone. A jump
