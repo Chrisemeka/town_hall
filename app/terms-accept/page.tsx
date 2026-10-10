@@ -61,7 +61,7 @@ export default async function TermsAcceptPage() {
     >
       <SetupCard
         title="Accept our terms to continue"
-        subhead="Have a read of the Terms of Service and the Guides, then tick the box below."
+        subhead="Have a read of the Terms of Service and the Privacy Policy, then tick the box below."
       >
         <div className="rounded-[12px] border border-line p-5 mb-8">
           <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[1px] mb-3">

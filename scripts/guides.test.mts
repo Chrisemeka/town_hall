@@ -7,7 +7,7 @@
 // have to notice it is restating a schema.
 
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import {
   ENTRY_STATUS_HINTS,
   TEST_CATEGORY_BLURBS,
@@ -157,5 +157,24 @@ assert.ok(
   ),
   "builder guide must not describe picking a tester count — the form has no such field",
 )
+
+/* ── the terms gate asks consent to the legal documents ─────────────── */
+
+// The Guides explain the product; nobody agrees to them. The gate names the
+// Terms of Service and the Privacy Policy, and both links open in a new tab so
+// someone mid-signup does not lose their place in the chain.
+{
+  const form = readFileSync("components/TermsAcceptForm.tsx", "utf8")
+  const gate = flat(readFileSync("app/terms-accept/page.tsx", "utf8"))
+  assert.ok(form.includes('href="/terms"'), "terms gate must link /terms")
+  assert.ok(form.includes('href="/privacy"'), "terms gate must link /privacy")
+  assert.ok(!form.includes('href="/guides'), "terms gate must not ask consent to the Guides")
+  assert.equal(form.match(/target="_blank"/g)?.length, 2, "both gate links open in a new tab")
+  assert.ok(/Terms of Service and the Privacy Policy/.test(gate), "gate subhead names both documents")
+  assert.ok(!/Guides/.test(gate), "gate subhead must not name the Guides")
+  for (const page of ["app/(public)/terms/page.tsx", "app/(public)/privacy/page.tsx"]) {
+    assert.ok(existsSync(page), `${page} must exist, or the gate links 404`)
+  }
+}
 
 console.log("guides.test.mts — all assertions passed")

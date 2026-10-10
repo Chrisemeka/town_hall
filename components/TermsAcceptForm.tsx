@@ -74,18 +74,22 @@ export function TermsAcceptForm() {
           I agree to Twnhall&apos;s{" "}
           <Link
             href="/terms"
+            // A new tab: someone mid-signup who navigates away loses their
+            // place in the setup chain.
             target="_blank"
+            rel="noopener"
             className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
             Terms of Service
           </Link>{" "}
           and{" "}
           <Link
-            href="/guides"
+            href="/privacy"
             target="_blank"
+            rel="noopener"
             className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
-            Guides
+            Privacy Policy
           </Link>
           .
         </span>
