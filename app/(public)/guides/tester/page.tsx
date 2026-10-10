@@ -11,8 +11,14 @@ import {
   Section,
   UL,
 } from "@/components/public/prose"
-import { ENTRY_STATUS_HINTS, entryStatusLabel } from "@/lib/vocabulary"
 import {
+  ENTRY_STATUS_HINTS,
+  entryStatusCopy,
+  entryStatusLabel,
+  testCategoryLabel,
+} from "@/lib/vocabulary"
+import {
+  DESCRIPTION_MIN,
   ENTRY_TEXT_MAX,
   MAX_SCREENSHOTS,
   MAX_SCREENSHOT_BYTES,
@@ -158,6 +164,26 @@ export default function TesterGuidePage() {
           <p className={META}>
             Yes, a blocked step asks for both. Something stopped you, and
             what stopped you is the entire content of that row.
+          </p>
+
+          {/* auditLogSchemaFor("ui_design") is the authority: actual_result of
+              at least DESCRIPTION_MIN on every entry, pass included. The
+              labels are entryStatusCopy's, the same the form renders. */}
+          <h3 className={H3}>{testCategoryLabel("ui_design")} missions</h3>
+          <p className={P}>
+            A design mission asks for your impressions — &ldquo;describe your
+            first impression of the page&rdquo; — so each step has a{" "}
+            <strong>What you saw</strong> box, and it is required on every
+            step, whatever you answer. At least {DESCRIPTION_MIN} characters,
+            in your own words. Your description is the report.
+          </p>
+          <p className={P}>
+            The three answers read differently too:{" "}
+            <strong>{entryStatusCopy("pass", "ui_design").label}</strong>,{" "}
+            <strong>{entryStatusCopy("fail", "ui_design").label}</strong> and{" "}
+            <strong>{entryStatusCopy("blocked", "ui_design").label}</strong>.
+            They answer whether the builder&apos;s expectation held, not whether
+            you did a good job describing it.
           </p>
         </Section>
 

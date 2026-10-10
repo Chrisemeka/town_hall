@@ -117,6 +117,12 @@ for (const [name, prose] of [
   )
 }
 
+// ui_design inverts the pass rule: "What you saw" is required on every step.
+// The minimum is read from DESCRIPTION_MIN, not typed.
+assert.ok(tester.includes("What you saw"), 'tester guide must name "What you saw" for design missions')
+assert.ok(tester.includes("{DESCRIPTION_MIN}"), "tester guide must read the description minimum from the schema")
+assert.ok(/required on every\s+step/.test(testerProse), "tester guide must say What you saw is required on every step")
+
 // Blocked is not a lighter failure. If the guide stops saying so, a tester who
 // could not reach a step files it as a fail and the builder hunts a bug in a
 // feature nobody opened.
