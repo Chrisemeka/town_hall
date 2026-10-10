@@ -55,7 +55,7 @@ describe("doc nav data matches the pages", () => {
 })
 
 describe("DocLayout", () => {
-  const html = renderToStaticMarkup(createElement(DocLayout, { slug: "builder", children: "body" }))
+  const html = renderToStaticMarkup(createElement(DocLayout, { slug: "builder" }, "body"))
 
   it("switches to all four documents and marks the current one", () => {
     for (const doc of DOCS) expect(html).toContain(`href="${doc.href}"`)

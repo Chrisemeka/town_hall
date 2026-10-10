@@ -71,7 +71,7 @@ export function DocNav({ slug }: { slug: DocSlug }) {
  * Collapsed by default, and native <details>, so a phone reader reaches the
  * first paragraph without scrolling past a dozen links — with or without JS.
  */
-export function DocLayout({ slug, children }: { slug: DocSlug; children: React.ReactNode }) {
+export function DocLayout({ slug, children }: { slug: DocSlug; children?: React.ReactNode }) {
   return (
     <div className="flex-1 w-full max-w-[1040px] mx-auto px-6 py-16 lg:grid lg:grid-cols-[240px_minmax(0,720px)] lg:justify-center lg:gap-12">
       <aside className="hidden lg:block">
