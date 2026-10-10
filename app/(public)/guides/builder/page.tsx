@@ -228,8 +228,8 @@ export default function BuilderGuidePage() {
           <p className={P}>
             A passing step carries nothing else — what it confirms is your own
             expected result, already on the row. A failed step and a blocked
-            step both carry three things: what actually happened, a one-line
-            summary of the issue, and steps to reproduce it.
+            step both carry two things: a one-line summary of the issue, and
+            steps to reproduce it.
           </p>
           <p className={P}>
             <strong>Read the blocked steps first.</strong> Blocked is not a

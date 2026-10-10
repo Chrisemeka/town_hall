@@ -43,10 +43,6 @@ const MAX_SCREENSHOT_MB = MAX_SCREENSHOT_BYTES / (1024 * 1024)
 /** What a fail and a blocked step each owe. A pass owes none of them. */
 const REQUIRED_ON_PROBLEM = [
   {
-    label: "What actually happened",
-    body: "What you saw, in the order you saw it. Not what you think caused it — a guess about the cause is the one thing the builder can check for themselves and you cannot.",
-  },
-  {
     label: "Summary of the issue",
     body: "One line. This is what the builder reads in a list of twenty rows, so it has to survive on its own: “Checkout button does nothing on mobile Safari”, not “doesn't work”.",
   },
@@ -140,7 +136,7 @@ export default function TesterGuidePage() {
           </p>
           <p className={P}>
             A <strong>failed</strong> step and a <strong>blocked</strong> step
-            both ask for the same three things. All three are required on both —
+            both ask for the same two things. Both are required on both —
             the form will not let you submit until they are filled, and each is
             capped at {ENTRY_TEXT_MAX} characters.
           </p>
@@ -160,7 +156,7 @@ export default function TesterGuidePage() {
             ))}
           </dl>
           <p className={META}>
-            Yes, a blocked step asks for all three. Something stopped you, and
+            Yes, a blocked step asks for both. Something stopped you, and
             what stopped you is the entire content of that row.
           </p>
         </Section>

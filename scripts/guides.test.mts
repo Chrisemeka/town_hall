@@ -97,15 +97,24 @@ assert.equal(MAX_SCREENSHOT_BYTES / (1024 * 1024), 5)
 
 /* ── what a fail and a blocked step owe ──────────────────────────────── */
 
-// auditEntrySchema requires all three of these on a fail AND on a blocked step.
+// auditEntrySchema requires both of these on a fail AND on a blocked step.
 // CLAUDE.md names the schema and firstIncompleteEntry as a pair that moves
 // together; this page is now a third place stating the same rule.
-for (const field of [
-  "What actually happened",
-  "Summary of the issue",
-  "Steps to reproduce",
-]) {
+for (const field of ["Summary of the issue", "Steps to reproduce"]) {
   assert.ok(tester.includes(field), `tester guide must name "${field}"`)
+}
+
+// actual_result was dropped from the form for a fail and a blocked step
+// (only ui_design still asks it). A guide that lists it describes a field
+// the tester never sees.
+for (const [name, prose] of [
+  ["tester", testerProse],
+  ["builder", builderProse],
+] as const) {
+  assert.ok(
+    !/what actually happened/i.test(prose),
+    `${name} guide must not list "what actually happened" as a field`,
+  )
 }
 
 // Blocked is not a lighter failure. If the guide stops saying so, a tester who
