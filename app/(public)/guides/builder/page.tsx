@@ -19,7 +19,6 @@ import {
 } from "@/lib/vocabulary"
 import {
   PROJECT_SUMMARY_MAX,
-  PROJECT_SUMMARY_MAX_SENTENCES,
   STEP_ACTION_MAX,
   STEP_EXPECTED_MAX,
 } from "@/lib/validation/schemas"
@@ -64,8 +63,8 @@ export default function BuilderGuidePage() {
             category, and a summary.
           </p>
           <p className={P}>
-            The summary is capped at {PROJECT_SUMMARY_MAX} characters and{" "}
-            {PROJECT_SUMMARY_MAX_SENTENCES} sentences. That is not us being
+            The summary is capped at {PROJECT_SUMMARY_MAX} characters. That is
+            not us being
             precious about length — a tester decides whether to pick up your
             mission from this sentence and the mission title. Say what it does
             and who it is for. Skip the positioning.
