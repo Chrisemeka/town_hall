@@ -45,7 +45,7 @@ lib/
   cohortDb.ts         Cohort membership, feed filter and payout sheet reads
   plans.ts            Tier content and numbers — /pricing and /settings read it
   testTemplates.ts    Curated test-case templates (static, not a table)
-  sentences.ts        Sentence heuristic for the project summary rule
+  docNav.ts           The four long documents' sections — headings and nav from one list
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
   theme.ts            readTheme() — the public theme cookie, resolved in one place
@@ -333,6 +333,24 @@ out of it, because a tester never receives one. Allowance, status and errors
 stay out of the frame. `components/missions/__tests__/missionPreview.test.ts`
 covers it.
 
+**The long documents' sections are data.** `/terms`, `/privacy`,
+`/guides/builder` and `/guides/tester` never write a section title: each
+heading spreads `docSection(slug, id)` from `lib/docNav.ts`, and
+`components/public/DocNav.tsx` renders the sidebar, the phone disclosure
+(native `<details>`, collapsed by default) from the same list. There is no
+switcher across the four documents, by decision. Add or rename a section there, not on the page —
+`components/public/__tests__/docNav.test.ts` fails on drift in either
+direction. Ids are written out rather than slugged from titles, because they
+end up in shared links; reword a title freely, but leave its id alone. A jump
+goes through `jumpToSection()`, which moves focus onto the heading and reuses
+`prefersReducedMotion()` from `lib/focus.ts`. No scroll-spy, by decision.
+
+**The project summary's only length rule is `PROJECT_SUMMARY_MAX`.** A
+two-sentence rule sat on top of it until round 2 (`SPEC-bugfix-round2.md`):
+the 200-character cap already holds a summary to about 35 words, and the
+label hint that announced the rule was the clutter being removed. Do not
+reintroduce a rule the form does not state.
+
 **Fixed vocabularies live in `lib/vocabulary.ts`** and are enforced in Zod, never as a database
 CHECK: `SKILLS`, `COUNTRIES`, `TIMEZONES`, `PROJECT_CATEGORIES`, `TEST_CATEGORIES`,
 `DEVICE_TARGETS`, `ENTRY_STATUSES`. `scripts/vocabulary.test.mts` covers each.
@@ -427,6 +445,12 @@ is checked in both layers. `components/setup/SetupShell.tsx` makes them *look*
 like one flow; it does not make them one. Collapsing them means
 re-implementing this routing inside a page and giving up the two-layer
 guarantee.
+
+**The terms gate asks consent to the Terms of Service and the Privacy
+Policy, never the Guides.** The Guides explain the product; nobody agrees to
+them. Both links on `/terms-accept` open in a new tab, because someone
+mid-signup who navigates away loses their place in the chain.
+`scripts/guides.test.mts` pins the links.
 
 **The step indicator reads the gates, never a counter.** `lib/setup.ts` derives
 every stage's status from `accepted_terms_at`, the `accounts` row and

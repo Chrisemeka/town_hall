@@ -39,6 +39,11 @@ export const BTN_SECONDARY =
 export const LINK_INLINE =
   `text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] ${FOCUS}`
 
+/** A heading a doc-nav link lands on: clear of the sticky h-16 header, and
+ *  focusable (tabIndex -1) so the jump moves keyboard focus, not just scroll. */
+export const ANCHOR =
+  "scroll-mt-24 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+
 export function PageHeader({
   title,
   lede,
@@ -59,17 +64,19 @@ export function PageHeader({
 /** A numbered section in a guide. The number is a label, not a list marker —
  *  guides are read out of order and "3" is how someone refers to one. */
 export function Section({
+  id,
   number,
   title,
   children,
 }: {
+  id?: string
   number?: string
   title: string
   children: React.ReactNode
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className={H2}>
+      <h2 id={id} tabIndex={id ? -1 : undefined} className={`${H2} ${ANCHOR}`}>
         {number && (
           <span className="font-mono text-[14px] text-accent-ink mr-3">
             {number}.

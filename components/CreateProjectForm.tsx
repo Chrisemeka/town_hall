@@ -163,7 +163,7 @@ export default function CreateProjectForm() {
         {/* Brief Summary */}
         <div className="flex flex-col gap-2">
           <label htmlFor="description" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
-            What is it? (2 sentences)
+            What is it?
           </label>
           <textarea
             id="description"

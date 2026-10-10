@@ -1,5 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { DocLayout } from "@/components/public/DocNav"
+import { docSection } from "@/lib/docNav"
 import {
   H3,
   LINK_INLINE,
@@ -9,8 +11,14 @@ import {
   Section,
   UL,
 } from "@/components/public/prose"
-import { ENTRY_STATUS_HINTS, entryStatusLabel } from "@/lib/vocabulary"
 import {
+  ENTRY_STATUS_HINTS,
+  entryStatusCopy,
+  entryStatusLabel,
+  testCategoryLabel,
+} from "@/lib/vocabulary"
+import {
+  DESCRIPTION_MIN,
   ENTRY_TEXT_MAX,
   MAX_SCREENSHOTS,
   MAX_SCREENSHOT_BYTES,
@@ -41,10 +49,6 @@ const MAX_SCREENSHOT_MB = MAX_SCREENSHOT_BYTES / (1024 * 1024)
 /** What a fail and a blocked step each owe. A pass owes none of them. */
 const REQUIRED_ON_PROBLEM = [
   {
-    label: "What actually happened",
-    body: "What you saw, in the order you saw it. Not what you think caused it — a guess about the cause is the one thing the builder can check for themselves and you cannot.",
-  },
-  {
     label: "Summary of the issue",
     body: "One line. This is what the builder reads in a list of twenty rows, so it has to survive on its own: “Checkout button does nothing on mobile Safari”, not “doesn't work”.",
   },
@@ -56,14 +60,14 @@ const REQUIRED_ON_PROBLEM = [
 
 export default function TesterGuidePage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <DocLayout slug="tester">
       <PageHeader
         title="Writing a report someone can act on."
         lede="A mission takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
       />
 
       <div className="flex flex-col gap-12">
-        <Section number="1" title="What a mission is">
+        <Section {...docSection("tester", "mission")}>
           <p className={P}>
             One project, one thing to test, and a test case to work through. The
             builder has written an ordered list of steps: each one is an action
@@ -75,7 +79,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="2" title="Read the whole test case first">
+        <Section {...docSection("tester", "read-first")}>
           <p className={P}>
             Before you open anything, read every step. You will spot a flow that
             needs an account, or a step that depends on the one before it, and
@@ -89,7 +93,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="3" title="Pass, fail, or blocked">
+        <Section {...docSection("tester", "statuses")}>
           <p className={P}>
             Every step gets one of three answers, and the third one is the one
             people get wrong.
@@ -129,7 +133,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="4" title="What each field wants">
+        <Section {...docSection("tester", "fields")}>
           <p className={P}>
             <strong>A passing step asks nothing else of you.</strong> Mark it
             and move on — what it confirms is the builder&apos;s own expected
@@ -138,7 +142,7 @@ export default function TesterGuidePage() {
           </p>
           <p className={P}>
             A <strong>failed</strong> step and a <strong>blocked</strong> step
-            both ask for the same three things. All three are required on both —
+            both ask for the same two things. Both are required on both —
             the form will not let you submit until they are filled, and each is
             capped at {ENTRY_TEXT_MAX} characters.
           </p>
@@ -158,12 +162,32 @@ export default function TesterGuidePage() {
             ))}
           </dl>
           <p className={META}>
-            Yes, a blocked step asks for all three. Something stopped you, and
+            Yes, a blocked step asks for both. Something stopped you, and
             what stopped you is the entire content of that row.
+          </p>
+
+          {/* auditLogSchemaFor("ui_design") is the authority: actual_result of
+              at least DESCRIPTION_MIN on every entry, pass included. The
+              labels are entryStatusCopy's, the same the form renders. */}
+          <h3 className={H3}>{testCategoryLabel("ui_design")} missions</h3>
+          <p className={P}>
+            A design mission asks for your impressions — &ldquo;describe your
+            first impression of the page&rdquo; — so each step has a{" "}
+            <strong>What you saw</strong> box, and it is required on every
+            step, whatever you answer. At least {DESCRIPTION_MIN} characters,
+            in your own words. Your description is the report.
+          </p>
+          <p className={P}>
+            The three answers read differently too:{" "}
+            <strong>{entryStatusCopy("pass", "ui_design").label}</strong>,{" "}
+            <strong>{entryStatusCopy("fail", "ui_design").label}</strong> and{" "}
+            <strong>{entryStatusCopy("blocked", "ui_design").label}</strong>.
+            They answer whether the builder&apos;s expectation held, not whether
+            you did a good job describing it.
           </p>
         </Section>
 
-        <Section number="5" title="Screenshots">
+        <Section {...docSection("tester", "screenshots")}>
           <p className={P}>
             At least one screenshot is required on every report, and you can
             attach up to {MAX_SCREENSHOTS}. PNG, JPG or WEBP, under{" "}
@@ -187,7 +211,7 @@ export default function TesterGuidePage() {
           </ul>
         </Section>
 
-        <Section number="6" title="Anything else">
+        <Section {...docSection("tester", "anything-else")}>
           <p className={P}>
             There is one free-text box at the end of the report. It is optional,
             and it is for the things that did not belong to any single step: the
@@ -201,7 +225,7 @@ export default function TesterGuidePage() {
           </p>
         </Section>
 
-        <Section number="7" title="What gets rated well">
+        <Section {...docSection("tester", "rated-well")}>
           <p className={P}>
             The builder reviews every report and rates it out of five. Ratings
             are the whole of your standing here — there is no payment, and
@@ -241,6 +265,6 @@ export default function TesterGuidePage() {
           Read the builder guide →
         </Link>
       </div>
-    </div>
+    </DocLayout>
   )
 }

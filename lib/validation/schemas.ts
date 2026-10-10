@@ -19,9 +19,6 @@ import {
   countryName,
   isDesignCategory,
 } from "../vocabulary.ts"
-// Relative with the extension, like the imports above: scripts/*.test.mts run
-// this file under plain node, which does not resolve the "@/" alias.
-import { countSentences } from "../sentences.ts"
 import type { AccountType } from "../access.ts"
 
 /* ──────────────────────────────────────────────────────────────
@@ -67,10 +64,10 @@ export function toPathErrors(error: z.ZodError): Record<string, string[]> {
  * ──────────────────────────────────────────────────────────── */
 
 export const PROJECT_NAME_MAX = 80
-// Lowered from 300. Two sentences do not need 300 characters, and the cap is a
-// cheaper and more exact constraint than the sentence heuristic layered on it.
+// Lowered from 300. The cap is the whole length rule: a sentence count used to
+// sit on top of it, but 200 characters is roughly 35 words, so it was doing
+// work the cap already does while rejecting summaries nobody had been told about.
 export const PROJECT_SUMMARY_MAX = 200
-export const PROJECT_SUMMARY_MAX_SENTENCES = 2
 
 /** The category vocabulary, enforced here because the column has no CHECK. */
 export const projectCategorySchema = z.enum(PROJECT_CATEGORIES, {
@@ -95,12 +92,7 @@ export const projectSchema = z.object({
     .max(
       PROJECT_SUMMARY_MAX,
       `Summary must be ${PROJECT_SUMMARY_MAX} characters or fewer.`,
-    )
-    // The counting lives in lib/sentences.ts so it can be tested against the
-    // abbreviation and decimal cases without going through a schema parse.
-    .refine((value) => countSentences(value) <= PROJECT_SUMMARY_MAX_SENTENCES, {
-      message: "Keep it to two sentences — say what it does and who it's for.",
-    }),
+    ),
   category: projectCategorySchema,
 })
 

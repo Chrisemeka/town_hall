@@ -7,7 +7,7 @@
 // have to notice it is restating a schema.
 
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import {
   ENTRY_STATUS_HINTS,
   TEST_CATEGORY_BLURBS,
@@ -97,16 +97,31 @@ assert.equal(MAX_SCREENSHOT_BYTES / (1024 * 1024), 5)
 
 /* ── what a fail and a blocked step owe ──────────────────────────────── */
 
-// auditEntrySchema requires all three of these on a fail AND on a blocked step.
+// auditEntrySchema requires both of these on a fail AND on a blocked step.
 // CLAUDE.md names the schema and firstIncompleteEntry as a pair that moves
 // together; this page is now a third place stating the same rule.
-for (const field of [
-  "What actually happened",
-  "Summary of the issue",
-  "Steps to reproduce",
-]) {
+for (const field of ["Summary of the issue", "Steps to reproduce"]) {
   assert.ok(tester.includes(field), `tester guide must name "${field}"`)
 }
+
+// actual_result was dropped from the form for a fail and a blocked step
+// (only ui_design still asks it). A guide that lists it describes a field
+// the tester never sees.
+for (const [name, prose] of [
+  ["tester", testerProse],
+  ["builder", builderProse],
+] as const) {
+  assert.ok(
+    !/what actually happened/i.test(prose),
+    `${name} guide must not list "what actually happened" as a field`,
+  )
+}
+
+// ui_design inverts the pass rule: "What you saw" is required on every step.
+// The minimum is read from DESCRIPTION_MIN, not typed.
+assert.ok(tester.includes("What you saw"), 'tester guide must name "What you saw" for design missions')
+assert.ok(tester.includes("{DESCRIPTION_MIN}"), "tester guide must read the description minimum from the schema")
+assert.ok(/required on every\s+step/.test(testerProse), "tester guide must say What you saw is required on every step")
 
 // Blocked is not a lighter failure. If the guide stops saying so, a tester who
 // could not reach a step files it as a fail and the builder hunts a bug in a
@@ -157,5 +172,24 @@ assert.ok(
   ),
   "builder guide must not describe picking a tester count — the form has no such field",
 )
+
+/* ── the terms gate asks consent to the legal documents ─────────────── */
+
+// The Guides explain the product; nobody agrees to them. The gate names the
+// Terms of Service and the Privacy Policy, and both links open in a new tab so
+// someone mid-signup does not lose their place in the chain.
+{
+  const form = readFileSync("components/TermsAcceptForm.tsx", "utf8")
+  const gate = flat(readFileSync("app/terms-accept/page.tsx", "utf8"))
+  assert.ok(form.includes('href="/terms"'), "terms gate must link /terms")
+  assert.ok(form.includes('href="/privacy"'), "terms gate must link /privacy")
+  assert.ok(!form.includes('href="/guides'), "terms gate must not ask consent to the Guides")
+  assert.equal(form.match(/target="_blank"/g)?.length, 2, "both gate links open in a new tab")
+  assert.ok(/Terms of Service and the Privacy Policy/.test(gate), "gate subhead names both documents")
+  assert.ok(!/Guides/.test(gate), "gate subhead must not name the Guides")
+  for (const page of ["app/(public)/terms/page.tsx", "app/(public)/privacy/page.tsx"]) {
+    assert.ok(existsSync(page), `${page} must exist, or the gate links 404`)
+  }
+}
 
 console.log("guides.test.mts — all assertions passed")
