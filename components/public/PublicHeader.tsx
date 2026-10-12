@@ -19,21 +19,28 @@ const NAV: { href: string; label: string }[] = [
 
 export function PublicHeader({ theme }: { theme: Theme }) {
   return (
-    <header className="sticky top-0 z-50 h-16 bg-surface/85 backdrop-blur-md border-b border-line">
+    <header className="sticky [@media(max-height:479px)]:static top-0 z-50 h-16 bg-surface/85 backdrop-blur-md border-b border-line">
       {/* Full width with a fixed inset, not the 1200px content column: on a
           wide screen the column left the logo and CTA ~350px from the edges. */}
-      <div className="px-6 lg:px-10 h-full flex items-center justify-between gap-4">
+      <div className="px-4 medium:px-6 lg:px-10 h-full flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
           <Logo size={32} />
-          <span className="font-syne font-bold text-[18px] tracking-tight text-ink">
+          {/* Visually hidden below 360px, never removed: the link still
+              reads "Twnhall". */}
+          <span className="max-[359px]:sr-only font-syne font-bold text-[18px] tracking-tight text-ink">
             Twnhall
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 medium:gap-4">
           <DesktopNav links={NAV} />
 
-          <ThemeToggle theme={theme} />
+          {/* Below 600px the toggle lives in the sheet: it is neither the
+              brand, the call to action nor the way to everything else, and
+              at 360px the bar only fits those three. */}
+          <div className="hidden medium:flex">
+            <ThemeToggle theme={theme} />
+          </div>
 
           {/* Sign in is secondary; Get started is the one Voltage fill per
               viewport (Design.md §7.2), always with Obsidian text on it —
@@ -41,18 +48,18 @@ export function PublicHeader({ theme }: { theme: Theme }) {
               pages themselves, above the divider. */}
           <Link
             href="/login"
-            className="hidden sm:inline-flex h-11 px-4 items-center rounded-[8px] font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="hidden medium:inline-flex h-12 lg:h-11 px-4 items-center rounded-[8px] font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             Sign in
           </Link>
           <Link
             href="/signup"
-            className="shrink-0 h-11 px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="shrink-0 h-12 lg:h-11 px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             Get started
           </Link>
 
-          <MobileNav links={[...NAV, { href: "/login", label: "Sign in" }]} />
+          <MobileNav links={NAV} theme={theme} />
         </div>
       </div>
     </header>

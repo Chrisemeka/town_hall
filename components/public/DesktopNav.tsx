@@ -9,7 +9,7 @@ export function isCurrent(pathname: string, href: string) {
 }
 
 /**
- * The marketing nav from 768px up. A client component only for usePathname;
+ * The marketing nav from 840px up (`expanded:`). A client component only for usePathname;
  * the header around it stays a server component.
  *
  * The current page is ink *and* underlined — colour never carries state alone
@@ -22,7 +22,7 @@ export function DesktopNav({
 }) {
   const pathname = usePathname();
   return (
-    <nav className="hidden md:flex items-center gap-8">
+    <nav className="hidden expanded:flex items-center gap-8">
       {links.map(({ href, label }) => {
         const current = isCurrent(pathname, href);
         return (

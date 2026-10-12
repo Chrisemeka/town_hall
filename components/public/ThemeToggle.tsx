@@ -16,7 +16,14 @@ import { otherTheme, writeThemeCookie, type Theme } from "@/lib/theme";
  * server-side for something that matters, that is the point to move it into an
  * action with a Zod schema.
  */
-export function ThemeToggle({ theme }: { theme: Theme }) {
+export function ThemeToggle({
+  theme,
+  labelled = false,
+}: {
+  theme: Theme;
+  /** A full-width row with a visible label, for the mobile sheet. */
+  labelled?: boolean;
+}) {
   const router = useRouter();
   const [, startTransition] = useTransition();
   const next = otherTheme(theme);
@@ -31,13 +38,19 @@ export function ThemeToggle({ theme }: { theme: Theme }) {
         writeThemeCookie(next);
         startTransition(() => router.refresh());
       }}
-      className="h-11 w-11 inline-flex items-center justify-center rounded-[8px] text-ink-muted hover:text-ink hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+      className={`${
+        labelled
+          ? "flex min-h-12 w-full items-center gap-3 px-2 font-mono text-[16px] text-ink"
+          : "h-12 w-12 lg:h-11 lg:w-11 inline-flex items-center justify-center text-ink-muted hover:text-ink"
+      } rounded-[8px] hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface`}
     >
       {theme === "dark" ? (
         <Sun size={18} aria-hidden="true" />
       ) : (
         <Moon size={18} aria-hidden="true" />
       )}
+      {/* Names the destination too, and sits inside the accessible name. */}
+      {labelled && <span>{next === "dark" ? "Dark theme" : "Light theme"}</span>}
     </button>
   );
 }
