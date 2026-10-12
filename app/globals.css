@@ -48,13 +48,20 @@
   --radius-md: 12px;
   --radius-lg: 16px;
 
+  /* Window size classes (Material 3). See CLAUDE.md § Design System.
+     sm/md/lg/xl keep Tailwind's values — desktop reads them. */
+  --breakpoint-medium: 600px;
+  --breakpoint-expanded: 840px;
+
+  /* M3 standard easing — the curve for anything that moves on its own. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
   /* Box Shadows. Themed — the dark value is in the [data-theme="dark"] block. */
   --shadow-card: 0 2px 12px rgb(0 0 0 / 0.08);
 
   /*
-   * Semantic layer — PUBLIC SURFACES ONLY (the `(public)` route group).
-   * App surfaces (dashboard, tester, admin) keep the literal tokens above and
-   * stay dark in both themes. See CLAUDE.md § Design System.
+   * Semantic layer — every surface, public and app alike, follows the theme.
+   * See CLAUDE.md § Design System.
    *
    * These are the light values and also the defaults: no cookie means light,
    * deliberately, with no prefers-color-scheme fallback.
