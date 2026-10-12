@@ -46,8 +46,10 @@ export function PublicHeader({ theme }: { theme: Theme }) {
               viewport (Design.md §7.2), always with Obsidian text on it —
               never accent ink on a light ground. Google moved onto the auth
               pages themselves, above the divider.
-              Below lg it draws at 40px, and the ::after keeps the tap area
-              at 48px (SPEC-m3-foundations §3.4). */}
+              Below lg it draws at 40px, and the ::after (5px over, so 48.5px
+              after the scale) keeps the tap area
+              at 48px (SPEC-m3-foundations §3.4). Scaled 97% from its right
+              edge and pulled 4px (8px on medium) toward the menu button. */}
           <Link
             href="/login"
             className="hidden medium:inline-flex h-12 lg:h-11 px-4 items-center rounded-[8px] font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
@@ -56,7 +58,7 @@ export function PublicHeader({ theme }: { theme: Theme }) {
           </Link>
           <Link
             href="/signup"
-            className="max-lg:relative shrink-0 h-10 lg:h-11 px-3 lg:px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[13px] lg:text-[14px] max-lg:after:absolute max-lg:after:inset-x-0 max-lg:after:-inset-y-1 hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="max-lg:relative max-lg:scale-[0.97] max-lg:origin-right max-medium:-mr-1 medium:max-expanded:-mr-2 shrink-0 h-10 lg:h-11 px-3 lg:px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[13px] lg:text-[14px] max-lg:after:absolute max-lg:after:inset-x-0 max-lg:after:-inset-y-[5px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             Get started
           </Link>
