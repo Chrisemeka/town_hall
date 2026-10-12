@@ -596,6 +596,12 @@ Canonical reference: `Design.md`. Non-negotiable rules Claude Code must honor wi
 
 - **Fonts:** Syne (Bold 700) for headings. DM Mono (Regular 400 / Medium 500) for UI, body, buttons, code. One exception, and only one: **DM Sans** for long-form prose on public surfaces — pricing, about, the guides. App surfaces keep DM Mono for body text. No other fonts.
 - **Grid:** All spacing values divisible by 4. No exceptions.
+- **Breakpoints:** Material 3 window size classes. Compact is unprefixed
+  (< 600px), then `medium:` (600), `expanded:` (840), then Tailwind's
+  `lg:` / `xl:` for desktop. Switch on width, never device type. A
+  revamped file has no `sm:` or `md:`; `scripts/mobile.test.mts` lists
+  them. Below `lg`: 48px touch targets, 16px side margin on compact,
+  nothing under 12px.
 - **Accent:** `#E8FF47` (Voltage). One Primary/Voltage CTA per viewport. If you catch yourself adding a second, one of them is wrong.
 - **Color never conveys state alone.** Always pair a badge/indicator color with a text label.
 - **Contrast:** Body text ≥ 7:1. Labels and large text ≥ 4.5:1. Verify at WebAim before shipping a new pairing.
