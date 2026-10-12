@@ -164,11 +164,17 @@
 /*
  * The stage a homepage feature window sits on: a dot grid in the divider
  * colour, so it follows the theme and stays quieter than the window.
+ *
+ * From 600px only: below it the frames collapse and the window sits on the
+ * page. Gated here because this rule is unlayered and beats any utility that
+ * tried to undo it (max-medium:bg-none would lose).
  */
-.th-stage {
-  background-color: var(--color-surface);
-  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
-  background-size: 16px 16px;
+@media (width >= 600px) {
+  .th-stage {
+    background-color: var(--color-surface);
+    background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
 }
 
 /*
