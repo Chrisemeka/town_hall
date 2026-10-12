@@ -18,8 +18,7 @@ const ROW = `flex min-h-12 items-center px-2 font-mono text-[16px] text-ink ${CO
 // M3 modal navigation drawer: slides in from the trailing edge on open, 300ms
 // ease-standard. The transition lives under `open:` so closing is instant, and
 // the start offset is motion-safe so reduced motion gets no slide at all.
-// ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
-const SHEET = "m-0 ml-auto h-full max-h-full w-[min(22.5rem,85vw)] max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60 open:transition-[translate] open:duration-300 open:ease-standard motion-safe:starting:open:translate-x-full";
+const SHEET = "m-0 ml-auto h-full max-h-full w-[min(22.5rem,85vw)] max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60 open:transition-[translate] open:duration-300 open:ease-standard motion-safe:starting:open:translate-x-full"; // ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
 
 /**
  * The marketing nav below 840px.
