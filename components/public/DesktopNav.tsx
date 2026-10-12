@@ -30,7 +30,7 @@ export function DesktopNav({
             key={href}
             href={href}
             aria-current={current ? "page" : undefined}
-            className={`text-[14px] transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+            className={`max-lg:min-h-12 max-lg:inline-flex max-lg:items-center text-[14px] transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
               current
                 ? "text-ink underline decoration-accent-ink decoration-2 underline-offset-8"
                 : "text-ink-muted hover:text-ink"

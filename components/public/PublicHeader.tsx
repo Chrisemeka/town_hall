@@ -23,7 +23,7 @@ export function PublicHeader({ theme }: { theme: Theme }) {
       {/* Full width with a fixed inset, not the 1200px content column: on a
           wide screen the column left the logo and CTA ~350px from the edges. */}
       <div className="px-4 medium:px-6 lg:px-10 h-full flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2 shrink-0 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+        <Link href="/" className="flex max-lg:h-12 items-center gap-2 shrink-0 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
           <Logo size={32} />
           {/* Visually hidden below 360px, never removed: the link still
               reads "Twnhall". */}
