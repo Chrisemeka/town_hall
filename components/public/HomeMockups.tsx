@@ -679,7 +679,7 @@ function TemplateMock() {
     >
       <div className="p-4 medium:p-5 flex flex-col gap-3">
         <p className={LABEL}>{TEST_TEMPLATES.length} templates</p>
-        <ul className="grid gap-2 medium:grid-cols-2">
+        <ul className="grid gap-2 grid-cols-1 medium:grid-cols-2">
           {TEST_TEMPLATES.slice(0, 4).map((t) => (
             <li
               key={t.id}
