@@ -115,27 +115,30 @@ const FOCUS =
 function TestCaseList({ compactLimit = TEMPLATE.steps.length }: { compactLimit?: number }) {
   const rest = TEMPLATE.steps.length - compactLimit
   return (
-    <ol className="flex flex-col">
-      {TEMPLATE.steps.map((step, i) => (
-        <li
-          key={step.action}
-          className={`flex gap-4 px-5 py-4 border-b border-line last:border-b-0 ${i >= compactLimit ? "max-medium:hidden" : ""}`}
-        >
-          <span className="font-mono text-[12px] font-medium leading-5 text-accent-ink shrink-0">
-            {String(i + 1).padStart(2, "0")}
-          </span>
-          <div className="flex flex-col gap-1 min-w-0">
-            <p className="font-mono text-[13px] leading-5 text-ink">{step.action}</p>
-            <p className="font-mono text-[12px] leading-5 text-ink-muted">Expect: {step.expected_result}</p>
-          </div>
-        </li>
-      ))}
+    <>
+      <ol className="flex flex-col">
+        {TEMPLATE.steps.map((step, i) => (
+          <li
+            key={step.action}
+            className={`flex gap-4 px-5 py-4 border-b border-line last:border-b-0 ${i >= compactLimit ? "max-medium:hidden" : ""}`}
+          >
+            <span className="font-mono text-[12px] font-medium leading-5 text-accent-ink shrink-0">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <div className="flex flex-col gap-1 min-w-0">
+              <p className="font-mono text-[13px] leading-5 text-ink">{step.action}</p>
+              <p className="font-mono text-[12px] leading-5 text-ink-muted">Expect: {step.expected_result}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      {/* Outside the list, so the last step stays last:border-b-0 on desktop. */}
       {rest > 0 && (
-        <li className="medium:hidden px-5 py-3 font-mono text-[12px] text-ink-muted">
+        <p className="medium:hidden px-5 py-3 font-mono text-[12px] text-ink-muted">
           + {rest} more steps
-        </li>
+        </p>
       )}
-    </ol>
+    </>
   )
 }
 
