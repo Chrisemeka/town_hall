@@ -19,6 +19,9 @@ import { isCurrent } from "@/components/public/DesktopNav";
  * The theme toggle and the sign-in CTA stay in the bar at every width. They are
  * one tap each and hiding them behind a menu would be worse.
  */
+// ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
+const SHEET = "m-0 ml-auto h-full max-h-full w-[min(20rem,85vw)] max-w-none bg-surface p-0 text-ink backdrop:bg-obsidian/60";
+
 export function MobileNav({
   links,
 }: {
@@ -53,7 +56,7 @@ export function MobileNav({
         aria-label="Site menu"
         // A dialog is centred and auto-sized by default; these pin it to the
         // right as a full-height sheet. backdrop:bg-* styles ::backdrop.
-        className="m-0 ml-auto h-full max-h-full w-[min(20rem,85vw)] max-w-none bg-surface p-0 text-ink backdrop:bg-surface/60"
+        className={SHEET}
       >
         <div className="flex h-full flex-col p-6">
           <div className="flex justify-end">
