@@ -17,6 +17,8 @@ const REVAMPED = [
   "components/public/DesktopNav.tsx",
   "components/public/PublicFooter.tsx",
   "components/public/ThemeToggle.tsx",
+  "app/(public)/page.tsx",
+  "components/public/HomeMockups.tsx",
 ]
 
 const offences: string[] = []
