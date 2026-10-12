@@ -140,7 +140,7 @@ export function StatusPill({ status, count }: { status: string; count?: number }
 
   return (
     <span
-      className={`inline-block font-mono text-[11px] font-medium tracking-[0.5px] rounded-[4px] px-2 py-0.5 border ${tone}`}
+      className={`inline-block font-mono text-[12px] lg:text-[11px] font-medium tracking-[0.5px] rounded-[4px] px-2 py-0.5 border ${tone}`}
     >
       {count !== undefined ? `${count} ` : ""}
       {entryStatusLabel(status)}
