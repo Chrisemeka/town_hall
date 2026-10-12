@@ -24,10 +24,10 @@ export function PublicHeader({ theme }: { theme: Theme }) {
           wide screen the column left the logo and CTA ~350px from the edges. */}
       <div className="px-4 medium:px-6 lg:px-10 h-full flex items-center justify-between gap-4">
         <Link href="/" className="flex max-lg:h-12 items-center gap-2 shrink-0 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
-          <Logo size={32} />
+          <Logo size={32} className="max-lg:size-6" />
           {/* Visually hidden below 360px, never removed: the link still
               reads "Twnhall". */}
-          <span className="max-[359px]:sr-only font-syne font-bold text-[18px] tracking-tight text-ink">
+          <span className="max-[359px]:sr-only font-syne font-bold text-[16px] lg:text-[18px] tracking-tight text-ink">
             Twnhall
           </span>
         </Link>
@@ -45,7 +45,9 @@ export function PublicHeader({ theme }: { theme: Theme }) {
           {/* Sign in is secondary; Get started is the one Voltage fill per
               viewport (Design.md §7.2), always with Obsidian text on it —
               never accent ink on a light ground. Google moved onto the auth
-              pages themselves, above the divider. */}
+              pages themselves, above the divider.
+              Below lg it draws at 40px, and the ::after keeps the tap area
+              at 48px (SPEC-m3-foundations §3.4). */}
           <Link
             href="/login"
             className="hidden medium:inline-flex h-12 lg:h-11 px-4 items-center rounded-[8px] font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
@@ -54,7 +56,7 @@ export function PublicHeader({ theme }: { theme: Theme }) {
           </Link>
           <Link
             href="/signup"
-            className="shrink-0 h-12 lg:h-11 px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="max-lg:relative shrink-0 h-10 lg:h-11 px-3 lg:px-4 inline-flex items-center bg-accent text-obsidian rounded-[8px] font-mono font-medium text-[13px] lg:text-[14px] max-lg:after:absolute max-lg:after:inset-x-0 max-lg:after:-inset-y-1 hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             Get started
           </Link>
