@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
         <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Privacy Policy
         </h1>
-        <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: August 6, 2026</p>
+        <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: October 13, 2026</p>
 
         <div className="flex flex-col gap-8 medium:gap-10">
 
@@ -22,20 +22,20 @@ export default function PrivacyPolicyPage() {
 
           <Section {...docSection("privacy", "collect")}>
             <p>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
-            <p><span className="text-ink font-medium">Personal Information:</span> When you sign up on Twnhall, we may collect certain personal information such as your name, email address, and profile picture. We sign you in through Google, and receive your name, email address, and profile picture from that sign-in.</p>
-            <p><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — and when each was created. If you hold both, they are stored as two separate account records tied to the same sign-in.</p>
-            <p><span className="text-ink font-medium">Content You Submit:</span> Projects and mission briefs you create as a Builder, and the written feedback and screenshots you upload as a Tester. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
-            <p><span className="text-ink font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it, and any note attached when changes are requested.</p>
+            <p><span className="text-ink font-medium">Personal Information:</span> When you sign up on Twnhall, we collect your email address and a password, or, if you sign in with Google, your name, email address, and profile picture from that sign-in. Before you can use an account type, you complete a short profile for it: your full name, country, phone number, and timezone, plus your skills for a Tester account. You may also add a short bio in Settings.</p>
+            <p><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — when each was created, and when its profile was completed. If you hold both, they are stored as two account records tied to the same sign-in. We also record your plan (Community or Pro) and your balance of tester reports: the reports you have been granted, earned by testing, and spent on missions.</p>
+            <p><span className="text-ink font-medium">Content You Submit:</span> Projects and missions you create as a Builder, including their test steps, and the reports you submit as a Tester: a status for each step (pass, fail, or blocked), the issue and steps to reproduce for any step that did not pass, any closing comment, and screenshots. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
+            <p><span className="text-ink font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it when approving it, and the optional note the Builder writes with that approval.</p>
             <p><span className="text-ink font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p><span className="text-ink font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
           </Section>
 
           <Section {...docSection("privacy", "automated-analysis")}>
             <p>
-              When you submit feedback as a Tester, your written comment and the screenshots you attach are sent to <span className="text-ink">Google&apos;s Gemini API</span> to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission.
+              When you submit a report as a Tester, its contents — each step&apos;s status, the issues and steps to reproduce you wrote, any closing comment, and the screenshots you attach — are sent to <span className="text-ink">Google&apos;s Gemini API</span>, together with the mission&apos;s steps, to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission. We keep a record of each analysis (its size and estimated cost) to run the service; it is not used to limit or charge you.
             </p>
             <p>
-              Do not include passwords, personal data about other people, or anything you would not want processed by a third party in your written feedback or screenshots.
+              Do not include passwords, personal data about other people, or anything you would not want processed by a third party in your report or screenshots.
             </p>
             <p>
               The generated summary is stored alongside your submission and shown to the Builder. It does not change your rating or whether your submission is approved — a human Builder makes that decision.
@@ -44,20 +44,24 @@ export default function PrivacyPolicyPage() {
 
           <Section {...docSection("privacy", "visibility")}>
             <p>
-              <span className="text-ink font-medium">Builders see:</span> the written feedback, screenshots, and generated summary on submissions made against their own missions, and the name and profile picture attached to your account.
+              <span className="text-ink font-medium">Builders see:</span> the report, screenshots, and generated summary on submissions made against their own missions. We do not show Builders your name, email address, or profile picture: on each mission, testers appear as &ldquo;Tester 1&rdquo;, &ldquo;Tester 2&rdquo; and so on, including in the exports Builders can download. Anything you show in a screenshot or write in a report, such as your own email address, is visible to the Builder, so leave it out if you do not want it seen.
             </p>
             <p>
-              <span className="text-ink font-medium">Testers see:</span> their own submissions and the status, rating, and any change request a Builder left on them. Testers cannot see other testers&apos; submissions.
+              <span className="text-ink font-medium">Testers see:</span> their own submissions and the status, rating, and any note a Builder left on them, and their own totals and average rating in Settings. Testers cannot see other testers&apos; submissions.
             </p>
             <p>
-              Project and mission details a Builder publishes are visible to testers browsing the platform.
+              Project and mission details a Builder publishes are visible to testers browsing the platform.</p>
+            <p>
+              <span className="text-ink font-medium">Twnhall&apos;s administrators see:</span> account details, including names and email addresses, to provide support, moderate the platform, and pay members of our tester cohort.
             </p>
           </Section>
 
           <Section {...docSection("privacy", "providers")}>
             <p>We rely on the following third parties to operate Twnhall, and information is shared with them only as needed to provide the service:</p>
             <p><span className="text-ink font-medium">Supabase:</span> database, authentication, and file storage for screenshots.</p>
-            <p><span className="text-ink font-medium">Google:</span> sign-in, and the Gemini API for the automated analysis described above.</p>
+            <p><span className="text-ink font-medium">Google:</span> Google sign-in, if you choose it, and the Gemini API for the automated analysis described above.</p>
+            <p><span className="text-ink font-medium">Cloudflare:</span> the Turnstile check on the sign-up, sign-in, and password reset forms, which reads signals from your browser to tell people from bots.</p>
+            <p><span className="text-ink font-medium">Vercel:</span> hosting the app.</p>
             <p><span className="text-ink font-medium">Resend:</span> transactional and notification email.</p>
           </Section>
 
