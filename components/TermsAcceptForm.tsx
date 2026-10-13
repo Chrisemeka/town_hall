@@ -54,7 +54,11 @@ export function TermsAcceptForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
-      <label className="flex items-start gap-3 cursor-pointer select-none group">
+      {/* Below lg the whole row is the checkbox's target: a 16px box inside
+          a label that is mostly two links lost most taps to the links. The
+          tick is the checked signal; the accent border repeats it. From lg the
+          classes reproduce the bare checkbox and sentence. */}
+      <label className="flex items-start gap-4 min-h-14 p-4 rounded-[12px] border border-ink-muted has-[:checked]:border-accent-ink has-[:checked]:bg-accent-ink/[0.06] hover:bg-ink/[0.06] active:bg-ink/[0.10] lg:p-0 lg:min-h-0 lg:border-0 lg:rounded-none lg:gap-3 lg:has-[:checked]:bg-transparent lg:hover:bg-transparent lg:active:bg-transparent cursor-pointer select-none group">
         <input
           ref={checkbox}
           type="checkbox"
@@ -63,13 +67,13 @@ export function TermsAcceptForm() {
             setAgreed(e.target.checked);
             if (e.target.checked) setError(null);
           }}
-          className="mt-1 w-4 h-4 accent-accent shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+          className="mt-0.5 w-5 h-5 lg:mt-1 lg:w-4 lg:h-4 accent-accent shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           aria-describedby={error ? "terms-error" : "terms-agreement-text"}
           {...(error ? { "aria-invalid": true as const } : {})}
         />
         <span
           id="terms-agreement-text"
-          className="font-sans text-[14px] leading-6 text-ink"
+          className="font-sans text-[16px] leading-6 text-ink lg:text-[14px]"
         >
           I agree to Twnhall&apos;s{" "}
           <Link
