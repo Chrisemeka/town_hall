@@ -61,8 +61,11 @@ for (const p of ["privacy", "terms"]) {
   const src = readFileSync(`app/(public)/${p}/page.tsx`, "utf8")
   for (const hit of src.matchAll(/(\S*)text-\[14px\]/g)) {
     if (hit[1].endsWith("lg:")) continue
-    // The Terms section number is a 14px label, not body text.
-    if (/font-mono/.test(src.slice(Math.max(0, hit.index! - 80), hit.index))) continue
+    // The Terms section number is a 14px mono label, not body text. Look only
+    // inside this class string: a fixed look-behind reached the "Last
+    // updated" line's font-mono and waved the intro paragraph through.
+    const from = Math.max(src.lastIndexOf('"', hit.index!), src.lastIndexOf("`", hit.index!))
+    if (src.slice(from, hit.index).includes("font-mono")) continue
     offences.push(`${p}: text-[14px] below lg — legal body text is 16px until lg`)
   }
 }
