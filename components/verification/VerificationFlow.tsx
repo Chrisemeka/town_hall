@@ -197,7 +197,7 @@ export function VerificationFlow({
   if (done) {
     return (
       <>
-        <StepIndicator bar={bar} />
+        <StepIndicator bar={bar} compactLine={false} />
         <CompletionPanel role={role} href={done} />
       </>
     )
@@ -205,7 +205,7 @@ export function VerificationFlow({
 
   return (
     <>
-      <StepIndicator bar={bar} />
+      <StepIndicator bar={bar} compactLine={false} />
 
       <SetupCard
         title={
