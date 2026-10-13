@@ -299,12 +299,12 @@ export default function PricingPage() {
         <div className="border-t border-line">
           {FAQ.map(({ q, a }) => (
             <details key={q} className="group border-b border-line">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-6 font-mono font-medium text-[16px] text-ink rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 medium:py-6 font-mono font-medium text-[16px] text-ink rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink [&::-webkit-details-marker]:hidden">
                 {q}
                 <Plus
                   aria-hidden
                   size={16}
-                  className="shrink-0 text-ink-muted transition-transform duration-150 group-open:rotate-45"
+                  className="shrink-0 text-ink-muted transition-transform duration-150 motion-reduce:transition-none group-open:rotate-45"
                 />
               </summary>
               <p className={`${P} pb-6 max-w-2xl`}>{a}</p>
@@ -316,7 +316,7 @@ export default function PricingPage() {
       {/* ─── Close ─────────────────────────────────────────────────────── */}
       <section
         aria-labelledby="close-heading"
-        className="flex flex-col items-center gap-6 rounded-[12px] border border-line bg-surface-raised px-6 py-16 text-center max-w-[880px] mx-auto"
+        className="flex flex-col items-center gap-6 rounded-[12px] border border-line bg-surface-raised px-5 py-10 medium:px-6 medium:py-16 text-center max-w-[880px] mx-auto"
       >
         <h2 id="close-heading" className={H2}>
           Ship it to five real people.
@@ -324,11 +324,12 @@ export default function PricingPage() {
         <p className={`${P} max-w-xl`}>
           Start free with {SIGNUP_GRANT} tester reports. Earn more by testing.
         </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/signup" className={BTN_SECONDARY}>
+        {/* Full-width stacked buttons on compact, a wrapping row from 600px. */}
+        <div className="flex flex-col self-stretch gap-4 medium:flex-row medium:flex-wrap medium:justify-center medium:self-auto">
+          <Link href="/signup" className={`${BTN_SECONDARY} w-full medium:w-auto`}>
             Create an account
           </Link>
-          <Link href="/guides/builder" className={BTN_SECONDARY}>
+          <Link href="/guides/builder" className={`${BTN_SECONDARY} w-full medium:w-auto`}>
             Read the builder guide
           </Link>
         </div>
