@@ -113,9 +113,14 @@ export function docSection<S extends DocSlug>(slug: S, id: SectionId<S>): Sectio
  * so it can take focus without joining the tab order. preventScroll, or the
  * browser's own focus scroll races the smooth one — same as lib/focus.ts.
  */
-export function jumpToSection(id: string): void {
+export function jumpToSection(id: string, from?: Element | null): void {
   const heading = document.getElementById(id)
   if (!heading) return
+  // Fold the phone disclosure first, so the scroll is measured against the
+  // page as it will be; measured first, it lands a whole list too low. The
+  // desktop sidebar has no <details> ancestor, so nothing changes there.
+  const disclosure = from?.closest("details")
+  if (disclosure) disclosure.open = false
   heading.scrollIntoView({
     behavior: prefersReducedMotion() ? "auto" : "smooth",
     block: "start",

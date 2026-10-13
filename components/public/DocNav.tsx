@@ -36,7 +36,7 @@ export function DocNav({ slug }: { slug: DocSlug }) {
                 // A modified click still opens the anchor where it was asked to.
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
                 e.preventDefault()
-                jumpToSection(id)
+                jumpToSection(id, e.currentTarget)
               }}
               className={ITEM}
             >
