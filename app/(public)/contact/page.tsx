@@ -39,17 +39,17 @@ const ROUTES = [
 
 export default function ContactPage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 py-10 medium:py-16">
       <PageHeader
         title="Talk to us."
         lede="Twnhall is small enough that a real person reads everything that comes in. Usually a reply within a day or two."
       />
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-4 medium:gap-6 medium:grid-cols-2">
         {ROUTES.map(({ icon: Icon, title, body, href, label }) => (
           <div
             key={title}
-            className="flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-6"
+            className="flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6"
           >
             <Icon size={20} className="text-accent-ink" aria-hidden="true" />
             <h2 className="font-syne font-bold text-[20px] leading-7 text-ink">
@@ -58,9 +58,10 @@ export default function ContactPage() {
             <p className="font-sans text-[14px] leading-6 text-ink flex-1">
               {body}
             </p>
+            {/* The card's button, kept looking like a link: 48px tall below lg. */}
             <a
               href={href}
-              className="mt-2 inline-flex items-center font-mono text-[13px] text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="mt-1 self-start min-h-12 inline-flex items-center font-mono text-[14px] lg:mt-2 lg:min-h-0 lg:text-[13px] text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
               {label} →
             </a>
@@ -71,7 +72,8 @@ export default function ContactPage() {
       <div className="mt-12 pt-8 border-t border-line flex flex-col gap-3">
         <p className={P}>
           If your mail client does not open, the address is{" "}
-          <span className="font-mono text-ink">{CONTACT_EMAIL}</span>.
+          {/* Never broken mid-address; one tap selects it for copying. */}
+          <span className="font-mono text-ink whitespace-nowrap select-all">{CONTACT_EMAIL}</span>.
         </p>
         <p className={P}>
           We are also on{" "}
