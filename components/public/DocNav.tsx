@@ -6,7 +6,12 @@ import { META } from "@/components/public/prose"
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 
-const ITEM = `block rounded-[4px] py-1 font-mono text-[13px] leading-5 text-ink hover:text-accent-ink hover:underline underline-offset-2 ${FOCUS}`
+// Below lg: 48px rows with the M3 list-item state layer, since touch has no
+// hover underline to show. From lg: today's sidebar row exactly.
+const ITEM =
+  "flex items-center min-h-12 px-2 rounded-[8px] font-mono text-[14px] leading-5 text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] " +
+  "lg:block lg:min-h-0 lg:px-0 lg:py-1 lg:rounded-[4px] lg:text-[13px] lg:hover:bg-transparent lg:active:bg-transparent lg:hover:text-accent-ink lg:hover:underline underline-offset-2 " +
+  FOCUS
 
 /**
  * Navigation for the four long documents: the current document's sections,
@@ -21,7 +26,7 @@ const ITEM = `block rounded-[4px] py-1 font-mono text-[13px] leading-5 text-ink 
 export function DocNav({ slug }: { slug: DocSlug }) {
   return (
     <nav aria-label="On this page">
-      <p className={`${META} uppercase tracking-[0.5px] mb-2`}>On this page</p>
+      <p className={`${META} uppercase tracking-[0.5px] mb-2 px-2 lg:px-0`}>On this page</p>
       <ol className="flex flex-col">
         {headingsFor(slug).map(({ id, title }) => (
           <li key={id}>
