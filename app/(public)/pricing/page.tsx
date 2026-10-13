@@ -2,7 +2,6 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { Check, Plus } from "lucide-react"
 import {
-  BTN_PRIMARY,
   BTN_SECONDARY,
   H1,
   H2,
@@ -139,15 +138,19 @@ function PlanCard({
   plan,
   priceNote,
   cta,
+  featured = false,
 }: {
   plan: Plan
   priceNote: string
   cta: React.ReactNode
+  /** Marked by the card's accent-ink border, never a Voltage button: the
+   *  header's Get started is the page's one Voltage fill. */
+  featured?: boolean
 }) {
   // "$19/month · ₦10–12k" → "$19"; the note beside it carries the rest.
   const amount = plan.price.split(/[/ ]/)[0]
   return (
-    <div className="flex flex-col rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 lg:p-8">
+    <div className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
       <h3 className={H3}>{plan.name}</h3>
       {/* The min height only aligns two cards side by side, from 840px. */}
       <p className={`${P_SMALL} mt-2 expanded:min-h-[56px]`}>{plan.summary}</p>
@@ -208,8 +211,9 @@ export default function PricingPage() {
           <PlanCard
             plan={PRO}
             priceNote="/ month"
+            featured
             cta={
-              <Link href="/contact" className={BTN_PRIMARY}>
+              <Link href="/contact" className={BTN_SECONDARY}>
                 Hitting your limit? Get in touch
               </Link>
             }
