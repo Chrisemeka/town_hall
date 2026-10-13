@@ -228,7 +228,7 @@ export function VerificationFlow({
           </div>
         )}
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5 medium:gap-6">
           {steps[step]?.id === "identity" && (
             <IdentityStep values={values} errors={errors} set={set} />
           )}
@@ -309,6 +309,10 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="fullName"
           value={values.fullName}
           maxLength={FULL_NAME_MAX}
+          autoComplete="name"
+          autoCapitalize="words"
+          spellCheck={false}
+          enterKeyHint="next"
           onChange={(e) => set("fullName", e.target.value)}
           {...fieldErrorProps("fullName", errors.fullName)}
           className={inputClass(!!errors.fullName?.length)}
@@ -319,6 +323,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
         <select
           id="country"
           value={values.country}
+          autoComplete="country"
           onChange={(e) => onCountryChange(e.target.value)}
           {...fieldErrorProps("country", errors.country)}
           className={inputClass(!!errors.country?.length)}
@@ -344,6 +349,10 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="phone"
           type="tel"
           inputMode="tel"
+          // Autofill sets the value without keydowns, so isAllowedPhoneKey
+          // never sees it; onChange formats it as it does a paste.
+          autoComplete="tel"
+          enterKeyHint="next"
           value={values.phone}
           placeholder={phoneExampleFor(values.country) ?? "+"}
           onKeyDown={(e) => {
