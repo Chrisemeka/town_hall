@@ -110,7 +110,7 @@ export function AuthField({
           // 16px on touch: iOS Safari zooms on focus into anything smaller and
           // never zooms back. Keyed on the pointer, not the width, because an
           // iPad in landscape is lg and still zooms; a mouse keeps 14px.
-          "h-10 w-full rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
+          "h-12 lg:h-10 w-full rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
           // `line` is 1.19:1 and fails WCAG 1.4.11's 3:1 for a control's visible
           // boundary, so a bounded control takes ink-muted. Design.md §4.1.
           hasError
@@ -152,12 +152,12 @@ export function GoogleBlock({ label }: { label: string }) {
       <form action={signInWithGoogle}>
         <button
           type="submit"
-          className="h-11 w-full inline-flex items-center justify-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="h-12 lg:h-11 w-full inline-flex items-center justify-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           {label}
         </button>
       </form>
-      <div className="flex items-center gap-4 my-6" aria-hidden="true">
+      <div className="flex items-center gap-4 my-5 medium:my-6" aria-hidden="true">
         <span className="h-px flex-1 bg-line" />
         <span className="font-mono text-[12px] text-ink-muted">or</span>
         <span className="h-px flex-1 bg-line" />
@@ -189,7 +189,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={pending}
-      className="h-11 w-full inline-flex items-center justify-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+      className="h-12 lg:h-11 w-full inline-flex items-center justify-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
     >
       {children}
     </button>
