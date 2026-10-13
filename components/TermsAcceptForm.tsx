@@ -53,7 +53,7 @@ export function TermsAcceptForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
+    <form onSubmit={onSubmit} className="flex flex-col gap-5 medium:gap-6" noValidate>
       {/* Below lg the whole row is the checkbox's target: a 16px box inside
           a label that is mostly two links lost most taps to the links. The
           tick is the checked signal; the accent border repeats it. From lg the
@@ -103,7 +103,7 @@ export function TermsAcceptForm() {
         <p
           id="terms-error"
           role="alert"
-          className="font-mono text-[12px] text-danger-ink"
+          className="font-mono text-[14px] lg:text-[12px] text-danger-ink"
         >
           {error}
         </p>
@@ -116,7 +116,7 @@ export function TermsAcceptForm() {
         disabled={isPending}
         aria-disabled={!agreed || undefined}
         className={[
-          "h-11 px-5 self-start rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised disabled:opacity-60 disabled:cursor-wait",
+          "h-12 w-full lg:h-11 lg:w-auto lg:px-5 lg:self-start rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised disabled:opacity-60 disabled:cursor-wait",
           agreed
             ? "bg-accent text-obsidian hover:bg-voltage-dark cursor-pointer"
             // Outlined rather than a grey fill: ink-muted on a 10% ink tint is
