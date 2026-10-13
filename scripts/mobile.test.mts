@@ -29,6 +29,13 @@ const REVAMPED = [
   "app/(public)/guides/tester/page.tsx",
   "app/(public)/privacy/page.tsx",
   "app/(public)/terms/page.tsx",
+  "components/public/AuthCard.tsx",
+  "components/public/PasswordInput.tsx",
+  "components/public/HeaderCta.tsx",
+  "components/public/auth/SignInForm.tsx",
+  "components/public/auth/SignUpForm.tsx",
+  "app/(public)/login/page.tsx",
+  "app/(public)/signup/page.tsx",
 ]
 
 const offences: string[] = []
@@ -84,6 +91,12 @@ for (const g of ["builder", "tester"]) {
   const src = readFileSync(`app/(public)/guides/${g}/page.tsx`, "utf8")
   assert.ok(!/<p className=\{META\}/.test(src), `guides/${g}: a note paragraph uses META — use NOTE`)
 }
+
+// iOS Safari zooms on focus below 16px. Touch gets 16px; only a fine pointer gets 14.
+assert.ok(
+  /text-\[16px\] pointer-fine:text-\[14px\]/.test(readFileSync("components/public/AuthCard.tsx", "utf8")),
+  "AuthField: input text must be 16px on touch",
+)
 
 // Pricing: the header's Get started is the page's one Voltage fill.
 assert.ok(
