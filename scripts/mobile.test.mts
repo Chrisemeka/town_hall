@@ -23,6 +23,10 @@ const REVAMPED = [
   "app/(public)/pricing/page.tsx",
   "app/(public)/about/page.tsx",
   "app/(public)/contact/page.tsx",
+  "components/public/DocNav.tsx",
+  "app/(public)/guides/page.tsx",
+  "app/(public)/guides/builder/page.tsx",
+  "app/(public)/guides/tester/page.tsx",
 ]
 
 const offences: string[] = []
@@ -57,6 +61,12 @@ assert.deepEqual(offences, [], `revamped files break the mobile rules:\n  ${offe
 const css = readFileSync("app/globals.css", "utf8")
 for (const token of ["--breakpoint-medium: 600px", "--breakpoint-expanded: 840px", "--ease-standard:"]) {
   assert.ok(css.includes(token), `globals.css is missing ${token}`)
+}
+
+// Guides: a note paragraph is NOTE, never META (META is "never a paragraph").
+for (const g of ["builder", "tester"]) {
+  const src = readFileSync(`app/(public)/guides/${g}/page.tsx`, "utf8")
+  assert.ok(!/<p className=\{META\}/.test(src), `guides/${g}: a note paragraph uses META — use NOTE`)
 }
 
 // Pricing: the header's Get started is the page's one Voltage fill.
