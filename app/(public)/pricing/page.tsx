@@ -4,6 +4,7 @@ import { Check, Plus } from "lucide-react"
 import {
   BTN_PRIMARY,
   BTN_SECONDARY,
+  H1,
   H2,
   H3,
   LINK_INLINE,
@@ -146,9 +147,10 @@ function PlanCard({
   // "$19/month · ₦10–12k" → "$19"; the note beside it carries the rest.
   const amount = plan.price.split(/[/ ]/)[0]
   return (
-    <div className="flex flex-col rounded-[12px] border border-line bg-surface-raised p-8">
+    <div className="flex flex-col rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 lg:p-8">
       <h3 className={H3}>{plan.name}</h3>
-      <p className={`${P_SMALL} mt-2 min-h-[56px]`}>{plan.summary}</p>
+      {/* The min height only aligns two cards side by side, from 840px. */}
+      <p className={`${P_SMALL} mt-2 expanded:min-h-[56px]`}>{plan.summary}</p>
       <p className="mt-6 font-syne font-bold text-[40px] leading-[48px] text-ink">
         {amount}
         <span className="font-mono font-normal text-[14px] text-ink-muted">
@@ -174,10 +176,10 @@ function PlanCard({
 
 export default function PricingPage() {
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto px-6 lg:px-8 py-16 lg:py-24">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 py-10 medium:py-16 lg:py-24">
       {/* ─── Hero ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col items-center gap-4 text-center mb-16">
-        <h1 className="font-syne font-bold text-[40px] leading-[48px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink">
+      <div className="flex flex-col items-center gap-4 text-center mb-10 medium:mb-16">
+        <h1 className={H1}>
           Feedback you earn, or feedback you buy.
         </h1>
         <p className={`${P} max-w-2xl`}>
@@ -188,11 +190,12 @@ export default function PricingPage() {
       </div>
 
       {/* ─── The two tiers ─────────────────────────────────────────────── */}
-      <section aria-labelledby="tiers-heading" className="mb-24">
+      <section aria-labelledby="tiers-heading" className="mb-16 medium:mb-24">
         <h2 id="tiers-heading" className="sr-only">
           Plans
         </h2>
-        <div className="grid gap-6 md:grid-cols-2 max-w-[880px] mx-auto">
+        {/* Stacked until 840px: side by side at 768 left each card ~200px. */}
+        <div className="grid gap-6 expanded:grid-cols-2 max-w-[880px] mx-auto">
           <PlanCard
             plan={COMMUNITY}
             priceNote="forever"
@@ -218,7 +221,7 @@ export default function PricingPage() {
       </section>
 
       {/* ─── The comparison ────────────────────────────────────────────── */}
-      <section aria-labelledby="compare-heading" className="mb-24 max-w-[880px] mx-auto">
+      <section aria-labelledby="compare-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="compare-heading" className={`${H2} mb-8`}>
           Compare plans
         </h2>
@@ -265,7 +268,7 @@ export default function PricingPage() {
       </section>
 
       {/* ─── FAQ ───────────────────────────────────────────────────────── */}
-      <section aria-labelledby="faq-heading" className="mb-24 max-w-[880px] mx-auto">
+      <section aria-labelledby="faq-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="faq-heading" className={`${H2} mb-8`}>
           Questions and answers
         </h2>
