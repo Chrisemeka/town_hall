@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { countryName, normalizeSkills } from "@/lib/vocabulary"
+import { readFileSync } from "node:fs"
+import { COUNTRIES, countryName, normalizeSkills } from "@/lib/vocabulary"
 
 describe("countryName", () => {
   // These render inside a <select> on /verify/[role], which means they are
@@ -21,14 +22,12 @@ describe("countryName", () => {
     expect(countryName(code)).toBe(expected)
   })
 
-  it("pins the locale rather than taking the runtime's", () => {
-    // Note the limit of this one: on a machine already running en-US, dropping
-    // the locale argument still passes here. The hardcoded strings above are
-    // what catch it everywhere else — this asserts the intent directly.
-    const pinned = new Intl.DisplayNames(["en-US"], { type: "region" })
-    for (const code of ["FK", "MM", "CI", "TL", "MK"]) {
-      expect(countryName(code)).toBe(pinned.of(code))
-    }
+  it("never asks the runtime, whose ICU data differs between Node and the browser", () => {
+    // Chrome names FK "Falkland Islands (Islas Malvinas)" even for a pinned
+    // en-US locale. The list is data so both sides render the same string.
+    const src = readFileSync("lib/vocabulary.ts", "utf8")
+    expect(src).not.toMatch(/new Intl\.(DisplayNames|Collator)/)
+    for (const code of COUNTRIES) expect(countryName(code)).not.toBe(code)
   })
 })
 
