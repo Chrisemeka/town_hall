@@ -247,67 +247,284 @@ export function normalizeSkills(skills: string[]): string[] {
   return out
 }
 
-// The locale is pinned, and "en-US" specifically — not undefined, not [], not
-// bare "en". Those defer to the runtime, and the runtime is not the same on
-// both sides of a render: Node's ICU build resolved FK to "Falkland Islands"
-// while the browser resolved it to "Falkland Islands (Islas Malvinas)", so the
-// server markup and the hydrated markup disagreed and React threw. Any region
-// with a disputed or aliased name can do this. Widening this back to a
-// runtime-dependent locale reintroduces the hydration error.
-const regionNames = new Intl.DisplayNames(["en-US"], { type: "region" })
-const countryCollator = new Intl.Collator("en-US")
+// The display name of every country code, in the order the dropdown shows.
+//
+// Data, not Intl.DisplayNames. The runtime owned these names until it served
+// two different ones: Node resolved FK to "Falkland Islands" and Chrome to
+// "Falkland Islands (Islas Malvinas)" for the same pinned en-US locale,
+// because each ships its own ICU data. The <select> is server-rendered and
+// hydrated, so any difference is a hydration error. Pinning the locale could
+// not fix that; only a list both sides read can.
+//
+// Already sorted by name, so the dropdown's order does not depend on a
+// runtime Collator either. Keys are ISO 3166-1 alpha-2, officially assigned.
+// Adding a country is one line here.
+const COUNTRY_NAMES = {
+  AF: "Afghanistan",
+  AX: "Åland Islands",
+  AL: "Albania",
+  DZ: "Algeria",
+  AS: "American Samoa",
+  AD: "Andorra",
+  AO: "Angola",
+  AI: "Anguilla",
+  AQ: "Antarctica",
+  AG: "Antigua & Barbuda",
+  AR: "Argentina",
+  AM: "Armenia",
+  AW: "Aruba",
+  AU: "Australia",
+  AT: "Austria",
+  AZ: "Azerbaijan",
+  BS: "Bahamas",
+  BH: "Bahrain",
+  BD: "Bangladesh",
+  BB: "Barbados",
+  BY: "Belarus",
+  BE: "Belgium",
+  BZ: "Belize",
+  BJ: "Benin",
+  BM: "Bermuda",
+  BT: "Bhutan",
+  BO: "Bolivia",
+  BA: "Bosnia & Herzegovina",
+  BW: "Botswana",
+  BV: "Bouvet Island",
+  BR: "Brazil",
+  IO: "British Indian Ocean Territory",
+  VG: "British Virgin Islands",
+  BN: "Brunei",
+  BG: "Bulgaria",
+  BF: "Burkina Faso",
+  BI: "Burundi",
+  KH: "Cambodia",
+  CM: "Cameroon",
+  CA: "Canada",
+  CV: "Cape Verde",
+  BQ: "Caribbean Netherlands",
+  KY: "Cayman Islands",
+  CF: "Central African Republic",
+  TD: "Chad",
+  CL: "Chile",
+  CN: "China",
+  CX: "Christmas Island",
+  CC: "Cocos (Keeling) Islands",
+  CO: "Colombia",
+  KM: "Comoros",
+  CG: "Congo - Brazzaville",
+  CD: "Congo - Kinshasa",
+  CK: "Cook Islands",
+  CR: "Costa Rica",
+  CI: "Côte d’Ivoire",
+  HR: "Croatia",
+  CU: "Cuba",
+  CW: "Curaçao",
+  CY: "Cyprus",
+  CZ: "Czechia",
+  DK: "Denmark",
+  DJ: "Djibouti",
+  DM: "Dominica",
+  DO: "Dominican Republic",
+  EC: "Ecuador",
+  EG: "Egypt",
+  SV: "El Salvador",
+  GQ: "Equatorial Guinea",
+  ER: "Eritrea",
+  EE: "Estonia",
+  SZ: "Eswatini",
+  ET: "Ethiopia",
+  FK: "Falkland Islands",
+  FO: "Faroe Islands",
+  FJ: "Fiji",
+  FI: "Finland",
+  FR: "France",
+  GF: "French Guiana",
+  PF: "French Polynesia",
+  TF: "French Southern Territories",
+  GA: "Gabon",
+  GM: "Gambia",
+  GE: "Georgia",
+  DE: "Germany",
+  GH: "Ghana",
+  GI: "Gibraltar",
+  GR: "Greece",
+  GL: "Greenland",
+  GD: "Grenada",
+  GP: "Guadeloupe",
+  GU: "Guam",
+  GT: "Guatemala",
+  GG: "Guernsey",
+  GN: "Guinea",
+  GW: "Guinea-Bissau",
+  GY: "Guyana",
+  HT: "Haiti",
+  HM: "Heard & McDonald Islands",
+  HN: "Honduras",
+  HK: "Hong Kong SAR China",
+  HU: "Hungary",
+  IS: "Iceland",
+  IN: "India",
+  ID: "Indonesia",
+  IR: "Iran",
+  IQ: "Iraq",
+  IE: "Ireland",
+  IM: "Isle of Man",
+  IL: "Israel",
+  IT: "Italy",
+  JM: "Jamaica",
+  JP: "Japan",
+  JE: "Jersey",
+  JO: "Jordan",
+  KZ: "Kazakhstan",
+  KE: "Kenya",
+  KI: "Kiribati",
+  KW: "Kuwait",
+  KG: "Kyrgyzstan",
+  LA: "Laos",
+  LV: "Latvia",
+  LB: "Lebanon",
+  LS: "Lesotho",
+  LR: "Liberia",
+  LY: "Libya",
+  LI: "Liechtenstein",
+  LT: "Lithuania",
+  LU: "Luxembourg",
+  MO: "Macao SAR China",
+  MG: "Madagascar",
+  MW: "Malawi",
+  MY: "Malaysia",
+  MV: "Maldives",
+  ML: "Mali",
+  MT: "Malta",
+  MH: "Marshall Islands",
+  MQ: "Martinique",
+  MR: "Mauritania",
+  MU: "Mauritius",
+  YT: "Mayotte",
+  MX: "Mexico",
+  FM: "Micronesia",
+  MD: "Moldova",
+  MC: "Monaco",
+  MN: "Mongolia",
+  ME: "Montenegro",
+  MS: "Montserrat",
+  MA: "Morocco",
+  MZ: "Mozambique",
+  MM: "Myanmar (Burma)",
+  NA: "Namibia",
+  NR: "Nauru",
+  NP: "Nepal",
+  NL: "Netherlands",
+  NC: "New Caledonia",
+  NZ: "New Zealand",
+  NI: "Nicaragua",
+  NE: "Niger",
+  NG: "Nigeria",
+  NU: "Niue",
+  NF: "Norfolk Island",
+  KP: "North Korea",
+  MK: "North Macedonia",
+  MP: "Northern Mariana Islands",
+  NO: "Norway",
+  OM: "Oman",
+  PK: "Pakistan",
+  PW: "Palau",
+  PS: "Palestinian Territories",
+  PA: "Panama",
+  PG: "Papua New Guinea",
+  PY: "Paraguay",
+  PE: "Peru",
+  PH: "Philippines",
+  PN: "Pitcairn Islands",
+  PL: "Poland",
+  PT: "Portugal",
+  PR: "Puerto Rico",
+  QA: "Qatar",
+  RE: "Réunion",
+  RO: "Romania",
+  RU: "Russia",
+  RW: "Rwanda",
+  WS: "Samoa",
+  SM: "San Marino",
+  ST: "São Tomé & Príncipe",
+  SA: "Saudi Arabia",
+  SN: "Senegal",
+  RS: "Serbia",
+  SC: "Seychelles",
+  SL: "Sierra Leone",
+  SG: "Singapore",
+  SX: "Sint Maarten",
+  SK: "Slovakia",
+  SI: "Slovenia",
+  SB: "Solomon Islands",
+  SO: "Somalia",
+  ZA: "South Africa",
+  GS: "South Georgia & South Sandwich Islands",
+  KR: "South Korea",
+  SS: "South Sudan",
+  ES: "Spain",
+  LK: "Sri Lanka",
+  BL: "St. Barthélemy",
+  SH: "St. Helena",
+  KN: "St. Kitts & Nevis",
+  LC: "St. Lucia",
+  MF: "St. Martin",
+  PM: "St. Pierre & Miquelon",
+  VC: "St. Vincent & Grenadines",
+  SD: "Sudan",
+  SR: "Suriname",
+  SJ: "Svalbard & Jan Mayen",
+  SE: "Sweden",
+  CH: "Switzerland",
+  SY: "Syria",
+  TW: "Taiwan",
+  TJ: "Tajikistan",
+  TZ: "Tanzania",
+  TH: "Thailand",
+  TL: "Timor-Leste",
+  TG: "Togo",
+  TK: "Tokelau",
+  TO: "Tonga",
+  TT: "Trinidad & Tobago",
+  TN: "Tunisia",
+  TR: "Türkiye",
+  TM: "Turkmenistan",
+  TC: "Turks & Caicos Islands",
+  TV: "Tuvalu",
+  UM: "U.S. Outlying Islands",
+  VI: "U.S. Virgin Islands",
+  UG: "Uganda",
+  UA: "Ukraine",
+  AE: "United Arab Emirates",
+  GB: "United Kingdom",
+  US: "United States",
+  UY: "Uruguay",
+  UZ: "Uzbekistan",
+  VU: "Vanuatu",
+  VA: "Vatican City",
+  VE: "Venezuela",
+  VN: "Vietnam",
+  WF: "Wallis & Futuna",
+  EH: "Western Sahara",
+  YE: "Yemen",
+  ZM: "Zambia",
+  ZW: "Zimbabwe",
+} as const
 
-/** "NG" -> "Nigeria". The platform owns the names, so we don't ship a second list. */
+/** "NG" -> "Nigeria". From the list above, never Intl — see there why. */
 export function countryName(code: string): string {
-  return regionNames.of(code) ?? code
+  return (COUNTRY_NAMES as Record<string, string>)[code] ?? code
 }
 
 /**
- * ISO 3166-1 alpha-2, officially assigned codes. Stored as codes rather than
- * names so the display string can change (and be localised) without a data
- * migration. Kept as one whitespace-separated literal, in code order for
- * editing, because 249 codes as an array literal is 249 lines of noise for
- * something nobody edits by hand.
+ * ISO 3166-1 alpha-2, officially assigned codes, in the order the dropdown
+ * shows them: by name, as COUNTRY_NAMES lists them. Stored as codes
+ * rather than names so a display string can change without a data migration.
  *
  * The `[string, ...string[]]` type is what Zod's `z.enum` needs — the runtime
  * shape is guaranteed by scripts/vocabulary.test.mts.
  */
-export const COUNTRIES = `
-  AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ
-  BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ
-  CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ
-  DE DJ DK DM DO DZ
-  EC EE EG EH ER ES ET
-  FI FJ FK FM FO FR
-  GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY
-  HK HM HN HR HT HU
-  ID IE IL IM IN IO IQ IR IS IT
-  JE JM JO JP
-  KE KG KH KI KM KN KP KR KW KY KZ
-  LA LB LC LI LK LR LS LT LU LV LY
-  MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ
-  NA NC NE NF NG NI NL NO NP NR NU NZ
-  OM
-  PA PE PF PG PH PK PL PM PN PR PS PT PW PY
-  QA
-  RE RO RS RU RW
-  SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ
-  TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ
-  UA UG UM US UY UZ
-  VA VC VE VG VI VN VU
-  WF WS
-  YE YT
-  ZA ZM ZW
-`
-  .trim()
-  .split(/\s+/)
-  // Sorted by the name the dropdown shows, not the code — by code, Germany (DE)
-  // sat under D and the United Kingdom (GB) under G. Collator pinned to en-US
-  // for the same hydration reason as regionNames above.
-  .sort((a, b) => countryCollator.compare(countryName(a), countryName(b))) as [
-  string,
-  ...string[],
-]
+export const COUNTRIES = Object.keys(COUNTRY_NAMES) as [string, ...string[]]
 
 /**
  * IANA timezone names, straight from the runtime. Sorted already, and it tracks

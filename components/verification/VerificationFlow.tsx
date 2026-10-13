@@ -13,6 +13,7 @@ import {
   setupStages,
 } from "@/lib/setup"
 import { ArrowRight, Check } from "lucide-react"
+import { NOTE } from "@/components/public/prose"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
@@ -196,7 +197,7 @@ export function VerificationFlow({
   if (done) {
     return (
       <>
-        <StepIndicator bar={bar} />
+        <StepIndicator bar={bar} compactLine={false} />
         <CompletionPanel role={role} href={done} />
       </>
     )
@@ -204,7 +205,7 @@ export function VerificationFlow({
 
   return (
     <>
-      <StepIndicator bar={bar} />
+      <StepIndicator bar={bar} compactLine={false} />
 
       <SetupCard
         title={
@@ -224,11 +225,11 @@ export function VerificationFlow({
             role="alert"
             className="mb-6 px-4 py-3 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08]"
           >
-            <p className="font-mono text-[13px] leading-5 text-danger-ink">{formError}</p>
+            <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink">{formError}</p>
           </div>
         )}
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5 medium:gap-6">
           {steps[step]?.id === "identity" && (
             <IdentityStep values={values} errors={errors} set={set} />
           )}
@@ -244,7 +245,9 @@ export function VerificationFlow({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 pt-8">
+        {/* Below 600px: primary on top, Back under it, both full width. DOM
+            order is unchanged, so focus still goes primary, then Back. */}
+        <div className="grid grid-cols-1 gap-3 pt-6 medium:flex medium:flex-wrap medium:items-center medium:pt-8">
           {/* Live whatever the form holds — validated on click, naming the
               outstanding field. Disabled only while the action is in flight,
               which the label says. */}
@@ -252,7 +255,7 @@ export function VerificationFlow({
             type="button"
             onClick={onReview ? onComplete : onContinue}
             disabled={pending}
-            className="h-11 px-6 inline-flex items-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+            className="h-12 w-full justify-center medium:w-auto lg:h-11 px-6 inline-flex items-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           >
             {pending
               ? onReview
@@ -267,7 +270,7 @@ export function VerificationFlow({
               type="button"
               onClick={() => setStep(step - 1)}
               disabled={pending}
-              className="h-11 px-6 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+              className="h-12 w-full justify-center medium:w-auto lg:h-11 px-6 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
             >
               Back
             </button>
@@ -309,6 +312,10 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="fullName"
           value={values.fullName}
           maxLength={FULL_NAME_MAX}
+          autoComplete="name"
+          autoCapitalize="words"
+          spellCheck={false}
+          enterKeyHint="next"
           onChange={(e) => set("fullName", e.target.value)}
           {...fieldErrorProps("fullName", errors.fullName)}
           className={inputClass(!!errors.fullName?.length)}
@@ -319,6 +326,7 @@ function IdentityStep({ values, errors, set }: StepProps) {
         <select
           id="country"
           value={values.country}
+          autoComplete="country"
           onChange={(e) => onCountryChange(e.target.value)}
           {...fieldErrorProps("country", errors.country)}
           className={inputClass(!!errors.country?.length)}
@@ -344,6 +352,10 @@ function IdentityStep({ values, errors, set }: StepProps) {
           id="phone"
           type="tel"
           inputMode="tel"
+          // Autofill sets the value without keydowns, so isAllowedPhoneKey
+          // never sees it; onChange formats it as it does a paste.
+          autoComplete="tel"
+          enterKeyHint="next"
           value={values.phone}
           placeholder={phoneExampleFor(values.country) ?? "+"}
           onKeyDown={(e) => {
@@ -407,29 +419,34 @@ function ReviewStep({
 
   return (
     <>
-      <p className="font-sans text-[14px] leading-6 text-ink">
+      <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px]">
         {role === "tester"
           ? "Check this over — builders see your name and skills when they review your feedback."
           : "Check this over before we open up your dashboard."}
       </p>
 
       {steps.map((s, index) => (
-        <div key={s.label} className="border border-line rounded-[12px] p-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
+        <div key={s.label} className="border border-line rounded-[12px] p-4 medium:p-6">
+          <div className="flex items-center justify-between gap-4 mb-2 medium:mb-4">
             <p className="font-mono text-[12px] text-accent-ink uppercase tracking-[1px]">{s.label}</p>
             <button
               type="button"
               onClick={() => onEdit(index)}
-              className="font-mono text-[12px] text-ink-muted hover:text-accent-ink underline underline-offset-2 rounded-[4px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+              aria-label={`Edit ${s.label.toLowerCase()}`}
+              // -mr-3: the 48px box reaches into the card's padding, so the
+              // visible word stays where it was.
+              className="min-h-12 px-3 -mr-3 inline-flex items-center text-[14px] lg:min-h-0 lg:px-0 lg:mr-0 lg:text-[12px] font-mono text-ink-muted hover:text-accent-ink underline underline-offset-2 rounded-[4px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
             >
               Edit
             </button>
           </div>
-          <dl className="flex flex-col gap-3">
+          <dl className="flex flex-col gap-4 medium:gap-3">
             {s.fields.map((field) => (
-              <div key={field} className="flex items-start justify-between gap-6">
+              // Compact: label above value, left-aligned at reading size, so a
+              // long timezone or skill list wraps cleanly. Medium: two columns.
+              <div key={field} className="flex flex-col gap-1 medium:flex-row medium:items-start medium:justify-between medium:gap-6">
                 <dt className="font-mono text-[12px] text-ink-muted shrink-0">{LABELS[field]}</dt>
-                <dd className="font-mono text-[13px] text-ink text-right break-words min-w-0">
+                <dd className="font-mono text-[16px] text-left medium:text-[13px] medium:text-right text-ink break-words min-w-0">
                   {display(field)}
                 </dd>
               </div>
@@ -508,7 +525,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
       title={completionHeadlineFor(role)}
       subhead="Your profile is saved and your account is open."
     >
-      <ol className="flex flex-col gap-6">
+      <ol className="flex flex-col gap-5 medium:gap-6">
         {steps.map((s, i) => (
           <li key={s.title} className="flex gap-4">
             <span
@@ -519,23 +536,23 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
             </span>
             <div className="flex flex-col gap-1 min-w-0">
               <p className="font-mono font-medium text-[14px] text-ink">{s.title}</p>
-              <p className="font-sans text-[14px] leading-6 text-ink">{s.detail}</p>
+              <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px]">{s.detail}</p>
             </div>
           </li>
         ))}
       </ol>
 
-      <div className="mt-10 flex flex-col gap-4">
+      <div className="mt-8 medium:mt-10 flex flex-col gap-4">
         <a
           href={href}
           onClick={handOff}
-          className="h-11 px-6 self-start inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+          className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-11 px-6 inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
         >
           {role === "tester" ? "Find a mission" : "Go to your dashboard"}
           <ArrowRight size={14} aria-hidden="true" />
         </a>
-        {/* Written now, inert until the welcome email ships. */}
-        <p className="font-mono text-[12px] leading-5 text-ink-muted inline-flex items-start gap-2">
+        {/* True: completeVerification sends sendWelcomeEmail inside after(). */}
+        <p className={`${NOTE} inline-flex items-start gap-2`}>
           <Check size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-ink" />
           We&apos;ve sent you a note with these steps, so you have them later.
         </p>

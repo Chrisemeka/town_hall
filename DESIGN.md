@@ -379,6 +379,15 @@ Used in: New Project form, New Mission form, Feedback submission form.
 | Border | 1px solid `#2C2C35` |
 | Border (focus) | 1px solid `#E8FF47` |
 
+**Below `lg`** (`inputClass()` / `textareaClass()` in `components/ui/Field.tsx`,
+the app's spelling): inputs and selects are 48px, and text is 16px on touch,
+14px only for a fine pointer, so iOS never zooms on focus. Every field carries
+`scroll-mt-24` to clear the header when the error path scrolls to it.
+
+**Review rows** (`/verify/[role]`): below 600px a label sits above its value,
+left-aligned at 16px, so a long timezone or skill list wraps cleanly; from
+600px, label left and value right at 13px. "Edit" is a 48px target below `lg`.
+
 **A checkbox with a sentence label, below `lg`,** is a bordered row
 (`border-ink-muted`, 12px radius, 16px padding, at least 56px tall) with a
 20px box, and the whole row is the target; checked, the border turns
