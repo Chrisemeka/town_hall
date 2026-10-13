@@ -26,22 +26,25 @@ export function AuthCard({
   footer?: React.ReactNode
 }) {
   return (
-    <div className="flex-1 w-full flex flex-col items-center px-6 py-16">
+    // Below 600px the form sits straight on the surface: no card, and no logo
+    // block, since the header directly above already shows both. The heading
+    // starts 64px under the header (80px on medium), as on every public page.
+    <div className="flex-1 w-full flex flex-col items-center px-4 pt-16 pb-10 medium:px-6 medium:pt-20 medium:pb-16 lg:py-16">
       <div className="w-full max-w-[440px]">
         <Link
           href="/"
-          className="flex items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="hidden medium:flex medium:min-h-12 lg:min-h-0 items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           <Logo size={32} />
           <span className="font-syne font-bold text-[20px] text-ink">Twnhall</span>
         </Link>
 
-        <div className="rounded-[16px] border border-line bg-surface-raised p-10">
+        <div className="medium:rounded-[16px] medium:border medium:border-line medium:bg-surface-raised medium:p-10">
           <h1 className="font-syne font-bold text-[28px] leading-9 text-ink mb-2">
             {title}
           </h1>
           {lede && (
-            <p className="font-sans text-[14px] leading-6 text-ink mb-8">{lede}</p>
+            <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px] mb-6 medium:mb-8">{lede}</p>
           )}
           {children}
         </div>
@@ -72,6 +75,9 @@ export function AuthField({
   defaultValue,
   errors,
   helper,
+  autoCapitalize,
+  spellCheck,
+  enterKeyHint,
 }: {
   name: string
   label: string
@@ -80,6 +86,10 @@ export function AuthField({
   defaultValue?: string
   errors?: string[]
   helper?: string
+  /** Keyboard hints for touch: they change the keyboard, never the value. */
+  autoCapitalize?: React.InputHTMLAttributes<HTMLInputElement>["autoCapitalize"]
+  spellCheck?: boolean
+  enterKeyHint?: React.InputHTMLAttributes<HTMLInputElement>["enterKeyHint"]
 }) {
   const hasError = !!errors?.length
   // Every password field gets the show/hide toggle.
@@ -97,6 +107,9 @@ export function AuthField({
         name={name}
         {...(type === "password" ? {} : { type })}
         autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize}
+        spellCheck={spellCheck}
+        enterKeyHint={enterKeyHint}
         defaultValue={defaultValue}
         // aria-invalid only when it is true: every unerrored input announcing
         // "valid" out loud is noise. Mirrors fieldErrorProps().
@@ -104,7 +117,11 @@ export function AuthField({
           ? { "aria-invalid": true as const, "aria-describedby": errorId(name) }
           : {})}
         className={[
-          "h-10 w-full rounded-[8px] px-4 font-mono text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
+          // 16px on touch: iOS Safari zooms on focus into anything smaller and
+          // never zooms back. Keyed on the pointer, not the width, because an
+          // iPad in landscape is lg and still zooms; a mouse keeps 14px.
+          // scroll-mt-24 keeps a focused field clear of the 64px sticky header.
+          "h-12 lg:h-10 w-full scroll-mt-24 rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
           // `line` is 1.19:1 and fails WCAG 1.4.11's 3:1 for a control's visible
           // boundary, so a bounded control takes ink-muted. Design.md §4.1.
           hasError
@@ -131,7 +148,7 @@ export function AuthBanner({ message }: { message?: string | null }) {
       // Announced, not just coloured: this is often the only feedback a failed
       // sign-in gives, and it replaces content rather than adding to it.
       role="alert"
-      className="mb-6 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08] px-4 py-3 font-mono text-[13px] leading-5 text-danger-ink"
+      className="mb-6 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08] px-4 py-3 font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink"
     >
       {message}
     </div>
@@ -146,12 +163,12 @@ export function GoogleBlock({ label }: { label: string }) {
       <form action={signInWithGoogle}>
         <button
           type="submit"
-          className="h-11 w-full inline-flex items-center justify-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="h-12 lg:h-11 w-full inline-flex items-center justify-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           {label}
         </button>
       </form>
-      <div className="flex items-center gap-4 my-6" aria-hidden="true">
+      <div className="flex items-center gap-4 my-5 medium:my-6" aria-hidden="true">
         <span className="h-px flex-1 bg-line" />
         <span className="font-mono text-[12px] text-ink-muted">or</span>
         <span className="h-px flex-1 bg-line" />
@@ -183,7 +200,7 @@ export function AuthSubmit({
     <button
       type="submit"
       disabled={pending}
-      className="h-11 w-full inline-flex items-center justify-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+      className="h-12 lg:h-11 w-full inline-flex items-center justify-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
     >
       {children}
     </button>

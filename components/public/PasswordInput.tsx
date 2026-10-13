@@ -14,15 +14,15 @@ export function PasswordInput({
   const [visible, setVisible] = useState(false)
   return (
     <div className="relative">
-      <input {...props} type={visible ? "text" : "password"} className={`${className} pr-12`} />
+      <input {...props} type={visible ? "text" : "password"} className={`${className} pr-14 lg:pr-12`} />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-pressed={visible}
-        className="absolute right-0 top-0 h-10 w-10 flex items-center justify-center rounded-[8px] text-ink-muted hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink"
+        className="absolute right-0 top-0 h-12 w-12 lg:h-10 lg:w-10 flex items-center justify-center rounded-[8px] text-ink-muted hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink"
       >
-        {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        {visible ? <EyeOff className="w-5 h-5 lg:w-4 lg:h-4" /> : <Eye className="w-5 h-5 lg:w-4 lg:h-4" />}
       </button>
     </div>
   )
