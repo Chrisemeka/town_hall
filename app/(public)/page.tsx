@@ -30,11 +30,26 @@ const stagger: Variants = {
   visible: { transition: { staggerChildren: 0.06 } },
 };
 
+// 48px tall below lg (SPEC-m3-foundations §3.4); desktop keeps its text height.
 const LINK =
-  "inline-flex items-center gap-2 font-mono text-[14px] text-accent-ink underline underline-offset-4 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
+  "inline-flex items-center max-lg:min-h-12 gap-2 font-mono text-[14px] text-accent-ink underline underline-offset-4 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
+// The Headline role: 28/36 compact, 32/40 medium, today's 48/56 from lg.
 const H2 =
-  "font-syne font-bold text-[32px] leading-[40px] lg:text-[48px] lg:leading-[56px] tracking-[-0.5px] text-ink";
+  "font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 lg:text-[48px] lg:leading-[56px] tracking-[-0.5px] text-ink";
+
+// "Test one, earn one": a vertical stepper on compact (circles joined by a
+// rule), three cards on medium and expanded, today's ruled list from lg. The
+// two smaller layouts are range-scoped (medium:max-lg:) so lg needs no resets.
+const LOOP_ITEM =
+  "max-medium:relative max-medium:pl-14 max-medium:pb-8 max-medium:last:pb-0 max-medium:before:absolute max-medium:before:left-[19px] max-medium:before:top-10 max-medium:before:bottom-0 max-medium:before:w-0.5 max-medium:before:bg-line max-medium:last:before:hidden " +
+  "medium:max-lg:flex medium:max-lg:flex-col medium:max-lg:gap-4 medium:max-lg:rounded-[12px] medium:max-lg:border medium:max-lg:border-line medium:max-lg:bg-surface-raised medium:max-lg:p-5 " +
+  "lg:flex lg:gap-6 lg:py-6 lg:border-t lg:border-line lg:last:border-b";
+
+const LOOP_NUMBER =
+  "font-mono font-medium text-accent-ink shrink-0 text-[12px] lg:text-[13px] lg:leading-7 " +
+  "max-lg:size-10 max-lg:rounded-full max-lg:bg-ink/[0.06] max-lg:flex max-lg:items-center max-lg:justify-center " +
+  "max-medium:absolute max-medium:left-0 max-medium:top-0";
 
 const LOOP = [
   { n: "01", title: "Test someone's project", body: "Work through their test case and file the report." },
@@ -60,18 +75,18 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────
           Centred copy over the product window, GitHub-style. */}
       <section className="w-full overflow-x-clip">
-        <div className="max-w-[1200px] mx-auto px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
+        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pt-10 pb-12 medium:pt-16 medium:pb-20 lg:pt-24 lg:pb-28">
           <motion.div
             {...rise}
             variants={stagger}
             className="flex flex-col items-center text-center max-w-3xl mx-auto"
           >
-            {/* Display is 52 -> 80px in Design.md, and the mobile end does not
-                fit: "Not feedback." at 48px is wider than the 312px a 360px
-                viewport leaves inside the gutters. */}
+            {/* The Display role, stepped per size class. "Not feedback." must
+                never wrap: 64px is wider than the 552px a 600px screen leaves,
+                so medium is 52, and below 360px compact drops to 36. */}
             <motion.h1
               variants={up}
-              className="font-syne font-bold text-[40px] leading-[44px] sm:text-[64px] sm:leading-[68px] lg:text-[80px] lg:leading-[80px] tracking-[-1.5px] text-ink"
+              className="font-syne font-bold max-[359px]:text-[36px] max-[359px]:leading-10 text-[40px] leading-[44px] medium:text-[52px] medium:leading-[56px] expanded:text-[64px] expanded:leading-[68px] lg:text-[80px] lg:leading-[80px] tracking-[-1.5px] text-ink"
             >
               Not feedback.
               <br />
@@ -79,26 +94,27 @@ export default function LandingPage() {
             </motion.h1>
             {/* One line, GitHub-style. The cohort and the earn-one loop have
                 their own section below; the hero only has to land the idea. */}
-            <motion.p variants={up} className="font-sans text-[18px] leading-8 text-ink mt-8 max-w-xl">
+            <motion.p variants={up} className="font-sans text-[16px] leading-7 medium:text-[18px] medium:leading-8 text-ink mt-6 medium:mt-8 max-w-xl">
               Write the steps. Real testers work through every one and tell
               you exactly what broke, and how to break it again.
             </motion.p>
-            <motion.div variants={up} className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+            {/* Stacked full width on compact, a centred row from 600px. */}
+            <motion.div variants={up} className="mt-8 medium:mt-10 w-full medium:w-auto flex flex-col items-stretch gap-2 medium:flex-row medium:flex-wrap medium:items-center medium:justify-center medium:gap-x-8 medium:gap-y-4">
               <a
                 href="#tour"
-                className="h-12 px-6 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="h-12 px-6 inline-flex items-center justify-center gap-2 rounded-[8px] border border-ink-muted font-mono font-medium text-[14px] text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
               >
                 See how it works
                 <ArrowDown size={14} aria-hidden="true" />
               </a>
-              <Link href="/guides/builder" className={LINK}>
+              <Link href="/guides/builder" className={`${LINK} justify-center`}>
                 Read the builder guide
                 <ArrowRight size={14} aria-hidden="true" />
               </Link>
             </motion.div>
           </motion.div>
 
-          <motion.div {...rise} variants={up} className="mt-16 lg:mt-20">
+          <motion.div {...rise} variants={up} className="mt-12 medium:mt-16 lg:mt-20">
             <HeroDemo />
           </motion.div>
         </div>
@@ -109,8 +125,8 @@ export default function LandingPage() {
       {/* Wider than the 1200px column on purpose: the windows are the point,
           and boxed to 1200 on a wide screen they read as squeezed. */}
       <section id="tour" className="w-full border-t border-line scroll-mt-16">
-        <div className="max-w-[1680px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
-          <motion.h2 {...rise} variants={up} className={`${H2} max-w-2xl mb-12`}>
+        <div className="max-w-[1680px] mx-auto px-4 medium:px-6 lg:px-10 py-12 medium:py-20 lg:py-28">
+          <motion.h2 {...rise} variants={up} className={`${H2} max-w-2xl mb-8 medium:mb-12`}>
             From test case to fix list.
           </motion.h2>
           <Features />
@@ -120,8 +136,8 @@ export default function LandingPage() {
       {/* ── The loop ─────────────────────────────────────────────────────
           Reciprocity, and who the testers are. */}
       <section className="w-full border-t border-line">
-        <div className="max-w-[1200px] mx-auto px-6 lg:px-8 py-20 lg:py-24">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
+        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 py-12 medium:py-20 lg:py-24">
+          <div className="grid gap-8 medium:gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
             <motion.div {...rise} variants={up} className="flex flex-col gap-6">
               <h2 className={H2}>Test one, earn one.</h2>
               <p className="font-sans text-[16px] leading-8 text-ink">
@@ -132,18 +148,18 @@ export default function LandingPage() {
               </p>
             </motion.div>
 
-            <motion.ol {...rise} variants={stagger} className="flex flex-col">
+            <motion.ol {...rise} variants={stagger} className="flex flex-col medium:max-lg:grid medium:max-lg:grid-cols-3 medium:max-lg:gap-4">
               {LOOP.map((step) => (
                 <motion.li
                   key={step.n}
                   variants={up}
-                  className="flex gap-6 py-6 border-t border-line last:border-b"
+                  className={LOOP_ITEM}
                 >
-                  <span className="font-mono text-[13px] font-medium leading-7 text-accent-ink shrink-0">
+                  <span className={LOOP_NUMBER}>
                     {step.n}
                   </span>
                   <div className="flex flex-col gap-2">
-                    <h3 className="font-syne font-bold text-[22px] leading-7 text-ink">{step.title}</h3>
+                    <h3 className="font-syne font-bold text-[20px] medium:text-[22px] leading-7 text-ink">{step.title}</h3>
                     <p className="font-sans text-[16px] leading-7 text-ink-muted">{step.body}</p>
                   </div>
                 </motion.li>
@@ -157,12 +173,13 @@ export default function LandingPage() {
           The header's Get started is a glance away at every scroll position,
           so this points at the things it cannot. */}
       <section className="w-full border-t border-line">
-        <div className="max-w-[1200px] mx-auto px-6 lg:px-8 py-16 lg:py-20">
+        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 py-12 medium:py-16 lg:py-20">
           <motion.div {...rise} variants={up} className="flex flex-col gap-6 max-w-2xl">
-            <h2 className="font-syne font-bold text-[28px] leading-9 lg:text-[36px] lg:leading-[44px] tracking-[-0.5px] text-ink">
+            <h2 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 lg:text-[36px] lg:leading-[44px] tracking-[-0.5px] text-ink">
               Your next release deserves this.
             </h2>
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
+            {/* 48px rows stacked on compact, a wrapping row from 600px. */}
+            <div className="flex flex-col medium:flex-row medium:flex-wrap gap-x-8 medium:gap-y-3">
               <Link href="/guides/builder" className={LINK}>
                 How to write a test case
                 <ArrowRight size={14} aria-hidden="true" />

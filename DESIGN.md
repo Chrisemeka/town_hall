@@ -695,13 +695,22 @@ accent-ink link. No email field.
   opens on the finished report and each scene button shows that scene done.
 - `.th-glow` (globals.css): a 10% Voltage radial behind the windows, **dark
   only** — on the light ground it is invisible or a smudge.
+- *Compact and medium:* H1 steps 40 (36 below 360px) → 52 → 64 → 80px, and
+  "Not feedback." never wraps. Below 600px the actions stack full width as
+  48px rows. Below 600px the demo **does not autoplay**: it opens on scene 01
+  finished, tabs read **Write · Test · Read** (14px, centred; each still
+  named "{role} {step}"), a tab shows that scene finished, and **Play** starts
+  the clock from the current scene. A horizontal touch swipe on the stage
+  steps one scene (`swipeStep`, never on a vertical scroll, no wrap). From
+  600px it autoplays as before; the icon rail shows from 600px, full tab
+  labels from 840px.
 
 **② Features** (`#tour`) — "From test case to fix list."
 - Cursor-style cards, one per capability, stacked 64px apart (96px from `lg`): copy on one
   side (24px Syne title, 18px DM Sans body, optional accent-ink guide link),
   the product on a `.th-stage` dot grid on the other, alternating sides from
   `lg` (4/8 columns). Each window is a browser — address bar with a real
-  route, the app's sidebar (copied from `Sidebar.tsx`, folded below `md`),
+  route, the app's sidebar (copied from `Sidebar.tsx`, folded below 840px),
   then the page. The section runs to 1680px, not the 1200px column.
   Inside the window (sidebar and page) the type is **DM Sans**, not DM Mono —
   a deliberate exception so the cards read as a website; the wordmark keeps
@@ -715,11 +724,27 @@ accent-ink link. No email field.
 - **Only the AI summary moves**: it streams in once when scrolled to, in
   under 5s, so it needs no pause control. Writing, testing and reviewing are
   already animated in the hero; repeating them here is repetition.
+- *Compact (< 600px):* the card and the stage drop their frames (`.th-stage`
+  is gated to `width >= 600px` in globals.css), so the browser window is the
+  one border; text comes first, then the mock. The address bar becomes a
+  one-line caption ("Tester · Mission step"), the sidebar shows from 840px,
+  templates list three steps then "+ 2 more steps", Pass / Fail / Blocked is
+  a joined 48px segmented control, summary insights stack (three columns from
+  840px), and the export drops its Action column so it fits unscrolled.
+  *Medium:* framed cards, stacked, as at desktop but one column.
 
 **③ The loop** — "Test one, earn one." DM Sans paragraph about the cohort
-beside a numbered three-step list. No figures.
+beside a numbered three-step list. No figures. *Compact:* a vertical stepper
+— 40px numbered circles (`accent-ink` on `bg-ink/[0.06]`, never Voltage)
+joined by a 2px `line` rule. *Medium and expanded:* three cards in a row.
+`lg` keeps the ruled list.
 
 **④ Close** — short H2 and two accent-ink links (builder guide, pricing).
+*Compact:* the links stack as 48px rows.
+
+Every section pads `px-4 medium:px-6` and `py-12` on compact. No Voltage
+fill on the page body at any width — the header's "Get started" stays the
+only one.
 
 **Not on the page, by decision:** logo strip, stats and testimonials — none
 are real yet. Add them when they are, never as placeholders.
