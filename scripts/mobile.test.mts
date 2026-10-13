@@ -41,6 +41,8 @@ const REVAMPED = [
   "components/setup/SetupShell.tsx",
   "components/setup/chrome.tsx",
   "components/setup/StepIndicator.tsx",
+  "app/choose-account/page.tsx",
+  "components/setup/RoleCards.tsx",
 ]
 
 const offences: string[] = []
