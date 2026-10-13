@@ -40,18 +40,18 @@ export async function SetupShell({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value)
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
+    <div className="min-h-dvh flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
       <header className="border-b border-line bg-surface">
-        <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Logo size={32} />
             <span className="font-syne font-bold text-[18px] text-ink">Twnhall</span>
           </div>
           <div className="flex items-center gap-4">
-            {/* Hidden below 640px: the mark, this line and a 44px control come
-                to ~364px against the 312px a 360px viewport leaves. The line is
+            {/* Hidden below 600px: the mark, this line and a 48px control come
+                to ~370px against the 328px a 360px viewport leaves. The line is
                 orientation; the toggle is a control, so the line gives way. */}
-            <p className="hidden sm:block font-mono text-[13px] text-ink-muted">
+            <p className="hidden medium:block font-mono text-[13px] text-ink-muted">
               {context}
             </p>
             <ThemeToggle theme={theme} />
@@ -59,7 +59,9 @@ export async function SetupShell({
         </div>
       </header>
 
-      <main className="flex-1 w-full px-6 py-12 lg:py-16">
+      {/* The first line sits 64px under the header on phones, 80px on
+          tablets, as on every revamped public page. */}
+      <main className="flex-1 w-full px-4 pt-16 pb-8 medium:px-6 medium:pt-20 medium:pb-12 lg:py-16">
         <div
           className={`mx-auto w-full ${width === "wide" ? "max-w-[760px]" : "max-w-[640px]"}`}
         >

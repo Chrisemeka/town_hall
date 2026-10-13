@@ -57,23 +57,25 @@ export default async function TermsAcceptPage() {
   return (
     <SetupShell
       context="Setting up your account"
-      indicator={<StepIndicator bar={bar} />}
+      indicator={<StepIndicator bar={bar} compactLine={false} />}
     >
       <SetupCard
         title="Accept our terms to continue"
         subhead="Have a read of the Terms of Service and the Privacy Policy, then tick the box below."
       >
-        <div className="rounded-[12px] border border-line p-5 mb-8">
+        <div className="rounded-[12px] border border-line p-4 mb-6 medium:p-5 medium:mb-8">
           <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[1px] mb-3">
             Signing in as
           </p>
-          <p className="font-mono text-[15px] text-ink mb-1">{displayName || "—"}</p>
-          <p className="font-mono text-[13px] text-ink-muted">{email}</p>
+          {/* anywhere, not break-all: only an address too long for the box
+              breaks, and a short one stays on one line. */}
+          <p className="font-mono text-[16px] lg:text-[15px] [overflow-wrap:anywhere] text-ink mb-1">{displayName || "—"}</p>
+          <p className="font-mono text-[14px] lg:text-[13px] [overflow-wrap:anywhere] text-ink-muted">{email}</p>
         </div>
 
         <TermsAcceptForm />
 
-        <p className="font-mono text-[12px] text-ink-muted mt-8 leading-6">
+        <p className="font-mono text-[12px] text-ink-muted mt-6 medium:mt-8 leading-6">
           Your acceptance is recorded against your account.
         </p>
       </SetupCard>

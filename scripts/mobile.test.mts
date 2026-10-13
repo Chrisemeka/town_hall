@@ -36,6 +36,11 @@ const REVAMPED = [
   "components/public/auth/SignUpForm.tsx",
   "app/(public)/login/page.tsx",
   "app/(public)/signup/page.tsx",
+  "app/terms-accept/page.tsx",
+  "components/TermsAcceptForm.tsx",
+  "components/setup/SetupShell.tsx",
+  "components/setup/chrome.tsx",
+  "components/setup/StepIndicator.tsx",
 ]
 
 const offences: string[] = []
@@ -91,6 +96,10 @@ for (const g of ["builder", "tester"]) {
   const src = readFileSync(`app/(public)/guides/${g}/page.tsx`, "utf8")
   assert.ok(!/<p className=\{META\}/.test(src), `guides/${g}: a note paragraph uses META — use NOTE`)
 }
+
+const termsForm = readFileSync("components/TermsAcceptForm.tsx", "utf8")
+assert.ok(/min-h-14/.test(termsForm) && /w-5 h-5/.test(termsForm),
+  "TermsAcceptForm: the agreement row is the touch target — 56px row, 20px box below lg")
 
 // iOS Safari zooms on focus below 16px. Touch gets 16px; only a fine pointer gets 14.
 assert.ok(

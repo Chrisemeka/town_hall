@@ -378,6 +378,12 @@ Used in: New Project form, New Mission form, Feedback submission form.
 | Background | `#1A1A1F` |
 | Border | 1px solid `#2C2C35` |
 | Border (focus) | 1px solid `#E8FF47` |
+
+**A checkbox with a sentence label, below `lg`,** is a bordered row
+(`border-ink-muted`, 12px radius, 16px padding, at least 56px tall) with a
+20px box, and the whole row is the target; checked, the border turns
+`accent-ink` and the tick still shows. From `lg` it is the bare box and
+sentence. `TermsAcceptForm` is the reference.
 | Border (error) | 1px solid `#FF4F4F` |
 | Border Radius | 8px |
 | Text | `#F0F0F2`, DM Mono 14px |
@@ -576,7 +582,10 @@ a guard so the page body never scrolls horizontally.
 
 Three routes that stay three routes, wearing one shell: a 64px top bar with
 the wordmark and a context line, the step indicator, then a card. Card is
-`surface-raised` on `surface`, 16px radius, 40px padding (24px below 640px).
+`surface-raised` on `surface`, 16px radius, 40px padding, from 600px. Below
+600px the card has no chrome and the content sits on `surface` (328px wide at
+360), as the auth card does; the bar takes 16px margins and drops the context
+line, and the subhead is 16px below `lg`.
 Column is **640px**, or **760px** on the role picker, which needs two cards
 side by side. The bar and indicator are identical across all three — that is
 what carries the continuity, not a single width.
@@ -586,8 +595,8 @@ six stages and six pills do not fit 360px:
 
 | Width | Form |
 |---|---|
-| ≥640px | Pills. Current is `accent-ink` on an 8% tint; completed carries a tick; upcoming is `ink-muted`. |
-| <640px | One line — `Step 3 of 6 · Identity`. |
+| ≥600px | Pills. Current is `accent-ink` on an 8% tint; completed carries a tick; upcoming is `ink-muted`. |
+| <600px | One line — `Step 3 of 6 · Identity`. |
 
 > **The status comes from the gates, not from a step counter**, so someone
 > entering mid-chain sees what they actually completed. And where the tail is

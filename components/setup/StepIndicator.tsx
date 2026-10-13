@@ -5,7 +5,7 @@ import type { SetupBar } from "@/lib/setup"
  * Where the user is in the setup chain.
  *
  * Two presentations of the same data, because six pills do not fit a 360px
- * screen and a tester's bar is six stages long. Pills from 640px up; a single
+ * screen and a tester's bar is six stages long. Pills from 600px up; a single
  * "Step 3 of 6 · Identity" line below it. Both render from the same SetupBar,
  * so they cannot disagree.
  *
@@ -13,7 +13,15 @@ import type { SetupBar } from "@/lib/setup"
  * a screen reader needs; the compact line says the same thing in words, so the
  * narrow view is not a downgrade in what is announced.
  */
-export function StepIndicator({ bar }: { bar: SetupBar }) {
+export function StepIndicator({
+  bar,
+  compactLine = true,
+}: {
+  bar: SetupBar
+  /** The "Step 1 of N" line below 600px. /terms-accept drops it: on the first
+      gate it only adds a line above the heading. */
+  compactLine?: boolean
+}) {
   const { stages, unresolved } = bar
   const currentIndex = stages.findIndex((s) => s.status === "current")
   const current = stages[currentIndex]
@@ -25,9 +33,9 @@ export function StepIndicator({ bar }: { bar: SetupBar }) {
   const total = unresolved ? null : stages.length
 
   return (
-    <div className="mb-8">
-      {/* Compact, below 640px. */}
-      <p className="sm:hidden font-mono text-[12px] text-ink-muted">
+    <div className={compactLine ? "mb-6 medium:mb-8" : "max-medium:hidden mb-8"}>
+      {/* Compact, below 600px. */}
+      <p className="medium:hidden font-mono text-[12px] text-ink-muted">
         {current ? (
           <>
             <span className="text-ink">
@@ -40,8 +48,8 @@ export function StepIndicator({ bar }: { bar: SetupBar }) {
         ) : null}
       </p>
 
-      {/* Pills, from 640px up. */}
-      <ol className="hidden sm:flex flex-wrap items-center gap-2">
+      {/* Pills, from 600px up. */}
+      <ol className="hidden medium:flex flex-wrap items-center gap-2">
         {stages.map((stage) => (
           <li key={stage.id}>
             <span
