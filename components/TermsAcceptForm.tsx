@@ -63,7 +63,7 @@ export function TermsAcceptForm() {
             setAgreed(e.target.checked);
             if (e.target.checked) setError(null);
           }}
-          className="mt-1 w-4 h-4 accent-accent shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          className="mt-1 w-4 h-4 accent-accent shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           aria-describedby={error ? "terms-error" : "terms-agreement-text"}
           {...(error ? { "aria-invalid": true as const } : {})}
         />
@@ -78,7 +78,7 @@ export function TermsAcceptForm() {
             // place in the setup chain.
             target="_blank"
             rel="noopener"
-            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           >
             Terms of Service
           </Link>{" "}
@@ -87,7 +87,7 @@ export function TermsAcceptForm() {
             href="/privacy"
             target="_blank"
             rel="noopener"
-            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           >
             Privacy Policy
           </Link>
@@ -112,7 +112,7 @@ export function TermsAcceptForm() {
         disabled={isPending}
         aria-disabled={!agreed || undefined}
         className={[
-          "h-11 px-5 self-start rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised disabled:opacity-60 disabled:cursor-wait",
+          "h-11 px-5 self-start rounded-[8px] font-mono font-medium text-[14px] tracking-[0.2px] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised disabled:opacity-60 disabled:cursor-wait",
           agreed
             ? "bg-accent text-obsidian hover:bg-voltage-dark cursor-pointer"
             // Outlined rather than a grey fill: ink-muted on a 10% ink tint is
