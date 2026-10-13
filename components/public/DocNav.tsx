@@ -6,7 +6,12 @@ import { META } from "@/components/public/prose"
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 
-const ITEM = `block rounded-[4px] py-1 font-mono text-[13px] leading-5 text-ink hover:text-accent-ink hover:underline underline-offset-2 ${FOCUS}`
+// Below lg: 48px rows with the M3 list-item state layer, since touch has no
+// hover underline to show. From lg: today's sidebar row exactly.
+const ITEM =
+  "flex items-center min-h-12 px-2 rounded-[8px] font-mono text-[14px] leading-5 text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] " +
+  "lg:block lg:min-h-0 lg:px-0 lg:py-1 lg:rounded-[4px] lg:text-[13px] lg:hover:bg-transparent lg:active:bg-transparent lg:hover:text-accent-ink lg:hover:underline underline-offset-2 " +
+  FOCUS
 
 /**
  * Navigation for the four long documents: the current document's sections,
@@ -21,7 +26,8 @@ const ITEM = `block rounded-[4px] py-1 font-mono text-[13px] leading-5 text-ink 
 export function DocNav({ slug }: { slug: DocSlug }) {
   return (
     <nav aria-label="On this page">
-      <p className={`${META} uppercase tracking-[0.5px] mb-2`}>On this page</p>
+      {/* The sidebar's label only: below lg the disclosure's summary already says it. */}
+      <p className={`${META} hidden lg:block uppercase tracking-[0.5px] mb-2`}>On this page</p>
       <ol className="flex flex-col">
         {headingsFor(slug).map(({ id, title }) => (
           <li key={id}>
@@ -31,7 +37,7 @@ export function DocNav({ slug }: { slug: DocSlug }) {
                 // A modified click still opens the anchor where it was asked to.
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
                 e.preventDefault()
-                jumpToSection(id)
+                jumpToSection(id, e.currentTarget)
               }}
               className={ITEM}
             >
@@ -52,24 +58,25 @@ export function DocNav({ slug }: { slug: DocSlug }) {
  */
 export function DocLayout({ slug, children }: { slug: DocSlug; children?: React.ReactNode }) {
   return (
-    <div className="flex-1 w-full max-w-[1040px] mx-auto px-6 py-16 lg:grid lg:grid-cols-[240px_minmax(0,720px)] lg:justify-center lg:gap-12">
+    <div className="flex-1 w-full max-w-[1040px] mx-auto px-4 medium:px-6 lg:px-6 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-16 lg:grid lg:grid-cols-[240px_minmax(0,720px)] lg:justify-center lg:gap-12">
       <aside className="hidden lg:block">
-        <div className="sticky top-24 max-h-[calc(100vh-128px)] overflow-y-auto pr-2">
+        <div className="sticky top-24 max-h-[calc(100dvh-128px)] overflow-y-auto pr-2">
           <DocNav slug={slug} />
         </div>
       </aside>
 
       <div className="min-w-0 w-full max-w-[720px] mx-auto lg:mx-0">
-        <details className="lg:hidden mb-12 rounded-[12px] border border-line bg-surface-raised group">
+        <details className="lg:hidden mb-10 medium:mb-12 rounded-[12px] border border-line bg-surface-raised group">
           <summary
-            className={`flex items-center justify-between min-h-11 px-4 cursor-pointer list-none rounded-[12px] font-mono font-medium text-[14px] text-ink [&::-webkit-details-marker]:hidden ${FOCUS}`}
+            className={`flex items-center justify-between min-h-12 px-4 cursor-pointer list-none rounded-[12px] font-mono font-medium text-[14px] text-ink [&::-webkit-details-marker]:hidden ${FOCUS}`}
           >
             On this page
-            <span aria-hidden="true" className="text-ink-muted transition-transform duration-150 group-open:rotate-180">
+            <span aria-hidden="true" className="text-ink-muted transition-transform duration-150 motion-reduce:transition-none group-open:rotate-180">
               ▾
             </span>
           </summary>
-          <div className="px-4 pb-4 pt-2">
+          {/* The 48px rows supply the spacing. */}
+          <div className="px-2 pb-2 pt-1">
             <DocNav slug={slug} />
           </div>
         </details>

@@ -18,6 +18,12 @@ export const P_SMALL = "font-sans text-[14px] leading-7 text-ink"
 /** Metadata and captions. Label tier (≥4.5:1), never a paragraph. */
 export const META = "font-mono text-[12px] leading-5 text-ink-muted"
 
+/** A note under a section — a caveat or a rule of thumb. Body-readable on a
+ *  phone, META's look from lg. Not for metadata: that is still META. `ink`,
+ *  not `ink-muted`, below lg, because body text needs 7:1. */
+export const NOTE =
+  "font-sans text-[14px] leading-6 text-ink lg:font-mono lg:text-[12px] lg:leading-5 lg:text-ink-muted"
+
 export const H2 =
   "font-syne font-bold text-[28px] leading-9 text-ink"
 

@@ -26,18 +26,18 @@ const GUIDES = [
 
 export default function GuidesIndexPage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-16">
       <PageHeader
         title="Two sides of the same loop."
         lede="Most people here are both — you test other people's products to earn feedback on your own. Read whichever half you are about to do."
       />
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      <div className="grid gap-4 medium:grid-cols-2 medium:gap-6">
         {GUIDES.map(({ href, title, blurb }) => (
           <Link
             key={href}
             href={href}
-            className="group flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-6 hover:border-accent-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="group flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 hover:border-accent-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             <h2 className={H3}>{title}</h2>
             <p className="font-sans text-[14px] leading-6 text-ink">{blurb}</p>

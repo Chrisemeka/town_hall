@@ -102,4 +102,38 @@ describe("jumpToSection", () => {
     jumpToSection("missing")
     expect(replaceState).not.toHaveBeenCalled()
   })
+
+  // The phone disclosure folds before the scroll, or the scroll is measured
+  // with the open list still above the heading.
+  function origin() {
+    const disclosure = { open: true }
+    const from = { closest: () => disclosure } as unknown as Element
+    return { disclosure, from }
+  }
+
+  it("closes the disclosure it was called from, before scrolling", () => {
+    const { heading } = stub(false)
+    const { disclosure, from } = origin()
+    let openAtScroll: boolean | undefined
+    heading.scrollIntoView.mockImplementation(() => {
+      openAtScroll = disclosure.open
+    })
+    jumpToSection("notes", from)
+    expect(disclosure.open).toBe(false)
+    expect(openAtScroll).toBe(false)
+  })
+
+  it("leaves the page alone without an origin, as the sidebar calls it", () => {
+    const { heading } = stub(false)
+    jumpToSection("notes")
+    expect(heading.scrollIntoView).toHaveBeenCalled()
+    expect(heading.focus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
+  it("does not close anything for an id that is not on the page", () => {
+    stub(false)
+    const { disclosure, from } = origin()
+    jumpToSection("missing", from)
+    expect(disclosure.open).toBe(true)
+  })
 })

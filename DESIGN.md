@@ -276,6 +276,7 @@ Line height is inversely proportional to font size. Letter spacing is negative f
 | **Body** | 16px | 400 | 24 → 32px | 0px | Section descriptions, dashboard body text |
 | **Body Small** | 14px | 400 | 20 → 24px | 0.1px | Card descriptions, secondary copy |
 | **Label** | 12px | 500 | 16px | 0.5–1px | Tags, badges, metadata, eyebrows |
+| **Note** | 14px DM Sans `ink` below `lg`; Label style from `lg` | 400 | 24px; 20px from `lg` | 0px | Caveats and rules of thumb inside long-form pages (`NOTE` in `prose.tsx`). Metadata stays Label (`META`) |
 | **Mono / Code** | 13px | 400 | 20px | 0px | URLs, IDs, code snippets |
 | **Button** | 14 → 16px | 500 | 20 → 24px | 0.2px | All button text |
 
@@ -326,6 +327,13 @@ Every spacing value — padding, margin, gap, border-radius — must be divisibl
 | Medium | 600–839 | `medium:` | Tablet portrait, foldables, phone landscape | 24 (`medium:px-6`) | Bar + sheet |
 | Expanded | 840–1199 | `expanded:` | Tablet landscape, small laptops | 24 | Inline |
 | Desktop | ≥ 1024 / ≥ 1280 | `lg:` / `xl:` — unchanged | Laptops, desktops | 32 (`lg:px-8`) | Inline |
+
+**Space under the header on revamped pages:** the page's first heading starts
+**64px** below the header on phones and **80px** on tablets
+(`pt-16 medium:pt-20`), then the page's own desktop value pinned with `lg:`
+(e.g. `lg:py-16`, `lg:py-24`). Every revamped page follows it — pricing,
+about, contact, the guides, Terms and Privacy — and a later page spec that
+says otherwise yields to this. Bottom padding is the page's own.
 
 **Dashboard layout:** Left sidebar 240px fixed + top nav 56px fixed + fluid main content area (max 1,200px centered).
 
@@ -660,6 +668,12 @@ corners 16px, scrim literal Obsidian at 60% in both themes. Contents: close
 button, Pricing / Guides / About as 48px rows, a divider, Sign in, and below
 600px a labelled theme row. "Get started" is never repeated in the sheet — it
 is in the bar behind the scrim. Slides in from the trailing edge (§9).
+
+**Doc nav on a phone** (`components/public/DocNav.tsx`, below `lg`): the
+"On this page" disclosure has a 48px summary and 48px rows with the list-item
+state layer, and it folds itself when a section is tapped
+(`jumpToSection(id, from)` closes the `<details>` before scrolling). From
+`lg` it is the sticky sidebar, unchanged.
 
 > **Never add a nav or footer entry before its page exists.** A column whose
 > pages have not shipped is omitted, not stubbed — no `href="#"`, no "coming
