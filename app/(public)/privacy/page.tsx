@@ -12,9 +12,9 @@ export default function PrivacyPolicyPage() {
         <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Privacy Policy
         </h1>
-        <p className="font-mono text-[13px] text-ink-muted mb-12">Last updated: August 6, 2026</p>
+        <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: August 6, 2026</p>
 
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-8 medium:gap-10">
 
           <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px]">
             At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-4 ${ANCHOR}`}>{title}</h2>
+      <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-3 medium:mb-4 ${ANCHOR}`}>{title}</h2>
       {/* 16px below lg, as every other long-form public page; 14px from lg. */}
       <div className="flex flex-col gap-4 font-sans text-[16px] leading-7 text-ink lg:gap-3 lg:text-[14px]">
         {children}

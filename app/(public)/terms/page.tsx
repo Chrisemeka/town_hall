@@ -15,11 +15,11 @@ export default function TermsPage() {
         </h1>
         <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: August 6, 2026</p>
 
-        <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-12">
+        <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-10 medium:mb-12">
           Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
 
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-8 medium:gap-10">
 
           <Section {...docSection("terms", "agreement")}>
             <p>By using Twnhall, you agree to comply with all applicable laws and regulations.</p>
@@ -141,7 +141,7 @@ export default function TermsPage() {
 function Section({ id, number, title, children }: { id: string; number?: string; title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-4 ${ANCHOR}`}>
+      <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-3 medium:mb-4 ${ANCHOR}`}>
         <span className="text-accent-ink font-mono text-[14px] mr-2">{number}.</span>
         {title}
       </h2>
