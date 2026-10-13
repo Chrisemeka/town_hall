@@ -61,7 +61,7 @@ export function RoleCards({
                   icon beside the title, "You have this" under it. From medium:
                   the icon row with the label at its right, then the title. */}
               <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 mb-3 medium:gap-y-4 medium:mb-2">
-                <div className="row-span-2 medium:row-span-1 w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center">
+                <div className={`${alreadyHeld ? "row-span-2 medium:row-span-1" : ""} w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center`}>
                   <Icon className="w-5 h-5 text-accent-ink" strokeWidth={1.8} />
                 </div>
                 {alreadyHeld && (
