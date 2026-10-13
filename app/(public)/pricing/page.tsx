@@ -225,9 +225,31 @@ export default function PricingPage() {
         <h2 id="compare-heading" className={`${H2} mb-8`}>
           Compare plans
         </h2>
-        {/* Wide tables get their own scroll container so the page body never
-            scrolls horizontally at 360px. */}
-        <div className="overflow-x-auto">
+        {/* Below 600px a three-column table either scrolls or wraps a value to
+            four lines, so each row becomes a block with both values under
+            their plan names. Both render from ROWS, and display:none keeps
+            the hidden copy out of the accessibility tree, as the footer does. */}
+        <ul aria-label="Community and Pro compared, feature by feature" className="medium:hidden border-t border-line">
+          {ROWS.map(({ label, community, pro, emphasis }) => (
+            <li key={label} className="flex flex-col gap-3 py-4 border-b border-line">
+              <p className={`font-sans text-[14px] leading-6 text-ink ${emphasis ? "font-medium" : ""}`}>{label}</p>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  ["Community", community],
+                  ["Pro", pro],
+                ].map(([plan, value]) => (
+                  <div key={plan} className="flex flex-col gap-1">
+                    <span className={`${META} uppercase`}>{plan}</span>
+                    <span className="font-mono text-[14px] text-ink">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {/* From 600px the table fits its min width; overflow-x-auto stays as
+            a guard so the page body never scrolls sideways. */}
+        <div className="hidden medium:block overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left">
             <caption className="sr-only">
               Community and Pro compared, feature by feature
