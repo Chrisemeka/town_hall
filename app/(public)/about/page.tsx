@@ -10,13 +10,13 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-6 py-16">
+    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 py-10 medium:py-16">
       <PageHeader
         title="Built for people with no one to test on."
         lede="Most developers ship to an audience of nobody. Friends say it looks nice, and the first real user finds the broken thing in forty seconds. Twnhall is the room in between."
       />
 
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-10 medium:gap-12">
         <Section title="What it is">
           <p className={P}>
             You put up a product and say exactly what you want tested. Someone
@@ -66,7 +66,7 @@ export default function AboutPage() {
         </Section>
       </div>
 
-      <div className="mt-16 pt-8 border-t border-line flex flex-col gap-4">
+      <div className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
           Questions, or want to talk about Pro?{" "}
           <Link href="/contact" className={LINK_INLINE}>
