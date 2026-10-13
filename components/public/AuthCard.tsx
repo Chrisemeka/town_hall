@@ -107,7 +107,10 @@ export function AuthField({
           ? { "aria-invalid": true as const, "aria-describedby": errorId(name) }
           : {})}
         className={[
-          "h-10 w-full rounded-[8px] px-4 font-mono text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
+          // 16px on touch: iOS Safari zooms on focus into anything smaller and
+          // never zooms back. Keyed on the pointer, not the width, because an
+          // iPad in landscape is lg and still zooms; a mouse keeps 14px.
+          "h-10 w-full rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
           // `line` is 1.19:1 and fails WCAG 1.4.11's 3:1 for a control's visible
           // boundary, so a bounded control takes ink-muted. Design.md §4.1.
           hasError
