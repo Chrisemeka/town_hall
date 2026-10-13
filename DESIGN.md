@@ -276,6 +276,7 @@ Line height is inversely proportional to font size. Letter spacing is negative f
 | **Body** | 16px | 400 | 24 → 32px | 0px | Section descriptions, dashboard body text |
 | **Body Small** | 14px | 400 | 20 → 24px | 0.1px | Card descriptions, secondary copy |
 | **Label** | 12px | 500 | 16px | 0.5–1px | Tags, badges, metadata, eyebrows |
+| **Note** | 14px DM Sans `ink` below `lg`; Label style from `lg` | 400 | 24px; 20px from `lg` | 0px | Caveats and rules of thumb inside long-form pages (`NOTE` in `prose.tsx`). Metadata stays Label (`META`) |
 | **Mono / Code** | 13px | 400 | 20px | 0px | URLs, IDs, code snippets |
 | **Button** | 14 → 16px | 500 | 20 → 24px | 0.2px | All button text |
 
@@ -660,6 +661,12 @@ corners 16px, scrim literal Obsidian at 60% in both themes. Contents: close
 button, Pricing / Guides / About as 48px rows, a divider, Sign in, and below
 600px a labelled theme row. "Get started" is never repeated in the sheet — it
 is in the bar behind the scrim. Slides in from the trailing edge (§9).
+
+**Doc nav on a phone** (`components/public/DocNav.tsx`, below `lg`): the
+"On this page" disclosure has a 48px summary and 48px rows with the list-item
+state layer, and it folds itself when a section is tapped
+(`jumpToSection(id, from)` closes the `<details>` before scrolling). From
+`lg` it is the sticky sidebar, unchanged.
 
 > **Never add a nav or footer entry before its page exists.** A column whose
 > pages have not shipped is omitted, not stubbed — no `href="#"`, no "coming
