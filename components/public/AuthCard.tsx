@@ -33,7 +33,7 @@ export function AuthCard({
       <div className="w-full max-w-[440px]">
         <Link
           href="/"
-          className="hidden medium:flex items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="hidden medium:flex medium:min-h-12 lg:min-h-0 items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           <Logo size={32} />
           <span className="font-syne font-bold text-[20px] text-ink">Twnhall</span>
