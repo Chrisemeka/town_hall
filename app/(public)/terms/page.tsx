@@ -128,7 +128,8 @@ export default function TermsPage() {
           </Section>
 
           <div className="pt-6 border-t border-line">
-            <p className="font-mono text-[13px] leading-6 text-ink">
+            {/* The sentence the page exists for: body text below lg, today's look from lg. */}
+            <p className="font-sans text-[16px] leading-7 text-ink lg:font-mono lg:text-[13px] lg:leading-6">
               By using Twnhall, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use the app.
             </p>
           </div>
