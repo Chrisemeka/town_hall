@@ -120,7 +120,8 @@ export function AuthField({
           // 16px on touch: iOS Safari zooms on focus into anything smaller and
           // never zooms back. Keyed on the pointer, not the width, because an
           // iPad in landscape is lg and still zooms; a mouse keeps 14px.
-          "h-12 lg:h-10 w-full rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
+          // scroll-mt-24 keeps a focused field clear of the 64px sticky header.
+          "h-12 lg:h-10 w-full scroll-mt-24 rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink bg-surface placeholder:text-ink-muted focus:outline-none transition-colors duration-150 border",
           // `line` is 1.19:1 and fails WCAG 1.4.11's 3:1 for a control's visible
           // boundary, so a bounded control takes ink-muted. Design.md §4.1.
           hasError
