@@ -70,6 +70,9 @@ export function SignUpForm() {
           name="full_name"
           label="Full name"
           autoComplete="name"
+          autoCapitalize="words"
+          spellCheck={false}
+          enterKeyHint="next"
           errors={errors.full_name}
         />
         <AuthField
@@ -77,6 +80,9 @@ export function SignUpForm() {
           label="Email"
           type="email"
           autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="next"
           errors={errors.email}
         />
         <AuthField
@@ -84,6 +90,9 @@ export function SignUpForm() {
           label="Password"
           type="password"
           autoComplete="new-password"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="next"
           errors={errors.password}
           helper={`At least ${PASSWORD_MIN} characters.`}
         />
@@ -92,6 +101,9 @@ export function SignUpForm() {
           label="Confirm password"
           type="password"
           autoComplete="new-password"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="go"
           errors={errors.confirm_password}
         />
         <Turnstile resetKey={state} errors={errors.captcha_token} />

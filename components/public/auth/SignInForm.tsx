@@ -64,6 +64,9 @@ export function SignInForm() {
           label="Email"
           type="email"
           autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="next"
           errors={errors.email}
         />
         <AuthField
@@ -71,6 +74,9 @@ export function SignInForm() {
           label="Password"
           type="password"
           autoComplete="current-password"
+          autoCapitalize="none"
+          spellCheck={false}
+          enterKeyHint="go"
           errors={errors.password}
         />
         <div className="flex justify-end -mt-2">

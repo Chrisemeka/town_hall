@@ -75,6 +75,9 @@ export function AuthField({
   defaultValue,
   errors,
   helper,
+  autoCapitalize,
+  spellCheck,
+  enterKeyHint,
 }: {
   name: string
   label: string
@@ -83,6 +86,10 @@ export function AuthField({
   defaultValue?: string
   errors?: string[]
   helper?: string
+  /** Keyboard hints for touch: they change the keyboard, never the value. */
+  autoCapitalize?: React.InputHTMLAttributes<HTMLInputElement>["autoCapitalize"]
+  spellCheck?: boolean
+  enterKeyHint?: React.InputHTMLAttributes<HTMLInputElement>["enterKeyHint"]
 }) {
   const hasError = !!errors?.length
   // Every password field gets the show/hide toggle.
@@ -100,6 +107,9 @@ export function AuthField({
         name={name}
         {...(type === "password" ? {} : { type })}
         autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize}
+        spellCheck={spellCheck}
+        enterKeyHint={enterKeyHint}
         defaultValue={defaultValue}
         // aria-invalid only when it is true: every unerrored input announcing
         // "valid" out loud is noise. Mirrors fieldErrorProps().
