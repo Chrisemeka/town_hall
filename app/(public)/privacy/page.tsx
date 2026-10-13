@@ -9,7 +9,7 @@ export default function PrivacyPolicyPage() {
   return (
     <DocLayout slug="privacy">
 
-        <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
+        <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Privacy Policy
         </h1>
         <p className="font-mono text-[13px] text-ink-muted mb-12">Last updated: August 6, 2026</p>

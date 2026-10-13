@@ -10,7 +10,7 @@ export default function TermsPage() {
   return (
     <DocLayout slug="terms">
 
-        <h1 className="font-syne font-bold text-[40px] leading-[48px] tracking-[-0.5px] text-ink mb-2">
+        <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Terms of Service
         </h1>
         <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: August 6, 2026</p>
