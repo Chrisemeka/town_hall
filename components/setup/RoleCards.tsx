@@ -43,7 +43,7 @@ export function RoleCards({
   const [pendingRole, setPendingRole] = useState<AccountType | null>(null)
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 medium:grid-cols-2 gap-4 medium:gap-5">
       {ROLES.map(({ type, icon: Icon, label, blurb, bullets }) => {
         const alreadyHeld = held.includes(type)
         const state = roleCardState(type, alreadyHeld, pendingRole)
@@ -54,7 +54,7 @@ export function RoleCards({
               type="submit"
               disabled={state.disabled}
               aria-busy={state.busy}
-              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col hover:border-accent-ink transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col hover:border-accent-ink transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
               {/* One markup, two arrangements, because a card is a <button> and
                   duplicated content inside it would be read twice. Compact: the
@@ -73,7 +73,7 @@ export function RoleCards({
                   {label}
                 </h2>
               </div>
-              <p className="font-sans text-[13px] leading-6 text-ink mb-5">
+              <p className="font-sans text-[14px] leading-6 text-ink lg:text-[13px] mb-4 medium:mb-5">
                 {blurb}
               </p>
 
@@ -92,7 +92,7 @@ export function RoleCards({
               {/* aria-live so the label change is announced, not only seen. */}
               <span
                 aria-live="polite"
-                className="mt-auto font-mono text-[13px] font-medium text-ink flex items-center gap-1.5 group-hover:text-accent-ink transition-colors duration-150"
+                className="mt-auto font-mono text-[14px] lg:text-[13px] font-medium text-ink flex items-center gap-1.5 group-hover:text-accent-ink transition-colors duration-150"
               >
                 {state.label}
                 {state.busy ? (
