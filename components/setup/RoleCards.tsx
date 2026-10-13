@@ -77,7 +77,10 @@ export function RoleCards({
                 {blurb}
               </p>
 
-              <ul className="flex flex-col gap-1.5 mb-6">
+              {/* Each bullet restates a clause of the blurb. Beside a second
+                  card they are a summary; on a phone they cost ~70px a card,
+                  the difference between seeing both choices and seeing one. */}
+              <ul className="hidden medium:flex flex-col gap-1.5 mb-6">
                 {bullets.map((b) => (
                   <li key={b} className="font-mono text-[12px] text-ink-muted flex items-center gap-2">
                     <span className="w-1 h-1 rounded-full bg-accent-ink shrink-0" />
