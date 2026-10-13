@@ -551,7 +551,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
           {role === "tester" ? "Find a mission" : "Go to your dashboard"}
           <ArrowRight size={14} aria-hidden="true" />
         </a>
-        {/* Written now, inert until the welcome email ships. */}
+        {/* True: completeVerification sends sendWelcomeEmail inside after(). */}
         <p className={`${NOTE} inline-flex items-start gap-2`}>
           <Check size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-ink" />
           We&apos;ve sent you a note with these steps, so you have them later.
