@@ -13,7 +13,7 @@ export default function TermsPage() {
         <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
           Terms of Service
         </h1>
-        <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: August 6, 2026</p>
+        <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: October 13, 2026</p>
 
         <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-10 medium:mb-12">
           Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
@@ -30,28 +30,28 @@ export default function TermsPage() {
               Twnhall has two account types: a <span className="text-ink">Builder</span> account, which submits projects and missions and reviews the feedback that comes back, and a <span className="text-ink">Tester</span> account, which picks up missions and submits feedback.
             </p>
             <p>
-              These are separate accounts, not two modes of one account. Each has its own dashboard and its own history. One person may hold both a Builder and a Tester account, and you choose your account type when you sign up.
+              One sign-in can hold both a Builder and a Tester account. You choose your first account type after you sign up and can add the other later; each has its own dashboard, history, and profile, which you complete before using it, and you switch between them while signed in.
             </p>
             <p>
-              A Builder account cannot access Tester views, and a Tester account cannot access Builder views. You may not use a Tester account to submit feedback on a project you own, and you may not create additional accounts to work around this.
+              While you act as a Builder you see Builder views, and while you act as a Tester you see Tester views. You may not use a Tester account to submit a report on a project you own, and you may not create additional accounts to work around this.
             </p>
             <p>
-              You are responsible for activity that occurs under any account you hold, and for keeping the Google account used to sign in secure.
+              You are responsible for activity that occurs under any account you hold, and for keeping your password, or the Google account you sign in with, secure.
             </p>
           </Section>
 
           <Section {...docSection("terms", "missions")}>
             <p>
-              <span className="text-ink font-medium">Testing on Twnhall is reciprocal and unpaid.</span> Missions carry no payment, and nothing you do on the platform earns money. What a submission earns you is the Builder&apos;s response to it, on the record against your account.
+              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Missions carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per mission, and publishing a mission spends reports from your balance. Pro adds a monthly allowance and is arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
             </p>
             <p>
-              A submission moves from Pending Review to Approved, with a rating. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the mission brief is a violation of these terms.
+              A submission moves from Pending Review to Approved, with a rating and an optional note from the Builder. A submission is not sent back for changes. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the mission brief is a violation of these terms.
             </p>
           </Section>
 
           <Section {...docSection("terms", "ratings")}>
             <p>
-              When a Builder approves a submission or requests changes, they rate the Tester&apos;s work from 1 to 5. Those ratings are recorded against the Tester&apos;s account. Twnhall does not currently display an aggregate rating or a rank to Testers; the underlying ratings are kept, and this section will be updated before any of it is surfaced.
+              When a Builder approves a submission, they rate the Tester&apos;s work from 1 to 5. Those ratings are recorded against the Tester&apos;s account, and a Tester sees their own average rating in Settings. Twnhall does not show ratings or a rank to anyone else; this section will be updated before it does.
             </p>
             <p>
               Ratings must reflect the quality of the work submitted. Rating a Tester down for reasons unrelated to their submission, coordinating ratings between accounts, or soliciting ratings in exchange for anything of value is prohibited.
@@ -63,17 +63,17 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "content")}>
             <p>
-              You keep ownership of what you submit — your project details, mission briefs, written feedback, and screenshots.
+              You keep ownership of what you submit — your project details, missions, reports, and screenshots.
             </p>
             <p>
-              By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your feedback and screenshots to the Builder whose mission you submitted against, and processing submissions through automated analysis as described in our{" "}
+              By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your report and screenshots to the Builder whose mission you submitted against, and processing submissions through automated analysis as described in our{" "}
               <Link href="/privacy" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Privacy Policy</Link>.
             </p>
             <p>
               Screenshots you capture while testing may show another developer&apos;s unreleased product. Do not publish, share, or reuse them outside Twnhall. Treat anything you see while testing as confidential.
             </p>
             <p>
-              Do not submit content you do not have the right to submit, and do not include personal data, credentials, or payment details of other people in a screenshot or written feedback.
+              Do not submit content you do not have the right to submit, and do not include personal data, credentials, or payment details of other people in a screenshot or report.
             </p>
           </Section>
 
@@ -88,7 +88,7 @@ export default function TermsPage() {
           <Section {...docSection("terms", "conduct")}>
             <p>Users are prohibited from engaging in activities that violate our Community Guidelines, including but not limited to harassment, hate speech, and illegal content sharing.</p>
             <p>
-              Submitting low-effort feedback, submitting feedback for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
+              Submitting low-effort reports, submitting a report for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
             </p>
           </Section>
 
