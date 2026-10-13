@@ -52,7 +52,7 @@ export default async function ChooseAccountPage() {
     <SetupShell
       context={isFirstChoice ? "Setting up your account" : "Add a role"}
       width="wide"
-      indicator={bar ? <StepIndicator bar={bar} /> : undefined}
+      indicator={bar ? <StepIndicator bar={bar} compactLine={false} /> : undefined}
     >
       <div className="mb-6 medium:mb-10">
         <h1 className="font-syne font-bold text-[28px] leading-9 lg:text-[32px] lg:leading-10 tracking-[-0.5px] text-ink">
