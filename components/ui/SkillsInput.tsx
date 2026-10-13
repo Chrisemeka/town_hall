@@ -39,15 +39,18 @@ export function SkillsInput({
   // text: on Bone that tint is invisible, which is the whole reason ink and
   // fill are separate halves of the accent rule.
   const PILL =
-    "inline-flex items-center gap-2 border border-accent-ink text-accent-ink rounded-[4px] pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
+    "inline-flex items-center gap-2 border border-accent-ink text-accent-ink rounded-[4px] min-h-8 lg:min-h-0 pl-2 pr-1 py-[2px] font-mono text-[12px] font-medium tracking-[0.5px]"
+  // 32px, not 48: M3's input chip is 32px tall, and a 48px × would push
+  // every chip to 48 and a row of six skills onto three lines. The 8px gap
+  // between chips keeps neighbouring × buttons from overlapping.
   const REMOVE =
-    "h-4 w-4 inline-flex items-center justify-center rounded-[2px] text-accent-ink hover:bg-accent-ink hover:text-surface-raised transition-colors duration-150"
+    "h-8 w-8 -my-1 lg:my-0 lg:h-4 lg:w-4 text-[14px] lg:text-[12px] inline-flex items-center justify-center rounded-[2px] text-accent-ink hover:bg-accent-ink hover:text-surface-raised transition-colors duration-150"
   const DROPDOWN =
-    "absolute z-10 mt-2 w-full max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
+    "absolute z-10 mt-2 w-full max-h-[240px] lg:max-h-[192px] overflow-y-auto bg-surface-raised border border-line rounded-[12px] py-2"
   // The highlighted option is underlined as well as tinted: colour never
   // carries state alone.
   const OPTION =
-    "w-full h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink cursor-pointer hover:bg-ink/[0.06] aria-selected:bg-ink/[0.06] aria-selected:underline underline-offset-2 transition-colors duration-150"
+    "w-full h-12 lg:h-8 px-4 flex items-center text-left font-mono text-[14px] text-ink cursor-pointer hover:bg-ink/[0.06] aria-selected:bg-ink/[0.06] aria-selected:underline underline-offset-2 transition-colors duration-150"
 
   const [combo, dispatch] = useReducer(skillsCombo, SKILLS_COMBO_INITIAL)
   const { input, active } = combo
@@ -86,6 +89,8 @@ export function SkillsInput({
           id="skills"
           value={input}
           autoComplete="off"
+          // Return adds a skill; "Go" would read as submitting the step.
+          enterKeyHint="enter"
           role="combobox"
           aria-expanded={expanded}
           aria-controls="skill-suggestions"
