@@ -39,7 +39,7 @@ const ROUTES = [
 
 export default function ContactPage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 py-10 medium:py-16">
+    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-16">
       <PageHeader
         title="Talk to us."
         lede="Twnhall is small enough that a real person reads everything that comes in. Usually a reply within a day or two."

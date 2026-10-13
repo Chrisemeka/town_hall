@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 py-10 medium:py-16">
+    <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-16">
       <PageHeader
         title="Built for people with no one to test on."
         lede="Most developers ship to an audience of nobody. Friends say it looks nice, and the first real user finds the broken thing in forty seconds. Twnhall is the room in between."

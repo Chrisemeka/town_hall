@@ -179,7 +179,7 @@ function PlanCard({
 
 export default function PricingPage() {
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 py-10 medium:py-16 lg:py-24">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-24">
       {/* ─── Hero ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col items-center gap-4 text-center mb-10 medium:mb-16">
         <h1 className={H1}>
