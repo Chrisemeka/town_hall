@@ -14,7 +14,7 @@ export default function SignUpPage() {
   return (
     <AuthCard
       title="Create your account"
-      lede="One account covers both sides — build and test under the same name."
+      lede="One sign-in covers both sides — build and test under the same name."
     >
       <SignUpForm />
     </AuthCard>

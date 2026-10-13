@@ -43,7 +43,7 @@ export function RoleCards({
   const [pendingRole, setPendingRole] = useState<AccountType | null>(null)
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 medium:grid-cols-2 gap-4 medium:gap-5">
       {ROLES.map(({ type, icon: Icon, label, blurb, bullets }) => {
         const alreadyHeld = held.includes(type)
         const state = roleCardState(type, alreadyHeld, pendingRole)
@@ -54,27 +54,33 @@ export function RoleCards({
               type="submit"
               disabled={state.disabled}
               aria-busy={state.busy}
-              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col hover:border-accent-ink transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center">
+              {/* One markup, two arrangements, because a card is a <button> and
+                  duplicated content inside it would be read twice. Compact: the
+                  icon beside the title, "You have this" under it. From medium:
+                  the icon row with the label at its right, then the title. */}
+              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 mb-3 medium:gap-y-4 medium:mb-2">
+                <div className={`${alreadyHeld ? "row-span-2 medium:row-span-1" : ""} w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center`}>
                   <Icon className="w-5 h-5 text-accent-ink" strokeWidth={1.8} />
                 </div>
                 {alreadyHeld && (
-                  <span className="font-mono text-[12px] uppercase tracking-[1px] text-accent-ink">
+                  <span className="col-start-2 row-start-2 medium:row-start-1 justify-self-start medium:justify-self-end font-mono text-[12px] uppercase tracking-[1px] text-accent-ink">
                     You have this
                   </span>
                 )}
+                <h2 className="col-start-2 row-start-1 medium:col-start-1 medium:col-span-2 medium:row-start-2 font-syne font-bold text-[20px] max-lg:leading-7 text-ink">
+                  {label}
+                </h2>
               </div>
-
-              <h2 className="font-syne font-bold text-[20px] text-ink mb-2">
-                {label}
-              </h2>
-              <p className="font-sans text-[13px] leading-6 text-ink mb-5">
+              <p className="font-sans text-[14px] leading-6 text-ink lg:text-[13px] mb-4 medium:mb-5">
                 {blurb}
               </p>
 
-              <ul className="flex flex-col gap-1.5 mb-6">
+              {/* Each bullet restates a clause of the blurb. Beside a second
+                  card they are a summary; on a phone they cost ~70px a card,
+                  the difference between seeing both choices and seeing one. */}
+              <ul className="hidden medium:flex flex-col gap-1.5 mb-6">
                 {bullets.map((b) => (
                   <li key={b} className="font-mono text-[12px] text-ink-muted flex items-center gap-2">
                     <span className="w-1 h-1 rounded-full bg-accent-ink shrink-0" />
@@ -86,11 +92,11 @@ export function RoleCards({
               {/* aria-live so the label change is announced, not only seen. */}
               <span
                 aria-live="polite"
-                className="mt-auto font-mono text-[13px] font-medium text-ink flex items-center gap-1.5 group-hover:text-accent-ink transition-colors duration-150"
+                className="mt-auto font-mono text-[14px] lg:text-[13px] font-medium text-ink flex items-center gap-1.5 group-hover:text-accent-ink transition-colors duration-150"
               >
                 {state.label}
                 {state.busy ? (
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-ink-muted border-t-transparent animate-spin" aria-hidden="true" />
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-ink-muted border-t-transparent animate-spin motion-reduce:animate-none" aria-hidden="true" />
                 ) : (
                   <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 )}

@@ -52,16 +52,17 @@ export default async function ChooseAccountPage() {
     <SetupShell
       context={isFirstChoice ? "Setting up your account" : "Add a role"}
       width="wide"
-      indicator={bar ? <StepIndicator bar={bar} /> : undefined}
+      indicator={bar ? <StepIndicator bar={bar} compactLine={false} /> : undefined}
     >
-      <div className="mb-10">
+      <div className="mb-6 medium:mb-10">
         <h1 className="font-syne font-bold text-[28px] leading-9 lg:text-[32px] lg:leading-10 tracking-[-0.5px] text-ink">
           {isFirstChoice ? "Builder or Tester?" : "You can hold both."}
         </h1>
-        <p className="font-sans text-[14px] leading-7 text-ink mt-3 max-w-[560px]">
-          These are two separate accounts, not two modes of one profile. Each has
-          its own dashboard and its own history. You can create the other one
-          later from Settings — nothing is locked in.
+        <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mt-3 max-w-[560px]">
+          One sign-in can hold both a Builder and a Tester account. Each has its
+          own dashboard, history and profile, and you switch between them while
+          signed in. You can add the other one later from Settings — nothing is
+          locked in.
         </p>
       </div>
 
