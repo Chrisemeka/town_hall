@@ -26,22 +26,25 @@ export function AuthCard({
   footer?: React.ReactNode
 }) {
   return (
-    <div className="flex-1 w-full flex flex-col items-center px-6 py-16">
+    // Below 600px the form sits straight on the surface: no card, and no logo
+    // block, since the header directly above already shows both. The heading
+    // starts 64px under the header (80px on medium), as on every public page.
+    <div className="flex-1 w-full flex flex-col items-center px-4 pt-16 pb-10 medium:px-6 medium:pt-20 medium:pb-16 lg:py-16">
       <div className="w-full max-w-[440px]">
         <Link
           href="/"
-          className="flex items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="hidden medium:flex items-center justify-center gap-2 mb-8 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           <Logo size={32} />
           <span className="font-syne font-bold text-[20px] text-ink">Twnhall</span>
         </Link>
 
-        <div className="rounded-[16px] border border-line bg-surface-raised p-10">
+        <div className="medium:rounded-[16px] medium:border medium:border-line medium:bg-surface-raised medium:p-10">
           <h1 className="font-syne font-bold text-[28px] leading-9 text-ink mb-2">
             {title}
           </h1>
           {lede && (
-            <p className="font-sans text-[14px] leading-6 text-ink mb-8">{lede}</p>
+            <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px] mb-6 medium:mb-8">{lede}</p>
           )}
           {children}
         </div>
