@@ -224,7 +224,7 @@ export function VerificationFlow({
             role="alert"
             className="mb-6 px-4 py-3 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08]"
           >
-            <p className="font-mono text-[13px] leading-5 text-danger-ink">{formError}</p>
+            <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink">{formError}</p>
           </div>
         )}
 
@@ -244,7 +244,9 @@ export function VerificationFlow({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 pt-8">
+        {/* Below 600px: primary on top, Back under it, both full width. DOM
+            order is unchanged, so focus still goes primary, then Back. */}
+        <div className="grid grid-cols-1 gap-3 pt-6 medium:flex medium:flex-wrap medium:items-center medium:pt-8">
           {/* Live whatever the form holds — validated on click, naming the
               outstanding field. Disabled only while the action is in flight,
               which the label says. */}
@@ -252,7 +254,7 @@ export function VerificationFlow({
             type="button"
             onClick={onReview ? onComplete : onContinue}
             disabled={pending}
-            className="h-11 px-6 inline-flex items-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+            className="h-12 w-full justify-center medium:w-auto lg:h-11 px-6 inline-flex items-center rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
           >
             {pending
               ? onReview
@@ -267,7 +269,7 @@ export function VerificationFlow({
               type="button"
               onClick={() => setStep(step - 1)}
               disabled={pending}
-              className="h-11 px-6 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+              className="h-12 w-full justify-center medium:w-auto lg:h-11 px-6 inline-flex items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
             >
               Back
             </button>
