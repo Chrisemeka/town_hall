@@ -28,12 +28,16 @@ export const UL = "flex flex-col gap-3 list-disc pl-5 marker:text-accent-ink"
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 
+// Below lg: 48px tall and free to wrap to a second centred line rather than
+// overflow a fixed height (the Pro label at 360px). Desktop keeps h-11.
+const BTN_SIZE = "min-h-12 py-3 px-6 text-center lg:min-h-0 lg:h-11 lg:py-0"
+
 /** Voltage fill with Obsidian text — 17.3:1, and the one per viewport. */
 export const BTN_PRIMARY =
-  `inline-flex items-center justify-center h-11 px-6 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer ${FOCUS}`
+  `inline-flex items-center justify-center ${BTN_SIZE} rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 cursor-pointer ${FOCUS}`
 
 export const BTN_SECONDARY =
-  `inline-flex items-center justify-center h-11 px-6 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer ${FOCUS}`
+  `inline-flex items-center justify-center ${BTN_SIZE} rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer ${FOCUS}`
 
 /** A link inside body copy. Underlined, because colour alone is not a signal. */
 export const LINK_INLINE =
@@ -44,6 +48,10 @@ export const LINK_INLINE =
 export const ANCHOR =
   "scroll-mt-24 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
 
+/** The page h1: 32/40 compact, 40/48 medium, 56/60 from lg. */
+export const H1 =
+  "font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink"
+
 export function PageHeader({
   title,
   lede,
@@ -52,8 +60,8 @@ export function PageHeader({
   lede?: string
 }) {
   return (
-    <div className="flex flex-col gap-4 mb-12">
-      <h1 className="font-syne font-bold text-[40px] leading-[48px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink">
+    <div className="flex flex-col gap-4 mb-10 medium:mb-12">
+      <h1 className={H1}>
         {title}
       </h1>
       {lede && <p className={`${P} max-w-2xl`}>{lede}</p>}

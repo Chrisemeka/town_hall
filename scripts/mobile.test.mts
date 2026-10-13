@@ -19,6 +19,10 @@ const REVAMPED = [
   "components/public/ThemeToggle.tsx",
   "app/(public)/page.tsx",
   "components/public/HomeMockups.tsx",
+  "components/public/prose.tsx",
+  "app/(public)/pricing/page.tsx",
+  "app/(public)/about/page.tsx",
+  "app/(public)/contact/page.tsx",
 ]
 
 const offences: string[] = []
@@ -54,6 +58,12 @@ const css = readFileSync("app/globals.css", "utf8")
 for (const token of ["--breakpoint-medium: 600px", "--breakpoint-expanded: 840px", "--ease-standard:"]) {
   assert.ok(css.includes(token), `globals.css is missing ${token}`)
 }
+
+// Pricing: the header's Get started is the page's one Voltage fill.
+assert.ok(
+  !readFileSync("app/(public)/pricing/page.tsx", "utf8").includes("BTN_PRIMARY"),
+  "pricing: BTN_PRIMARY is a second Voltage fill — the header already has one",
+)
 
 assert.ok(
   !readFileSync("components/public/MobileNav.tsx", "utf8").includes("backdrop:bg-surface"),

@@ -545,15 +545,19 @@ through a grid gets values with nothing to attach them to; a table announces
 | Cell | DM Mono 14px, `ink` |
 | Row divider | 1px `line`, bottom only |
 | Caption | `<caption class="sr-only">` naming what is compared |
-| Overflow | wrapped in `overflow-x-auto` with `min-w-[520px]` on the table |
+| Overflow | Below 600px, the same rows as a stacked list (label, then both values under their column names); from 600px the table, in `overflow-x-auto` with `min-w-[520px]` |
 
 **An absent feature is an em dash plus its row header, never an empty cell and
 never a colour.** Per §10, colour alone never conveys state — "—" in the
 *Shareable report* row reads correctly; a red dot does not. The same rule is
 why a tick renders as the word "Included".
 
-The table scrolls inside its own container so the page body never scrolls
-horizontally at 360px.
+Below 600px a three-column table either scrolls or wraps a value to four
+lines, so the comparison renders as a `<ul>` instead: one block per row, the
+plan name repeated above every value so none is read without its plan. Both
+copies render from one rows array and one is hidden by class, so a screen
+reader meets only one. From 600px the table fits; `overflow-x-auto` stays as
+a guard so the page body never scrolls horizontally.
 
 ---
 

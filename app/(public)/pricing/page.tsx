@@ -2,8 +2,8 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { Check, Plus } from "lucide-react"
 import {
-  BTN_PRIMARY,
   BTN_SECONDARY,
+  H1,
   H2,
   H3,
   LINK_INLINE,
@@ -138,17 +138,22 @@ function PlanCard({
   plan,
   priceNote,
   cta,
+  featured = false,
 }: {
   plan: Plan
   priceNote: string
   cta: React.ReactNode
+  /** Marked by the card's accent-ink border, never a Voltage button: the
+   *  header's Get started is the page's one Voltage fill. */
+  featured?: boolean
 }) {
   // "$19/month · ₦10–12k" → "$19"; the note beside it carries the rest.
   const amount = plan.price.split(/[/ ]/)[0]
   return (
-    <div className="flex flex-col rounded-[12px] border border-line bg-surface-raised p-8">
+    <div className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
       <h3 className={H3}>{plan.name}</h3>
-      <p className={`${P_SMALL} mt-2 min-h-[56px]`}>{plan.summary}</p>
+      {/* The min height only aligns two cards side by side, from 840px. */}
+      <p className={`${P_SMALL} mt-2 expanded:min-h-[56px]`}>{plan.summary}</p>
       <p className="mt-6 font-syne font-bold text-[40px] leading-[48px] text-ink">
         {amount}
         <span className="font-mono font-normal text-[14px] text-ink-muted">
@@ -174,10 +179,10 @@ function PlanCard({
 
 export default function PricingPage() {
   return (
-    <div className="flex-1 w-full max-w-[1200px] mx-auto px-6 lg:px-8 py-16 lg:py-24">
+    <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-24">
       {/* ─── Hero ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col items-center gap-4 text-center mb-16">
-        <h1 className="font-syne font-bold text-[40px] leading-[48px] lg:text-[56px] lg:leading-[60px] tracking-[-0.5px] text-ink">
+      <div className="flex flex-col items-center gap-4 text-center mb-10 medium:mb-16">
+        <h1 className={H1}>
           Feedback you earn, or feedback you buy.
         </h1>
         <p className={`${P} max-w-2xl`}>
@@ -188,11 +193,12 @@ export default function PricingPage() {
       </div>
 
       {/* ─── The two tiers ─────────────────────────────────────────────── */}
-      <section aria-labelledby="tiers-heading" className="mb-24">
+      <section aria-labelledby="tiers-heading" className="mb-16 medium:mb-24">
         <h2 id="tiers-heading" className="sr-only">
           Plans
         </h2>
-        <div className="grid gap-6 md:grid-cols-2 max-w-[880px] mx-auto">
+        {/* Stacked until 840px: side by side at 768 left each card ~200px. */}
+        <div className="grid gap-6 expanded:grid-cols-2 max-w-[880px] mx-auto">
           <PlanCard
             plan={COMMUNITY}
             priceNote="forever"
@@ -205,8 +211,9 @@ export default function PricingPage() {
           <PlanCard
             plan={PRO}
             priceNote="/ month"
+            featured
             cta={
-              <Link href="/contact" className={BTN_PRIMARY}>
+              <Link href="/contact" className={BTN_SECONDARY}>
                 Hitting your limit? Get in touch
               </Link>
             }
@@ -218,13 +225,35 @@ export default function PricingPage() {
       </section>
 
       {/* ─── The comparison ────────────────────────────────────────────── */}
-      <section aria-labelledby="compare-heading" className="mb-24 max-w-[880px] mx-auto">
+      <section aria-labelledby="compare-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="compare-heading" className={`${H2} mb-8`}>
           Compare plans
         </h2>
-        {/* Wide tables get their own scroll container so the page body never
-            scrolls horizontally at 360px. */}
-        <div className="overflow-x-auto">
+        {/* Below 600px a three-column table either scrolls or wraps a value to
+            four lines, so each row becomes a block with both values under
+            their plan names. Both render from ROWS, and display:none keeps
+            the hidden copy out of the accessibility tree, as the footer does. */}
+        <ul aria-label="Community and Pro compared, feature by feature" className="medium:hidden border-t border-line">
+          {ROWS.map(({ label, community, pro, emphasis }) => (
+            <li key={label} className="flex flex-col gap-3 py-4 border-b border-line">
+              <p className={`font-sans text-[14px] leading-6 text-ink ${emphasis ? "font-medium" : ""}`}>{label}</p>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  ["Community", community],
+                  ["Pro", pro],
+                ].map(([plan, value]) => (
+                  <div key={plan} className="flex flex-col gap-1">
+                    <span className={`${META} uppercase`}>{plan}</span>
+                    <span className="font-mono text-[14px] text-ink">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {/* From 600px the table fits its min width; overflow-x-auto stays as
+            a guard so the page body never scrolls sideways. */}
+        <div className="hidden medium:block overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left">
             <caption className="sr-only">
               Community and Pro compared, feature by feature
@@ -265,7 +294,7 @@ export default function PricingPage() {
       </section>
 
       {/* ─── FAQ ───────────────────────────────────────────────────────── */}
-      <section aria-labelledby="faq-heading" className="mb-24 max-w-[880px] mx-auto">
+      <section aria-labelledby="faq-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="faq-heading" className={`${H2} mb-8`}>
           Questions and answers
         </h2>
@@ -274,12 +303,12 @@ export default function PricingPage() {
         <div className="border-t border-line">
           {FAQ.map(({ q, a }) => (
             <details key={q} className="group border-b border-line">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-6 font-mono font-medium text-[16px] text-ink rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 medium:py-6 font-mono font-medium text-[16px] text-ink rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink [&::-webkit-details-marker]:hidden">
                 {q}
                 <Plus
                   aria-hidden
                   size={16}
-                  className="shrink-0 text-ink-muted transition-transform duration-150 group-open:rotate-45"
+                  className="shrink-0 text-ink-muted transition-transform duration-150 motion-reduce:transition-none group-open:rotate-45"
                 />
               </summary>
               <p className={`${P} pb-6 max-w-2xl`}>{a}</p>
@@ -291,7 +320,7 @@ export default function PricingPage() {
       {/* ─── Close ─────────────────────────────────────────────────────── */}
       <section
         aria-labelledby="close-heading"
-        className="flex flex-col items-center gap-6 rounded-[12px] border border-line bg-surface-raised px-6 py-16 text-center max-w-[880px] mx-auto"
+        className="flex flex-col items-center gap-6 rounded-[12px] border border-line bg-surface-raised px-5 py-10 medium:px-6 medium:py-16 text-center max-w-[880px] mx-auto"
       >
         <h2 id="close-heading" className={H2}>
           Ship it to five real people.
@@ -299,11 +328,12 @@ export default function PricingPage() {
         <p className={`${P} max-w-xl`}>
           Start free with {SIGNUP_GRANT} tester reports. Earn more by testing.
         </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link href="/signup" className={BTN_SECONDARY}>
+        {/* Full-width stacked buttons on compact, a wrapping row from 600px. */}
+        <div className="flex flex-col self-stretch gap-4 medium:flex-row medium:flex-wrap medium:justify-center medium:self-auto">
+          <Link href="/signup" className={`${BTN_SECONDARY} w-full medium:w-auto`}>
             Create an account
           </Link>
-          <Link href="/guides/builder" className={BTN_SECONDARY}>
+          <Link href="/guides/builder" className={`${BTN_SECONDARY} w-full medium:w-auto`}>
             Read the builder guide
           </Link>
         </div>
