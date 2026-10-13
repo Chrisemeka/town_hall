@@ -43,6 +43,11 @@ const REVAMPED = [
   "components/setup/StepIndicator.tsx",
   "app/choose-account/page.tsx",
   "components/setup/RoleCards.tsx",
+  "components/verification/VerificationFlow.tsx",
+  "components/ui/Field.tsx",
+  "components/ui/SkillsInput.tsx",
+  "app/verify/[role]/page.tsx",
+  "app/verify/[role]/loading.tsx",
 ]
 
 const offences: string[] = []
@@ -97,6 +102,14 @@ for (const token of ["--breakpoint-medium: 600px", "--breakpoint-expanded: 840px
 for (const g of ["builder", "tester"]) {
   const src = readFileSync(`app/(public)/guides/${g}/page.tsx`, "utf8")
   assert.ok(!/<p className=\{META\}/.test(src), `guides/${g}: a note paragraph uses META — use NOTE`)
+}
+
+// The app's field spelling, same rule as AuthCard's below.
+const field = readFileSync("components/ui/Field.tsx", "utf8")
+for (const fn of ["inputClass", "textareaClass"]) {
+  const body = field.slice(field.indexOf(`function ${fn}`))
+  assert.ok(/text-\[16px\] pointer-fine:text-\[14px\]/.test(body.slice(0, 400)),
+    `${fn}: field text must be 16px on touch (iOS zoom)`)
 }
 
 const termsForm = readFileSync("components/TermsAcceptForm.tsx", "utf8")
