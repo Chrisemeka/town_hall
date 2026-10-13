@@ -109,7 +109,9 @@ export function SignUpForm() {
         <Turnstile resetKey={state} errors={errors.captcha_token} />
         <AuthSubmit pending={pending}>{pending ? "Creating your account…" : "Create account"}</AuthSubmit>
       </form>
-      <p className="mt-6 font-mono text-[13px] text-ink-muted">
+      {/* The only way to the other form: a tappable 48px row below lg, with the
+          link still inside its sentence. */}
+      <p className="mt-6 min-h-12 flex flex-wrap items-center gap-x-1 lg:block lg:min-h-0 font-mono text-[13px] text-ink-muted">
         Already have an account?{" "}
         <Link href="/login" className={AUTH_LINK}>
           Sign in

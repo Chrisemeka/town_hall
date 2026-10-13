@@ -79,8 +79,9 @@ export function SignInForm() {
           enterKeyHint="go"
           errors={errors.password}
         />
-        <div className="flex justify-end -mt-2">
-          <Link href="/forgot-password" className={`${AUTH_LINK} font-mono text-[13px]`}>
+        {/* A standalone action, not a word in a sentence: 48px below lg. */}
+        <div className="flex justify-end -mt-1 lg:-mt-2">
+          <Link href="/forgot-password" className={`${AUTH_LINK} min-h-12 inline-flex items-center lg:min-h-0 font-mono text-[14px] lg:text-[13px]`}>
             Forgot password?
           </Link>
         </div>
@@ -90,7 +91,7 @@ export function SignInForm() {
       {/* Surfaced only on the unconfirmed-email failure, which is the one case
           where the fix is somewhere else entirely. */}
       {formError?.includes("Confirm your email") && (
-        <p className="mt-4 font-mono text-[13px] text-ink-muted">
+        <p className="mt-4 font-mono text-[14px] lg:text-[13px] text-ink-muted">
           <Link href="/confirm-email" className={AUTH_LINK}>
             Send the link again
           </Link>
@@ -108,11 +109,13 @@ export function SignInForm() {
         to be Google accounts answers "does this person have an account here?"
         for anyone who asks. So it is always on screen, for everyone.
       */}
-      <p className="mt-4 font-mono text-[13px] text-ink-muted">
+      <p className="mt-4 font-mono text-[14px] lg:text-[13px] text-ink-muted">
         Signed up with Google? Use the Google button above.
       </p>
 
-      <p className="mt-6 font-mono text-[13px] text-ink-muted">
+      {/* The only way to the other form: a tappable 48px row below lg, with the
+          link still inside its sentence. */}
+      <p className="mt-6 min-h-12 flex flex-wrap items-center gap-x-1 lg:block lg:min-h-0 font-mono text-[13px] text-ink-muted">
         New here?{" "}
         <Link href="/signup" className={AUTH_LINK}>
           Create an account

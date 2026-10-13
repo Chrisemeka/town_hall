@@ -148,7 +148,7 @@ export function AuthBanner({ message }: { message?: string | null }) {
       // Announced, not just coloured: this is often the only feedback a failed
       // sign-in gives, and it replaces content rather than adding to it.
       role="alert"
-      className="mb-6 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08] px-4 py-3 font-mono text-[13px] leading-5 text-danger-ink"
+      className="mb-6 rounded-[8px] border border-danger-ink bg-danger-ink/[0.08] px-4 py-3 font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink"
     >
       {message}
     </div>
