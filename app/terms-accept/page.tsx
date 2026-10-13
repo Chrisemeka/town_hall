@@ -57,7 +57,7 @@ export default async function TermsAcceptPage() {
   return (
     <SetupShell
       context="Setting up your account"
-      indicator={<StepIndicator bar={bar} />}
+      indicator={<StepIndicator bar={bar} compactLine={false} />}
     >
       <SetupCard
         title="Accept our terms to continue"

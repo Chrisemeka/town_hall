@@ -13,7 +13,15 @@ import type { SetupBar } from "@/lib/setup"
  * a screen reader needs; the compact line says the same thing in words, so the
  * narrow view is not a downgrade in what is announced.
  */
-export function StepIndicator({ bar }: { bar: SetupBar }) {
+export function StepIndicator({
+  bar,
+  compactLine = true,
+}: {
+  bar: SetupBar
+  /** The "Step 1 of N" line below 600px. /terms-accept drops it: on the first
+      gate it only adds a line above the heading. */
+  compactLine?: boolean
+}) {
   const { stages, unresolved } = bar
   const currentIndex = stages.findIndex((s) => s.status === "current")
   const current = stages[currentIndex]
@@ -25,7 +33,7 @@ export function StepIndicator({ bar }: { bar: SetupBar }) {
   const total = unresolved ? null : stages.length
 
   return (
-    <div className="mb-6 medium:mb-8">
+    <div className={compactLine ? "mb-6 medium:mb-8" : "max-medium:hidden mb-8"}>
       {/* Compact, below 600px. */}
       <p className="medium:hidden font-mono text-[12px] text-ink-muted">
         {current ? (
