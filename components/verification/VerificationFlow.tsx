@@ -13,6 +13,7 @@ import {
   setupStages,
 } from "@/lib/setup"
 import { ArrowRight, Check } from "lucide-react"
+import { NOTE } from "@/components/public/prose"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { SkillsInput } from "@/components/ui/SkillsInput"
 import type { AccountType } from "@/lib/access"
@@ -524,7 +525,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
       title={completionHeadlineFor(role)}
       subhead="Your profile is saved and your account is open."
     >
-      <ol className="flex flex-col gap-6">
+      <ol className="flex flex-col gap-5 medium:gap-6">
         {steps.map((s, i) => (
           <li key={s.title} className="flex gap-4">
             <span
@@ -535,23 +536,23 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
             </span>
             <div className="flex flex-col gap-1 min-w-0">
               <p className="font-mono font-medium text-[14px] text-ink">{s.title}</p>
-              <p className="font-sans text-[14px] leading-6 text-ink">{s.detail}</p>
+              <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px]">{s.detail}</p>
             </div>
           </li>
         ))}
       </ol>
 
-      <div className="mt-10 flex flex-col gap-4">
+      <div className="mt-8 medium:mt-10 flex flex-col gap-4">
         <a
           href={href}
           onClick={handOff}
-          className="h-11 px-6 self-start inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+          className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-11 px-6 inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
         >
           {role === "tester" ? "Find a mission" : "Go to your dashboard"}
           <ArrowRight size={14} aria-hidden="true" />
         </a>
         {/* Written now, inert until the welcome email ships. */}
-        <p className="font-mono text-[12px] leading-5 text-ink-muted inline-flex items-start gap-2">
+        <p className={`${NOTE} inline-flex items-start gap-2`}>
           <Check size={14} aria-hidden="true" className="mt-0.5 shrink-0 text-accent-ink" />
           We&apos;ve sent you a note with these steps, so you have them later.
         </p>
