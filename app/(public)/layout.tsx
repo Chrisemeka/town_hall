@@ -18,7 +18,7 @@ export default async function PublicLayout({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
-    <div className="min-h-screen flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
+    <div className="min-h-dvh flex flex-col bg-surface text-ink font-mono selection:bg-accent selection:text-obsidian">
       <PublicHeader theme={theme} />
       <main className="flex-1 flex flex-col">{children}</main>
       <PublicFooter />

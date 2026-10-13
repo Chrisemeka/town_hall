@@ -9,7 +9,7 @@ export function isCurrent(pathname: string, href: string) {
 }
 
 /**
- * The marketing nav from 768px up. A client component only for usePathname;
+ * The marketing nav from 840px up (`expanded:`). A client component only for usePathname;
  * the header around it stays a server component.
  *
  * The current page is ink *and* underlined — colour never carries state alone
@@ -22,7 +22,7 @@ export function DesktopNav({
 }) {
   const pathname = usePathname();
   return (
-    <nav className="hidden md:flex items-center gap-8">
+    <nav className="hidden expanded:flex items-center gap-8">
       {links.map(({ href, label }) => {
         const current = isCurrent(pathname, href);
         return (
@@ -30,7 +30,7 @@ export function DesktopNav({
             key={href}
             href={href}
             aria-current={current ? "page" : undefined}
-            className={`text-[14px] transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+            className={`max-lg:min-h-12 max-lg:inline-flex max-lg:items-center text-[14px] transition-colors duration-150 rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
               current
                 ? "text-ink underline decoration-accent-ink decoration-2 underline-offset-8"
                 : "text-ink-muted hover:text-ink"

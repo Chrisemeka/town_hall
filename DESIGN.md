@@ -311,12 +311,21 @@ Every spacing value — padding, margin, gap, border-radius — must be divisibl
 | **Column Width** | 56px |
 | **Gutter** | 48px desktop (`gap-12`) → 32px below (`gap-8`) |
 | **Max Content Width** | 1,200px — `(56 × 12) + (48 × 11)` |
-| **Outer Margin** | 24px mobile (`px-6`) → 32px desktop (`px-8`) |
+| **Outer Margin** | 16px compact (`px-4`) → 24px medium and expanded (`medium:px-6`) → 32px desktop (`lg:px-8`) |
 | **Border Radius (XS)** | 4px — badges, tags, tooltips |
 | **Border Radius (SM)** | 8px — buttons, inputs, dropdowns |
 | **Border Radius (MD)** | 12px — cards, panels |
 | **Border Radius (LG)** | 16px — modals, feature cards, mockup images |
 | **Border Radius (Full)** | `9999px` — outlined pill buttons (footer CTA, nav-style pills) |
+
+**Window size classes (Material 3).** Layouts switch on viewport width, never device type. Full rules: `docs/specs/SPEC-m3-foundations.md` §2.
+
+| Class | Width | Tailwind | Typical | Margin | Public nav |
+|---|---|---|---|---|---|
+| Compact | < 600 | *(unprefixed)* | Phones, portrait | 16 (`px-4`) | Bar + sheet |
+| Medium | 600–839 | `medium:` | Tablet portrait, foldables, phone landscape | 24 (`medium:px-6`) | Bar + sheet |
+| Expanded | 840–1199 | `expanded:` | Tablet landscape, small laptops | 24 | Inline |
+| Desktop | ≥ 1024 / ≥ 1280 | `lg:` / `xl:` — unchanged | Laptops, desktops | 32 (`lg:px-8`) | Inline |
 
 **Dashboard layout:** Left sidebar 240px fixed + top nav 56px fixed + fluid main content area (max 1,200px centered).
 
@@ -609,18 +618,30 @@ would render a dark form inside a light page.
 `components/public/` — the header, footer and theme toggle the `(public)` layout
 renders around every public page. Public pages do not render their own nav.
 
-**Header:** 64px, sticky, `bg-surface/85` + `backdrop-blur-md`, bottom border
-`line`. Logo + Syne wordmark left; marketing nav, theme toggle and the sign-in
-CTA right. The CTA is the page's one Voltage fill (§7.2) and always carries
-Obsidian text. Below 640px the CTA label shortens to "Sign in" — the full label
-does not fit beside the wordmark and toggle at 360px.
+**Header:** 64px, sticky (static on windows under 480px tall), `bg-surface/85`
++ `backdrop-blur-md`, bottom border `line`. Side padding `px-4 medium:px-6
+lg:px-10`. Logo + Syne wordmark left (the wordmark is `sr-only` below 360px,
+never removed). "Get started" is the page's one Voltage fill (§7.2) at every
+width and always carries Obsidian text.
 
-**Theme toggle:** 44×44px, sun/moon icon, `aria-label` naming the *destination*
+| | Compact (< 600) | Medium (600–839) | Expanded+ (≥ 840) |
+|---|---|---|---|
+| Inline nav | — | — | ✓ |
+| Theme toggle | in the sheet | ✓ | ✓ |
+| Sign in | in the sheet | ✓ | ✓ |
+| Get started | ✓ | ✓ | ✓ |
+| Menu button | ✓ | ✓ | — |
+
+Controls are 48px below `lg` (`h-12 lg:h-11`).
+
+**Theme toggle:** 48×48px below `lg`, 44×44 from it, sun/moon icon, `aria-label` naming the *destination*
 ("Switch to dark theme") rather than the current state. Writes the `th_theme`
 cookie and refreshes.
 
-**Footer:** four columns on ≥1024px, two on ≥640px, one below. `bg-surface`, top
-border `line`, 64px top / 48px bottom padding.
+**Footer:** four columns on ≥1024px, two on ≥600px. Below 600px: the brand
+block, then the three link columns as closed `<details>` accordions with 48px
+rows. Both layouts render from one `COLUMNS` list and one is hidden by class.
+`bg-surface`, top border `line`, side padding `px-4 medium:px-6 lg:px-8`.
 
 | Brand | Product | Guides | Company & legal |
 |---|---|---|---|
@@ -628,10 +649,13 @@ border `line`, 64px top / 48px bottom padding.
 
 "Get started" joins the Guides column when `/signup` exists.
 
-**Mobile sheet:** a native `<dialog>` opened with `showModal()`. The platform
-gives the focus trap, `Esc` to close and focus restored to the trigger — do not
-hand-roll those. The theme toggle and the sign-in CTA stay in the bar at every
-width rather than moving into the sheet.
+**Mobile sheet:** below 840px. A native `<dialog>` opened with `showModal()`. The
+platform gives the focus trap, `Esc` to close and focus restored to the trigger
+— do not hand-roll those. A scrim tap closes it too. Up to 360px wide, leading
+corners 16px, scrim literal Obsidian at 60% in both themes. Contents: close
+button, Pricing / Guides / About as 48px rows, a divider, Sign in, and below
+600px a labelled theme row. "Get started" is never repeated in the sheet — it
+is in the bar behind the scrim. Slides in from the trailing edge (§9).
 
 > **Never add a nav or footer entry before its page exists.** A column whose
 > pages have not shipped is omitted, not stubbed — no `href="#"`, no "coming
@@ -872,6 +896,7 @@ Empty state layout: centered icon 48×48px (Ash, `margin-bottom: 16px`) + H4 (Sy
 | Modal open | Fade + scale 96% → 100% | 200ms | `ease-out` |
 | Toast notification | Slide in from bottom-right | 250ms | `spring` |
 | Sidebar nav hover | Background fill | 120ms | `ease` |
+| Mobile sheet open | Slide from trailing edge | 300ms | `ease-standard` |
 
 No infinite animations. No looping effects. Motion nudges attention once, then stops.
 
@@ -890,7 +915,7 @@ No infinite animations. No looping effects. Motion nudges attention once, then s
 - [ ] All icon-only buttons have `aria-label`
 - [ ] Status badges always pair color with a text label — color alone never conveys state
 - [ ] Keyboard navigation follows logical tab order throughout
-- [ ] Minimum tap target: **44×44px** on mobile
+- [ ] Minimum tap target: **48×48px** below `lg` on revamped surfaces (`h-12 lg:h-11`); **44×44px** elsewhere until that surface is revamped
 - [ ] All external links use `target="_blank" rel="noopener noreferrer"`
 - [ ] Character counters update in real-time and are screen reader accessible
 - [ ] Feedback form unlock communicated via `aria-live` region, not visual reveal alone
