@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="flex flex-col gap-10">
 
-          <p className="font-sans text-[14px] leading-7 text-ink">
+          <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px]">
             At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
           </p>
 
@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
           <Section {...docSection("privacy", "contact")}>
             <p>
               If you have any questions or concerns about our Privacy Policy or our handling of your personal information, please contact us at{" "}
-              <a href="mailto:twnhallhq@gmail.com" className="text-accent-ink  underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+              <a href="mailto:twnhallhq@gmail.com" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
                 twnhallhq@gmail.com
               </a>
             </p>
@@ -110,7 +110,8 @@ function Section({ id, title, children }: { id: string; title: string; children:
   return (
     <div>
       <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-4 ${ANCHOR}`}>{title}</h2>
-      <div className="flex flex-col gap-3 font-sans text-[14px] leading-7 text-ink">
+      {/* 16px below lg, as every other long-form public page; 14px from lg. */}
+      <div className="flex flex-col gap-4 font-sans text-[16px] leading-7 text-ink lg:gap-3 lg:text-[14px]">
         {children}
       </div>
     </div>
