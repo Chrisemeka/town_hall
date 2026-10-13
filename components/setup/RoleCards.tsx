@@ -56,20 +56,23 @@ export function RoleCards({
               aria-busy={state.busy}
               className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col hover:border-accent-ink transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center">
+              {/* One markup, two arrangements, because a card is a <button> and
+                  duplicated content inside it would be read twice. Compact: the
+                  icon beside the title, "You have this" under it. From medium:
+                  the icon row with the label at its right, then the title. */}
+              <div className="grid grid-cols-[auto_1fr] items-center gap-x-3 mb-3 medium:gap-y-4 medium:mb-2">
+                <div className="row-span-2 medium:row-span-1 w-10 h-10 rounded-[8px] bg-accent-ink/10 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-accent-ink" strokeWidth={1.8} />
                 </div>
                 {alreadyHeld && (
-                  <span className="font-mono text-[12px] uppercase tracking-[1px] text-accent-ink">
+                  <span className="col-start-2 row-start-2 medium:row-start-1 justify-self-start medium:justify-self-end font-mono text-[12px] uppercase tracking-[1px] text-accent-ink">
                     You have this
                   </span>
                 )}
+                <h2 className="col-start-2 row-start-1 medium:col-start-1 medium:col-span-2 medium:row-start-2 font-syne font-bold text-[20px] max-lg:leading-7 text-ink">
+                  {label}
+                </h2>
               </div>
-
-              <h2 className="font-syne font-bold text-[20px] text-ink mb-2">
-                {label}
-              </h2>
               <p className="font-sans text-[13px] leading-6 text-ink mb-5">
                 {blurb}
               </p>
