@@ -27,6 +27,8 @@ const REVAMPED = [
   "app/(public)/guides/page.tsx",
   "app/(public)/guides/builder/page.tsx",
   "app/(public)/guides/tester/page.tsx",
+  "app/(public)/privacy/page.tsx",
+  "app/(public)/terms/page.tsx",
 ]
 
 const offences: string[] = []
@@ -52,6 +54,17 @@ for (const file of REVAMPED) {
         if (line.includes(bad)) offences.push(`${at}  ${bad} — use dvh`)
       }
     })
+}
+
+// Legal body text is 16px until lg: every 14px there is pinned to lg.
+for (const p of ["privacy", "terms"]) {
+  const src = readFileSync(`app/(public)/${p}/page.tsx`, "utf8")
+  for (const hit of src.matchAll(/(\S*)text-\[14px\]/g)) {
+    if (hit[1].endsWith("lg:")) continue
+    // The Terms section number is a 14px label, not body text.
+    if (/font-mono/.test(src.slice(Math.max(0, hit.index! - 80), hit.index))) continue
+    offences.push(`${p}: text-[14px] below lg — legal body text is 16px until lg`)
+  }
 }
 
 assert.deepEqual(offences, [], `revamped files break the mobile rules:\n  ${offences.join("\n  ")}`)
