@@ -26,7 +26,8 @@ const ITEM =
 export function DocNav({ slug }: { slug: DocSlug }) {
   return (
     <nav aria-label="On this page">
-      <p className={`${META} uppercase tracking-[0.5px] mb-2 px-2 lg:px-0`}>On this page</p>
+      {/* The sidebar's label only: below lg the disclosure's summary already says it. */}
+      <p className={`${META} hidden lg:block uppercase tracking-[0.5px] mb-2`}>On this page</p>
       <ol className="flex flex-col">
         {headingsFor(slug).map(({ id, title }) => (
           <li key={id}>
