@@ -623,6 +623,15 @@ would render a dark form inside a light page.
 > disabled control that does not explain itself is the failure mode the rule in
 > CLAUDE.md exists to prevent.
 
+
+**Compact and medium:** below 600px the card's chrome and the wordmark above
+it are dropped and the form sits on `surface` (328px wide at 360, so
+Turnstile gets its flexible widget). Inputs, Google and submit are 48px below
+`lg`. Input text is 16px on touch and 14px only for a fine pointer
+(`pointer-fine:`), because iOS Safari zooms into anything smaller; that is
+the one rule in the revamp keyed on input type rather than width. Fields
+carry keyboard hints (`autoCapitalize`, `spellCheck`, `enterKeyHint`) and
+`scroll-mt-24`, so a focused field never sits under the header.
 ---
 
 ### 5.9 Public Shell
@@ -668,6 +677,12 @@ corners 16px, scrim literal Obsidian at 60% in both themes. Contents: close
 button, Pricing / Guides / About as 48px rows, a divider, Sign in, and below
 600px a labelled theme row. "Get started" is never repeated in the sheet — it
 is in the bar behind the scrim. Slides in from the trailing edge (§9).
+
+**"Get started" is absent on the auth routes** (`/signup`, `/login`,
+`/forgot-password`, `/reset-password`, `/confirm-email`), at every width:
+there the form's submit is the page's Voltage fill, and on `/signup` the
+header's button would link to itself. `showsGetStarted()` in
+`components/public/HeaderCta.tsx` decides it.
 
 **Doc nav on a phone** (`components/public/DocNav.tsx`, below `lg`): the
 "On this page" disclosure has a 48px summary and 48px rows with the list-item
