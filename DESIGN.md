@@ -328,6 +328,13 @@ Every spacing value — padding, margin, gap, border-radius — must be divisibl
 | Expanded | 840–1199 | `expanded:` | Tablet landscape, small laptops | 24 | Inline |
 | Desktop | ≥ 1024 / ≥ 1280 | `lg:` / `xl:` — unchanged | Laptops, desktops | 32 (`lg:px-8`) | Inline |
 
+**Space under the header on revamped pages:** the page's first heading starts
+**64px** below the header on phones and **80px** on tablets
+(`pt-16 medium:pt-20`), then the page's own desktop value pinned with `lg:`
+(e.g. `lg:py-16`, `lg:py-24`). Every revamped page follows it — pricing,
+about, contact, the guides, Terms and Privacy — and a later page spec that
+says otherwise yields to this. Bottom padding is the page's own.
+
 **Dashboard layout:** Left sidebar 240px fixed + top nav 56px fixed + fluid main content area (max 1,200px centered).
 
 **Landing page layout:** Full-width sections with max-width content container of 1,200px, centered with auto margins. Horizontal padding inside the container: `px-6 lg:px-8`. Section vertical padding: `py-20 lg:py-28` (80–112px) for body sections, `py-16 lg:py-24` for the hero.
