@@ -5,7 +5,7 @@ import { docSection } from "@/lib/docNav"
 import {
   H3,
   LINK_INLINE,
-  META,
+  NOTE,
   P,
   PageHeader,
   Section,
@@ -71,7 +71,7 @@ export default function BuilderGuidePage() {
             mission from this sentence and the mission title. Say what it does
             and who it is for. Skip the positioning.
           </p>
-          <p className={META}>
+          <p className={NOTE}>
             The URL has to be reachable without an invite. A tester who hits a
             login wall marks every step blocked, which is a true report and a
             wasted one.
@@ -138,7 +138,7 @@ export default function BuilderGuidePage() {
               valuable step in the case.
             </li>
           </ul>
-          <p className={META}>
+          <p className={NOTE}>
             Your wording is copied onto every report as it was at the moment the
             tester submitted. Editing the mission later never rewrites what a
             tester appears to have been asked.
@@ -193,7 +193,7 @@ export default function BuilderGuidePage() {
             people can cover properly. Testing something else as well? That is
             a second mission. Ten missions of five beats one mission of fifty.
           </p>
-          <p className={META}>
+          <p className={NOTE}>
             This holds for qualitative usability testing, which is what Twnhall
             does. It does not hold for quantitative work — task success rates,
             A/B tests, load testing.
@@ -237,7 +237,7 @@ export default function BuilderGuidePage() {
             everything below it in the case went untested. One blocked step
             early in a flow can invalidate the rest of the report.
           </p>
-          <p className={META}>
+          <p className={NOTE}>
             Screenshots are attached to the report, not to individual steps.
             Every report has at least one.
           </p>

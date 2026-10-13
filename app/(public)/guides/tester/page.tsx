@@ -5,7 +5,7 @@ import { docSection } from "@/lib/docNav"
 import {
   H3,
   LINK_INLINE,
-  META,
+  NOTE,
   P,
   PageHeader,
   Section,
@@ -126,7 +126,7 @@ export default function TesterGuidePage() {
             reports a bug in a feature nobody reached, and the builder will go
             looking for it.
           </p>
-          <p className={META}>
+          <p className={NOTE}>
             Blocked is often the most urgent thing in your report, because
             everything after it went untested. Do not feel you are giving up by
             using it.
@@ -161,7 +161,7 @@ export default function TesterGuidePage() {
               </div>
             ))}
           </dl>
-          <p className={META}>
+          <p className={NOTE}>
             Yes, a blocked step asks for both. Something stopped you, and
             what stopped you is the entire content of that row.
           </p>
