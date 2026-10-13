@@ -66,7 +66,7 @@ export default function TesterGuidePage() {
         lede="A mission takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
       />
 
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-10 medium:gap-12">
         <Section {...docSection("tester", "mission")}>
           <p className={P}>
             One project, one thing to test, and a test case to work through. The
@@ -98,7 +98,7 @@ export default function TesterGuidePage() {
             Every step gets one of three answers, and the third one is the one
             people get wrong.
           </p>
-          <dl className="flex flex-col gap-4">
+          <dl className="flex flex-col gap-3 medium:gap-4">
             {(
               Object.entries(ENTRY_STATUS_HINTS) as [
                 keyof typeof ENTRY_STATUS_HINTS,
@@ -107,7 +107,7 @@ export default function TesterGuidePage() {
             ).map(([status, hint]) => (
               <div
                 key={status}
-                className="rounded-[12px] border border-line bg-surface-raised p-6"
+                className="rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6"
               >
                 <dt className="font-mono font-medium text-[14px] text-ink mb-2">
                   {entryStatusLabel(status)}
@@ -146,11 +146,11 @@ export default function TesterGuidePage() {
             the form will not let you submit until they are filled, and each is
             capped at {ENTRY_TEXT_MAX} characters.
           </p>
-          <dl className="flex flex-col gap-4">
+          <dl className="flex flex-col gap-3 medium:gap-4">
             {REQUIRED_ON_PROBLEM.map(({ label, body }) => (
               <div
                 key={label}
-                className="rounded-[12px] border border-line bg-surface-raised p-6"
+                className="rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6"
               >
                 <dt className="font-mono font-medium text-[14px] text-ink mb-2">
                   {label}
@@ -256,12 +256,13 @@ export default function TesterGuidePage() {
         </Section>
       </div>
 
-      <div className="mt-16 pt-8 border-t border-line flex flex-col gap-4">
+      <div className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
           Testing earns you feedback on your own work. The builder guide covers
           the other half — setting up a project and writing a test case.
         </p>
-        <Link href="/guides/builder" className={LINK_INLINE}>
+        {/* A link on its own line is a target, not inline text: 48px below lg. */}
+        <Link href="/guides/builder" className={`${LINK_INLINE} min-h-12 inline-flex items-center self-start lg:min-h-0`}>
           Read the builder guide →
         </Link>
       </div>
