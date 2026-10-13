@@ -54,7 +54,7 @@ export function RoleCards({
               type="submit"
               disabled={state.disabled}
               aria-busy={state.busy}
-              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col hover:border-accent-ink transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="group w-full h-full text-left bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:cursor-wait disabled:hover:border-line disabled:opacity-60 aria-busy:opacity-100 aria-busy:border-accent-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
               {/* One markup, two arrangements, because a card is a <button> and
                   duplicated content inside it would be read twice. Compact: the
@@ -96,7 +96,7 @@ export function RoleCards({
               >
                 {state.label}
                 {state.busy ? (
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-ink-muted border-t-transparent animate-spin" aria-hidden="true" />
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-ink-muted border-t-transparent animate-spin motion-reduce:animate-none" aria-hidden="true" />
                 ) : (
                   <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 )}
