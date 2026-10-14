@@ -9,9 +9,9 @@ import { markTourSeen } from "@/actions/onboarding"
 import { useHydrated } from "@/lib/hooks/useHydrated"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 
-// Tailwind's `md` breakpoint — below this the desktop nav (and its New Project
-// button) is hidden, so mobile tours skip steps that target it.
-const MOBILE_BREAKPOINT = 768
+// The expanded size class: below it the labelled New Project button is
+// hidden and the round + is the visible one, so mobile tours point at that.
+const MOBILE_BREAKPOINT = 840
 
 // AUTO_START_DELAY: small delay before kicking off a tour on a new page so React
 // has time to mount target elements and Onborda can find the selectors.
