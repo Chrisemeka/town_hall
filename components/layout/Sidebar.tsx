@@ -101,11 +101,11 @@ export function Sidebar({ account = "builder" }: { account?: AccountType }) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:flex fixed inset-y-0 left-0 w-[240px] bg-surface border-r border-line flex-col z-40 pt-[56px]">
+    <aside className="hidden expanded:flex fixed inset-y-0 left-0 w-[240px] bg-surface border-r border-line flex-col z-40 pt-[56px]">
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-8">
 
         <div>
-          <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
+          <p className="font-mono text-[12px] lg:text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
             {NAV[account].heading}
           </p>
           <div className="flex flex-col gap-0.5">
@@ -117,7 +117,7 @@ export function Sidebar({ account = "builder" }: { account?: AccountType }) {
 
         {/* ACCOUNT */}
         <div className="mt-auto pt-6 border-t border-line">
-          <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
+          <p className="font-mono text-[12px] lg:text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
             Account · {account}
           </p>
           <AccountActions />

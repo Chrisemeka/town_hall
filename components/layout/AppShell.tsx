@@ -21,7 +21,7 @@ export function AppShell({
 }) {
   return (
     <TourProvider seenTours={seenTours ?? []}>
-      <div className="group/shell min-h-screen bg-surface flex text-ink">
+      <div className="group/shell min-h-dvh bg-surface flex text-ink">
         <TopNav
           avatarUrl={avatarUrl ?? null}
           displayName={displayName ?? null}
@@ -31,7 +31,7 @@ export function AppShell({
 
         {/* Bottom padding reserves the bar's height below 840px, so the last
             thing on a page is never under it. */}
-        <main className="flex-1 md:pl-[240px] pt-[56px] pb-[calc(64px+env(safe-area-inset-bottom))] expanded:pb-0 min-h-screen w-full min-w-0 overflow-x-hidden">
+        <main className="flex-1 expanded:pl-[240px] pt-[56px] pb-[calc(64px+env(safe-area-inset-bottom))] expanded:pb-0 min-h-dvh w-full min-w-0 overflow-x-hidden">
           {children}
         </main>
 
