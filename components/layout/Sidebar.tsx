@@ -2,43 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard, Target, MessageSquare,
-  Telescope, Compass, Settings, LayoutGrid,
-  LogOut,
-} from "lucide-react"
+import { Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
+import { NAV, navIsActive } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
-
-// Each account type gets its own nav. There is no combined view — a Builder
-// account has no business reaching the tester surfaces and vice versa, and
-// middleware would bounce the link anyway.
-const NAV: Record<AccountType, { heading: string; links: { name: string; href: string; icon: React.ElementType }[] }[]> = {
-  builder: [
-    {
-      heading: "My Work",
-      links: [
-        { name: "My Projects",       href: "/dashboard",          icon: LayoutDashboard },
-        { name: "My Missions",       href: "/dashboard/missions", icon: Target },
-        { name: "Feedback Received", href: "/dashboard/feedback", icon: MessageSquare },
-      ],
-    },
-  ],
-  tester: [
-    {
-      heading: "Tester",
-      links: [
-        { name: "Tester Home",       href: "/tester",           icon: LayoutGrid },
-        { name: "Available Missions", href: "/explore/missions", icon: Compass },
-        { name: "Explore Projects",  href: "/explore",          icon: Telescope },
-      ],
-    },
-  ],
-}
-
-const EXACT_MATCH = new Set(["/dashboard", "/explore", "/tester"])
 
 function NavItem({
   href,
@@ -81,10 +50,7 @@ export function Sidebar({
   const pathname = usePathname()
 
 
-  const isActive = (href: string) =>
-    EXACT_MATCH.has(href)
-      ? pathname === href
-      : pathname === href || pathname.startsWith(href + "/")
+  const isActive = (href: string) => navIsActive(pathname, href)
 
   return (
     <aside
@@ -95,18 +61,16 @@ export function Sidebar({
     >
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-8">
 
-        {NAV[account].map((section) => (
-          <div key={section.heading}>
-            <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
-              {section.heading}
-            </p>
-            <div className="flex flex-col gap-0.5">
-              {section.links.map((link) => (
-                <NavItem key={link.href} {...link} isActive={isActive(link.href)} onClick={onClose} />
-              ))}
-            </div>
+        <div>
+          <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px] mb-3 px-3">
+            {NAV[account].heading}
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {NAV[account].links.map((link) => (
+              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={isActive(link.href)} onClick={onClose} />
+            ))}
           </div>
-        ))}
+        </div>
 
         {/* ACCOUNT */}
         <div className="mt-auto pt-6 border-t border-line">
