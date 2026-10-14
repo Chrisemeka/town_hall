@@ -22,12 +22,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           variant === "secondary"   && "bg-transparent border border-line text-ink hover:bg-surface-raised",
           variant === "ghost"       && "bg-transparent text-ink border border-line hover:border-accent-ink hover:text-accent-ink",
           variant === "destructive" && "bg-transparent border border-danger-ink text-danger-ink hover:bg-ember hover:text-obsidian",
-          // Sizes
-          size === "default" && "h-10 px-4 text-[14px]",
+          // Sizes. default and icon are 48px below lg, the touch minimum;
+          // sm is an explicit small control and lg/xl are 48+ already.
+          size === "default" && "h-12 lg:h-10 px-4 text-[14px]",
           size === "sm"      && "h-8  px-3 text-[12px]",
           size === "lg"      && "h-12 px-6 text-[14px]",
           size === "xl"      && "h-14 px-8 text-[16px]",
-          size === "icon"    && "h-10 w-10",
+          size === "icon"    && "h-12 w-12 lg:h-10 lg:w-10",
           className,
         )}
         {...props}
