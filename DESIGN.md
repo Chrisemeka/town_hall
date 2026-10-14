@@ -496,6 +496,25 @@ All badges: `border-radius: 4px`, `padding: 2px 8px`, `font-size: 12px`, `font-w
 - Center: Global search input, 320px, DM Mono 14px
 - Right: "New Project" (Secondary SM) + notification icon + user avatar (32px)
 
+**Below 840px** (compact and medium) there is no sidebar and no hamburger:
+
+- **Bottom navigation bar** (`components/layout/BottomNav.tsx`): the three
+  destinations, 64px tall, a third of the width each, the whole cell the
+  target. Active: a 56 × 28 `accent-ink` pill behind the icon, ink label in
+  medium weight, `aria-current="page"`. Labels are the `short` names in
+  `lib/appNav.ts` and always show. It hides while a text field has focus, so
+  the keyboard never lifts it over the field; `main` reserves its height.
+- **Account sheet** (`components/layout/AccountSheet.tsx`): the avatar opens
+  a native `<dialog>` from the trailing edge with Settings, Replay page tour
+  and Sign out at 48px. The same `AccountActions` render in the sidebar from
+  840px, so Sign out exists once per screen.
+- **Top bar:** 16px margins on compact, the wordmark screen-reader only below
+  600px, a 48px round `+` for New Project, search at 16px on touch with its
+  results spanning the screen below 600px.
+
+From 840px the sidebar and the labelled New Project button return, as on
+desktop. `lib/appNav.ts` holds both lists' destinations.
+
 **Sidebar:**
 - Width: `240px`, Background: `#0E0E10`, `border-right: 1px solid #2C2C35`
 
