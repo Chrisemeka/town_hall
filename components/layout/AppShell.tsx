@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { TopNav } from "./TopNav"
 import { Sidebar } from "./Sidebar"
+import { BottomNav } from "./BottomNav"
 import { TourProvider } from "@/components/tours/TourProvider"
 import type { AccountType } from "@/lib/access"
 
@@ -23,7 +24,7 @@ export function AppShell({
 
   return (
     <TourProvider seenTours={seenTours ?? []}>
-      <div className="min-h-screen bg-surface flex text-ink">
+      <div className="group/shell min-h-screen bg-surface flex text-ink">
         <TopNav
           sidebarOpen={sidebarOpen}
           onToggleSidebar={() => setSidebarOpen((v) => !v)}
@@ -48,9 +49,13 @@ export function AppShell({
           />
         )}
 
-        <main className="flex-1 md:pl-[240px] pt-[56px] min-h-screen w-full min-w-0 overflow-x-hidden">
+        {/* Bottom padding reserves the bar's height below 840px, so the last
+            thing on a page is never under it. */}
+        <main className="flex-1 md:pl-[240px] pt-[56px] pb-[calc(64px+env(safe-area-inset-bottom))] expanded:pb-0 min-h-screen w-full min-w-0 overflow-x-hidden">
           {children}
         </main>
+
+        <BottomNav account={account} />
       </div>
     </TourProvider>
   )
