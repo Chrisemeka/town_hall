@@ -82,8 +82,7 @@ export default async function MyProjectsPage() {
               className="group block"
             >
               <div
-                className="bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-accent-ink/30 group-active:border-accent-ink"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                className="bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-accent-ink/30 group-active:border-accent-ink shadow-card"
               >
                 {/* Card header row */}
                 <div className="flex items-start justify-between gap-3 mb-3">

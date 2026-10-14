@@ -26,8 +26,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
           // stretches over it. The project name sits above that layer.
           <div
             key={mission.id}
-            className="group relative bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink"
-            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+            className="group relative bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink shadow-card"
           >
             <Link
               href={`/dashboard/${mission.project_id}`}
@@ -69,7 +68,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
         <div className="flex justify-center mt-10">
           <button
             onClick={() => setVisible((v) => v + 6)}
-            className="h-12 lg:h-10 w-full medium:w-auto px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
+            className="h-12 lg:h-10 w-full medium:w-auto px-6 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
           >
             Load More
           </button>
