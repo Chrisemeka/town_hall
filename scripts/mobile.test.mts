@@ -48,6 +48,17 @@ const REVAMPED = [
   "components/ui/SkillsInput.tsx",
   "app/verify/[role]/page.tsx",
   "app/verify/[role]/loading.tsx",
+  "components/layout/AppShell.tsx",
+  "components/layout/TopNav.tsx",
+  "components/layout/Sidebar.tsx",
+  "components/layout/BottomNav.tsx",
+  "components/layout/AccountSheet.tsx",
+  "components/GlobalSearch.tsx",
+  "components/ui/Button.tsx",
+  "components/MissionListPaged.tsx",
+  "app/(developer)/dashboard/page.tsx",
+  "app/(developer)/dashboard/missions/page.tsx",
+  "app/(developer)/dashboard/loading.tsx",
 ]
 
 const offences: string[] = []
@@ -102,6 +113,17 @@ for (const token of ["--breakpoint-medium: 600px", "--breakpoint-expanded: 840px
 for (const g of ["builder", "tester"]) {
   const src = readFileSync(`app/(public)/guides/${g}/page.tsx`, "utf8")
   assert.ok(!/<p className=\{META\}/.test(src), `guides/${g}: a note paragraph uses META — use NOTE`)
+}
+
+// The search field is the one input every page shares — keep it from zooming iOS.
+assert.ok(
+  /text-\[16px\] pointer-fine:text-\[14px\]/.test(readFileSync("components/GlobalSearch.tsx", "utf8")),
+  "GlobalSearch: 16px on touch",
+)
+
+// Colour never in an inline style (CLAUDE.md). The token test only catches hex.
+for (const f of ["app/(developer)/dashboard/page.tsx", "components/MissionListPaged.tsx"]) {
+  assert.ok(!/style=\{\{[^}]*rgba?\(/.test(readFileSync(f, "utf8")), `${f}: colour in an inline style`)
 }
 
 // The app's field spelling, same rule as AuthCard's below.
