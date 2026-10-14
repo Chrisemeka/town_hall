@@ -87,9 +87,9 @@ export default async function MyProjectsPage() {
               >
                 {/* Card header row */}
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink group-hover:text-accent-ink transition-colors duration-150 truncate">
+                  <h2 className="font-syne font-bold text-[20px] leading-7 text-ink group-hover:text-accent-ink transition-colors duration-150 truncate">
                     {project.name}
-                  </h5>
+                  </h2>
                   <Badge variant={project.status} />
                 </div>
 
