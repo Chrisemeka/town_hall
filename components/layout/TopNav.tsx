@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
-import { Menu, X, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { homeFor, type AccountType } from "@/lib/access"
+import { AccountSheet } from "./AccountSheet"
 
 // A builder's primary action, in the bar on every builder page. Testers get
 // none here: Tester Home carries its own Browse Missions button, and a second
@@ -13,14 +14,10 @@ import { homeFor, type AccountType } from "@/lib/access"
 const BUILDER_CTA = { href: "/dashboard/new", label: "New Project" }
 
 export function TopNav({
-  sidebarOpen,
-  onToggleSidebar,
   avatarUrl,
   displayName,
   account = "builder",
 }: {
-  sidebarOpen: boolean
-  onToggleSidebar: () => void
   avatarUrl?: string | null
   displayName?: string | null
   account?: AccountType
@@ -89,13 +86,8 @@ export function TopNav({
           </Link>
         )}
 
-        <button
-          className="p-2 text-ink-muted hover:text-ink transition-colors duration-150"
-          onClick={onToggleSidebar}
-          aria-label="Toggle menu"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Destinations are in the bottom bar; the avatar opens the rest. */}
+        <AccountSheet avatarUrl={avatarUrl ?? null} displayName={displayName ?? null} account={account} />
       </div>
 
     </header>
