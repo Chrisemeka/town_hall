@@ -30,9 +30,9 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
           >
             <Link
               href={`/dashboard/${mission.project_id}`}
-              // 48px tall below lg; the negative margin takes back the extra
-              // 30px so the layout does not move.
-              className="relative z-10 min-h-12 -my-[15px] lg:min-h-0 lg:my-0 inline-flex items-center font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 mb-1 w-fit"
+              // 48px tall below lg; the negative margins take back the extra
+              // 30px (18px of text, 4px below it) so the layout does not move.
+              className="relative z-10 min-h-12 -mt-[15px] -mb-[11px] lg:min-h-0 lg:mt-0 lg:mb-1 inline-flex items-center font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 w-fit"
             >
               {mission.projectName}
             </Link>
