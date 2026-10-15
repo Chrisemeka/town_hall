@@ -107,20 +107,27 @@ export default function MissionResultRow({
               </span>
             )}
           </p>
-          <div
-            className="relative bg-surface-raised border border-line rounded-[12px] overflow-hidden cursor-pointer"
-            onClick={() => current && setLightboxOpen(true)}
-          >
+          <div className="relative bg-surface-raised border border-line rounded-[12px] overflow-hidden">
             {current ? (
-              // eslint-disable-next-line @next/next/no-img-element -- see note above
-              <img
-                src={current}
-                // Describes the image, not its role in the process — a screen
-                // reader user was being told "proof of visit 1", which is
-                // paperwork, not a picture. Design.md §10.
-                alt={`Test screenshot ${active + 1} of ${shots.length}`}
-                className="w-full object-cover"
-              />
+              // A button, not a div with onClick, so the keyboard reaches it.
+              // Below lg the image is capped at 60% of the screen and shown
+              // whole: a 1600px-tall phone screenshot was 1,500px of page.
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                aria-label={`Open screenshot ${active + 1} of ${shots.length} full size`}
+                className="block w-full cursor-pointer bg-surface lg:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-ink"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
+                <img
+                  src={current}
+                  // Describes the image, not its role in the process — a screen
+                  // reader user was being told "proof of visit 1", which is
+                  // paperwork, not a picture. Design.md §10.
+                  alt={`Test screenshot ${active + 1} of ${shots.length}`}
+                  className="w-full max-h-[60dvh] object-contain lg:max-h-none lg:object-cover"
+                />
+              </button>
             ) : (
               <div className="w-full h-48 flex items-center justify-center">
                 <p className="font-mono text-[13px] text-ink-muted">No screenshot captured</p>
@@ -154,9 +161,9 @@ export default function MissionResultRow({
             </div>
           )}
           {(displayUrl || date) && (
-            <p className="font-mono text-[12px] text-ink-muted">
+            <p className="font-mono text-[12px] text-ink-muted [overflow-wrap:anywhere]">
               {displayUrl && <span>{displayUrl}</span>}
-              {displayUrl && <span className="mx-1.5 text-line">·</span>}
+              {displayUrl && <span aria-hidden="true" className="mx-1.5 text-line">·</span>}
               <span>{date}</span>
             </p>
           )}
