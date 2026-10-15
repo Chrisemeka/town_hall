@@ -186,14 +186,18 @@ export default function MissionResultRow({
 
       {/* SYSTEM INSIGHT */}
       {result.ai_summary && (
-        <div className="bg-surface-raised border border-line rounded-[12px] p-6">
+        <div className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6">
           <div className="flex items-center justify-between mb-4">
             <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
               Test Report
             </p>
             <button
+              type="button"
               onClick={() => setInsightOpen(!insightOpen)}
-              className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1.5"
+              aria-expanded={insightOpen}
+              aria-controls={`insights-${result.id}`}
+              // 48px below lg; the negative margins keep the row's height.
+              className="min-h-12 -my-3 -mr-2 px-2 lg:min-h-0 lg:my-0 lg:mr-0 lg:px-0 font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1.5"
             >
               AI generated · {insightOpen ? "collapse" : "expand"}
               {insightOpen ? (
@@ -206,7 +210,8 @@ export default function MissionResultRow({
 
           {insightOpen && (
             insights ? (
-              <div className="grid grid-cols-3 gap-6">
+              // Three columns from 600px; stacked below, where three were ~90px.
+              <div id={`insights-${result.id}`} className="grid grid-cols-1 gap-4 medium:grid-cols-3 medium:gap-6">
                 {insights.map((item, i) => (
                   <div key={i}>
                     <div className="flex items-center gap-2 mb-2">
@@ -215,14 +220,14 @@ export default function MissionResultRow({
                       ) : (
                         <CheckCircle2 className="w-4 h-4 text-success-ink shrink-0" />
                       )}
-                      <p className="font-mono text-[13px] font-semibold text-ink">{item.title}</p>
+                      <p className="font-mono text-[14px] lg:text-[13px] font-semibold text-ink">{item.title}</p>
                     </div>
-                    <p className="font-mono text-[13px] leading-5 text-ink-muted">{item.description}</p>
+                    <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-ink-muted">{item.description}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap">
+              <p id={`insights-${result.id}`} className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap">
                 {result.ai_summary}
               </p>
             )
