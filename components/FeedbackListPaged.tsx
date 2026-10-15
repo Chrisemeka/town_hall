@@ -86,8 +86,9 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                     <span className="font-mono text-[12px] text-ink-muted">
                       {testerLabel(item.testerNumber)}
                     </span>
-                    <span className="font-mono text-[12px] text-ink-muted/40">·</span>
-                    <span className="font-mono text-[12px] text-ink-muted/60">{relTime(item.created_at)}</span>
+                    <span aria-hidden="true" className="font-mono text-[12px] text-ink-muted/40">·</span>
+                    {/* Full ink-muted: at 60% it was ~3:1, under the 4.5:1 a label needs. */}
+                    <span className="font-mono text-[12px] text-ink-muted">{relTime(item.created_at)}</span>
                   </div>
 
                   {item.entries?.length ? (
