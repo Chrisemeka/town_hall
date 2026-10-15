@@ -118,34 +118,27 @@ export default async function ProjectDetailPage({
           <ChevronLeft className="w-4 h-4 medium:hidden" aria-hidden="true" />
           My Projects
         </Link>
-        <ChevronRight className="hidden medium:block w-3.5 h-3.5 text-line shrink-0" aria-hidden="true" />
+        <ChevronRight className="hidden medium:block w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="hidden medium:inline text-ink truncate max-w-[240px]">{project.name}</span>
       </div>
 
       {/* Flag warning banner (shown to owner when an admin has flagged this project) */}
       {project.flagged_at && (
         <div
-          className="rounded-[12px] p-4 gap-3 medium:p-5 medium:gap-4 mb-6 medium:mb-8 flex items-start"
-          style={{
-            background: "rgba(255,79,79,0.06)",
-            border: "1px solid rgba(255,79,79,0.3)",
-          }}
+          className="rounded-[12px] p-4 gap-3 medium:p-5 medium:gap-4 mb-6 medium:mb-8 flex items-start bg-danger-ink/[0.06] border border-danger-ink/30"
         >
-          <div
-            className="hidden medium:flex w-9 h-9 rounded-[8px] items-center justify-center shrink-0"
-            style={{ background: "rgba(255,79,79,0.12)", border: "1px solid rgba(255,79,79,0.3)" }}
-          >
-            <Flag className="w-4 h-4" style={{ color: "var(--color-danger-ink)" }} />
+          <div className="hidden medium:flex w-9 h-9 rounded-[8px] items-center justify-center shrink-0 bg-danger-ink/[0.12] border border-danger-ink/30">
+            <Flag className="w-4 h-4 text-danger-ink" />
           </div>
           <div className="min-w-0">
-            <p className="font-syne font-bold text-[16px]" style={{ color: "var(--color-danger-ink)" }}>
+            <p className="font-syne font-bold text-[16px] text-danger-ink">
               This project has been flagged by an admin.
             </p>
             <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mt-1 leading-5">
               Your project is hidden from public discovery (Explore, Browse Missions, search) until the issue is resolved.
             </p>
             {project.flag_reason && (
-              <div className="mt-3 rounded-[8px] p-3" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,79,79,0.2)" }}>
+              <div className="mt-3 rounded-[8px] p-3 bg-ink/[0.04] border border-danger-ink/20">
                 <p className="font-mono text-[12px] lg:text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Reason</p>
                 <p className="font-mono text-[13px] text-ink leading-5 whitespace-pre-wrap">
                   {project.flag_reason}
@@ -192,7 +185,7 @@ export default async function ProjectDetailPage({
         {/* Edit button */}
         <Link
           href={`/dashboard/${projectId}/edit`}
-          className="h-12 lg:h-9 self-start px-4 border border-line text-ink-muted rounded-[8px] font-mono text-[14px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-2 shrink-0"
+          className="h-12 lg:h-9 self-start px-4 border border-ink-muted text-ink-muted rounded-[8px] font-mono text-[14px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-2 shrink-0"
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit

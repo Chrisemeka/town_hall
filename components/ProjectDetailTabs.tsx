@@ -127,12 +127,14 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                 <span>
                   {label}
                   {" "}
-                  <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
+                  <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted"}`}>
                     ({count})
                   </span>
                 </span>
+                {/* accent-ink, not Voltage: Voltage is a fill, and as a 2px line on
+                    the light ground it is 1.02:1. On dark they are the same. */}
                 {tab === key && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-voltage rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent-ink rounded-full" />
                 )}
               </button>
             ))}
@@ -143,7 +145,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               href={`/dashboard/${projectId}/mission/new`}
               // From 600px, in the tab row. Below it the Missions panel carries
               // its own full-width copy; only one is ever displayed.
-              className="hidden medium:flex h-12 lg:h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 items-center gap-1.5 mb-3 w-fit"
+              className="hidden medium:flex h-12 lg:h-9 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 items-center gap-1.5 mb-3 w-fit"
             >
               + Add Mission
             </Link>
@@ -186,8 +188,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               return (
                 <div
                   key={mission.id}
-                  className="group relative bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                  className="group relative bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
                 >
                   {/* Card content */}
                   <div className="relative z-10 flex flex-col gap-3">
