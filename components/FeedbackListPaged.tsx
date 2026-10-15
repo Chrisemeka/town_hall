@@ -66,7 +66,9 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
             <div className="mb-4 medium:mb-5">
               <Link
                 href={`/dashboard/${group.projectId}`}
-                className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 block mb-1"
+                // 48px tall below lg; the negative margins take back the extra
+                // 30px (18px of text, 4px below it) so the layout does not move.
+                className="relative flex w-fit items-center min-h-12 -mt-[15px] -mb-[11px] lg:min-h-0 lg:mt-0 lg:mb-1 lg:block lg:w-auto font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150"
               >
                 {group.projectName}
               </Link>
@@ -78,7 +80,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                 <Link
                   key={item.id}
                   href={`/dashboard/${item.projectId}/mission/${item.missionId}`}
-                  className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
+                  className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.04] transition-colors duration-150"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-mono text-[12px] text-ink-muted">
