@@ -125,14 +125,14 @@ export default async function DeveloperMissionDetailPage({
             <Link href="/dashboard" className="hover:text-ink transition-colors duration-150 shrink-0">
               My Projects
             </Link>
-            <span className="text-line shrink-0">/</span>
+            <span className="text-ink-muted shrink-0" aria-hidden="true">/</span>
             <Link
               href={`/dashboard/${projectId}`}
               className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] medium:max-w-[160px]"
             >
               {project?.name ?? "Project"}
             </Link>
-            <span className="text-line shrink-0">/</span>
+            <span className="text-ink-muted shrink-0" aria-hidden="true">/</span>
             <span className="text-ink truncate max-w-[120px] medium:max-w-[200px]">{mission.title}</span>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default async function DeveloperMissionDetailPage({
         <div className="grid grid-cols-2 gap-2 medium:flex medium:items-center medium:gap-3 shrink-0">
           <Link
             href={`/dashboard/${projectId}/mission/${missionId}/edit`}
-            className="h-12 justify-center lg:h-8 px-3 border border-line text-ink-muted rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
+            className="h-12 justify-center lg:h-8 px-3 border border-ink-muted text-ink-muted rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
           >
             <Pencil className="w-3 h-3" />
             Edit Mission

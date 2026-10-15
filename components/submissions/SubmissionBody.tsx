@@ -161,7 +161,9 @@ function testerDisagreed(entry: SubmissionEntry): boolean {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-ink-muted break-words">
-      <span className="text-ink-muted/70">{label}: </span>
+      {/* Full ink-muted, set apart by weight: at 70% it was 3.2:1 on the
+          card, under the 4.5:1 a label needs. */}
+      <span className="text-ink-muted font-medium">{label}: </span>
       {value}
     </p>
   )
