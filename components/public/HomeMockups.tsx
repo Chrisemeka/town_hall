@@ -27,6 +27,7 @@ import { ENTRY_STATUSES, entryStatusLabel, type EntryStatus } from "@/lib/vocabu
 import { PassRate, StatusPill, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { Badge } from "@/components/ui/Badge"
 import { Logo } from "@/components/Logo"
+import { swipeStep } from "@/lib/swipe"
 
 /*
  * The homepage's product windows. Drawn in JSX from the semantic tokens rather
@@ -386,16 +387,6 @@ function ReviewScene({ at }: { at: number }) {
 }
 
 const STAGES = [WriteScene, TestScene, ReviewScene]
-
-/**
- * A horizontal touch swipe on the demo: -1 back, 1 forward, 0 for anything
- * that is not clearly sideways, so a vertical scroll never changes the scene.
- * Swipe left (dx < 0) moves forward. Direction only; the caller clamps.
- */
-export function swipeStep(dx: number, dy: number): -1 | 0 | 1 {
-  if (Math.abs(dx) < 48 || Math.abs(dx) <= 2 * Math.abs(dy)) return 0
-  return dx < 0 ? 1 : -1
-}
 
 const WIDE = "(min-width: 600px)"
 const subscribeWide = (onChange: () => void) => {
