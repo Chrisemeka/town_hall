@@ -1,6 +1,7 @@
 "use client"
 
 import type { CardComponentProps } from "onborda/dist/types"
+import { useEffect, useRef, useState } from "react"
 import { useOnborda } from "onborda"
 import { X, ArrowLeft, ArrowRight } from "lucide-react"
 
@@ -16,10 +17,40 @@ export function OnbordaCard({
   const isLast = currentStep === totalSteps - 1
   const isFirst = currentStep === 0
 
+  // Onborda places the card against its target and never checks the
+  // viewport: "bottom-right" on the phone's round + (near the right edge)
+  // hung the card ~40px off the left of a 360px screen. This nudges it back
+  // inside a 12px margin, every frame while it shows, because Onborda
+  // animates the card into place. The arrow is counter-shifted so it still
+  // points at the target.
+  const ref = useRef<HTMLDivElement>(null)
+  const [shift, setShift] = useState(0)
+  useEffect(() => {
+    let frame = 0
+    let current = 0
+    const tick = () => {
+      const el = ref.current
+      if (el) {
+        const { left, width } = el.getBoundingClientRect()
+        const base = left - current
+        const max = window.innerWidth - 12 - width
+        const next = Math.round(base < 12 ? 12 - base : base > max ? max - base : 0)
+        if (next !== current) {
+          current = next
+          setShift(next)
+        }
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
   return (
     <div
-      className="w-[min(340px,calc(100vw-24px))] bg-surface-raised border border-line rounded-[12px] p-4 sm:p-5 text-ink font-mono"
-      style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.6)" }}
+      ref={ref}
+      className="relative w-[min(340px,calc(100vw-24px))] bg-surface-raised border border-line rounded-[12px] p-4 sm:p-5 text-ink font-mono"
+      style={{ boxShadow: "0 12px 32px rgba(0,0,0,0.6)", left: shift }}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -85,7 +116,10 @@ export function OnbordaCard({
         </div>
       </div>
 
-      {arrow}
+      {/* Where the card was before the nudge, so the arrow stays on target. */}
+      <div className="absolute inset-y-0 pointer-events-none" style={{ left: -shift, width: "100%" }}>
+        {arrow}
+      </div>
     </div>
   )
 }
