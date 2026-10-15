@@ -125,8 +125,10 @@ export function SettingsTabs({
             setFocused(null)
           }
         }}
-        // flex-nowrap + overflow-x-auto rather than wrapping: four tabs do not
-        // fit 360px, and a ragged two-row grid reads as a mistake.
+        // Below 600px, M3 fixed tabs: equal widths, four fit 320px. From 600px,
+        // content-width tabs. overflow-x-auto stays as the fallback for large
+        // system font sizes — flex-1 without min-w-0 never shrinks a tab
+        // below its label, so it scrolls instead of clipping.
         className="flex flex-nowrap gap-1 overflow-x-auto border-b border-line [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((tab, i) => {
@@ -147,7 +149,7 @@ export function SettingsTabs({
               onFocus={() => setFocused(i)}
               onClick={() => activate(tab.id)}
               className={[
-                "shrink-0 h-11 px-4 inline-flex items-center gap-2 font-mono text-[14px] border-b-2 -mb-px transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+                "flex-1 justify-center px-1 min-[360px]:px-2 h-12 medium:flex-none medium:px-4 lg:h-11 inline-flex items-center gap-2 font-mono text-[14px] border-b-2 -mb-px transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
                 selected
                   ? "border-accent-ink text-ink"
                   : "border-transparent text-ink-muted hover:text-ink",
@@ -180,7 +182,7 @@ export function SettingsTabs({
           // Focusable so a keyboard user can Tab from the strip straight into
           // the panel it controls, per the APG.
           tabIndex={0}
-          className="pt-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-[8px]"
+          className="pt-6 medium:pt-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-[8px]"
         >
           {panels[tab.id]}
         </div>
