@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import AddMissionForm from "@/components/AddMissionForm";
 import { AllowanceNotice } from "@/components/missions/AllowanceNotice";
 import { reportBalance } from "@/lib/allowanceDb";
@@ -34,21 +34,25 @@ export default async function NewMissionPage({
   if (project.owner_id !== userId) return notFound();
 
   return (
-    <div className="max-w-[640px] mx-auto px-6 py-10">
+    <div className="max-w-[640px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-10 expanded:py-10">
 
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
+      {/* Below 600px a 48px back link to the project; from 600px the trail. */}
+      <Link href={`/dashboard/${projectId}`} className="medium:hidden inline-flex items-center gap-1 min-h-12 -ml-2 px-2 mb-4 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 [overflow-wrap:anywhere]">
+        <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+        {project.name}
+      </Link>
+      <div className="hidden medium:flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
         <Link href="/dashboard" className="hover:text-ink transition-colors duration-150">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <Link
           href={`/dashboard/${projectId}`}
           className="hover:text-ink transition-colors duration-150 truncate max-w-[160px]"
         >
           {project.name}
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink">New Mission</span>
       </div>
 

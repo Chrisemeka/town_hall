@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { inputClass, textareaClass } from "@/components/ui/Field"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { PROJECT_CATEGORIES } from "@/lib/vocabulary"
 import {
@@ -64,13 +65,15 @@ export default function CreateProjectForm() {
   }
 
   return (
-    <div id="tour-new-project-form" className="bg-surface-raised border border-line rounded-[16px] p-10">
+    // Below 600px the form sits on the surface, no card: the frame cost
+    // 82px of a 360px screen. From 600px, the card.
+    <div id="tour-new-project-form" className="medium:bg-surface-raised medium:border medium:border-line medium:rounded-[16px] medium:p-10">
 
       {/* Header */}
       <div id="tour-new-project-header">
-        <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-1">
+        <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 lg:text-[36px] lg:leading-[44px] tracking-[-0.5px] text-ink mb-1">
           Submit a Project
-        </h2>
+        </h1>
         <p className="font-mono text-[16px] leading-6 text-ink-muted mb-8">
           Tell the community what you&apos;ve built.
         </p>
@@ -83,7 +86,7 @@ export default function CreateProjectForm() {
         </div>
       )}
 
-      <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
+      <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-5 medium:gap-6" noValidate>
 
         {/* Project Name */}
         <div className="flex flex-col gap-2">
@@ -98,11 +101,10 @@ export default function CreateProjectForm() {
             placeholder="e.g. DevSync CLI"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoCapitalize="words"
+            enterKeyHint="next"
             {...fieldErrorProps("name", fieldErrors.name)}
-            className={[
-              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.name?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={inputClass(!!fieldErrors.name?.length)}
           />
           <FieldError field="name" errors={fieldErrors.name} />
         </div>
@@ -117,13 +119,13 @@ export default function CreateProjectForm() {
             name="app_url"
             type="url"
             placeholder="https://yourapp.com"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="next"
             value={appUrl}
             onChange={(e) => setAppUrl(e.target.value)}
             {...fieldErrorProps("app_url", fieldErrors.app_url)}
-            className={[
-              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.app_url?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={inputClass(!!fieldErrors.app_url?.length)}
           />
           <FieldError field="app_url" errors={fieldErrors.app_url} />
         </div>
@@ -139,10 +141,7 @@ export default function CreateProjectForm() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             {...fieldErrorProps("category", fieldErrors.category)}
-            className={[
-              "w-full h-10 bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink focus:outline-none transition-colors duration-150",
-              fieldErrors.category?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={`${inputClass(!!fieldErrors.category?.length)} cursor-pointer`}
           >
             <option value="">Select a category</option>
             {PROJECT_CATEGORIES.map((option) => (
@@ -174,10 +173,7 @@ export default function CreateProjectForm() {
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             {...fieldErrorProps("description", fieldErrors.description)}
-            className={[
-              "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
-              fieldErrors.description?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={textareaClass(!!fieldErrors.description?.length, { resizable: false })}
           />
           <div className="flex items-start justify-between gap-3">
             {fieldErrors.description?.length ? (
@@ -194,7 +190,7 @@ export default function CreateProjectForm() {
         </div>
 
         {/* What Happens Next info box */}
-        <div id="tour-new-project-next" className="bg-surface border border-line rounded-[12px] p-6">
+        <div id="tour-new-project-next" className="bg-surface border border-line rounded-[12px] p-4 medium:p-6">
           <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
             What happens next?
           </p>
@@ -208,16 +204,17 @@ export default function CreateProjectForm() {
                 <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 w-6">
                   {step.num}
                 </span>
-                <p className="font-mono text-[13px] text-ink-muted leading-5">{step.text}</p>
+                <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5">{step.text}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTAs */}
-        <div className="flex items-center gap-3 pt-2">
+        {/* Compact: Create on top, Cancel under it, both full width. */}
+        <div className="grid grid-cols-1 gap-2 pt-2 medium:flex medium:items-center medium:gap-3">
           <SubmitButton />
-          <Button variant="ghost" size="lg" asChild>
+          <Button variant="ghost" size="lg" asChild className="w-full medium:w-auto">
             <Link href="/dashboard">Cancel</Link>
           </Button>
         </div>
@@ -233,7 +230,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+      className="h-12 w-full medium:w-auto px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Creating…" : "Create Project"}
     </button>

@@ -1,6 +1,7 @@
 "use client"
 
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { textareaClass } from "@/components/ui/Field"
 import { MISSION_DESCRIPTION_MIN } from "@/lib/validation/schemas"
 
 /**
@@ -36,12 +37,12 @@ export function MissionNotes({
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex items-center gap-3 cursor-pointer w-fit">
+      <label className="flex items-center gap-3 min-h-12 lg:min-h-0 cursor-pointer w-fit">
         <input
           type="checkbox"
           checked={open}
           onChange={(e) => onOpenChange(e.target.checked)}
-          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          className="w-5 h-5 lg:w-4 lg:h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
         />
         <span className="font-mono text-[14px] text-ink">Add notes for testers</span>
       </label>
@@ -68,10 +69,7 @@ export function MissionNotes({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               {...fieldErrorProps("task_description", errors)}
-              className={[
-                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
-                errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-              ].join(" ")}
+              className={textareaClass(!!errors?.length, { resizable: false })}
             />
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
@@ -91,7 +89,7 @@ export function MissionNotes({
           {/* The old tips ("Start with a verb…", "Describe the exact flow…")
               were instructions for writing a brief. The test case does that job
               now, so these are about the context the steps cannot carry. */}
-          <div className="bg-surface border border-line rounded-[12px] p-6">
+          <div className="bg-surface border border-line rounded-[12px] p-4 medium:p-6">
             <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
               Writing Useful Notes
             </p>
@@ -101,7 +99,7 @@ export function MissionNotes({
                 "What state it's in: seeded data, half-built screens, anything already known broken.",
                 "Logins, test cards, or sample data they'll need — and anything they should not touch.",
               ].map((tip) => (
-                <p key={tip} className="font-mono text-[13px] text-ink-muted leading-5 italic">
+                <p key={tip} className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5 italic">
                   {tip}
                 </p>
               ))}

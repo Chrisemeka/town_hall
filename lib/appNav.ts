@@ -44,3 +44,16 @@ export function navIsActive(pathname: string, href: string): boolean {
     ? pathname === href
     : pathname === href || pathname.startsWith(href + "/")
 }
+
+/**
+ * Form routes carry their own primary action; the top bar's "+ New Project"
+ * steps aside.
+ * On /dashboard/new it linked to the page you were on, and on every form it
+ * was a second Voltage fill beside the submit, and an exit mid-form.
+ */
+export function showsNewProject(pathname: string): boolean {
+  return !(
+    pathname === "/dashboard/new" ||
+    /^\/dashboard\/[^/]+\/(edit|mission\/new|mission\/[^/]+\/edit)$/.test(pathname)
+  )
+}

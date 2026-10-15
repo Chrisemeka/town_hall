@@ -19,6 +19,7 @@ import {
   type TestStep,
 } from "@/lib/validation/schemas"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { inputClass } from "@/components/ui/Field"
 
 /**
  * The test-case half of both mission forms — category, template, steps, device.
@@ -122,7 +123,8 @@ export function TestCaseEditor({
         <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           What kind of testing is this?
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stacked below 1024: inside the 640px card three columns are ~150px. */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {TEST_CATEGORIES.map((option, i) => {
             const active = category === option
             return (
@@ -136,15 +138,15 @@ export function TestCaseEditor({
                 onClick={() => chooseCategory(option)}
                 aria-pressed={active}
                 className={[
-                  "text-left rounded-[12px] border p-4 transition-colors duration-150",
+                  "text-left rounded-[12px] border p-4 active:bg-ink/[0.06] transition-colors duration-150",
                   active
                     ? "border-accent-ink bg-voltage/5"
-                    : "border-line bg-surface hover:border-ink-muted",
+                    : "border-ink-muted bg-surface hover:bg-ink/[0.06]",
                 ].join(" ")}
               >
                 <span
                   className={[
-                    "block font-mono text-[13px] font-medium mb-1",
+                    "block font-mono text-[14px] lg:text-[13px] font-medium mb-1",
                     active ? "text-accent-ink" : "text-ink",
                   ].join(" ")}
                 >
@@ -168,7 +170,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={startBlank}
-              className="text-left rounded-[8px] border border-line bg-surface px-4 py-3 font-mono text-[13px] text-ink hover:border-ink-muted transition-colors duration-150"
+              className="text-left rounded-[8px] border border-ink-muted bg-surface px-4 py-3 font-mono text-[14px] lg:text-[13px] text-ink hover:border-ink-muted active:bg-ink/[0.06] transition-colors duration-150"
             >
               Blank test case
               <span className="block text-[12px] text-ink-muted mt-0.5">Write every step yourself.</span>
@@ -179,10 +181,10 @@ export function TestCaseEditor({
                 type="button"
                 onClick={() => applyTemplate(template.id)}
                 className={[
-                  "text-left rounded-[8px] border px-4 py-3 font-mono text-[13px] transition-colors duration-150",
+                  "text-left rounded-[8px] border px-4 py-3 font-mono text-[14px] lg:text-[13px] active:bg-ink/[0.06] transition-colors duration-150",
                   templateId === template.id
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
-                    : "border-line text-ink bg-surface hover:border-ink-muted",
+                    : "border-ink-muted text-ink bg-surface hover:bg-ink/[0.06]",
                 ].join(" ")}
               >
                 {template.name}
@@ -222,7 +224,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={addStep}
-              className="h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+              className="h-12 w-full justify-center medium:w-auto lg:h-10 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:bg-ink/[0.06] transition-colors duration-150 flex items-center gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
               Add first step
@@ -245,20 +247,23 @@ export function TestCaseEditor({
                       disabled={index === 0}
                       onClick={() => move(index, -1)}
                     >
-                      <ArrowUp className="w-3.5 h-3.5" />
+                      <ArrowUp className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
                     <IconButton
                       label={`Move step ${index + 1} down`}
                       disabled={index === steps.length - 1}
                       onClick={() => move(index, 1)}
                     >
-                      <ArrowDown className="w-3.5 h-3.5" />
+                      <ArrowDown className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
+                    {/* Set apart from Move down, and red on hover and press:
+                        there is no undo. */}
                     <IconButton
                       label={`Remove step ${index + 1}`}
                       onClick={() => removeStep(step.id)}
+                      className="ml-3 lg:ml-1 hover:text-danger-ink hover:border-danger-ink/50 active:text-danger-ink active:border-danger-ink/50"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
                   </div>
                 </div>
@@ -288,7 +293,7 @@ export function TestCaseEditor({
               <button
                 type="button"
                 onClick={addStep}
-                className="h-10 px-4 self-start border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+                className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-10 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:bg-ink/[0.06] transition-colors duration-150 flex items-center gap-2"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add step
@@ -306,7 +311,8 @@ export function TestCaseEditor({
         <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           Where should this be tested?
         </p>
-        <div className="flex flex-wrap gap-2">
+        {/* Compact: a three-segment control. From 600px, today's row. */}
+        <div className="grid grid-cols-3 gap-2 medium:flex medium:flex-wrap">
           {DEVICE_TARGETS.map((option, i) => {
             const active = deviceTarget === option
             return (
@@ -320,10 +326,10 @@ export function TestCaseEditor({
                 }}
                 aria-pressed={active}
                 className={[
-                  "h-10 px-4 rounded-[8px] border font-mono text-[13px] transition-colors duration-150",
+                  "h-12 lg:h-10 px-2 medium:px-4 rounded-[8px] border font-mono text-[14px] lg:text-[13px] transition-colors duration-150",
                   active
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
-                    : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
+                    : "border-ink-muted text-ink-muted bg-surface hover:text-ink",
                 ].join(" ")}
               >
                 {deviceTargetLabel(option)}
@@ -357,7 +363,7 @@ function StepField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
+      <span className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
       <input
         id={field}
         // Not submitted — the parent form sends the whole step array as one
@@ -369,10 +375,9 @@ function StepField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         {...fieldErrorProps(field, errors)}
-        className={[
-          "h-10 w-full bg-surface-raised border rounded-[8px] px-3 font-mono text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150",
-          errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-        ].join(" ")}
+        // The shared chrome, on the raised ground so it reads against the
+        // surface-coloured step card.
+        className={inputClass(!!errors?.length, { raised: true })}
       />
       <FieldError field={field} errors={errors} />
     </label>
@@ -383,11 +388,14 @@ function IconButton({
   label,
   onClick,
   disabled,
+  className = "hover:text-ink hover:bg-ink/[0.06]",
   children,
 }: {
   label: string
   onClick: () => void
   disabled?: boolean
+  /** The hover colours; Remove passes its own. */
+  className?: string
   children: React.ReactNode
 }) {
   return (
@@ -396,7 +404,8 @@ function IconButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="w-7 h-7 flex items-center justify-center rounded-[6px] border border-line text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none"
+      // 48px below lg: three in a row are 160px beside the step number.
+      className={`w-12 h-12 lg:w-7 lg:h-7 flex items-center justify-center rounded-[6px] border border-ink-muted text-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>
