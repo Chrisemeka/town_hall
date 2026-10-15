@@ -49,7 +49,7 @@ export function AccountSheet({
         }}
         className={ICON_BUTTON}
       >
-        <Avatar src={avatarUrl} name={displayName} size={32} />
+        <Avatar src={avatarUrl} name={displayName} size={40} />
       </button>
 
       <dialog

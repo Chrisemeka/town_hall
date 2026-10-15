@@ -82,7 +82,7 @@ export function TopNav({
             id="tour-new-project-btn-mobile"
             href={cta.href}
             aria-label={cta.label}
-            className="w-12 h-12 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
+            className="relative w-10 h-10 m-1 rounded-full bg-voltage text-obsidian flex items-center justify-center after:absolute after:-inset-1 hover:bg-voltage-dark transition-colors duration-150"
           >
             <Plus className="w-5 h-5" aria-hidden="true" />
           </Link>

@@ -119,8 +119,9 @@ export function GlobalSearch({
   return (
     <div ref={containerRef} className="relative w-full">
 
-      {/* Input */}
-      <div className="relative">
+      {/* Input. 40px, the logo's height, so the bar's four items line up;
+          the label's 4px above and below make the tap area 48px. */}
+      <label className="relative block py-1 -my-1 lg:py-0 lg:my-0">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
         {loading && (
           <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted animate-spin motion-reduce:animate-none" />
@@ -137,9 +138,10 @@ export function GlobalSearch({
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="w-full h-12 lg:h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
+          aria-label="Search projects or missions"
+          className="w-full h-10 lg:h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
         />
-      </div>
+      </label>
 
       {/* Dropdown. Below 600px the field is ~160px wide, so the panel spans
           the screen under the bar instead; below 840px it stops short of the
