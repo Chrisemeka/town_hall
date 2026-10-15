@@ -82,6 +82,14 @@ const REVAMPED = [
   "components/submissions/SubmissionBody.tsx",
   "components/ui/Textarea.tsx",
   "lib/swipe.ts",
+  "app/(developer)/dashboard/new/page.tsx",
+  "app/(developer)/dashboard/[projectId]/mission/new/page.tsx",
+  "components/CreateProjectForm.tsx",
+  "components/AddMissionForm.tsx",
+  "components/missions/TestCaseEditor.tsx",
+  "components/missions/MissionNotes.tsx",
+  "components/missions/MissionPreview.tsx",
+  "components/DeleteMissionButton.tsx",
 ]
 
 const offences: string[] = []
@@ -153,6 +161,13 @@ for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackLis
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
   assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
 }
+for (const f of ["components/CreateProjectForm.tsx", "components/AddMissionForm.tsx",
+                 "components/missions/TestCaseEditor.tsx", "components/missions/MissionNotes.tsx"]) {
+  const src = readFileSync(f, "utf8")
+  assert.ok(!/["'`]h-10 w-full bg-surface/.test(src) && !/w-full bg-surface border rounded-\[8px\] px-4 py-3/.test(src),
+    `${f}: fields must use inputClass()/textareaClass() — hand-rolled chrome zooms iOS`)
+}
+
 const row = readFileSync("components/MissionResultRow.tsx", "utf8")
 assert.ok(!/grid-cols-3/.test(row.replace(/medium:grid-cols-3|lg:grid-cols-3/g, "")),
   "MissionResultRow: insights must not be three columns below 600px")
