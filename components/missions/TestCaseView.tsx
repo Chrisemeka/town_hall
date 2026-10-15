@@ -47,7 +47,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
           </span>
           <div className="flex flex-col gap-2 min-w-0">
             <div>
-              <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
+              <p className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
                 Do
               </p>
               <p className="font-mono text-[14px] leading-5 text-ink break-words">
@@ -55,7 +55,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
               </p>
             </div>
             <div>
-              <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
+              <p className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
                 Expect
               </p>
               <p className="font-mono text-[14px] leading-5 text-ink-muted break-words">

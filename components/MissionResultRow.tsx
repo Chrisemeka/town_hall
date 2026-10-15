@@ -97,7 +97,7 @@ export default function MissionResultRow({
 
         {/* TEST SCREENSHOTS */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
+          <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             TEST SCREENSHOTS
             {shots.length > 1 && (
               <span className="text-ink-muted normal-case tracking-normal">
@@ -162,7 +162,7 @@ export default function MissionResultRow({
 
         {/* WRITTEN FEEDBACK */}
         <div className="flex flex-col gap-3">
-          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
+          <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
           </p>
           <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex-1 flex flex-col justify-between">
@@ -179,7 +179,7 @@ export default function MissionResultRow({
       {result.ai_summary && (
         <div className="bg-surface-raised border border-line rounded-[12px] p-6">
           <div className="flex items-center justify-between mb-4">
-            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">
+            <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
               Test Report
             </p>
             <button

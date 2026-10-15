@@ -160,9 +160,9 @@ export default async function DeveloperMissionDetailPage({
       {/* Why this is still a draft, above the fold: below the test case it
           went unseen, and a refused publish is the first thing to know. */}
       {!isActive && (
-        <div className="mb-8 max-w-3xl">
+        <div className="mb-6 medium:mb-8 max-w-3xl">
           {limited > 0 && (
-            <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mb-4">
+            <p role="alert" className="font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink mb-4">
               {tooManyMessage(limited)}
             </p>
           )}
@@ -171,10 +171,10 @@ export default async function DeveloperMissionDetailPage({
       )}
 
       {/* Mission header */}
-      <div className="mb-10">
+      <div className="mb-8 medium:mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <Badge variant={isActive ? "active" : "draft"} />
-          <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink break-words min-w-0">
+          <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink [overflow-wrap:anywhere] min-w-0">
             {mission.title}
           </h1>
         </div>
@@ -182,10 +182,10 @@ export default async function DeveloperMissionDetailPage({
             heading over blank space. */}
         {mission.task_description && (
           <>
-            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
+            <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
               NOTES FOR TESTERS
             </p>
-            <p className="font-mono text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
+            <p className="font-mono text-[16px] lg:text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
               {mission.task_description}
             </p>
           </>
@@ -197,7 +197,7 @@ export default async function DeveloperMissionDetailPage({
           className="mt-4"
         />
 
-        <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
+        <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
           TEST STEPS
         </p>
         <div className="max-w-3xl">
