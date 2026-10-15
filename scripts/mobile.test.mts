@@ -72,6 +72,8 @@ const REVAMPED = [
   "components/settings/PlanSection.tsx",
   "components/SettingsForm.tsx",
   "components/ThemePreference.tsx",
+  "app/(developer)/dashboard/[projectId]/page.tsx",
+  "components/ProjectDetailTabs.tsx",
 ]
 
 const offences: string[] = []
@@ -138,11 +140,14 @@ assert.ok(
 for (const f of ["app/(developer)/dashboard/page.tsx", "components/MissionListPaged.tsx"]) {
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(readFileSync(f, "utf8")), `${f}: colour in an inline style`)
 }
-for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx"]) {
+for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx", "app/(developer)/dashboard/[projectId]/page.tsx", "components/ProjectDetailTabs.tsx"]) {
   const src = readFileSync(f, "utf8")
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
   assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
 }
+// Voltage is a fill. As a 2px indicator on the light ground it is 1.02:1.
+assert.ok(!/bg-voltage[^-]/.test(readFileSync("components/ProjectDetailTabs.tsx", "utf8")),
+  "ProjectDetailTabs: the tab indicator is accent-ink, not Voltage")
 assert.ok(/inputClass\(/.test(readFileSync("components/settings/ExportPanel.tsx", "utf8")),
   "ExportPanel: selects use inputClass() so iOS does not zoom")
 

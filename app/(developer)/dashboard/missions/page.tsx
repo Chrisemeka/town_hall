@@ -60,11 +60,15 @@ export default async function MyMissionsPage() {
             All missions across your projects.
           </p>
         </div>
-        <Button variant="ghost" asChild>
-          <Link href="/dashboard" className="shrink-0 w-full medium:w-auto medium:mt-1">
-            + Add Mission
-          </Link>
-        </Button>
+        {/* A mission belongs to a project: with none, there is nothing to add
+            one to, and the empty state below points at My Projects. */}
+        {projectIds.length > 0 && (
+          <Button variant="ghost" asChild>
+            <Link href="/dashboard" className="shrink-0 w-full medium:w-auto medium:mt-1">
+              + Add Mission
+            </Link>
+          </Button>
+        )}
       </div>
 
       {missions.length === 0 ? (

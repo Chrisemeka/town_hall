@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
@@ -8,6 +8,9 @@ import { MissionChips } from "@/components/missions/TestCaseView"
 import { Button } from "@/components/ui/Button"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
+import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+import { testerLabel } from "@/lib/testerNumbers"
+import { nextTabIndex } from "@/lib/settingsTabs"
 
 type Mission = {
   id: string
@@ -30,6 +33,9 @@ type TestResult = {
   screenshot_urls: string[] | null
   created_at: string
   missions: { id: string; title: string } | null
+  /** Per mission, from lib/testerNumbers — the same number the mission page and CSV show. */
+  testerNumber: number | undefined
+  entries: SubmissionEntry[] | null
 }
 
 interface Props {
@@ -55,8 +61,24 @@ function relativeTime(iso: string) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+const TABS = ["missions", "feedback"] as const
+type Tab = (typeof TABS)[number]
+
 export function ProjectDetailTabs({ projectId, missions, results }: Props) {
-  const [tab, setTab] = useState<"missions" | "feedback">("missions")
+  const [tab, setTab] = useState<Tab>("missions")
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
+
+  // WAI-ARIA tabs with automatic activation: an arrow selects as well as
+  // moves. Two tabs and no URL history, so nothing argues for the manual
+  // activation Settings needs.
+  function onKeyDown(e: React.KeyboardEvent) {
+    const from = TABS.indexOf(tab)
+    const to = nextTabIndex(from, e.key, TABS.length)
+    if (to === from) return
+    e.preventDefault()
+    setTab(TABS[to])
+    buttons.current[to]?.focus()
+  }
 
   const feedbackCount = results.length
 
@@ -72,27 +94,47 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
     <div>
       {/* Tab bar + action button */}
       <div className="border-b border-line mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
-          <div className="flex items-end gap-4 sm:gap-6">
+        <div className="flex items-end justify-between">
+          <div role="tablist" aria-label="Project sections" onKeyDown={onKeyDown} className="flex flex-1 medium:flex-none items-end medium:gap-6">
             {[
-              { key: "missions",  label: `Missions`,          count: missions.length },
-              { key: "feedback",  label: `Feedback Received`, count: feedbackCount  },
-            ].map(({ key, label, count }) => (
+              { key: "missions" as const, label: <>Missions</>, count: missions.length },
+              // "Feedback Received (3)" cannot share 328px with "Missions (4)"
+              // as fixed tabs. The word is hidden visually below 600px only;
+              // the accessible name is the same at every width.
+              { key: "feedback" as const, label: <>Feedback<span className="hidden medium:inline"> Received</span></>, count: feedbackCount },
+            ].map(({ key, label, count }, i) => (
               <button
                 key={key}
-                onClick={() => setTab(key as typeof tab)}
+                ref={(el) => {
+                  buttons.current[i] = el
+                }}
+                id={`project-tab-${key}`}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                aria-controls={`project-panel-${key}`}
+                tabIndex={tab === key ? 0 : -1}
+                onClick={() => setTab(key)}
                 className={[
-                  "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
+                  // Compact: M3 fixed tabs, two equal halves of the row. From
+                  // 600px content-width; from lg today's desktop geometry.
+                  "flex-1 medium:flex-none h-12 lg:h-auto lg:pb-3 inline-flex lg:block items-center justify-center font-mono text-[14px] font-medium transition-colors duration-150 relative",
                   tab === key ? "text-ink" : "text-ink-muted hover:text-ink",
                 ].join(" ")}
               >
-                {label}
-                {" "}
-                <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
-                  ({count})
+                {/* One inline run: as flex items the label and count would
+                    lose the spaces between them. */}
+                <span>
+                  {label}
+                  {" "}
+                  <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted"}`}>
+                    ({count})
+                  </span>
                 </span>
+                {/* accent-ink, not Voltage: Voltage is a fill, and as a 2px line on
+                    the light ground it is 1.02:1. On dark they are the same. */}
                 {tab === key && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-voltage rounded-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent-ink rounded-full" />
                 )}
               </button>
             ))}
@@ -101,7 +143,9 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           {tab === "missions" && (
             <Link
               href={`/dashboard/${projectId}/mission/new`}
-              className="self-end sm:self-auto h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5 mb-3 w-fit"
+              // From 600px, in the tab row. Below it the Missions panel carries
+              // its own full-width copy; only one is ever displayed.
+              className="hidden medium:flex h-12 lg:h-9 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 items-center gap-1.5 mb-3 w-fit"
             >
               + Add Mission
             </Link>
@@ -111,9 +155,22 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
       {/* ── MISSIONS TAB ─────────────────────────────────────────────── */}
       {tab === "missions" && (
-        <div className="flex flex-col gap-4">
+        <div
+          id="project-panel-missions"
+          role="tabpanel"
+          aria-labelledby="project-tab-missions"
+          tabIndex={0}
+          className="flex flex-col gap-3 medium:gap-4 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        >
+          {/* The empty state carries its own Add Mission, so this one waits
+              for the list. */}
+          {missions.length > 0 && (
+            <Button variant="secondary" asChild className="medium:hidden w-full">
+              <Link href={`/dashboard/${projectId}/mission/new`}>+ Add Mission</Link>
+            </Button>
+          )}
           {missions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+            <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
               <p className="font-mono text-[14px] text-ink-muted mb-6 text-center">
                 Add a mission to activate your project and start receiving tester feedback.
@@ -131,8 +188,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               return (
                 <div
                   key={mission.id}
-                  className="relative bg-surface-raised border border-line rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                  className="group relative bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
                 >
                   {/* Card content */}
                   <div className="relative z-10 flex flex-col gap-3">
@@ -142,9 +198,16 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0">
                           {missionNum}
                         </span>
-                        <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
-                          {mission.title}
-                        </h5>
+                        {/* The title is the card's link: its ::after stretches
+                            over the whole card, padding included. */}
+                        <h2 className="font-syne font-bold text-[20px] leading-7 text-ink max-medium:line-clamp-2 medium:truncate">
+                          <Link
+                            href={`/dashboard/${projectId}/mission/${mission.id}`}
+                            className="after:absolute after:-inset-4 medium:after:-inset-6 focus-visible:outline-none"
+                          >
+                            {mission.title}
+                          </Link>
+                        </h2>
                       </div>
                       <Badge variant={status} />
                     </div>
@@ -159,12 +222,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       <span className="font-mono text-[12px] text-ink-muted">
                         {fbCount} Feedback{fbCount !== 1 ? "s" : ""}
                       </span>
-                      <Link
-                        href={`/dashboard/${projectId}/mission/${mission.id}`}
-                        className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
+                      {/* Decorative: the title is the link. */}
+                      <span
+                        aria-hidden="true"
+                        className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1"
                       >
                         Open <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -176,9 +240,15 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
       {/* ── FEEDBACK RECEIVED TAB ─────────────────────────────────────── */}
       {tab === "feedback" && (
-        <div className="flex flex-col gap-10">
+        <div
+          id="project-panel-feedback"
+          role="tabpanel"
+          aria-labelledby="project-tab-feedback"
+          tabIndex={0}
+          className="flex flex-col gap-8 medium:gap-10 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        >
           {feedbackCount === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+            <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</p>
               <p className="font-mono text-[14px] text-ink-muted">
                 Share your project in the community to start receiving feedback.
@@ -188,32 +258,38 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
             byMission.map(({ mission, items }) => (
               <div key={mission.id}>
                 {/* Mission heading */}
-                <h5 className="font-syne font-bold text-[20px] text-ink mb-4">
+                <h2 className="font-syne font-bold text-[20px] text-ink mb-4">
                   {mission.title}
-                </h5>
+                </h2>
 
                 <div className="flex flex-col gap-4">
-                  {items.map((result, idx) => (
+                  {items.map((result) => (
                     <Link
                       key={result.id}
                       href={`/dashboard/${projectId}/mission/${mission.id}`}
-                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
+                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.04] transition-colors duration-150"
                     >
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
                         <span className="font-mono text-[12px] text-ink-muted">
-                          Developer #{String(idx + 1).padStart(2, "0")}
+                          {testerLabel(result.testerNumber)}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-line" />
+                        <span aria-hidden="true" className="w-1 h-1 rounded-full bg-line" />
                         <span className="font-mono text-[12px] text-ink-muted">
                           {relativeTime(result.created_at)}
                         </span>
                       </div>
 
                       {/* Feedback body (truncated — full breakdown on mission page) */}
-                      <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
-                        {result.tester_comment}
-                      </p>
+                      {result.entries?.length ? (
+                        // A list preview, so the count only — the full log lives
+                        // on the mission page this links to.
+                        <PassRate entries={result.entries} />
+                      ) : (
+                        <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
+                          {result.tester_comment ?? "No written feedback."}
+                        </p>
+                      )}
 
                       <ScreenshotStrip urls={screenshotList(result)} />
 
