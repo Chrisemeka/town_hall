@@ -1,6 +1,7 @@
 "use client"
 
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { textareaClass } from "@/components/ui/Field"
 import { MISSION_DESCRIPTION_MIN } from "@/lib/validation/schemas"
 
 /**
@@ -68,10 +69,7 @@ export function MissionNotes({
               value={value}
               onChange={(e) => onChange(e.target.value)}
               {...fieldErrorProps("task_description", errors)}
-              className={[
-                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
-                errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-              ].join(" ")}
+              className={textareaClass(!!errors?.length, { resizable: false })}
             />
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">

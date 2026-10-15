@@ -19,6 +19,7 @@ import {
   type TestStep,
 } from "@/lib/validation/schemas"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { inputClass } from "@/components/ui/Field"
 
 /**
  * The test-case half of both mission forms — category, template, steps, device.
@@ -357,7 +358,7 @@ function StepField({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
+      <span className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
       <input
         id={field}
         // Not submitted — the parent form sends the whole step array as one
@@ -369,10 +370,9 @@ function StepField({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         {...fieldErrorProps(field, errors)}
-        className={[
-          "h-10 w-full bg-surface-raised border rounded-[8px] px-3 font-mono text-[13px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150",
-          errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-        ].join(" ")}
+        // The shared chrome, on the raised ground so it reads against the
+        // surface-coloured step card.
+        className={inputClass(!!errors?.length, { raised: true })}
       />
       <FieldError field={field} errors={errors} />
     </label>

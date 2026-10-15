@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { inputClass } from "@/components/ui/Field"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { TestCaseEditor } from "@/components/missions/TestCaseEditor"
 import { MissionNotes } from "@/components/missions/MissionNotes"
@@ -95,7 +96,8 @@ export default function AddMissionForm({
         For:{" "}
         <Link
           href={`/dashboard/${projectId}`}
-          className="text-ink hover:underline"
+          // 48px below lg without moving the line.
+          className="inline-flex items-center min-h-12 -my-3 lg:min-h-0 lg:my-0 text-ink hover:underline"
         >
           {project.name}
         </Link>
@@ -124,11 +126,9 @@ export default function AddMissionForm({
             placeholder="e.g. Test the checkout flow"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            enterKeyHint="next"
             {...fieldErrorProps("title", fieldErrors.title)}
-            className={[
-              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.title?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={inputClass(!!fieldErrors.title?.length)}
           />
           <div className="flex items-center justify-between gap-3">
             <FieldError field="title" errors={fieldErrors.title} />

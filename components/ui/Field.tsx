@@ -53,14 +53,17 @@ export function Field({
  * touch: iOS Safari zooms into anything smaller on focus, an iPad in landscape
  * included, so it is keyed on the pointer, not the width (Design.md §5.8).
  */
-export function inputClass(hasError: boolean): string {
+export function inputClass(hasError: boolean, { raised = false }: { raised?: boolean } = {}): string {
   return [
-    "h-12 lg:h-10 w-full scroll-mt-24 bg-surface border rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+    "h-12 lg:h-10 w-full scroll-mt-24 border rounded-[8px] px-4 font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
     // `line` is 1.19:1 on Bone and 1.40:1 on Obsidian — it fails WCAG 1.4.11's
     // 3:1 for a control's visible boundary on BOTH grounds. It was wrong while
     // the app was dark-only too; nobody had checked. ink-muted is 6.8:1 light
     // and 5.1:1 dark.
     hasError ? "border-danger-ink" : "border-ink-muted focus:border-accent-ink",
+    // A field on a surface-coloured card (a test step) takes the raised
+    // ground, or its edge disappears into the card.
+    raised ? "bg-surface-raised" : "bg-surface",
   ].join(" ")
 }
 
