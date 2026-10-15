@@ -157,15 +157,17 @@ export default function AddMissionForm({
 
         {/* CTAs */}
         <div className="flex flex-col gap-3 pt-2">
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Compact: stacked full width in DOM order (Publish, Preview, Save
+              as Draft, Cancel), so focus order matches what is on screen. */}
+          <div className="grid grid-cols-1 gap-2 medium:flex medium:flex-wrap medium:items-center medium:gap-3">
             <PublishButton />
             <PreviewButton project={project} />
             <DraftButton />
-            <Button variant="ghost" size="lg" asChild>
+            <Button variant="ghost" size="lg" asChild className="w-full medium:w-auto">
               <Link href={`/dashboard/${projectId}`}>Cancel</Link>
             </Button>
           </div>
-          <p className="font-mono text-[12px] text-ink-muted leading-5">
+          <p className="font-mono text-[14px] lg:text-[12px] text-ink-muted leading-5">
             Publishing puts this mission — and your project — on the Explore feed where testers
             pick it up. Drafts stay private, and a project with no published mission stays hidden.
           </p>
@@ -185,7 +187,7 @@ function PublishButton() {
       name="intent"
       value="publish"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+      className="h-12 w-full medium:w-auto px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Publishing…" : "Publish Mission"}
     </button>
@@ -200,7 +202,7 @@ function DraftButton() {
       name="intent"
       value="draft"
       disabled={pending}
-      className="h-12 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+      className="h-12 w-full medium:w-auto px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
       Save as Draft
     </button>
