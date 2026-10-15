@@ -43,6 +43,12 @@ describe("nextTabIndex", () => {
     expect(nextTabIndex(2, "ArrowLeft")).toBe(1)
   })
 
+  it("takes the count of a smaller strip", () => {
+    // The project page's two tabs share this handler.
+    expect(nextTabIndex(1, "ArrowRight", 2)).toBe(0)
+    expect(nextTabIndex(0, "ArrowLeft", 2)).toBe(1)
+  })
+
   it("wraps at both ends, which is the APG contract", () => {
     expect(nextTabIndex(0, "ArrowLeft")).toBe(last)
     expect(nextTabIndex(last, "ArrowRight")).toBe(0)
