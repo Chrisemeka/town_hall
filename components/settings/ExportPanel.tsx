@@ -71,9 +71,9 @@ export function ExportPanel({
 
   return (
     <div>
-      <h5 className="font-syne font-bold text-[20px] text-ink mb-6">
+      <h2 className="font-syne font-bold text-[20px] text-ink mb-6">
         Export your data
-      </h5>
+      </h2>
 
       {!hasFeedback || projects.length === 0 ? (
         // Saying so beats downloading a file with only a header row, which

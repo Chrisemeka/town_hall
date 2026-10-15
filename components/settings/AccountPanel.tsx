@@ -54,7 +54,7 @@ export function AccountPanel({
     <div>
       {/* ── Account ─────────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h5>
+        <h2 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h2>
 
         <div className="flex flex-col items-stretch gap-3 medium:flex-row medium:items-center medium:justify-between medium:gap-4">
           <div>
@@ -93,9 +93,9 @@ export function AccountPanel({
 
       {/* ── Danger Zone ─────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-danger-ink">
+        <h2 className="font-syne font-bold text-[20px] text-danger-ink">
           Danger Zone
-        </h5>
+        </h2>
         <p className="font-mono text-[14px] text-ink-muted mt-2 mb-6">
           Destructive actions that cannot be undone.
         </p>

@@ -155,7 +155,7 @@ export function SettingsForm({
 
       {/* ── Profile ─────────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Profile</h5>
+        <h2 className="font-syne font-bold text-[20px] text-ink mb-6">Profile</h2>
 
         <div className="flex flex-col gap-5">
           <Field label="Display Name" htmlFor="full_name" error={errors.full_name}>
