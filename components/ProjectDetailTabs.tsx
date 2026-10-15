@@ -168,7 +168,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
             </Button>
           )}
           {missions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+            <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
               <p className="font-mono text-[14px] text-ink-muted mb-6 text-center">
                 Add a mission to activate your project and start receiving tester feedback.
@@ -244,10 +244,10 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           role="tabpanel"
           aria-labelledby="project-tab-feedback"
           tabIndex={0}
-          className="flex flex-col gap-10 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          className="flex flex-col gap-8 medium:gap-10 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
         >
           {feedbackCount === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+            <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</p>
               <p className="font-mono text-[14px] text-ink-muted">
                 Share your project in the community to start receiving feedback.
@@ -257,23 +257,23 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
             byMission.map(({ mission, items }) => (
               <div key={mission.id}>
                 {/* Mission heading */}
-                <h5 className="font-syne font-bold text-[20px] text-ink mb-4">
+                <h2 className="font-syne font-bold text-[20px] text-ink mb-4">
                   {mission.title}
-                </h5>
+                </h2>
 
                 <div className="flex flex-col gap-4">
                   {items.map((result) => (
                     <Link
                       key={result.id}
                       href={`/dashboard/${projectId}/mission/${mission.id}`}
-                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
+                      className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.04] transition-colors duration-150"
                     >
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
                         <span className="font-mono text-[12px] text-ink-muted">
                           {testerLabel(result.testerNumber)}
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-line" />
+                        <span aria-hidden="true" className="w-1 h-1 rounded-full bg-line" />
                         <span className="font-mono text-[12px] text-ink-muted">
                           {relativeTime(result.created_at)}
                         </span>
