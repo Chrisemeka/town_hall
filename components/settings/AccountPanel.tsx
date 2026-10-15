@@ -56,14 +56,14 @@ export function AccountPanel({
       <div>
         <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h5>
 
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col items-stretch gap-3 medium:flex-row medium:items-center medium:justify-between medium:gap-4">
           <div>
             <p className="font-mono text-[14px] text-ink">Linked Accounts</p>
             <p className="font-mono text-[13px] text-ink-muted mt-0.5">
               GitHub, Google, and other OAuth providers.
             </p>
           </div>
-          <button className="h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 shrink-0">
+          <button className="h-12 lg:h-9 w-full medium:w-auto px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 shrink-0">
             Manage
           </button>
         </div>

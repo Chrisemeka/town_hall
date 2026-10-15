@@ -30,7 +30,7 @@ export function ThemePreference({ theme }: { theme: Theme }) {
   }
 
   return (
-    <fieldset className="border border-line rounded-[12px] bg-surface-raised p-6">
+    <fieldset className="border border-line rounded-[12px] bg-surface-raised p-5 medium:p-6">
       <legend className="sr-only">Theme</legend>
       <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
         Appearance
@@ -39,7 +39,9 @@ export function ThemePreference({ theme }: { theme: Theme }) {
         Applies everywhere you are signed in, on this device.
       </p>
 
-      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Theme">
+      {/* Compact: an M3 segmented button, two equal halves. From 600px the
+          options are content-width, as on desktop. */}
+      <div className="grid grid-cols-2 gap-2 medium:flex medium:flex-wrap medium:gap-3" role="radiogroup" aria-label="Theme">
         {OPTIONS.map(({ value, label, icon: Icon }) => {
           const on = value === theme
           return (
@@ -50,7 +52,7 @@ export function ThemePreference({ theme }: { theme: Theme }) {
               aria-checked={on}
               onClick={() => choose(value)}
               className={[
-                "h-11 px-5 inline-flex items-center gap-2 rounded-[8px] border font-mono text-[14px] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
+                "h-12 lg:h-11 justify-center px-5 inline-flex items-center gap-2 rounded-[8px] border font-mono text-[14px] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
                 // The selected state is a border and a word, never colour
                 // alone — Design.md §10.
                 on

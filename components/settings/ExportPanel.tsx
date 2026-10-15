@@ -90,7 +90,7 @@ export function ExportPanel({
             per mission. Both open in Excel, Numbers or Google Sheets.
           </p>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="flex flex-col medium:flex-row medium:items-end gap-4">
             <div className="flex flex-col gap-2 flex-1 min-w-0">
               <label htmlFor="project" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
                 Project
@@ -138,7 +138,7 @@ export function ExportPanel({
               href={href}
               onClick={download}
               download
-              className="h-10 px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+              className="h-12 lg:h-10 w-full justify-center medium:w-auto px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
             >
               <Download size={14} aria-hidden="true" />
               {workbook ? "Download Excel" : "Download CSV"}
