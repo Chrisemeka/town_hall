@@ -60,10 +60,10 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
 
   return (
     <div>
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-8 medium:gap-12">
         {groups.map((group) => (
           <div key={group.missionId}>
-            <div className="mb-5">
+            <div className="mb-4 medium:mb-5">
               <Link
                 href={`/dashboard/${group.projectId}`}
                 className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 block mb-1"

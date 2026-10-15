@@ -108,10 +108,10 @@ export default async function FeedbackReceivedPage() {
   );
 
   return (
-    <div className="max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div className="max-w-[800px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
 
-      <div id="tour-feedback-header" className="mb-8">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
+      <div id="tour-feedback-header" className="mb-6 medium:mb-8">
+        <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
           Feedback Received
         </h1>
         <p className="font-mono text-[14px] text-ink-muted mt-1">
@@ -120,7 +120,7 @@ export default async function FeedbackReceivedPage() {
       </div>
 
       {sorted.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px] text-center px-6">
+        <div className="flex flex-col items-center justify-center py-12 medium:py-16 border border-dashed border-line rounded-[12px] text-center px-6">
           <MessageSquare className="w-12 h-12 text-ink-muted mb-4 opacity-40" />
           <h3 className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</h3>
           <p className="font-mono text-[14px] text-ink-muted mb-6 max-w-[340px]">
