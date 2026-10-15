@@ -141,7 +141,9 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           {tab === "missions" && (
             <Link
               href={`/dashboard/${projectId}/mission/new`}
-              className="self-end sm:self-auto h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5 mb-3 w-fit"
+              // From 600px, in the tab row. Below it the Missions panel carries
+              // its own full-width copy; only one is ever displayed.
+              className="hidden medium:flex h-12 lg:h-9 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 items-center gap-1.5 mb-3 w-fit"
             >
               + Add Mission
             </Link>
@@ -158,6 +160,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           tabIndex={0}
           className="flex flex-col gap-4 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
         >
+          {/* The empty state carries its own Add Mission, so this one waits
+              for the list. */}
+          {missions.length > 0 && (
+            <Button variant="secondary" asChild className="medium:hidden w-full">
+              <Link href={`/dashboard/${projectId}/mission/new`}>+ Add Mission</Link>
+            </Button>
+          )}
           {missions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
