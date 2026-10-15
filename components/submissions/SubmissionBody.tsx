@@ -62,7 +62,7 @@ export function SubmissionBody({
                 <StatusPill status={entry.status} />
               </div>
 
-              <p className="font-mono text-[13px] leading-5 text-ink break-words mb-2">
+              <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-ink break-words mb-2">
                 {entry.step_action}
               </p>
 
@@ -90,7 +90,7 @@ export function SubmissionBody({
 
       {comment?.trim() && (
         <div className="pt-3 border-t border-line">
-          <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
+          <p className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
             Anything else
           </p>
           <p className="font-mono text-[14px] leading-6 text-ink-muted whitespace-pre-wrap break-words">
@@ -117,7 +117,7 @@ export function PassRate({ entries }: { entries: SubmissionEntry[] }) {
     <div className="flex items-center gap-3 flex-wrap">
       <span
         className={[
-          "font-mono text-[13px] font-medium",
+          "font-mono text-[14px] lg:text-[13px] font-medium",
           failed > 0 ? "text-danger-ink" : "text-ink",
         ].join(" ")}
       >
@@ -160,7 +160,7 @@ function testerDisagreed(entry: SubmissionEntry): boolean {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <p className="font-mono text-[13px] leading-5 text-ink-muted break-words">
+    <p className="font-mono text-[14px] lg:text-[13px] leading-5 text-ink-muted break-words">
       <span className="text-ink-muted/70">{label}: </span>
       {value}
     </p>
