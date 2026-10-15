@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Download } from "lucide-react"
+import { inputClass } from "@/components/ui/Field"
 
 /** A project and the missions on it that have reports — nothing else is offered. */
 export type ExportProject = { id: string; name: string; missions: { id: string; title: string }[] }
@@ -70,9 +71,9 @@ export function ExportPanel({
 
   return (
     <div>
-      <h5 className="font-syne font-bold text-[20px] text-ink mb-6">
+      <h2 className="font-syne font-bold text-[20px] text-ink mb-6">
         Export your data
-      </h5>
+      </h2>
 
       {!hasFeedback || projects.length === 0 ? (
         // Saying so beats downloading a file with only a header row, which
@@ -90,7 +91,7 @@ export function ExportPanel({
             per mission. Both open in Excel, Numbers or Google Sheets.
           </p>
 
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="flex flex-col medium:flex-row medium:items-end gap-4">
             <div className="flex flex-col gap-2 flex-1 min-w-0">
               <label htmlFor="project" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
                 Project
@@ -104,7 +105,7 @@ export function ExportPanel({
                   // Another project's mission id would match nothing.
                   setMissionId("")
                 }}
-                className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
+                className={`${inputClass(false)} cursor-pointer`}
               >
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -123,7 +124,7 @@ export function ExportPanel({
                 name="mission"
                 value={missionId}
                 onChange={(e) => setMissionId(e.target.value)}
-                className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
+                className={`${inputClass(false)} cursor-pointer`}
               >
                 <option value="">All missions — one sheet each</option>
                 {(project?.missions ?? []).map((m) => (
@@ -138,7 +139,7 @@ export function ExportPanel({
               href={href}
               onClick={download}
               download
-              className="h-10 px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+              className="h-12 lg:h-10 w-full justify-center medium:w-auto px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
             >
               <Download size={14} aria-hidden="true" />
               {workbook ? "Download Excel" : "Download CSV"}

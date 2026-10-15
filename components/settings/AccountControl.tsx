@@ -23,7 +23,7 @@ export function AccountControl({ active, holdsOther }: { active: AccountType; ho
   const copy = accountSwitchCopy(active, holdsOther)
 
   const BUTTON =
-    "h-11 px-6 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+    "h-12 lg:h-11 w-full justify-center medium:w-auto medium:self-start px-6 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
 
   return (
     <div className="mt-8 pt-8 border-t border-line flex flex-col gap-3">
@@ -38,13 +38,13 @@ export function AccountControl({ active, holdsOther }: { active: AccountType; ho
           type="button"
           disabled={isPending}
           onClick={() => startTransition(() => switchAccount(copy.other))}
-          className={`${BUTTON} self-start`}
+          className={BUTTON}
         >
           <Repeat className="w-4 h-4 shrink-0" aria-hidden="true" />
           {isPending ? "Switching…" : copy.label}
         </button>
       ) : (
-        <a href="/choose-account" className={`${BUTTON} self-start`}>
+        <a href="/choose-account" className={BUTTON}>
           <Repeat className="w-4 h-4 shrink-0" aria-hidden="true" />
           {copy.label}
         </a>

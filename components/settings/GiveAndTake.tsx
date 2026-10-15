@@ -50,7 +50,7 @@ export function GiveAndTake({
           You don&apos;t have a tester account yet, so there&apos;s nothing to
           count. Adding one is how you earn reports on your own work.
         </p>
-        <p className="font-mono text-[13px] text-ink-muted mt-4">
+        <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mt-4">
           The control for that is in the Account tab.
         </p>
       </SettingsSection>
@@ -73,7 +73,7 @@ export function GiveAndTake({
           </p>
           <Link
             href="/explore/missions"
-            className="mt-6 inline-flex h-11 px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            className="mt-6 inline-flex h-12 lg:h-11 w-full justify-center medium:w-auto px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
             Browse missions
           </Link>
@@ -89,7 +89,7 @@ export function GiveAndTake({
     >
       {/* Two columns at 360px would put a long label beside its own figure.
           One column until there is room for two. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 medium:grid-cols-2 gap-6">
         <Metric value={String(stats.given)} label="Reports written" />
         <Metric value={String(stats.received)} label="Reports received" />
         <Metric
@@ -129,7 +129,7 @@ function TesterRecord({ stats }: { stats: Reciprocity }) {
           </p>
           <Link
             href="/explore/missions"
-            className="mt-6 inline-flex h-11 px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            className="mt-6 inline-flex h-12 lg:h-11 w-full justify-center medium:w-auto px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
             Browse missions
           </Link>
@@ -140,7 +140,7 @@ function TesterRecord({ stats }: { stats: Reciprocity }) {
 
   return (
     <SettingsSection title="Your testing" description={description}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 medium:grid-cols-2 gap-6">
         <Metric value={String(stats.given)} label="Reports written" />
         <Metric
           value={String(stats.approved)}

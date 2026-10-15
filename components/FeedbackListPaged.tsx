@@ -7,6 +7,7 @@ import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { testerLabel } from "@/lib/testerNumbers"
+import { LoadMore } from "@/components/ui/LoadMore"
 
 export type FeedbackEntry = {
   id: string
@@ -60,13 +61,15 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
 
   return (
     <div>
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-8 medium:gap-12">
         {groups.map((group) => (
           <div key={group.missionId}>
-            <div className="mb-5">
+            <div className="mb-4 medium:mb-5">
               <Link
                 href={`/dashboard/${group.projectId}`}
-                className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 block mb-1"
+                // 48px tall below lg; the negative margins take back the extra
+                // 30px (18px of text, 4px below it) so the layout does not move.
+                className="relative flex w-fit items-center min-h-12 -mt-[15px] -mb-[11px] lg:min-h-0 lg:mt-0 lg:mb-1 lg:block lg:w-auto font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150"
               >
                 {group.projectName}
               </Link>
@@ -78,14 +81,15 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                 <Link
                   key={item.id}
                   href={`/dashboard/${item.projectId}/mission/${item.missionId}`}
-                  className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink transition-colors duration-150"
+                  className="group block border-l-[3px] border-line pl-4 hover:border-accent-ink active:border-accent-ink active:bg-ink/[0.04] transition-colors duration-150"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-mono text-[12px] text-ink-muted">
                       {testerLabel(item.testerNumber)}
                     </span>
-                    <span className="font-mono text-[12px] text-ink-muted/40">·</span>
-                    <span className="font-mono text-[12px] text-ink-muted/60">{relTime(item.created_at)}</span>
+                    <span aria-hidden="true" className="font-mono text-[12px] text-ink-muted/40">·</span>
+                    {/* Full ink-muted: at 60% it was ~3:1, under the 4.5:1 a label needs. */}
+                    <span className="font-mono text-[12px] text-ink-muted">{relTime(item.created_at)}</span>
                   </div>
 
                   {item.entries?.length ? (
@@ -113,12 +117,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
 
       {items.length > visible && (
         <div className="flex justify-center mt-10">
-          <button
-            onClick={() => setVisible((v) => v + 6)}
-            className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-          >
-            Load More
-          </button>
+          <LoadMore onClick={() => setVisible((v) => v + 6)} />
         </div>
       )}
     </div>

@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
+import { LoadMore } from "@/components/ui/LoadMore"
 
 export type PagedMission = {
   id: string
@@ -66,12 +67,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
 
       {missions.length > visible && (
         <div className="flex justify-center mt-10">
-          <button
-            onClick={() => setVisible((v) => v + 6)}
-            className="h-12 lg:h-10 w-full medium:w-auto px-6 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-          >
-            Load More
-          </button>
+          <LoadMore onClick={() => setVisible((v) => v + 6)} />
         </div>
       )}
     </div>

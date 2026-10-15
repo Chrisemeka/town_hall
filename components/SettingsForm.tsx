@@ -155,7 +155,7 @@ export function SettingsForm({
 
       {/* ── Profile ─────────────────────────────────────── */}
       <div>
-        <h5 className="font-syne font-bold text-[20px] text-ink mb-6">Profile</h5>
+        <h2 className="font-syne font-bold text-[20px] text-ink mb-6">Profile</h2>
 
         <div className="flex flex-col gap-5">
           <Field label="Display Name" htmlFor="full_name" error={errors.full_name}>
@@ -259,7 +259,7 @@ export function SettingsForm({
             <label className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
               Email
             </label>
-            <div className="h-10 w-full bg-surface border border-line rounded-[8px] px-4 font-mono text-[14px] text-ink-muted flex items-center opacity-60 cursor-not-allowed">
+            <div className="h-12 lg:h-10 w-full bg-surface border border-line rounded-[8px] px-4 font-mono text-[14px] text-ink-muted flex items-center opacity-60 cursor-not-allowed">
               {initialEmail}
             </div>
             <p className="font-mono text-[12px] text-ink-muted/60">
@@ -274,11 +274,12 @@ export function SettingsForm({
           </div>
         )}
 
-        <div className="flex items-center gap-4 mt-6">
+        {/* Compact: a full-width button with its message underneath. */}
+        <div className="flex flex-col items-stretch gap-3 medium:flex-row medium:items-center medium:gap-4 mt-6">
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="h-10 px-5 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+            className="h-12 lg:h-10 w-full medium:w-auto px-5 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
           >
             {saving ? "Saving…" : "Save Profile"}
           </button>

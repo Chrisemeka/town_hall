@@ -59,6 +59,19 @@ const REVAMPED = [
   "app/(developer)/dashboard/page.tsx",
   "app/(developer)/dashboard/missions/page.tsx",
   "app/(developer)/dashboard/loading.tsx",
+  "app/(developer)/dashboard/feedback/page.tsx",
+  "components/FeedbackListPaged.tsx",
+  "components/ui/LoadMore.tsx",
+  "app/(developer)/settings/page.tsx",
+  "components/settings/SettingsTabs.tsx",
+  "components/settings/SettingsSection.tsx",
+  "components/settings/AccountPanel.tsx",
+  "components/settings/AccountControl.tsx",
+  "components/settings/ExportPanel.tsx",
+  "components/settings/GiveAndTake.tsx",
+  "components/settings/PlanSection.tsx",
+  "components/SettingsForm.tsx",
+  "components/ThemePreference.tsx",
 ]
 
 const offences: string[] = []
@@ -125,6 +138,13 @@ assert.ok(
 for (const f of ["app/(developer)/dashboard/page.tsx", "components/MissionListPaged.tsx"]) {
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(readFileSync(f, "utf8")), `${f}: colour in an inline style`)
 }
+for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx"]) {
+  const src = readFileSync(f, "utf8")
+  assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
+  assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
+}
+assert.ok(/inputClass\(/.test(readFileSync("components/settings/ExportPanel.tsx", "utf8")),
+  "ExportPanel: selects use inputClass() so iOS does not zoom")
 
 // The app's field spelling, same rule as AuthCard's below.
 const field = readFileSync("components/ui/Field.tsx", "utf8")
