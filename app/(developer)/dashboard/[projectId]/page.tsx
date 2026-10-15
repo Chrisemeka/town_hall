@@ -161,7 +161,7 @@ export default async function ProjectDetailPage({
         <div className="flex flex-col gap-3 min-w-0">
           {/* Name + badge */}
           <div className="flex items-center gap-3 medium:gap-4 flex-wrap">
-            <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[36px] medium:leading-[44px] expanded:text-[40px] expanded:leading-[44px] lg:text-[48px] lg:leading-[52px] tracking-[-0.5px] text-ink break-words min-w-0">
+            <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[36px] medium:leading-[44px] expanded:text-[40px] expanded:leading-[44px] lg:text-[48px] lg:leading-[52px] tracking-[-0.5px] text-ink [overflow-wrap:anywhere] min-w-0">
               {project.name}
             </h1>
             <Badge variant={status} />
@@ -173,7 +173,9 @@ export default async function ProjectDetailPage({
               href={project.app_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-[13px] text-info-ink hover:underline w-fit"
+              // 48px tall below lg without moving the layout; a long URL breaks
+              // instead of running out of the column.
+              className="inline-flex items-center min-h-12 -my-3 lg:min-h-0 lg:my-0 [overflow-wrap:anywhere] font-mono text-[14px] lg:text-[13px] text-info-ink hover:underline w-fit"
             >
               {project.app_url.replace(/^https?:\/\//, "")}
             </a>
@@ -190,7 +192,7 @@ export default async function ProjectDetailPage({
         {/* Edit button */}
         <Link
           href={`/dashboard/${projectId}/edit`}
-          className="h-9 px-4 border border-line text-ink-muted rounded-[8px] font-mono text-[14px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-2 shrink-0"
+          className="h-12 lg:h-9 self-start px-4 border border-line text-ink-muted rounded-[8px] font-mono text-[14px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-2 shrink-0"
         >
           <Pencil className="w-3.5 h-3.5" />
           Edit
