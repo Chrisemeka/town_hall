@@ -223,7 +223,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={addStep}
-              className="h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+              className="h-12 w-full justify-center medium:w-auto lg:h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
               Add first step
@@ -246,20 +246,23 @@ export function TestCaseEditor({
                       disabled={index === 0}
                       onClick={() => move(index, -1)}
                     >
-                      <ArrowUp className="w-3.5 h-3.5" />
+                      <ArrowUp className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
                     <IconButton
                       label={`Move step ${index + 1} down`}
                       disabled={index === steps.length - 1}
                       onClick={() => move(index, 1)}
                     >
-                      <ArrowDown className="w-3.5 h-3.5" />
+                      <ArrowDown className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
+                    {/* Set apart from Move down, and red on hover and press:
+                        there is no undo. */}
                     <IconButton
                       label={`Remove step ${index + 1}`}
                       onClick={() => removeStep(step.id)}
+                      className="ml-3 lg:ml-1 hover:text-danger-ink hover:border-danger-ink/50 active:text-danger-ink active:border-danger-ink/50"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                     </IconButton>
                   </div>
                 </div>
@@ -289,7 +292,7 @@ export function TestCaseEditor({
               <button
                 type="button"
                 onClick={addStep}
-                className="h-10 px-4 self-start border border-line text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+                className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add step
@@ -383,11 +386,14 @@ function IconButton({
   label,
   onClick,
   disabled,
+  className = "hover:text-ink hover:border-ink-muted",
   children,
 }: {
   label: string
   onClick: () => void
   disabled?: boolean
+  /** The hover colours; Remove passes its own. */
+  className?: string
   children: React.ReactNode
 }) {
   return (
@@ -396,7 +402,8 @@ function IconButton({
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className="w-7 h-7 flex items-center justify-center rounded-[6px] border border-line text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none"
+      // 48px below lg: three in a row are 160px beside the step number.
+      className={`w-12 h-12 lg:w-7 lg:h-7 flex items-center justify-center rounded-[6px] border border-line text-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>
