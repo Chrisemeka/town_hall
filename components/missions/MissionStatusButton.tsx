@@ -16,13 +16,13 @@ export function MissionStatusButton({ isActive }: { isActive: boolean }) {
       type="submit"
       disabled={pending}
       aria-busy={pending}
-      className={`h-8 px-3 rounded-[6px] font-mono text-[13px] transition-colors duration-150 flex items-center gap-1.5 cursor-pointer disabled:cursor-wait disabled:opacity-70 ${
+      className={`h-12 w-full justify-center medium:w-auto lg:h-8 px-3 rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] transition-colors duration-150 flex items-center gap-1.5 cursor-pointer disabled:cursor-wait disabled:opacity-70 ${
         isActive
           ? "bg-ember/10 border border-danger-ink/30 text-danger-ink hover:bg-ember/20"
           : "bg-voltage/10 border border-accent-ink/30 text-accent-ink hover:bg-voltage/20"
       }`}
     >
-      <Icon className={`w-3 h-3 ${pending ? "animate-spin" : ""}`} />
+      <Icon className={`w-3 h-3 ${pending ? "animate-spin motion-reduce:animate-none" : ""}`} />
       {isActive
         ? pending ? "Deactivating…" : "Deactivate"
         : pending ? "Reactivating…" : "Reactivate"}

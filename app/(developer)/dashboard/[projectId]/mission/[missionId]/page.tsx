@@ -100,11 +100,20 @@ export default async function DeveloperMissionDetailPage({
   const allowance = await reportBalance(userId);
 
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-8">
 
-      {/* Navigation bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-line">
-        <div className="flex items-center gap-3 min-w-0">
+      {/* Navigation bar. Below 600px: one back link to the project, then the
+          two actions as a row of equal halves. From 600px: Back, the trail
+          and the actions on one line. */}
+      <div className="flex flex-col gap-3 medium:flex-row medium:items-center medium:justify-between mb-6 pb-4 medium:mb-10 medium:pb-6 border-b border-line">
+        <Link
+          href={`/dashboard/${projectId}`}
+          className="medium:hidden self-start inline-flex items-center gap-1 min-h-12 -ml-2 px-2 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 [overflow-wrap:anywhere]"
+        >
+          <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+          {project?.name ?? "Project"}
+        </Link>
+        <div className="hidden medium:flex items-center gap-3 min-w-0">
           <Link
             href={`/dashboard/${projectId}`}
             className="flex items-center gap-1.5 h-8 px-3 border border-line rounded-[6px] font-mono text-[13px] text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 shrink-0"
@@ -119,19 +128,19 @@ export default async function DeveloperMissionDetailPage({
             <span className="text-line shrink-0">/</span>
             <Link
               href={`/dashboard/${projectId}`}
-              className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] sm:max-w-[160px]"
+              className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] medium:max-w-[160px]"
             >
               {project?.name ?? "Project"}
             </Link>
             <span className="text-line shrink-0">/</span>
-            <span className="text-ink truncate max-w-[120px] sm:max-w-[200px]">{mission.title}</span>
+            <span className="text-ink truncate max-w-[120px] medium:max-w-[200px]">{mission.title}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="grid grid-cols-2 gap-2 medium:flex medium:items-center medium:gap-3 shrink-0">
           <Link
             href={`/dashboard/${projectId}/mission/${missionId}/edit`}
-            className="h-8 px-3 border border-line text-ink-muted rounded-[6px] font-mono text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
+            className="h-12 justify-center lg:h-8 px-3 border border-line text-ink-muted rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
           >
             <Pencil className="w-3 h-3" />
             Edit Mission
