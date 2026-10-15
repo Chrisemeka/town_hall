@@ -67,10 +67,16 @@ export function inputClass(hasError: boolean): string {
 // scroll-mt-24 keeps a field the error path scrolls to clear of the 64px
 // header. A <select> takes the same height, so a row of fields lines up.
 
-/** The same box as a textarea: §5.2 gives it 120px of height and 12px/16px padding. */
-export function textareaClass(hasError: boolean): string {
+/**
+ * The same box as a textarea: §5.2 gives it 120px of height and 12px/16px
+ * padding. `resizable: false` for a box sized by its rows. An option, not a
+ * second class appended by the caller: Tailwind does not resolve two
+ * utilities on one property by their order in the class string.
+ */
+export function textareaClass(hasError: boolean, { resizable = true }: { resizable?: boolean } = {}): string {
   return [
-    "min-h-[120px] w-full scroll-mt-24 bg-surface border rounded-[8px] px-4 py-3 font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-y",
+    "min-h-[120px] w-full scroll-mt-24 bg-surface border rounded-[8px] px-4 py-3 font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
+    resizable ? "resize-y" : "resize-none",
     hasError ? "border-danger-ink" : "border-ink-muted focus:border-accent-ink",
   ].join(" ")
 }

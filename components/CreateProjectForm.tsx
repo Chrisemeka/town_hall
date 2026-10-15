@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { useUnsavedChangesWarning } from "@/lib/hooks/useUnsavedChangesWarning"
 import { FieldError, fieldErrorProps } from "@/components/ui/FieldError"
+import { inputClass, textareaClass } from "@/components/ui/Field"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
 import { PROJECT_CATEGORIES } from "@/lib/vocabulary"
 import {
@@ -100,11 +101,10 @@ export default function CreateProjectForm() {
             placeholder="e.g. DevSync CLI"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            autoCapitalize="words"
+            enterKeyHint="next"
             {...fieldErrorProps("name", fieldErrors.name)}
-            className={[
-              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.name?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={inputClass(!!fieldErrors.name?.length)}
           />
           <FieldError field="name" errors={fieldErrors.name} />
         </div>
@@ -119,13 +119,13 @@ export default function CreateProjectForm() {
             name="app_url"
             type="url"
             placeholder="https://yourapp.com"
+            autoCapitalize="none"
+            spellCheck={false}
+            enterKeyHint="next"
             value={appUrl}
             onChange={(e) => setAppUrl(e.target.value)}
             {...fieldErrorProps("app_url", fieldErrors.app_url)}
-            className={[
-              "h-10 w-full bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150",
-              fieldErrors.app_url?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={inputClass(!!fieldErrors.app_url?.length)}
           />
           <FieldError field="app_url" errors={fieldErrors.app_url} />
         </div>
@@ -141,10 +141,7 @@ export default function CreateProjectForm() {
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             {...fieldErrorProps("category", fieldErrors.category)}
-            className={[
-              "w-full h-10 bg-surface border rounded-[8px] px-4 font-mono text-[14px] text-ink focus:outline-none transition-colors duration-150",
-              fieldErrors.category?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={`${inputClass(!!fieldErrors.category?.length)} cursor-pointer`}
           >
             <option value="">Select a category</option>
             {PROJECT_CATEGORIES.map((option) => (
@@ -176,10 +173,7 @@ export default function CreateProjectForm() {
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             {...fieldErrorProps("description", fieldErrors.description)}
-            className={[
-              "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
-              fieldErrors.description?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
-            ].join(" ")}
+            className={textareaClass(!!fieldErrors.description?.length, { resizable: false })}
           />
           <div className="flex items-start justify-between gap-3">
             {fieldErrors.description?.length ? (
