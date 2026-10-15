@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
-import { Menu, X, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { homeFor, type AccountType } from "@/lib/access"
+import { AccountSheet } from "./AccountSheet"
 
 // A builder's primary action, in the bar on every builder page. Testers get
 // none here: Tester Home carries its own Browse Missions button, and a second
@@ -13,14 +14,10 @@ import { homeFor, type AccountType } from "@/lib/access"
 const BUILDER_CTA = { href: "/dashboard/new", label: "New Project" }
 
 export function TopNav({
-  sidebarOpen,
-  onToggleSidebar,
   avatarUrl,
   displayName,
   account = "builder",
 }: {
-  sidebarOpen: boolean
-  onToggleSidebar: () => void
   avatarUrl?: string | null
   displayName?: string | null
   account?: AccountType
@@ -28,23 +25,25 @@ export function TopNav({
   const cta = account === "builder" ? BUILDER_CTA : null
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-[56px] bg-surface border-b border-line z-50 flex items-center px-4 md:px-6 justify-between">
+    <header className="fixed top-0 left-0 right-0 h-[56px] bg-surface border-b border-line z-50 flex items-center px-4 medium:px-6 justify-between">
 
       {/* Left: Logo */}
-      <div className="flex items-center shrink-0 gap-2 md:w-[240px]">
-        <Link href={homeFor(account)} className="flex items-center gap-2">
+      {/* Below 600px the mark carries the brand and the wordmark is for
+          screen readers only: the search needs the width. */}
+      <div className="flex items-center shrink-0 gap-2 expanded:w-[240px]">
+        <Link href={homeFor(account)} className="min-h-12 min-w-12 lg:min-h-0 lg:min-w-0 flex items-center gap-2">
           <Logo size={40} onDark />
-          <span className="font-syne font-bold text-[18px] text-ink tracking-tight">Twnhall</span>
+          <span className="sr-only medium:not-sr-only font-syne font-bold text-[18px] text-ink tracking-tight">Twnhall</span>
         </Link>
       </div>
 
       {/* Center: Global Search */}
-      <div className="flex-1 max-w-[320px] mx-2 sm:mx-4 md:mx-6">
+      <div className="flex-1 min-w-0 max-w-[320px] mx-2 medium:mx-4 expanded:mx-6">
         <GlobalSearch account={account} />
       </div>
 
       {/* Right: Desktop actions */}
-      <div className="hidden md:flex items-center gap-4 shrink-0">
+      <div className="hidden expanded:flex items-center gap-4 shrink-0">
         {cta && (
           <Link
             id="tour-new-project-btn"
@@ -77,25 +76,20 @@ export function TopNav({
       </div>
 
       {/* Right: Mobile actions */}
-      <div className="flex md:hidden items-center gap-2 shrink-0">
+      <div className="flex expanded:hidden items-center gap-2 shrink-0">
         {cta && (
           <Link
             id="tour-new-project-btn-mobile"
             href={cta.href}
             aria-label={cta.label}
-            className="w-9 h-9 rounded-full bg-voltage text-obsidian flex items-center justify-center hover:bg-voltage-dark transition-colors duration-150"
+            className="relative w-10 h-10 m-1 rounded-full bg-voltage text-obsidian flex items-center justify-center after:absolute after:-inset-1 hover:bg-voltage-dark transition-colors duration-150"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5" aria-hidden="true" />
           </Link>
         )}
 
-        <button
-          className="p-2 text-ink-muted hover:text-ink transition-colors duration-150"
-          onClick={onToggleSidebar}
-          aria-label="Toggle menu"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {/* Destinations are in the bottom bar; the avatar opens the rest. */}
+        <AccountSheet avatarUrl={avatarUrl ?? null} displayName={displayName ?? null} account={account} />
       </div>
 
     </header>

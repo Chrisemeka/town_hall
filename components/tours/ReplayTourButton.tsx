@@ -6,7 +6,7 @@ import { HelpCircle } from "lucide-react"
 import { tourForPath } from "./tours"
 import { cn } from "@/lib/utils"
 
-export function ReplayTourButton({ onClick }: { onClick?: () => void }) {
+export function ReplayTourButton({ onClick, className }: { onClick?: () => void; className?: string }) {
   const pathname = usePathname()
   const { startOnborda } = useOnborda()
 
@@ -30,6 +30,7 @@ export function ReplayTourButton({ onClick }: { onClick?: () => void }) {
         hasTour
           ? "text-ink-muted hover:text-ink cursor-pointer"
           : "text-ink-muted/40 cursor-not-allowed",
+        className,
       )}
     >
       <HelpCircle className="w-4 h-4 shrink-0" />

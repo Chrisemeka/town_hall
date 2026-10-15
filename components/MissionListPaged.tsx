@@ -22,34 +22,42 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
     <div>
       <div className="flex flex-col gap-4">
         {paged.map((mission) => (
+          // The whole card is the mission's link: the title's ::after
+          // stretches over it. The project name sits above that layer.
           <div
             key={mission.id}
-            className="bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex flex-col transition-colors duration-150 hover:border-accent-ink/30"
-            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+            className="group relative bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink shadow-card"
           >
             <Link
               href={`/dashboard/${mission.project_id}`}
-              className="font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 mb-1 w-fit"
+              // 48px tall below lg; the negative margins take back the extra
+              // 30px (18px of text, 4px below it) so the layout does not move.
+              className="relative z-10 min-h-12 -mt-[15px] -mb-[11px] lg:min-h-0 lg:mt-0 lg:mb-1 inline-flex items-center font-mono text-[12px] text-ink-muted hover:text-ink transition-colors duration-150 w-fit"
             >
               {mission.projectName}
             </Link>
 
-            <div className="flex items-center justify-between gap-4">
-              <p className="font-syne font-bold text-[16px] text-ink leading-6 flex-1 min-w-0 truncate">
+            {/* Compact: title (up to two lines), then badge, count and arrow.
+                From medium: one row, as on desktop. */}
+            <div className="flex flex-col gap-3 medium:flex-row medium:items-center medium:justify-between medium:gap-4">
+              <Link
+                href={`/dashboard/${mission.project_id}/mission/${mission.id}`}
+                className="font-syne font-bold text-[16px] text-ink leading-6 flex-1 min-w-0 max-medium:line-clamp-2 medium:truncate after:absolute after:inset-0 after:rounded-[12px] focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-accent-ink"
+              >
                 {mission.title}
-              </p>
+              </Link>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="font-mono text-[12px] text-ink-muted hidden sm:block">
+                <span className="font-mono text-[12px] text-ink-muted">
                   {mission.feedbackCount} feedback{mission.feedbackCount !== 1 ? "s" : ""}
                 </span>
-                <Badge variant={mission.status} />
-                <Link
-                  href={`/dashboard/${mission.project_id}/mission/${mission.id}`}
-                  className="font-mono text-[13px] text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
-                  aria-label={`Open mission: ${mission.title}`}
+                <Badge variant={mission.status} className="max-medium:order-first" />
+                {/* Decorative: the title is the link. */}
+                <span
+                  aria-hidden="true"
+                  className="max-medium:ml-auto font-mono text-[13px] text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1"
                 >
                   <ArrowRight className="w-4 h-4" />
-                </Link>
+                </span>
               </div>
             </div>
           </div>
@@ -60,7 +68,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
         <div className="flex justify-center mt-10">
           <button
             onClick={() => setVisible((v) => v + 6)}
-            className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
+            className="h-12 lg:h-10 w-full medium:w-auto px-6 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
           >
             Load More
           </button>

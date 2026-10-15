@@ -57,12 +57,12 @@ export default async function MyProjectsPage() {
   });
 
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
 
       {/* Page header */}
-      <div id="tour-my-projects-header" className="flex items-center justify-between mb-8">
+      <div id="tour-my-projects-header" className="flex items-center justify-between mb-6 medium:mb-8">
         <div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink">
+          <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
             My Projects
           </h1>
           <p className="font-mono text-[14px] text-ink-muted mt-1">
@@ -72,7 +72,9 @@ export default async function MyProjectsPage() {
       </div>
 
       {projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        // One column below 1024: at 840–1023 the sidebar leaves ~536px, and
+        // two cards would be too narrow for a title, a badge and two lines.
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {projects.map((project) => (
             <Link
               key={project.id}
@@ -80,14 +82,13 @@ export default async function MyProjectsPage() {
               className="group block"
             >
               <div
-                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-accent-ink/30"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                className="bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col h-full transition-colors duration-150 group-hover:border-accent-ink/30 group-active:border-accent-ink shadow-card"
               >
                 {/* Card header row */}
                 <div className="flex items-start justify-between gap-3 mb-3">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink group-hover:text-accent-ink transition-colors duration-150 truncate">
+                  <h2 className="font-syne font-bold text-[20px] leading-7 text-ink group-hover:text-accent-ink transition-colors duration-150 truncate">
                     {project.name}
-                  </h5>
+                  </h2>
                   <Badge variant={project.status} />
                 </div>
 
@@ -120,7 +121,7 @@ export default async function MyProjectsPage() {
         </div>
       ) : (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px] bg-surface-raised/30">
+        <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 border border-dashed border-line rounded-[12px] bg-surface-raised/30">
           <FolderOpen className="w-12 h-12 text-ink-muted mb-4" strokeWidth={1.5} />
           <h4 className="font-syne font-bold text-[24px] text-ink mb-2">Nothing here yet.</h4>
           <p className="font-mono text-[14px] text-ink-muted mb-6 text-center max-w-xs">
