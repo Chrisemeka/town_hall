@@ -211,7 +211,7 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Results */}
       {results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-line rounded-[12px]">
+        <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-20 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[20px] text-ink mb-2">No submissions yet.</p>
           <p className="font-mono text-[14px] text-ink-muted">
             Results will appear here once testers start submitting feedback.
@@ -221,7 +221,7 @@ export default async function DeveloperMissionDetailPage({
         <div className="flex flex-col">
           {results.map((result, i) => (
             <div key={result.id}>
-              {i > 0 && <div className="my-10 border-t border-line" />}
+              {i > 0 && <div className="my-8 medium:my-10 border-t border-line" />}
               <MissionResultRow
                 result={result}
                 entries={entriesByResult.get(result.id) ?? null}
@@ -235,7 +235,7 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Delete (inactive missions only) */}
       {!isActive && (
-        <div className="mt-10 pt-6 border-t border-line flex flex-col items-start gap-2">
+        <div className="mt-8 pt-6 medium:mt-10 border-t border-line flex flex-col items-start gap-2">
           <DeleteMissionButton missionId={mission.id} projectId={projectId} />
           <p className="font-mono text-[12px] text-ink-muted">
             Permanently deletes this draft. This cannot be undone.

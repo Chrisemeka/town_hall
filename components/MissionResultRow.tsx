@@ -92,11 +92,13 @@ export default function MissionResultRow({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Two-column grid (stacks on mobile) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Side by side from 1024px. Stacked below it with the audit log first:
+          the log is the report, the screenshots are its evidence, and a tall
+          screenshot first can put a screen of image before the first word. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 medium:gap-6">
 
         {/* TEST SCREENSHOTS */}
-        <div className="flex flex-col gap-3">
+        <div className="order-2 lg:order-1 flex flex-col gap-3">
           <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             TEST SCREENSHOTS
             {shots.length > 1 && (
@@ -161,11 +163,11 @@ export default function MissionResultRow({
         </div>
 
         {/* WRITTEN FEEDBACK */}
-        <div className="flex flex-col gap-3">
+        <div className="order-1 lg:order-2 flex flex-col gap-3">
           <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
           </p>
-          <div className="bg-surface-raised border border-line rounded-[12px] p-6 flex-1 flex flex-col justify-between">
+          <div className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 flex-1 flex flex-col justify-between">
             <SubmissionBody entries={entries} comment={result.tester_comment} />
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-line">
               <span className="font-mono text-[12px] text-ink-muted">{testerLabel(testerNumber)}</span>
