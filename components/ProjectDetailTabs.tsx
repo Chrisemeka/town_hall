@@ -94,11 +94,14 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
     <div>
       {/* Tab bar + action button */}
       <div className="border-b border-line mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
-          <div role="tablist" aria-label="Project sections" onKeyDown={onKeyDown} className="flex items-end gap-4 sm:gap-6">
+        <div className="flex items-end justify-between">
+          <div role="tablist" aria-label="Project sections" onKeyDown={onKeyDown} className="flex flex-1 medium:flex-none items-end medium:gap-6">
             {[
-              { key: "missions" as const, label: `Missions`,          count: missions.length },
-              { key: "feedback" as const, label: `Feedback Received`, count: feedbackCount  },
+              { key: "missions" as const, label: <>Missions</>, count: missions.length },
+              // "Feedback Received (3)" cannot share 328px with "Missions (4)"
+              // as fixed tabs. The word is hidden visually below 600px only;
+              // the accessible name is the same at every width.
+              { key: "feedback" as const, label: <>Feedback<span className="hidden medium:inline"> Received</span></>, count: feedbackCount },
             ].map(({ key, label, count }, i) => (
               <button
                 key={key}
@@ -113,14 +116,20 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                 tabIndex={tab === key ? 0 : -1}
                 onClick={() => setTab(key)}
                 className={[
-                  "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
+                  // Compact: M3 fixed tabs, two equal halves of the row. From
+                  // 600px content-width; from lg today's desktop geometry.
+                  "flex-1 medium:flex-none h-12 lg:h-auto lg:pb-3 inline-flex lg:block items-center justify-center font-mono text-[14px] font-medium transition-colors duration-150 relative",
                   tab === key ? "text-ink" : "text-ink-muted hover:text-ink",
                 ].join(" ")}
               >
-                {label}
-                {" "}
-                <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
-                  ({count})
+                {/* One inline run: as flex items the label and count would
+                    lose the spaces between them. */}
+                <span>
+                  {label}
+                  {" "}
+                  <span className={`font-mono text-[12px] ${tab === key ? "text-accent-ink" : "text-ink-muted/60"}`}>
+                    ({count})
+                  </span>
                 </span>
                 {tab === key && (
                   <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-voltage rounded-full" />
