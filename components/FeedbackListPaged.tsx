@@ -7,6 +7,7 @@ import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { testerLabel } from "@/lib/testerNumbers"
+import { LoadMore } from "@/components/ui/LoadMore"
 
 export type FeedbackEntry = {
   id: string
@@ -116,12 +117,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
 
       {items.length > visible && (
         <div className="flex justify-center mt-10">
-          <button
-            onClick={() => setVisible((v) => v + 6)}
-            className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-          >
-            Load More
-          </button>
+          <LoadMore onClick={() => setVisible((v) => v + 6)} />
         </div>
       )}
     </div>
