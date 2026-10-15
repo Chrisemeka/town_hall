@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { swipeStep } from "@/components/public/HomeMockups"
+import { swipeStep } from "@/lib/swipe"
 
 describe("swipeStep", () => {
   it("moves forward on a left swipe and back on a right one", () => {

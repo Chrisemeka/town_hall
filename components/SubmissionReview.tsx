@@ -40,10 +40,11 @@ function RatingPicker({ value, onChange }: { value: number; onChange: (n: number
           aria-label={`Rate ${n} out of 5`}
           onClick={() => onChange(n)}
           onMouseEnter={() => setHover(n)}
-          className="p-1 cursor-pointer"
+          // 48px each below lg: five fit a 360px phone with room to spare.
+          className="p-3 lg:p-1 cursor-pointer"
         >
           <Star
-            className="w-5 h-5 transition-colors duration-150"
+            className="w-6 h-6 lg:w-5 lg:h-5 transition-colors duration-150"
             style={{
               fill: n <= shown ? "var(--color-accent-ink)" : "transparent",
               color: n <= shown ? "var(--color-accent-ink)" : "var(--color-line)",
@@ -76,9 +77,9 @@ export default function SubmissionReview({
   return (
     <div className="mt-6 pt-5 border-t border-line flex flex-col gap-4">
 
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex flex-col items-stretch gap-3 medium:flex-row medium:items-center medium:justify-between flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
-          <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px]">Review</p>
+          <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">Review</p>
           <StatusPill status={status} />
           {rating !== null && (
             <span className="font-mono text-[12px] text-ink-muted flex items-center gap-1">
@@ -89,7 +90,7 @@ export default function SubmissionReview({
         </div>
 
         {!ratingOpen && status !== "approved" && (
-          <Button size="sm" onClick={() => setRatingOpen(true)} className="gap-1.5">
+          <Button size="sm" onClick={() => setRatingOpen(true)} className="h-12 w-full justify-center medium:w-auto lg:h-8 gap-1.5">
             <Check className="w-3.5 h-3.5" /> Approve
           </Button>
         )}
@@ -112,12 +113,12 @@ export default function SubmissionReview({
       {/* Rating prompt — opens on Approve, because an approval without a
           rating leaves the tester's reputation unmoved. Closes once approved. */}
       {ratingOpen && status !== "approved" && (
-        <form action={formAction} className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4">
+        <form action={formAction} className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-5 flex flex-col gap-4">
           <input type="hidden" name="resultId" value={resultId} />
           <input type="hidden" name="action" value="approve" />
 
           <div>
-            <p className="font-mono text-[13px] text-ink mb-2">
+            <p className="font-mono text-[14px] lg:text-[13px] text-ink mb-2">
               Approving this submission. How was the tester&apos;s work?
             </p>
             <RatingPicker value={stars} onChange={setStars} />
@@ -127,7 +128,7 @@ export default function SubmissionReview({
           </div>
 
           <div>
-            <label htmlFor={`reviewNote-${resultId}`} className="font-mono text-[13px] text-ink block mb-2">
+            <label htmlFor={`reviewNote-${resultId}`} className="font-mono text-[14px] lg:text-[13px] text-ink block mb-2">
               Note to the tester <span className="text-ink-muted">(optional)</span>
             </label>
             <Textarea
@@ -145,11 +146,13 @@ export default function SubmissionReview({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" type="submit" disabled={pending}>
+          {/* Compact: stacked, full width, Approve + rate on top — it is what
+              the form is for, and it is not destructive. */}
+          <div className="grid grid-cols-1 gap-2 medium:flex medium:items-center">
+            <Button size="sm" type="submit" disabled={pending} className="h-12 lg:h-8">
               {pending ? "Saving…" : "Approve + rate"}
             </Button>
-            <Button size="sm" variant="secondary" type="button" onClick={() => setRatingOpen(false)}>
+            <Button size="sm" variant="secondary" type="button" onClick={() => setRatingOpen(false)} className="h-12 lg:h-8">
               Cancel
             </Button>
           </div>

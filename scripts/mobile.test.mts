@@ -74,6 +74,14 @@ const REVAMPED = [
   "components/ThemePreference.tsx",
   "app/(developer)/dashboard/[projectId]/page.tsx",
   "components/ProjectDetailTabs.tsx",
+  "app/(developer)/dashboard/[projectId]/mission/[missionId]/page.tsx",
+  "components/MissionResultRow.tsx",
+  "components/SubmissionReview.tsx",
+  "components/missions/MissionStatusButton.tsx",
+  "components/missions/TestCaseView.tsx",
+  "components/submissions/SubmissionBody.tsx",
+  "components/ui/Textarea.tsx",
+  "lib/swipe.ts",
 ]
 
 const offences: string[] = []
@@ -145,6 +153,14 @@ for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackLis
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
   assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
 }
+const row = readFileSync("components/MissionResultRow.tsx", "utf8")
+assert.ok(!/grid-cols-3/.test(row.replace(/medium:grid-cols-3|lg:grid-cols-3/g, "")),
+  "MissionResultRow: insights must not be three columns below 600px")
+assert.ok(/<dialog/.test(row) && /backdrop:bg-obsidian/.test(row),
+  "MissionResultRow: the lightbox is a native dialog with a literal scrim")
+assert.ok(/text-\[16px\] pointer-fine:text-sm/.test(readFileSync("components/ui/Textarea.tsx", "utf8")),
+  "Textarea: 16px on touch (iOS zoom)")
+
 // Voltage is a fill. As a 2px indicator on the light ground it is 1.02:1.
 assert.ok(!/bg-voltage[^-]/.test(readFileSync("components/ProjectDetailTabs.tsx", "utf8")),
   "ProjectDetailTabs: the tab indicator is accent-ink, not Voltage")

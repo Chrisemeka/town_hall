@@ -100,11 +100,20 @@ export default async function DeveloperMissionDetailPage({
   const allowance = await reportBalance(userId);
 
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-6 md:py-8">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-8">
 
-      {/* Navigation bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-10 pb-6 border-b border-line">
-        <div className="flex items-center gap-3 min-w-0">
+      {/* Navigation bar. Below 600px: one back link to the project, then the
+          two actions as a row of equal halves. From 600px: Back, the trail
+          and the actions on one line. */}
+      <div className="flex flex-col gap-3 medium:flex-row medium:items-center medium:justify-between mb-6 pb-4 medium:mb-10 medium:pb-6 border-b border-line">
+        <Link
+          href={`/dashboard/${projectId}`}
+          className="medium:hidden self-start inline-flex items-center gap-1 min-h-12 -ml-2 px-2 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 [overflow-wrap:anywhere]"
+        >
+          <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+          {project?.name ?? "Project"}
+        </Link>
+        <div className="hidden medium:flex items-center gap-3 min-w-0">
           <Link
             href={`/dashboard/${projectId}`}
             className="flex items-center gap-1.5 h-8 px-3 border border-line rounded-[6px] font-mono text-[13px] text-ink-muted hover:text-ink hover:border-ink-muted transition-colors duration-150 shrink-0"
@@ -116,22 +125,22 @@ export default async function DeveloperMissionDetailPage({
             <Link href="/dashboard" className="hover:text-ink transition-colors duration-150 shrink-0">
               My Projects
             </Link>
-            <span className="text-line shrink-0">/</span>
+            <span className="text-ink-muted shrink-0" aria-hidden="true">/</span>
             <Link
               href={`/dashboard/${projectId}`}
-              className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] sm:max-w-[160px]"
+              className="hover:text-ink transition-colors duration-150 truncate max-w-[100px] medium:max-w-[160px]"
             >
               {project?.name ?? "Project"}
             </Link>
-            <span className="text-line shrink-0">/</span>
-            <span className="text-ink truncate max-w-[120px] sm:max-w-[200px]">{mission.title}</span>
+            <span className="text-ink-muted shrink-0" aria-hidden="true">/</span>
+            <span className="text-ink truncate max-w-[120px] medium:max-w-[200px]">{mission.title}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="grid grid-cols-2 gap-2 medium:flex medium:items-center medium:gap-3 shrink-0">
           <Link
             href={`/dashboard/${projectId}/mission/${missionId}/edit`}
-            className="h-8 px-3 border border-line text-ink-muted rounded-[6px] font-mono text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
+            className="h-12 justify-center lg:h-8 px-3 border border-ink-muted text-ink-muted rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
           >
             <Pencil className="w-3 h-3" />
             Edit Mission
@@ -151,9 +160,9 @@ export default async function DeveloperMissionDetailPage({
       {/* Why this is still a draft, above the fold: below the test case it
           went unseen, and a refused publish is the first thing to know. */}
       {!isActive && (
-        <div className="mb-8 max-w-3xl">
+        <div className="mb-6 medium:mb-8 max-w-3xl">
           {limited > 0 && (
-            <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mb-4">
+            <p role="alert" className="font-mono text-[14px] lg:text-[13px] leading-5 text-danger-ink mb-4">
               {tooManyMessage(limited)}
             </p>
           )}
@@ -162,10 +171,10 @@ export default async function DeveloperMissionDetailPage({
       )}
 
       {/* Mission header */}
-      <div className="mb-10">
+      <div className="mb-8 medium:mb-10">
         <div className="flex items-center gap-3 mb-3 flex-wrap">
           <Badge variant={isActive ? "active" : "draft"} />
-          <h1 className="font-syne font-bold text-[26px] leading-[32px] sm:text-[32px] sm:leading-[38px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink break-words min-w-0">
+          <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink [overflow-wrap:anywhere] min-w-0">
             {mission.title}
           </h1>
         </div>
@@ -173,10 +182,10 @@ export default async function DeveloperMissionDetailPage({
             heading over blank space. */}
         {mission.task_description && (
           <>
-            <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
+            <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px] mb-2">
               NOTES FOR TESTERS
             </p>
-            <p className="font-mono text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
+            <p className="font-mono text-[16px] lg:text-[15px] leading-6 text-ink-muted max-w-3xl whitespace-pre-wrap">
               {mission.task_description}
             </p>
           </>
@@ -188,7 +197,7 @@ export default async function DeveloperMissionDetailPage({
           className="mt-4"
         />
 
-        <p className="font-mono text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
+        <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px] mt-6 mb-3">
           TEST STEPS
         </p>
         <div className="max-w-3xl">
@@ -202,7 +211,7 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Results */}
       {results.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 border border-dashed border-line rounded-[12px]">
+        <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-20 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[20px] text-ink mb-2">No submissions yet.</p>
           <p className="font-mono text-[14px] text-ink-muted">
             Results will appear here once testers start submitting feedback.
@@ -212,7 +221,7 @@ export default async function DeveloperMissionDetailPage({
         <div className="flex flex-col">
           {results.map((result, i) => (
             <div key={result.id}>
-              {i > 0 && <div className="my-10 border-t border-line" />}
+              {i > 0 && <div className="my-8 medium:my-10 border-t border-line" />}
               <MissionResultRow
                 result={result}
                 entries={entriesByResult.get(result.id) ?? null}
@@ -226,7 +235,7 @@ export default async function DeveloperMissionDetailPage({
 
       {/* Delete (inactive missions only) */}
       {!isActive && (
-        <div className="mt-10 pt-6 border-t border-line flex flex-col items-start gap-2">
+        <div className="mt-8 pt-6 medium:mt-10 border-t border-line flex flex-col items-start gap-2">
           <DeleteMissionButton missionId={mission.id} projectId={projectId} />
           <p className="font-mono text-[12px] text-ink-muted">
             Permanently deletes this draft. This cannot be undone.

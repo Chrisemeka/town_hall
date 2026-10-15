@@ -70,7 +70,7 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
   return (
     <p
       role={refused ? "alert" : undefined}
-      className={`font-mono text-[12px] leading-5 ${refused ? "text-danger-ink" : "text-ink"}`}
+      className={`font-mono text-[14px] lg:text-[12px] leading-5 ${refused ? "text-danger-ink" : "text-ink"}`}
     >
       {body}
     </p>
@@ -85,7 +85,7 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
 export function CappedNotice({ testers, max }: { testers: number; max: number }) {
   if (testers >= max) return null
   return (
-    <p className="font-mono text-[13px] text-ink leading-5 mt-4 max-w-3xl">
+    <p className="font-mono text-[14px] lg:text-[13px] text-ink leading-5 mt-4 max-w-3xl">
       This mission is open to {testers} {testers === 1 ? "tester" : "testers"} — the reports you
       had available.{" "}
       <Link href="/choose-account" className={LINK_INLINE}>
