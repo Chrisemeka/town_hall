@@ -125,14 +125,14 @@ export default async function ProjectDetailPage({
       {/* Flag warning banner (shown to owner when an admin has flagged this project) */}
       {project.flagged_at && (
         <div
-          className="rounded-[12px] p-5 mb-8 flex items-start gap-4"
+          className="rounded-[12px] p-4 gap-3 medium:p-5 medium:gap-4 mb-6 medium:mb-8 flex items-start"
           style={{
             background: "rgba(255,79,79,0.06)",
             border: "1px solid rgba(255,79,79,0.3)",
           }}
         >
           <div
-            className="w-9 h-9 rounded-[8px] flex items-center justify-center shrink-0"
+            className="hidden medium:flex w-9 h-9 rounded-[8px] items-center justify-center shrink-0"
             style={{ background: "rgba(255,79,79,0.12)", border: "1px solid rgba(255,79,79,0.3)" }}
           >
             <Flag className="w-4 h-4" style={{ color: "var(--color-danger-ink)" }} />
@@ -141,12 +141,12 @@ export default async function ProjectDetailPage({
             <p className="font-syne font-bold text-[16px]" style={{ color: "var(--color-danger-ink)" }}>
               This project has been flagged by an admin.
             </p>
-            <p className="font-mono text-[13px] text-ink-muted mt-1 leading-5">
+            <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mt-1 leading-5">
               Your project is hidden from public discovery (Explore, Browse Missions, search) until the issue is resolved.
             </p>
             {project.flag_reason && (
               <div className="mt-3 rounded-[8px] p-3" style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,79,79,0.2)" }}>
-                <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Reason</p>
+                <p className="font-mono text-[12px] lg:text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">Reason</p>
                 <p className="font-mono text-[13px] text-ink leading-5 whitespace-pre-wrap">
                   {project.flag_reason}
                 </p>
