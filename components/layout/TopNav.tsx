@@ -1,12 +1,14 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Avatar } from "@/components/ui/Avatar"
 import { Plus } from "lucide-react"
 import { Logo } from "@/components/Logo"
 import { GlobalSearch } from "@/components/GlobalSearch"
 import { homeFor, type AccountType } from "@/lib/access"
 import { AccountSheet } from "./AccountSheet"
+import { showsNewProject } from "@/lib/appNav"
 
 // A builder's primary action, in the bar on every builder page. Testers get
 // none here: Tester Home carries its own Browse Missions button, and a second
@@ -22,7 +24,8 @@ export function TopNav({
   displayName?: string | null
   account?: AccountType
 }) {
-  const cta = account === "builder" ? BUILDER_CTA : null
+  const pathname = usePathname()
+  const cta = account === "builder" && showsNewProject(pathname) ? BUILDER_CTA : null
 
   return (
     <header className="fixed top-0 left-0 right-0 h-[56px] bg-surface border-b border-line z-50 flex items-center px-4 medium:px-6 justify-between">
