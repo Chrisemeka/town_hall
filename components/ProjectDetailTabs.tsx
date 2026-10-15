@@ -158,7 +158,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
           role="tabpanel"
           aria-labelledby="project-tab-missions"
           tabIndex={0}
-          className="flex flex-col gap-4 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+          className="flex flex-col gap-3 medium:gap-4 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
         >
           {/* The empty state carries its own Add Mission, so this one waits
               for the list. */}
@@ -186,7 +186,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               return (
                 <div
                   key={mission.id}
-                  className="relative bg-surface-raised border border-line rounded-[12px] p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30"
+                  className="group relative bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 overflow-hidden transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
                 >
                   {/* Card content */}
@@ -197,9 +197,16 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0">
                           {missionNum}
                         </span>
-                        <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
-                          {mission.title}
-                        </h5>
+                        {/* The title is the card's link: its ::after stretches
+                            over the whole card, padding included. */}
+                        <h2 className="font-syne font-bold text-[20px] leading-7 text-ink max-medium:line-clamp-2 medium:truncate">
+                          <Link
+                            href={`/dashboard/${projectId}/mission/${mission.id}`}
+                            className="after:absolute after:-inset-4 medium:after:-inset-6 focus-visible:outline-none"
+                          >
+                            {mission.title}
+                          </Link>
+                        </h2>
                       </div>
                       <Badge variant={status} />
                     </div>
@@ -214,12 +221,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       <span className="font-mono text-[12px] text-ink-muted">
                         {fbCount} Feedback{fbCount !== 1 ? "s" : ""}
                       </span>
-                      <Link
-                        href={`/dashboard/${projectId}/mission/${mission.id}`}
-                        className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
+                      {/* Decorative: the title is the link. */}
+                      <span
+                        aria-hidden="true"
+                        className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1"
                       >
                         Open <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 </div>
