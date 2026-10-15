@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Download } from "lucide-react"
+import { inputClass } from "@/components/ui/Field"
 
 /** A project and the missions on it that have reports — nothing else is offered. */
 export type ExportProject = { id: string; name: string; missions: { id: string; title: string }[] }
@@ -104,7 +105,7 @@ export function ExportPanel({
                   // Another project's mission id would match nothing.
                   setMissionId("")
                 }}
-                className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
+                className={`${inputClass(false)} cursor-pointer`}
               >
                 {projects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -123,7 +124,7 @@ export function ExportPanel({
                 name="mission"
                 value={missionId}
                 onChange={(e) => setMissionId(e.target.value)}
-                className="h-10 w-full rounded-[8px] border border-ink-muted bg-surface px-4 font-mono text-[14px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150 cursor-pointer"
+                className={`${inputClass(false)} cursor-pointer`}
               >
                 <option value="">All missions — one sheet each</option>
                 {(project?.missions ?? []).map((m) => (
