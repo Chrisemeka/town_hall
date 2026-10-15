@@ -190,7 +190,7 @@ export default function CreateProjectForm() {
         </div>
 
         {/* What Happens Next info box */}
-        <div id="tour-new-project-next" className="bg-surface border border-line rounded-[12px] p-6">
+        <div id="tour-new-project-next" className="bg-surface border border-line rounded-[12px] p-4 medium:p-6">
           <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px] mb-4">
             What happens next?
           </p>
@@ -204,16 +204,17 @@ export default function CreateProjectForm() {
                 <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 w-6">
                   {step.num}
                 </span>
-                <p className="font-mono text-[13px] text-ink-muted leading-5">{step.text}</p>
+                <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5">{step.text}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* CTAs */}
-        <div className="flex items-center gap-3 pt-2">
+        {/* Compact: Create on top, Cancel under it, both full width. */}
+        <div className="grid grid-cols-1 gap-2 pt-2 medium:flex medium:items-center medium:gap-3">
           <SubmitButton />
-          <Button variant="ghost" size="lg" asChild>
+          <Button variant="ghost" size="lg" asChild className="w-full medium:w-auto">
             <Link href="/dashboard">Cancel</Link>
           </Button>
         </div>
@@ -229,7 +230,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="h-12 px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+      className="h-12 w-full medium:w-auto px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
       {pending ? "Creating…" : "Create Project"}
     </button>
