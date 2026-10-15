@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { ArrowLeft, Eye, Monitor, Smartphone } from "lucide-react"
 import { MissionBrief } from "@/components/missions/MissionBrief"
 import { AuditLogIntro, AuditLogSteps, draftFor } from "@/components/tester/AuditLogSteps"
@@ -123,6 +124,11 @@ export function PreviewButton({ project }: { project: Project }) {
   const ref = useRef<HTMLDialogElement>(null)
   const [mission, setMission] = useState<MissionSnapshot | null>(null)
   const [phone, setPhone] = useState(true)
+  // Below 600px a "desktop" preview is the phone layout anyway, so the toggle
+  // is hidden and the preview renders as a phone. The state is left alone, so
+  // turning the device to landscape brings the builder's choice back.
+  const compact = useMediaQuery("(max-width: 599px)")
+  const asPhone = phone || compact
 
   function open(e: React.MouseEvent<HTMLButtonElement>) {
     const form = e.currentTarget.form
@@ -171,15 +177,15 @@ export function PreviewButton({ project }: { project: Project }) {
         {mission && (
           <div className="h-full flex flex-col">
             {/* Builder chrome. Nothing up here is part of what testers see. */}
-            <div className="shrink-0 h-16 px-4 sm:px-6 flex items-center justify-between gap-4 border-b border-line bg-surface">
+            <div className="shrink-0 h-16 px-4 medium:px-6 flex items-center justify-between gap-4 border-b border-line bg-surface">
               <button
                 type="button"
                 onClick={close}
-                className="h-10 px-3 -ml-3 rounded-[8px] flex items-center gap-2 font-mono text-[13px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
+                className="h-12 lg:h-10 px-3 -ml-3 rounded-[8px] flex items-center gap-2 font-mono text-[13px] text-ink hover:bg-ink/[0.06] transition-colors duration-150"
               >
                 <ArrowLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">Back to editing</span>
-                <span className="sm:hidden">Back</span>
+                <span className="hidden medium:inline">Back to editing</span>
+                <span className="medium:hidden">Back</span>
               </button>
 
               <div className="min-w-0 text-center">
@@ -187,12 +193,12 @@ export function PreviewButton({ project }: { project: Project }) {
                   What testers see
                 </h2>
                 {/* Without this, an inert Pass button reads as a broken page. */}
-                <p className="hidden md:block font-mono text-[12px] leading-4 text-ink-muted">
+                <p className="hidden expanded:block font-mono text-[12px] leading-4 text-ink-muted">
                   Nothing here is live, and nothing is saved.
                 </p>
               </div>
 
-              <div role="group" aria-label="Preview width" className="flex p-1 gap-1 rounded-[8px] border border-line bg-surface-raised">
+              <div role="group" aria-label="Preview width" className="hidden medium:flex p-1 gap-1 rounded-[8px] border border-line bg-surface-raised">
                 {[
                   { value: true, label: "Phone", Icon: Smartphone },
                   { value: false, label: "Desktop", Icon: Monitor },
@@ -204,12 +210,12 @@ export function PreviewButton({ project }: { project: Project }) {
                     aria-label={label}
                     onClick={() => setPhone(value)}
                     className={[
-                      "h-8 px-2 sm:px-3 rounded-[6px] flex items-center gap-2 font-mono text-[13px] transition-colors duration-150",
+                      "h-8 px-2 medium:px-3 rounded-[6px] flex items-center gap-2 font-mono text-[13px] transition-colors duration-150",
                       phone === value ? "bg-surface text-ink border border-ink-muted" : "text-ink-muted hover:text-ink border border-transparent",
                     ].join(" ")}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline">{label}</span>
+                    <span className="hidden medium:inline">{label}</span>
                   </button>
                 ))}
               </div>
@@ -218,20 +224,20 @@ export function PreviewButton({ project }: { project: Project }) {
             <div
               className={[
                 "flex-1 min-h-0 overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-                phone ? "px-2 py-6 sm:px-8 sm:py-8" : "",
+                asPhone ? "px-2 py-6 medium:px-8 medium:py-8" : "",
               ].join(" ")}
             >
               {unfinished.length > 0 && (
                 <p
                   role="status"
-                  className={`max-w-[800px] mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4 ${phone ? "mx-auto" : "mt-6 mx-6 md:mx-auto"}`}
+                  className={`max-w-[800px] mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4 ${asPhone ? "mx-auto" : "mt-6 mx-6 expanded:mx-auto"}`}
                 >
                   {unfinished.length === 1 ? "Step" : "Steps"} {unfinished.join(", ")}{" "}
                   {unfinished.length === 1 ? "isn't" : "aren't"} finished, so{" "}
                   {unfinished.length === 1 ? "it's" : "they're"} left out below. Testers only ever see complete steps.
                 </p>
               )}
-              <TesterView mission={mission} project={project} phone={phone} />
+              <TesterView mission={mission} project={project} phone={asPhone} />
             </div>
           </div>
         )}
