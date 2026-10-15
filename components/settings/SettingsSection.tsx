@@ -15,7 +15,7 @@ export function SettingsSection({
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-[12px] border border-line bg-surface-raised p-6 sm:p-8">
+    <section className="rounded-[12px] border border-line bg-surface-raised p-5 medium:p-8">
       <h2 className="font-syne font-bold text-[20px] leading-7 text-ink">{title}</h2>
       {description && (
         <p className="font-sans text-[14px] leading-6 text-ink mt-2">{description}</p>
@@ -50,7 +50,7 @@ export function Metric({
         {label}
       </span>
       {hint && (
-        <span className="font-sans text-[13px] leading-5 text-ink-muted">{hint}</span>
+        <span className="font-sans text-[14px] lg:text-[13px] leading-5 text-ink-muted">{hint}</span>
       )}
     </div>
   )

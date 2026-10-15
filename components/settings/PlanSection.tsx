@@ -28,8 +28,10 @@ export function PlanSection({ planId }: { planId: PlanId }) {
       title="Plan"
       description="What your account includes, and what the other tier does."
     >
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-[12px] border border-accent-ink p-6">
+      {/* Stacked below 1024: inside the 640px column two cards are ~264px,
+          too narrow for a price line and a five-line list. */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="rounded-[12px] border border-accent-ink p-5 medium:p-6">
           <div className="flex items-baseline justify-between gap-3 flex-wrap">
             <h3 className="font-syne font-bold text-[18px] text-ink">
               {current.name}
@@ -54,7 +56,7 @@ export function PlanSection({ planId }: { planId: PlanId }) {
           </ul>
         </div>
 
-        <div className="rounded-[12px] border border-line p-6">
+        <div className="rounded-[12px] border border-line p-5 medium:p-6">
           <h3 className="font-syne font-bold text-[18px] text-ink">{other.name}</h3>
           <p className="font-mono text-[14px] text-ink mt-1">{other.price}</p>
           <p className="font-sans text-[14px] leading-6 text-ink mt-3">
@@ -79,7 +81,7 @@ export function PlanSection({ planId }: { planId: PlanId }) {
         </p>
         <Link
           href="/contact"
-          className="mt-4 inline-flex h-11 px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          className="mt-4 inline-flex h-12 lg:h-11 w-full justify-center medium:w-auto px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
         >
           Get in touch
         </Link>
