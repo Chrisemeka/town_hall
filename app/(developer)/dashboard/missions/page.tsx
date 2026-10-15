@@ -49,8 +49,8 @@ export default async function MyMissionsPage() {
   return (
     <div className="max-w-[800px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
 
-      {/* Compact: the button sits under the subhead rather than fighting the
-          h1 for 328px. */}
+      {/* Compact: the button sits under the subhead, full width, rather than
+          fighting the h1 for 328px. */}
       <div id="tour-my-missions-header" className="flex flex-col gap-4 medium:flex-row medium:items-start medium:justify-between mb-6 medium:mb-8">
         <div>
           <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
@@ -61,7 +61,7 @@ export default async function MyMissionsPage() {
           </p>
         </div>
         <Button variant="ghost" asChild>
-          <Link href="/dashboard" className="shrink-0 self-start medium:mt-1">
+          <Link href="/dashboard" className="shrink-0 w-full medium:w-auto medium:mt-1">
             + Add Mission
           </Link>
         </Button>
