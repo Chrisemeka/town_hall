@@ -2,6 +2,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, TestResultRow } from "@/lib/types/db";
+import { testerNumbers } from "@/lib/testerNumbers";
+import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
 
 /** Exactly what the two list selects below ask for. */
 type ProjectMission = Pick<
@@ -13,7 +15,7 @@ type ProjectMission = Pick<
  *  and one() settles it before the rows leave this file. */
 type ProjectResult = Pick<
   TestResultRow,
-  "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at"
+  "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at" | "mission_id"
 > & { missions: Embedded<Pick<MissionRow, "id" | "title" | "project_id">> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -54,7 +56,7 @@ export default async function ProjectDetailPage({
       .order("created_at", { ascending: true }),
     admin
       .from("test_results")
-      .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, missions!inner(id, title, project_id)")
+      .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id, missions!inner(id, title, project_id)")
       .eq("missions.project_id", projectId)
       .order("created_at", { ascending: false }),
   ]);
@@ -70,9 +72,36 @@ export default async function ProjectDetailPage({
 
   const project  = projectRes.data;
   const missions = (missionsRes.data ?? []) as ProjectMission[];
-  const results  = ((resultsRes.data ?? []) as ProjectResult[]).map((r) => ({
+  const rawResults = (resultsRes.data ?? []) as ProjectResult[];
+
+  // The same two things /dashboard/feedback shows for a report: "Tester N",
+  // stable per mission (the number the mission page and the CSV use), and the
+  // audit log's entries — a report filed step by step has no comment, and
+  // this tab used to render it as a blank paragraph under "Developer #01".
+  // Keyed off the ids above, so this cannot widen the scope.
+  const numbers = testerNumbers(rawResults);
+  const resultIds = rawResults.map((r) => r.id);
+  const { data: entryRows } = resultIds.length
+    ? await admin
+        .from("test_result_entries")
+        .select(
+          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
+        )
+        .in("test_result_id", resultIds)
+        .order("step_index", { ascending: true })
+    : { data: [] };
+  const entriesByResult = new Map<string, SubmissionEntry[]>();
+  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
+    const list = entriesByResult.get(row.test_result_id) ?? [];
+    list.push(row);
+    entriesByResult.set(row.test_result_id, list);
+  }
+
+  const results = rawResults.map((r) => ({
     ...r,
     missions: one(r.missions),
+    testerNumber: numbers.get(r.id),
+    entries: entriesByResult.get(r.id) ?? null,
   }));
 
   const missionCount  = missions.length;

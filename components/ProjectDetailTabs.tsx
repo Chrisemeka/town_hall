@@ -8,6 +8,8 @@ import { MissionChips } from "@/components/missions/TestCaseView"
 import { Button } from "@/components/ui/Button"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
+import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+import { testerLabel } from "@/lib/testerNumbers"
 
 type Mission = {
   id: string
@@ -30,6 +32,9 @@ type TestResult = {
   screenshot_urls: string[] | null
   created_at: string
   missions: { id: string; title: string } | null
+  /** Per mission, from lib/testerNumbers — the same number the mission page and CSV show. */
+  testerNumber: number | undefined
+  entries: SubmissionEntry[] | null
 }
 
 interface Props {
@@ -193,7 +198,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                 </h5>
 
                 <div className="flex flex-col gap-4">
-                  {items.map((result, idx) => (
+                  {items.map((result) => (
                     <Link
                       key={result.id}
                       href={`/dashboard/${projectId}/mission/${mission.id}`}
@@ -202,7 +207,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       {/* Header row */}
                       <div className="flex items-center gap-3 mb-2">
                         <span className="font-mono text-[12px] text-ink-muted">
-                          Developer #{String(idx + 1).padStart(2, "0")}
+                          {testerLabel(result.testerNumber)}
                         </span>
                         <span className="w-1 h-1 rounded-full bg-line" />
                         <span className="font-mono text-[12px] text-ink-muted">
@@ -211,9 +216,15 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                       </div>
 
                       {/* Feedback body (truncated — full breakdown on mission page) */}
-                      <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
-                        {result.tester_comment}
-                      </p>
+                      {result.entries?.length ? (
+                        // A list preview, so the count only — the full log lives
+                        // on the mission page this links to.
+                        <PassRate entries={result.entries} />
+                      ) : (
+                        <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
+                          {result.tester_comment ?? "No written feedback."}
+                        </p>
+                      )}
 
                       <ScreenshotStrip urls={screenshotList(result)} />
 
