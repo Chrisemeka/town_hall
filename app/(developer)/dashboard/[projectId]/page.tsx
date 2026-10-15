@@ -19,7 +19,7 @@ type ProjectResult = Pick<
 > & { missions: Embedded<Pick<MissionRow, "id" | "title" | "project_id">> };
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, Pencil, Flag } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Flag } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ProjectDetailTabs } from "@/components/ProjectDetailTabs";
 
@@ -109,15 +109,17 @@ export default async function ProjectDetailPage({
   const status        = getStatus(missionCount, feedbackCount);
 
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
 
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 min-w-0">
-        <Link href="/dashboard" className="hover:text-ink transition-colors duration-150 shrink-0">
+      {/* Breadcrumb. Below 600px a 48px back link — the h1 right under it
+          already names the project. From 600px, the trail. */}
+      <div className="flex items-center gap-1.5 font-mono text-[14px] lg:text-[13px] text-ink-muted mb-4 medium:mb-8 min-w-0">
+        <Link href="/dashboard" className="inline-flex items-center gap-1 min-h-12 -ml-2 px-2 medium:min-h-0 medium:ml-0 medium:px-0 hover:text-ink transition-colors duration-150 shrink-0">
+          <ChevronLeft className="w-4 h-4 medium:hidden" aria-hidden="true" />
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
-        <span className="text-ink truncate max-w-[160px] sm:max-w-[240px]">{project.name}</span>
+        <ChevronRight className="hidden medium:block w-3.5 h-3.5 text-line shrink-0" aria-hidden="true" />
+        <span className="hidden medium:inline text-ink truncate max-w-[240px]">{project.name}</span>
       </div>
 
       {/* Flag warning banner (shown to owner when an admin has flagged this project) */}
@@ -155,11 +157,11 @@ export default async function ProjectDetailPage({
       )}
 
       {/* Project header */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-10">
+      <div className="flex flex-col medium:flex-row medium:items-start medium:justify-between gap-6 mb-6 medium:mb-10">
         <div className="flex flex-col gap-3 min-w-0">
           {/* Name + badge */}
-          <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-            <h1 className="font-syne font-bold text-[32px] leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[48px] md:leading-[52px] tracking-[-0.5px] text-ink break-words min-w-0">
+          <div className="flex items-center gap-3 medium:gap-4 flex-wrap">
+            <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[36px] medium:leading-[44px] expanded:text-[40px] expanded:leading-[44px] lg:text-[48px] lg:leading-[52px] tracking-[-0.5px] text-ink break-words min-w-0">
               {project.name}
             </h1>
             <Badge variant={status} />
