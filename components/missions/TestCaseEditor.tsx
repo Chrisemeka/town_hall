@@ -123,7 +123,8 @@ export function TestCaseEditor({
         <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           What kind of testing is this?
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Stacked below 1024: inside the 640px card three columns are ~150px. */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {TEST_CATEGORIES.map((option, i) => {
             const active = category === option
             return (
@@ -137,7 +138,7 @@ export function TestCaseEditor({
                 onClick={() => chooseCategory(option)}
                 aria-pressed={active}
                 className={[
-                  "text-left rounded-[12px] border p-4 transition-colors duration-150",
+                  "text-left rounded-[12px] border p-4 active:bg-ink/[0.06] transition-colors duration-150",
                   active
                     ? "border-accent-ink bg-voltage/5"
                     : "border-line bg-surface hover:border-ink-muted",
@@ -145,7 +146,7 @@ export function TestCaseEditor({
               >
                 <span
                   className={[
-                    "block font-mono text-[13px] font-medium mb-1",
+                    "block font-mono text-[14px] lg:text-[13px] font-medium mb-1",
                     active ? "text-accent-ink" : "text-ink",
                   ].join(" ")}
                 >
@@ -169,7 +170,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={startBlank}
-              className="text-left rounded-[8px] border border-line bg-surface px-4 py-3 font-mono text-[13px] text-ink hover:border-ink-muted transition-colors duration-150"
+              className="text-left rounded-[8px] border border-line bg-surface px-4 py-3 font-mono text-[14px] lg:text-[13px] text-ink hover:border-ink-muted active:bg-ink/[0.06] transition-colors duration-150"
             >
               Blank test case
               <span className="block text-[12px] text-ink-muted mt-0.5">Write every step yourself.</span>
@@ -180,7 +181,7 @@ export function TestCaseEditor({
                 type="button"
                 onClick={() => applyTemplate(template.id)}
                 className={[
-                  "text-left rounded-[8px] border px-4 py-3 font-mono text-[13px] transition-colors duration-150",
+                  "text-left rounded-[8px] border px-4 py-3 font-mono text-[14px] lg:text-[13px] active:bg-ink/[0.06] transition-colors duration-150",
                   templateId === template.id
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
                     : "border-line text-ink bg-surface hover:border-ink-muted",
@@ -310,7 +311,8 @@ export function TestCaseEditor({
         <p className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
           Where should this be tested?
         </p>
-        <div className="flex flex-wrap gap-2">
+        {/* Compact: a three-segment control. From 600px, today's row. */}
+        <div className="grid grid-cols-3 gap-2 medium:flex medium:flex-wrap">
           {DEVICE_TARGETS.map((option, i) => {
             const active = deviceTarget === option
             return (
@@ -324,7 +326,7 @@ export function TestCaseEditor({
                 }}
                 aria-pressed={active}
                 className={[
-                  "h-10 px-4 rounded-[8px] border font-mono text-[13px] transition-colors duration-150",
+                  "h-12 lg:h-10 px-2 medium:px-4 rounded-[8px] border font-mono text-[14px] lg:text-[13px] transition-colors duration-150",
                   active
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
                     : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
