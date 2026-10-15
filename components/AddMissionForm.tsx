@@ -202,7 +202,7 @@ function DraftButton() {
       name="intent"
       value="draft"
       disabled={pending}
-      className="h-12 w-full medium:w-auto px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:border-ink-muted transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
+      className="h-12 w-full medium:w-auto px-6 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
       Save as Draft
     </button>

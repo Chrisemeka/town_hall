@@ -26,7 +26,7 @@ export default async function NewProjectPage() {
         <Link href="/dashboard" className="hover:text-ink transition-colors duration-150">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted" aria-hidden="true" />
         <span className="text-ink">New Project</span>
       </div>
 

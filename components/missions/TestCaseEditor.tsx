@@ -141,7 +141,7 @@ export function TestCaseEditor({
                   "text-left rounded-[12px] border p-4 active:bg-ink/[0.06] transition-colors duration-150",
                   active
                     ? "border-accent-ink bg-voltage/5"
-                    : "border-line bg-surface hover:border-ink-muted",
+                    : "border-ink-muted bg-surface hover:bg-ink/[0.06]",
                 ].join(" ")}
               >
                 <span
@@ -170,7 +170,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={startBlank}
-              className="text-left rounded-[8px] border border-line bg-surface px-4 py-3 font-mono text-[14px] lg:text-[13px] text-ink hover:border-ink-muted active:bg-ink/[0.06] transition-colors duration-150"
+              className="text-left rounded-[8px] border border-ink-muted bg-surface px-4 py-3 font-mono text-[14px] lg:text-[13px] text-ink hover:border-ink-muted active:bg-ink/[0.06] transition-colors duration-150"
             >
               Blank test case
               <span className="block text-[12px] text-ink-muted mt-0.5">Write every step yourself.</span>
@@ -184,7 +184,7 @@ export function TestCaseEditor({
                   "text-left rounded-[8px] border px-4 py-3 font-mono text-[14px] lg:text-[13px] active:bg-ink/[0.06] transition-colors duration-150",
                   templateId === template.id
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
-                    : "border-line text-ink bg-surface hover:border-ink-muted",
+                    : "border-ink-muted text-ink bg-surface hover:bg-ink/[0.06]",
                 ].join(" ")}
               >
                 {template.name}
@@ -224,7 +224,7 @@ export function TestCaseEditor({
             <button
               type="button"
               onClick={addStep}
-              className="h-12 w-full justify-center medium:w-auto lg:h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+              className="h-12 w-full justify-center medium:w-auto lg:h-10 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:bg-ink/[0.06] transition-colors duration-150 flex items-center gap-2"
             >
               <Plus className="w-3.5 h-3.5" />
               Add first step
@@ -293,7 +293,7 @@ export function TestCaseEditor({
               <button
                 type="button"
                 onClick={addStep}
-                className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-10 px-4 border border-line text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:border-ink-muted transition-colors duration-150 flex items-center gap-2"
+                className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-10 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] lg:text-[13px] hover:bg-ink/[0.06] transition-colors duration-150 flex items-center gap-2"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add step
@@ -329,7 +329,7 @@ export function TestCaseEditor({
                   "h-12 lg:h-10 px-2 medium:px-4 rounded-[8px] border font-mono text-[14px] lg:text-[13px] transition-colors duration-150",
                   active
                     ? "border-accent-ink text-accent-ink bg-voltage/5"
-                    : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
+                    : "border-ink-muted text-ink-muted bg-surface hover:text-ink",
                 ].join(" ")}
               >
                 {deviceTargetLabel(option)}
@@ -388,7 +388,7 @@ function IconButton({
   label,
   onClick,
   disabled,
-  className = "hover:text-ink hover:border-ink-muted",
+  className = "hover:text-ink hover:bg-ink/[0.06]",
   children,
 }: {
   label: string
@@ -405,7 +405,7 @@ function IconButton({
       onClick={onClick}
       disabled={disabled}
       // 48px below lg: three in a row are 160px beside the step number.
-      className={`w-12 h-12 lg:w-7 lg:h-7 flex items-center justify-center rounded-[6px] border border-line text-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none ${className}`}
+      className={`w-12 h-12 lg:w-7 lg:h-7 flex items-center justify-center rounded-[6px] border border-ink-muted text-ink-muted transition-colors duration-150 disabled:opacity-30 disabled:pointer-events-none ${className}`}
     >
       {children}
     </button>

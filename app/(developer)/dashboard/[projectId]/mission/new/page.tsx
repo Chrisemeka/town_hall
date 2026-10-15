@@ -45,14 +45,14 @@ export default async function NewMissionPage({
         <Link href="/dashboard" className="hover:text-ink transition-colors duration-150">
           My Projects
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <Link
           href={`/dashboard/${projectId}`}
           className="hover:text-ink transition-colors duration-150 truncate max-w-[160px]"
         >
           {project.name}
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink">New Mission</span>
       </div>
 
