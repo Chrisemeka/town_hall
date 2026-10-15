@@ -41,7 +41,7 @@ export function MissionNotes({
           type="checkbox"
           checked={open}
           onChange={(e) => onOpenChange(e.target.checked)}
-          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+          className="w-4 h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
         />
         <span className="font-mono text-[14px] text-ink">Add notes for testers</span>
       </label>
@@ -69,7 +69,7 @@ export function MissionNotes({
               onChange={(e) => onChange(e.target.value)}
               {...fieldErrorProps("task_description", errors)}
               className={[
-                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
+                "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none",
                 errors?.length ? "border-danger-ink" : "border-line focus:border-accent-ink",
               ].join(" ")}
             />
