@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
@@ -10,6 +10,7 @@ import { ScreenshotStrip } from "@/components/ScreenshotStrip"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { testerLabel } from "@/lib/testerNumbers"
+import { nextTabIndex } from "@/lib/settingsTabs"
 
 type Mission = {
   id: string
@@ -60,8 +61,24 @@ function relativeTime(iso: string) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+const TABS = ["missions", "feedback"] as const
+type Tab = (typeof TABS)[number]
+
 export function ProjectDetailTabs({ projectId, missions, results }: Props) {
-  const [tab, setTab] = useState<"missions" | "feedback">("missions")
+  const [tab, setTab] = useState<Tab>("missions")
+  const buttons = useRef<(HTMLButtonElement | null)[]>([])
+
+  // WAI-ARIA tabs with automatic activation: an arrow selects as well as
+  // moves. Two tabs and no URL history, so nothing argues for the manual
+  // activation Settings needs.
+  function onKeyDown(e: React.KeyboardEvent) {
+    const from = TABS.indexOf(tab)
+    const to = nextTabIndex(from, e.key, TABS.length)
+    if (to === from) return
+    e.preventDefault()
+    setTab(TABS[to])
+    buttons.current[to]?.focus()
+  }
 
   const feedbackCount = results.length
 
@@ -78,14 +95,23 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
       {/* Tab bar + action button */}
       <div className="border-b border-line mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 sm:gap-0">
-          <div className="flex items-end gap-4 sm:gap-6">
+          <div role="tablist" aria-label="Project sections" onKeyDown={onKeyDown} className="flex items-end gap-4 sm:gap-6">
             {[
-              { key: "missions",  label: `Missions`,          count: missions.length },
-              { key: "feedback",  label: `Feedback Received`, count: feedbackCount  },
-            ].map(({ key, label, count }) => (
+              { key: "missions" as const, label: `Missions`,          count: missions.length },
+              { key: "feedback" as const, label: `Feedback Received`, count: feedbackCount  },
+            ].map(({ key, label, count }, i) => (
               <button
                 key={key}
-                onClick={() => setTab(key as typeof tab)}
+                ref={(el) => {
+                  buttons.current[i] = el
+                }}
+                id={`project-tab-${key}`}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                aria-controls={`project-panel-${key}`}
+                tabIndex={tab === key ? 0 : -1}
+                onClick={() => setTab(key)}
                 className={[
                   "pb-3 font-mono text-[14px] font-medium transition-colors duration-150 relative",
                   tab === key ? "text-ink" : "text-ink-muted hover:text-ink",
@@ -116,7 +142,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
       {/* ── MISSIONS TAB ─────────────────────────────────────────────── */}
       {tab === "missions" && (
-        <div className="flex flex-col gap-4">
+        <div
+          id="project-panel-missions"
+          role="tabpanel"
+          aria-labelledby="project-tab-missions"
+          tabIndex={0}
+          className="flex flex-col gap-4 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        >
           {missions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
@@ -181,7 +213,13 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
 
       {/* ── FEEDBACK RECEIVED TAB ─────────────────────────────────────── */}
       {tab === "feedback" && (
-        <div className="flex flex-col gap-10">
+        <div
+          id="project-panel-feedback"
+          role="tabpanel"
+          aria-labelledby="project-tab-feedback"
+          tabIndex={0}
+          className="flex flex-col gap-10 rounded-[8px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+        >
           {feedbackCount === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
               <p className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</p>
