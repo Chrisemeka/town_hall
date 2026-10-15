@@ -104,7 +104,7 @@ export function AccountPanel({
           className="rounded-[12px] p-5 flex flex-col gap-4"
           style={{ background: "rgba(255,79,79,0.05)", border: "1px solid rgba(255,79,79,0.2)" }}
         >
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col items-stretch gap-4 medium:flex-row medium:items-center medium:justify-between">
             <div>
               <p className="font-mono text-[14px] text-ink">Delete Account</p>
               <p className="font-mono text-[13px] text-ink-muted mt-0.5">
@@ -114,7 +114,7 @@ export function AccountPanel({
             {deleteStep === "idle" && (
               <button
                 onClick={() => setDeleteStep("confirm")}
-                className="shrink-0 h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium border transition-colors duration-150"
+                className="shrink-0 h-12 lg:h-9 w-full medium:w-auto px-4 rounded-[8px] font-mono text-[13px] font-medium border transition-colors duration-150"
                 style={{ borderColor: "rgba(255,79,79,0.5)", color: "var(--color-danger-ink)", background: "transparent" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,79,79,0.1)" }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
@@ -129,11 +129,14 @@ export function AccountPanel({
               <p className="font-mono text-[13px] text-ink mb-4">
                 This cannot be undone. All your data will be permanently deleted. Are you sure?
               </p>
-              <div className="flex items-center gap-3">
+              {/* Compact: Cancel sits above the destructive button, so the thumb
+                  that just tapped Delete Account does not land on it next. DOM
+                  and focus order are unchanged; only the stack flips. */}
+              <div className="flex flex-col-reverse gap-3 medium:flex-row medium:items-center">
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleting}
-                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+                  className="h-12 lg:h-9 px-4 rounded-[8px] font-mono text-[13px] font-medium transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
                   style={{ background: "var(--color-danger-ink)", color: "var(--color-surface)", border: "none" }}
                 >
                   {deleting ? "Deleting…" : "Yes, delete my account"}
@@ -141,7 +144,7 @@ export function AccountPanel({
                 <button
                   onClick={() => { setDeleteStep("idle"); setDeleteError(null) }}
                   disabled={deleting}
-                  className="h-9 px-4 rounded-[8px] font-mono text-[13px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
+                  className="h-12 lg:h-9 px-4 rounded-[8px] font-mono text-[13px] text-ink-muted border border-line hover:text-ink transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none"
                 >
                   Cancel
                 </button>
