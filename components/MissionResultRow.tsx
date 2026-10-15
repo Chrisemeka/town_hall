@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, X } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { screenshotList } from "@/lib/utils/screenshots"
@@ -9,6 +9,7 @@ import { toStatus } from "@/lib/review"
 import type { TestResultRow } from "@/lib/types/db"
 import { testerLabel } from "@/lib/testerNumbers"
 import { SubmissionBody, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
+import { swipeStep } from "@/lib/swipe"
 
 /**
  * Exactly the columns the mission page selects. This component is "use client",
@@ -78,8 +79,11 @@ export default function MissionResultRow({
   appUrl: string | null
 }) {
   const [insightOpen, setInsightOpen] = useState(false)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
   const [active, setActive] = useState(0)
+  const lightbox = useRef<HTMLDialogElement>(null)
+  const swipeFrom = useRef<{ x: number; y: number } | null>(null)
+  // A swipe that ends on the scrim must not also count as a tap that closes.
+  const swiped = useRef(false)
 
   const shots = screenshotList(result)
   const current = shots[active] ?? shots[0] ?? null
@@ -114,7 +118,7 @@ export default function MissionResultRow({
               // whole: a 1600px-tall phone screenshot was 1,500px of page.
               <button
                 type="button"
-                onClick={() => setLightboxOpen(true)}
+                onClick={() => lightbox.current?.showModal()}
                 aria-label={`Open screenshot ${active + 1} of ${shots.length} full size`}
                 className="block w-full cursor-pointer bg-surface lg:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-ink"
               >
@@ -243,55 +247,106 @@ export default function MissionResultRow({
         reviewNote={result.review_note ?? null}
       />
 
-      {/* Screenshot lightbox */}
-      {lightboxOpen && current && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-sm p-4"
-          onClick={() => setLightboxOpen(false)}
+      {/* Screenshot lightbox. ponytail: a native <dialog> opened with
+          showModal() — the platform traps focus, closes on Esc and puts focus
+          back on the screenshot button. The scrim is literal Obsidian on
+          purpose: dark in both themes; one that follows the theme stops
+          being a scrim. */}
+      {current && (
+        <dialog
+          ref={lightbox}
+          aria-label={`Screenshot ${active + 1} of ${shots.length}`}
+          // A click on the scrim lands on the dialog itself, which fills the
+          // screen; anything inside is a click on its content.
+          onClick={(e) => {
+            if (swiped.current) {
+              swiped.current = false
+              return
+            }
+            if (e.target === e.currentTarget) lightbox.current?.close()
+          }}
+          onKeyDown={(e) => {
+            if (shots.length < 2) return
+            if (e.key === "ArrowLeft") step(-1)
+            if (e.key === "ArrowRight") step(1)
+          }}
+          onPointerDown={(e) => {
+            swipeFrom.current = { x: e.clientX, y: e.clientY }
+          }}
+          onPointerUp={(e) => {
+            const from = swipeFrom.current
+            swipeFrom.current = null
+            if (!from || shots.length < 2) return
+            const s = swipeStep(e.clientX - from.x, e.clientY - from.y)
+            swiped.current = s !== 0
+            if (s) step(s)
+          }}
+          className="m-0 w-full h-full max-w-none max-h-none bg-transparent p-4 backdrop:bg-obsidian/90 open:flex flex-col items-center justify-center" // ponytail: literal scrim, dark in both themes
         >
           <button
-            className="absolute top-8 right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-            onClick={(e) => { e.stopPropagation(); setLightboxOpen(false) }}
+            type="button"
+            aria-label="Close"
+            className="absolute top-4 right-4 medium:top-8 medium:right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
+            onClick={() => lightbox.current?.close()}
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
 
+          {/* From 600px the arrows sit at the sides; below it they move into
+              the bar under the image, where they cover nothing. */}
           {shots.length > 1 && (
             <>
               <button
+                type="button"
                 aria-label="Previous screenshot"
-                className="absolute left-4 md:left-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); step(-1) }}
+                className="hidden medium:flex absolute left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+                onClick={() => step(-1)}
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={20} aria-hidden="true" />
               </button>
               <button
+                type="button"
                 aria-label="Next screenshot"
-                className="absolute right-4 md:right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); step(1) }}
+                className="hidden medium:flex absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+                onClick={() => step(1)}
               >
-                <ChevronRight size={20} />
+                <ChevronRight size={20} aria-hidden="true" />
               </button>
             </>
           )}
 
-          <div
-            className="bg-surface border border-line shadow-2xl rounded-2xl p-2 max-w-5xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="bg-surface border border-line shadow-2xl rounded-2xl p-2 max-w-5xl">
             {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
             <img
               src={current}
               alt={`Test screenshot ${active + 1} of ${shots.length}, full size`}
-              className="w-full max-h-[85vh] object-contain rounded-xl"
+              className="w-full max-h-[calc(85dvh-64px)] medium:max-h-[85dvh] object-contain rounded-xl"
             />
             {shots.length > 1 && (
-              <p className="font-mono text-[12px] text-ink-muted text-center py-2">
-                {active + 1} of {shots.length}
-              </p>
+              <div className="flex items-center justify-between medium:justify-center gap-2 pt-2 medium:py-2">
+                <button
+                  type="button"
+                  aria-label="Previous screenshot"
+                  className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
+                  onClick={() => step(-1)}
+                >
+                  <ChevronLeft size={20} aria-hidden="true" />
+                </button>
+                <p className="font-mono text-[12px] text-ink-muted text-center">
+                  {active + 1} of {shots.length}
+                </p>
+                <button
+                  type="button"
+                  aria-label="Next screenshot"
+                  className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
+                  onClick={() => step(1)}
+                >
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              </div>
             )}
           </div>
-        </div>
+        </dialog>
       )}
     </div>
   )
