@@ -72,18 +72,17 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
           >
             <div
               className={[
-                "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] transition-colors duration-150 group-active:border-accent-ink",
+                "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] shadow-card transition-colors duration-150 group-active:border-accent-ink",
                 isLoadTest
                   ? "border-info-ink/40 group-hover:border-info-ink"
                   : "border-line group-hover:border-accent-ink/30",
               ].join(" ")}
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   {m.isNew && (
                     <span
-                      className="w-1.5 h-1.5 rounded-full shrink-0 bg-voltage"
+                      className="w-1.5 h-1.5 rounded-full shrink-0 bg-accent-ink"
                       title="Posted in the last 24 hours"
                       aria-hidden="true"
                     />
@@ -120,7 +119,7 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                   Posted {timeAgo(m.createdAt)}
                   {isLoadTest && m.testersNeeded ? (
                     <>
-                      <span aria-hidden="true" className="text-line">·</span>
+                      <span aria-hidden="true" className="text-ink-muted">·</span>
                       <Users className="w-3 h-3 shrink-0" />
                       {m.testersNeeded} needed
                     </>

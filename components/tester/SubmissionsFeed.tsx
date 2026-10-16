@@ -27,10 +27,12 @@ const FILTERS: { label: string; status: SubmissionStatus | null }[] = [
   { label: "Approved", status: "approved" },
 ]
 
-const STATUS_STYLE: Record<SubmissionStatus, { color: string; bg: string; border: string }> = {
-  pending: { color: "var(--color-accent-ink)", bg: "rgba(232,255,71,0.10)", border: "rgba(232,255,71,0.30)" },
-  approved: { color: "var(--color-success-ink)", bg: "rgba(63,255,162,0.10)", border: "rgba(63,255,162,0.30)" },
-  changes_requested: { color: "var(--color-danger-ink)", bg: "rgba(255,79,79,0.10)", border: "rgba(255,79,79,0.30)" },
+// Ink for text and border, the literal for the tint — the same split
+// SubmissionBody's StatusPill uses. On dark every value is what it was.
+const STATUS_STYLE: Record<SubmissionStatus, string> = {
+  pending: "text-accent-ink bg-voltage/10 border-accent-ink/30",
+  approved: "text-success-ink bg-mint/10 border-success-ink/30",
+  changes_requested: "text-danger-ink bg-ember/10 border-danger-ink/30",
 }
 
 const PREVIEW_LIMIT = 3
@@ -41,11 +43,9 @@ function formatDate(iso: string) {
 }
 
 function StatusPill({ status }: { status: SubmissionStatus }) {
-  const style = STATUS_STYLE[status]
   return (
     <span
-      className="font-mono text-[11px] font-medium uppercase tracking-[0.5px] px-2.5 py-1.5 rounded-[8px] border shrink-0"
-      style={{ color: style.color, background: style.bg, borderColor: style.border }}
+      className={`font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[0.5px] px-2.5 py-1.5 rounded-[8px] border shrink-0 ${STATUS_STYLE[status]}`}
     >
       {STATUS_LABEL[status]}
     </span>
@@ -96,7 +96,7 @@ function SubmissionDialog({ submission, onClose }: { submission: FeedSubmission 
       onClick={(e) => e.target === e.currentTarget && ref.current?.close()}
       aria-labelledby="submission-dialog-title"
       // ponytail: the backdrop is a scrim — dark on both themes by design.
-      className="w-[calc(100%-32px)] max-w-[560px] max-h-[85dvh] p-0 m-auto rounded-[12px] border border-line bg-surface-raised text-ink backdrop:bg-black/60"
+      className="w-[calc(100%-32px)] max-w-[560px] max-h-[85dvh] p-0 m-auto rounded-[12px] border border-line bg-surface-raised text-ink backdrop:bg-black/60" // ponytail: literal scrim, dark on both themes
     >
       {s && (
         <div className="flex flex-col max-h-[85dvh]">
@@ -248,11 +248,9 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
               className="group block w-full text-left cursor-pointer rounded-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink"
             >
               <div
-                className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-5 flex flex-col medium:flex-row medium:items-center gap-4 transition-colors duration-150 group-hover:border-accent-ink/30 group-active:border-accent-ink"
-                style={{
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
-                  ...(s.status === "changes_requested" ? { borderLeft: "3px solid var(--color-danger-ink)" } : null),
-                }}
+                className={`bg-surface-raised border border-line rounded-[12px] p-4 medium:p-5 flex flex-col medium:flex-row medium:items-center gap-4 transition-colors duration-150 group-hover:border-accent-ink/30 group-active:border-accent-ink shadow-card${
+                  s.status === "changes_requested" ? " border-l-[3px] border-l-danger-ink" : ""
+                }`}
               >
                 <div className="flex-1 min-w-0 flex flex-col gap-2">
                   <span className="font-mono text-[12px] lg:text-[11px] uppercase tracking-[1px] text-ink-muted truncate">
@@ -263,11 +261,11 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                   </span>
                   <div className="flex items-center gap-2.5 font-mono text-[12px] text-ink-muted flex-wrap">
                     <span>Submitted {formatDate(s.createdAt)}</span>
-                    <span aria-hidden="true" className="text-line">·</span>
+                    <span aria-hidden="true" className="text-ink-muted">·</span>
                     <span>{s.screenshots.length} screenshot{s.screenshots.length !== 1 ? "s" : ""}</span>
                     {s.rating != null && (
                       <>
-                        <span aria-hidden="true" className="text-line">·</span>
+                        <span aria-hidden="true" className="text-ink-muted">·</span>
                         <span className="inline-flex items-center gap-1 text-ink">
                           <Stars rating={s.rating} size={12} />
                           <span>{s.rating}/5</span>
@@ -277,7 +275,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
                     {/* The note itself is in the dialog; the card only says one exists. */}
                     {s.reviewNote && (
                       <>
-                        <span aria-hidden="true" className="text-line">·</span>
+                        <span aria-hidden="true" className="text-ink-muted">·</span>
                         <span className="inline-flex items-center gap-1 text-ink">
                           <MessageSquareText size={12} aria-hidden="true" />
                           Note from the builder

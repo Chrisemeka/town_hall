@@ -99,8 +99,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
               // stretches over it. Nothing else in the row is a link.
               <div
                 key={mission.id}
-                className="group relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                className="group relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
               >
                 {/* Left content */}
                 <div className="flex-1 min-w-0">
@@ -114,7 +113,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                       {" · "}
                       {mission.projectHandle}
                     </span>
-                    <span className="font-mono text-[12px] text-ink-muted/50">
+                    <span className="font-mono text-[12px] text-ink-muted">
                       {relTime(mission.created_at)}
                     </span>
                   </div>

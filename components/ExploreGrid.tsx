@@ -6,6 +6,7 @@ import { LoadMore } from "@/components/ui/LoadMore"
 import { Button } from "@/components/ui/Button"
 import { ArrowRight } from "lucide-react"
 import { SearchField } from "@/components/ui/SearchField"
+import { FilterChip } from "@/components/ui/FilterChip"
 import { inputClass } from "@/components/ui/Field"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/Badge"
@@ -131,33 +132,13 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
       {/* Below 840px each control is a full-width row, search first: it is
           the one most used. order-* only, so the DOM order is unchanged. */}
       <div id="tour-explore-filters" className="flex flex-col gap-3 expanded:flex-row expanded:items-center expanded:flex-wrap expanded:justify-between expanded:gap-4 mb-6 medium:mb-8">
-        {/* Pill filters */}
+        {/* The same chips as My Submissions on Tester Home. */}
         <div className="flex items-center gap-x-2 gap-y-4 flex-wrap">
-          {FILTERS.map(({ key, label }) => {
-            const active = filter === key
-            return (
-              <button
-                key={key}
-                onClick={() => setFilter(key)}
-                className="h-8 px-4 font-mono text-[13px] font-medium transition-colors duration-200 rounded-full"
-                style={
-                  active
-                    ? {
-                        background: "rgba(232,255,71,0.12)",
-                        border: "1px solid rgba(232,255,71,0.4)",
-                        color: "var(--color-accent-ink)",
-                      }
-                    : {
-                        background: "var(--color-surface-raised)",
-                        border: "1px solid var(--color-line)",
-                        color: "var(--color-ink-muted)",
-                      }
-                }
-              >
-                {label}
-              </button>
-            )
-          })}
+          {FILTERS.map(({ key, label }) => (
+            <FilterChip key={key} pressed={filter === key} onClick={() => setFilter(key)}>
+              {label}
+            </FilterChip>
+          ))}
         </div>
 
         {/* Category filter — a select rather than more pills: fourteen pills
@@ -210,8 +191,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                 key={project.id}
                 // The whole card is the project's link: the title's ::after
                 // stretches over it.
-                className="group relative bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                className="group relative bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
               >
                 {/* Name + badge */}
                 <div className="flex items-start justify-between gap-3 mb-1">
@@ -278,7 +258,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                       Test it <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   ) : (
-                    <span className="font-mono text-[12px] text-ink-muted/50 italic">No missions yet</span>
+                    <span className="font-mono text-[12px] text-ink-muted italic">No missions yet</span>
                   )}
                 </div>
               </div>

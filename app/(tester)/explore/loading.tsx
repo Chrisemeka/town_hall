@@ -21,7 +21,7 @@ export default function Loading() {
         <div className="flex flex-col gap-3 expanded:flex-row expanded:items-center expanded:justify-between expanded:gap-4 mb-6 medium:mb-8">
           <div className="flex items-center gap-2 flex-wrap">
             {Array.from({ length: 4 }, (_, i) => (
-              <Bar key={i} className="h-8 w-24 rounded-full" />
+              <Bar key={i} className="h-8 w-24 rounded-[8px]" />
             ))}
           </div>
           <Bar className="order-first expanded:order-none h-12 lg:h-9 w-full expanded:w-[280px] rounded-[8px] shrink-0" />
