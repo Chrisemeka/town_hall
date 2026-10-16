@@ -35,11 +35,11 @@ export default function Loading() {
           <Bar className="h-4 w-32" />
           <Bar className="h-4 w-16" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex overflow-hidden gap-3 -mx-4 px-4 medium:grid medium:grid-cols-2 medium:gap-4 medium:mx-0 medium:px-0 lg:grid-cols-3">
           {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
-              className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4 min-h-[160px]"
+              className="w-[85%] shrink-0 medium:w-auto bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col gap-4 min-h-[160px]"
             >
               <Bar className="h-6 w-3/4" />
               <Bar className="h-4 w-1/2" />
