@@ -16,6 +16,7 @@ import {
 import {
   AuditLogIntro,
   AuditLogSteps,
+  answeredCount,
   draftFor,
   draftIsComplete,
   entryFieldName,
@@ -23,6 +24,8 @@ import {
   type DraftEntry,
 } from "@/components/tester/AuditLogSteps"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
+import { ReportProgressBar } from "@/components/tester/ReportProgressBar"
+import { prefersReducedMotion } from "@/lib/focus"
 import { textareaClass } from "@/components/ui/Field"
 import { cn } from "@/lib/utils"
 
@@ -64,6 +67,18 @@ export default function AuditLogForm({
   const [errorIndex,  setErrorIndex]  = useState<number | undefined>(undefined)
   const fileRef = useRef<HTMLInputElement>(null)
   const focusFirstError = useFocusFirstError()
+  // The in-form Submit, watched so the progress bar steps aside whenever any
+  // of it is on screen: two Submits in view would be two Voltage fills.
+  const submitRef = useRef<HTMLButtonElement>(null)
+  const [submitInView, setSubmitInView] = useState(false)
+
+  useEffect(() => {
+    const el = submitRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([e]) => setSubmitInView(e.isIntersecting))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [unlocked, isSuccess])
 
   // Prompt on reload while the tester has work in progress that hasn't been sent.
   useUnsavedChangesWarning(
@@ -149,6 +164,18 @@ export default function AuditLogForm({
     setCommentError(errors.comment?.[0] ?? null)
     setFileErrors(errors.screenshots ?? [])
     focusFirstError(errors)
+  }
+
+  /** The bar's text: to the first gap, in the order Submit would name it. */
+  function jumpToNext() {
+    const missing = firstIncompleteEntry(entries, category)
+    if (missing) {
+      focusFirstError({ [entryFieldName(missing.index, missing.field)]: true })
+    } else if (shots.length === 0) {
+      focusFirstError({ screenshots: true })
+    } else {
+      submitRef.current?.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" })
+    }
   }
 
   async function handleSubmit() {
@@ -489,6 +516,7 @@ export default function AuditLogForm({
         {/* CTAs */}
         <div className="flex flex-col gap-2 mt-8">
           <button
+            ref={submitRef}
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
@@ -515,6 +543,17 @@ export default function AuditLogForm({
             Your answers save on this device as you go.
           </p>
         </div>
+
+        {hasSteps && !submitInView && (
+          <ReportProgressBar
+            answered={answeredCount(entries, category)}
+            total={entries.length}
+            shots={shots.length}
+            submitting={isSubmitting}
+            onJump={jumpToNext}
+            onSubmit={handleSubmit}
+          />
+        )}
       </div>
       )}
     </div>
