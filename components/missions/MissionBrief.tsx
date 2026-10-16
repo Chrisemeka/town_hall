@@ -40,8 +40,7 @@ export function MissionBrief({
       {/* Project context card */}
       <div
         id="tour-mission-project"
-        className="mb-8 border border-line"
-        style={{ background: "var(--color-surface-raised)", borderRadius: 12, padding: "20px 24px" }}
+        className="mb-8 border border-line bg-surface-raised rounded-[12px] px-4 py-4 medium:px-6 medium:py-5"
       >
         <h2 className="font-syne font-bold text-[18px] text-ink mb-1">
           {project?.name}
@@ -70,20 +69,10 @@ export function MissionBrief({
             block, not a screen with nothing on it (Design.md §8). */}
         {notes && (
           <div className="mb-6">
-            <p
-              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
-              style={{ letterSpacing: "1px" }}
-            >
+            <p className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mb-3">
               Notes from the Builder
             </p>
-            <div
-              style={{
-                background: "rgba(232,255,71,0.05)",
-                borderLeft: "3px solid var(--color-accent-ink)",
-                borderRadius: "0 8px 8px 0",
-                padding: "16px 20px",
-              }}
-            >
+            <div className="bg-voltage/5 border-l-[3px] border-accent-ink rounded-r-[8px] px-4 py-4 medium:px-5">
               <p className="font-mono text-[16px] text-ink leading-6 whitespace-pre-wrap">
                 {notes}
               </p>
