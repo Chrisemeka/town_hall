@@ -16,12 +16,12 @@ export function BuilderNote({
 }) {
   return (
     <div className="border-l-2 border-ink-muted pl-3 text-left">
-      <p className="font-mono text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">
+      <p className="font-mono text-[12px] lg:text-[11px] uppercase tracking-[1px] text-ink-muted mb-1">
         Note from the builder
       </p>
       <p
         className={[
-          "font-mono text-[13px] leading-5 whitespace-pre-wrap break-words",
+          "font-mono text-[14px] lg:text-[13px] leading-5 whitespace-pre-wrap break-words",
           danger ? "text-danger-ink" : "text-ink",
         ].join(" ")}
       >

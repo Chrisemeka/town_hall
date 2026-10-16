@@ -278,7 +278,7 @@ export default function AuditLogForm({
         clicking "Open Again" has already found out.
       */}
       {!unlocked && (
-        <p className="font-mono text-[13px] text-ink-muted leading-5 mb-8">
+        <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5 mb-8">
           <span className="text-ink">Screenshot as you go.</span>{" "}
           You&apos;ll need at least one to
           submit, and the whole journey tells the builder more than the last screen does.
@@ -317,12 +317,11 @@ export default function AuditLogForm({
         {/* Named for the artefact, not its purpose: a first-time tester read
             "Proof of Visit" and did not know a screenshot was wanted. */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-2"
-          style={{ letterSpacing: "1px" }}
+          className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mb-2"
         >
           Screenshots of Your Test
         </p>
-        <p className="font-mono text-[13px] text-ink-muted mb-4 leading-5">
+        <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mb-4 leading-5">
           Upload screenshots from the project — PNG, JPG, or WEBP under {maxMb}&nbsp;MB each, up to{" "}
           {MAX_SCREENSHOTS}. Capture the whole journey, not just the final screen: the more steps you
           show, the more the builder can act on.
@@ -330,7 +329,7 @@ export default function AuditLogForm({
         {/* The one real defence tester anonymity has: we don't share a tester's
             name with builders, but a screenshot can show it anyway. Never
             "anonymous" — that is a guarantee screenshots break. */}
-        <p className="font-mono text-[13px] text-ink-muted mb-4 leading-5">
+        <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mb-4 leading-5">
           We don&apos;t share your name with builders, but your screenshots go to them as they are.
           Crop out anything that shows your name, email or photo.
         </p>
@@ -457,8 +456,7 @@ export default function AuditLogForm({
 
         {/* YOUR FEEDBACK */}
         <p
-          className="font-mono text-[11px] font-medium uppercase text-accent-ink mt-8 mb-3"
-          style={{ letterSpacing: "1px" }}
+          className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mt-8 mb-3"
         >
           {hasSteps ? "Anything else?" : "Your Feedback"}
         </p>
@@ -495,12 +493,12 @@ export default function AuditLogForm({
             onClick={handleSubmit}
             disabled={isSubmitting}
             aria-describedby={isReady ? undefined : "submit-hint"}
-            className="h-12 px-6 self-start bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
+            className="h-12 w-full justify-center medium:w-auto medium:self-start px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
           >
             {isSubmitting ? "Submitting…" : "Submit Feedback"}
           </button>
           {!isReady && (
-            <p id="submit-hint" className="font-mono text-[12px] text-ink-muted">
+            <p id="submit-hint" className="font-mono text-[14px] lg:text-[12px] text-ink-muted">
               {hasSteps && !draftIsComplete(entries, category)
                 ? "Answer every step and attach a screenshot to submit."
                 : "Attach at least one screenshot to submit."}
@@ -513,7 +511,7 @@ export default function AuditLogForm({
               accidentally implied is real too. So it survives as a sentence.
               "On this device" because that is the truth: nothing follows a
               tester to another machine. */}
-          <p className="font-mono text-[12px] text-ink-muted">
+          <p className="font-mono text-[14px] lg:text-[12px] text-ink-muted">
             Your answers save on this device as you go.
           </p>
         </div>
