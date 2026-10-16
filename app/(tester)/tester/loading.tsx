@@ -61,7 +61,7 @@ export default function Loading() {
           {Array.from({ length: 3 }, (_, i) => (
             <div
               key={i}
-              className="bg-surface-raised border border-line rounded-[12px] p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+              className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-5 flex flex-col medium:flex-row medium:items-center gap-4"
             >
               <Bar className="h-12 w-16 rounded-[8px] shrink-0" />
               <div className="flex-1 min-w-0 flex flex-col gap-2">
