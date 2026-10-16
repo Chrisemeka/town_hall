@@ -7,4 +7,4 @@
  */
 export const SEGMENTS = "grid grid-cols-3 medium:flex medium:flex-wrap medium:gap-2"
 export const SEGMENT =
-  "h-12 medium:h-10 px-4 inline-flex items-center justify-center border font-mono text-[13px] font-medium rounded-[8px] max-medium:rounded-none max-medium:-ml-px max-medium:first:ml-0 max-medium:first:rounded-l-[8px] max-medium:last:rounded-r-[8px]"
+  "h-12 medium:h-10 px-2 medium:px-4 inline-flex items-center justify-center text-center max-medium:leading-5 border font-mono text-[14px] lg:text-[13px] font-medium rounded-[8px] max-medium:rounded-none max-medium:-ml-px max-medium:first:ml-0 max-medium:first:rounded-l-[8px] max-medium:last:rounded-r-[8px]"

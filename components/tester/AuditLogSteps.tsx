@@ -8,6 +8,7 @@ import {
   type EntryStatus,
 } from "@/lib/vocabulary"
 import { InfoTip } from "@/components/ui/InfoTip"
+import { SEGMENT, SEGMENTS } from "@/components/ui/segmented"
 import { DESCRIPTION_MIN, ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
@@ -106,13 +107,10 @@ export function draftIsComplete(entries: DraftEntry[], category?: string | null)
 export function AuditLogIntro() {
   return (
     <>
-      <p
-        className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
-        style={{ letterSpacing: "1px" }}
-      >
+      <p className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mb-3">
         Work through the test case
       </p>
-      <p className="font-mono text-[13px] text-ink-muted leading-5 mb-4">
+      <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5 mb-4">
         Each step shows what the builder asked for. Answer them in order.
       </p>
     </>
@@ -140,12 +138,12 @@ export function AuditLogSteps({
   const labels = ENTRY_STATUSES.map((s) => entryStatusCopy(s, category).label)
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4 medium:gap-5">
       {entries.map((entry, index) => (
         <div
           key={entry.step_id}
           className={[
-            "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-4",
+            "bg-surface-raised border rounded-[12px] p-4 medium:p-5 flex flex-col gap-4",
             // Never colour alone — Design.md §5.4. The message above the submit
             // button names this step by number; the border is how the tester
             // finds it once they have been scrolled to it.
@@ -159,15 +157,15 @@ export function AuditLogSteps({
             it sits in its own darker panel, visually distinct from the fields
             below that are the tester's to fill in.
           */}
-          <div className="bg-surface border border-line rounded-[8px] p-4">
-            <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px] mb-3">
+          <div className="bg-surface border border-line rounded-[8px] p-3 medium:p-4">
+            <p className="font-mono text-[12px] lg:text-[11px] font-medium text-accent-ink uppercase tracking-[1px] mb-3">
               Step {String(index + 1).padStart(2, "0")}
             </p>
-            <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">Do</p>
+            <p className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">Do</p>
             <p className="font-mono text-[14px] leading-5 text-ink mb-3 break-words">
               {entry.step_action}
             </p>
-            <p className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
+            <p className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] mb-1">
               Builder expects
             </p>
             <p className="font-mono text-[14px] leading-5 text-ink-muted break-words">
@@ -193,7 +191,7 @@ export function AuditLogSteps({
 
           {/* Status. Text-labelled, never colour alone — Design.md §5.4. */}
           <div className="flex flex-col gap-2">
-            <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px] flex items-center gap-2">
+            <span id={`${entryFieldName(index, "status")}-label`} className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px] flex items-center gap-2">
               {statusQuestionFor(category)}
               {/* Per step rather than once at the top: the choice is made per
                   step, and the icon costs no vertical space on a form that is
@@ -210,23 +208,31 @@ export function AuditLogSteps({
                 </span>
               </InfoTip>
             </span>
-            <div className="flex flex-wrap gap-2">
+            {/* A radio group: exactly one status per step. Below 600px three
+                joined 48px segments; from 600px separate chips. */}
+            <div
+              role="radiogroup"
+              aria-labelledby={`${entryFieldName(index, "status")}-label`}
+              className={SEGMENTS}
+            >
               {ENTRY_STATUSES.map((status, i) => {
                 const active = entry.status === status
                 return (
                   <button
                     key={status}
-                    // A button group has no name to resolve, so the first one
-                    // answers for the group.
+                    // A group has no name to resolve, so the first one answers
+                    // for it.
                     id={i === 0 ? entryFieldName(index, "status") : undefined}
                     type="button"
-                    aria-pressed={active}
+                    role="radio"
+                    aria-checked={active}
                     onClick={() => edit(index, { status })}
                     className={[
-                      "h-10 px-4 rounded-[8px] border font-mono text-[13px] font-medium transition-colors duration-150",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised",
+                      SEGMENT,
+                      "transition-colors duration-150",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised focus-visible:relative focus-visible:z-10",
                       active
-                        ? STATUS_ACTIVE[status]
+                        ? `${STATUS_ACTIVE[status]} relative`
                         : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
                     ].join(" ")}
                   >
