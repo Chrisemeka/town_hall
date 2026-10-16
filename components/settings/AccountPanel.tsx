@@ -52,25 +52,9 @@ export function AccountPanel({
 
   return (
     <div>
-      {/* ── Account ─────────────────────────────────────── */}
-      <div>
-        <h2 className="font-syne font-bold text-[20px] text-ink mb-6">Account</h2>
-
-        <div className="flex flex-col items-stretch gap-3 medium:flex-row medium:items-center medium:justify-between medium:gap-4">
-          <div>
-            <p className="font-mono text-[14px] text-ink">Linked Accounts</p>
-            <p className="font-mono text-[13px] text-ink-muted mt-0.5">
-              GitHub, Google, and other OAuth providers.
-            </p>
-          </div>
-          <button className="h-12 lg:h-9 w-full medium:w-auto px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[13px] hover:border-ink-muted transition-colors duration-150 shrink-0">
-            Manage
-          </button>
-        </div>
-      </div>
-
-      <SectionDivider />
-
+      {/* A linked-accounts row with a Manage button used to open this tab.
+          It did nothing — no onClick, and no GitHub sign-in to link — so it
+          promised a feature that does not exist, and is gone. */}
       {/* Moved down from the sidebar, where there was no room to say that
           adding an account means completing that role's profile first. */}
       <AccountControl active={active} holdsOther={holdsOther} />

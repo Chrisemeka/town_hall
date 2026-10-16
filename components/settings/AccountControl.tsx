@@ -26,10 +26,10 @@ export function AccountControl({ active, holdsOther }: { active: AccountType; ho
     "h-12 lg:h-11 w-full justify-center medium:w-auto medium:self-start px-6 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
 
   return (
-    <div className="mt-8 pt-8 border-t border-line flex flex-col gap-3">
-      <h3 className="font-mono text-[12px] uppercase tracking-[0.5px] text-ink-muted">
+    <div className="mt-8 pt-8 border-t border-line first:mt-0 first:pt-0 first:border-t-0 flex flex-col gap-3">
+      <h2 className="font-mono text-[12px] uppercase tracking-[0.5px] text-ink-muted">
         {copy.heading}
-      </h3>
+      </h2>
 
       <p className="font-sans text-[14px] leading-6 text-ink">{copy.body}</p>
 
