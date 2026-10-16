@@ -22,11 +22,14 @@ export type ExploreProject = {
   status: "active" | "needs-testers"
 }
 
-type Filter = "all" | "recent"
+type Filter = "all" | "needs"
 
+// "Recently Added" sorted by created_at, which is the order the page already
+// loads in, so it was the same list as "All". "Need Testers" narrows to the
+// projects whose card carries that badge: no reports yet.
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all",    label: "All"            },
-  { key: "recent", label: "Recently Added" },
+  { key: "all",   label: "All"          },
+  { key: "needs", label: "Need Testers" },
 ]
 
 function relativeTime(iso: string) {
@@ -100,9 +103,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
       list = list.filter((p) => p.category === category)
     }
 
-    /* Sort */
-    if (filter === "recent") {
-      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    /* Need Testers */
+    if (filter === "needs") {
+      list = list.filter((p) => p.status === "needs-testers")
     }
 
     return list
