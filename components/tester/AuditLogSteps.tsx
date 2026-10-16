@@ -72,6 +72,19 @@ export function firstIncompleteEntry(
   entries: DraftEntry[],
   category?: string | null,
 ): Incomplete | null {
+  for (const [index, e] of entries.entries()) {
+    const field = entryIncomplete(e, category)
+    if (field) return { index, field }
+  }
+  return null
+}
+
+/**
+ * One entry's first missing field, in rendered order, or null when it is
+ * answered. The loop body of firstIncompleteEntry, so the progress bar's
+ * count and the submit check are one rule and cannot disagree.
+ */
+export function entryIncomplete(e: DraftEntry, category?: string | null): EntryField | null {
   // ENTRY_TEXT_MIN rather than "not blank", because auditEntrySchema is the
   // authority and that is what it asks for. Checking only for non-empty let a
   // two-character answer through the form and into a server rejection the
@@ -80,24 +93,25 @@ export function firstIncompleteEntry(
   // Mirrors auditLogSchemaFor: on a ui_design step the description is the
   // deliverable, owed at every status, and it renders ABOVE the status - so it
   // is checked first, in rendered order.
-  const design = isDesignCategory(category)
-
-  for (const [index, e] of entries.entries()) {
-    if (design && e.actual_result.trim().length < DESCRIPTION_MIN) {
-      return { index, field: "actual_result" }
-    }
-    if (e.status === "") return { index, field: "status" }
-    // A pass is complete here — its status is the whole answer, and what it
-    // confirms is the builder's step_expected, already on the row.
-    // Everything below mirrors auditEntrySchema's refines. These two
-    // definitions of "complete" drifting apart is the failure this file is
-    // most exposed to, and components/tester/__tests__ crosses them directly.
-    if (e.status !== "pass") {
-      if (!given(e.issue_summary)) return { index, field: "issue_summary" }
-      if (!given(e.steps_to_reproduce)) return { index, field: "steps_to_reproduce" }
-    }
+  if (isDesignCategory(category) && e.actual_result.trim().length < DESCRIPTION_MIN) {
+    return "actual_result"
+  }
+  if (e.status === "") return "status"
+  // A pass is complete here — its status is the whole answer, and what it
+  // confirms is the builder's step_expected, already on the row.
+  // Everything below mirrors auditEntrySchema's refines. These two
+  // definitions of "complete" drifting apart is the failure this file is
+  // most exposed to, and components/tester/__tests__ crosses them directly.
+  if (e.status !== "pass") {
+    if (!given(e.issue_summary)) return "issue_summary"
+    if (!given(e.steps_to_reproduce)) return "steps_to_reproduce"
   }
   return null
+}
+
+/** How many steps are answered, by the same rule Submit applies. */
+export function answeredCount(entries: DraftEntry[], category?: string | null): number {
+  return entries.filter((e) => entryIncomplete(e, category) === null).length
 }
 
 /** Whether every step has been answered well enough to submit. */
