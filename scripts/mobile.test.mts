@@ -101,6 +101,14 @@ const REVAMPED = [
   "components/ExploreGrid.tsx",
   "components/ui/SearchField.tsx",
   "components/ui/FilterChip.tsx",
+  "app/(tester)/mission/[id]/page.tsx",
+  "components/missions/MissionBrief.tsx",
+  "components/tester/AuditLogForm.tsx",
+  "components/tester/AuditLogSteps.tsx",
+  "components/tester/BuilderNote.tsx",
+  "components/ui/InfoTip.tsx",
+  "components/ui/segmented.ts",
+  "components/tester/ReportProgressBar.tsx",
 ]
 
 const offences: string[] = []
@@ -168,7 +176,8 @@ for (const f of ["app/(developer)/dashboard/page.tsx", "components/MissionListPa
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(readFileSync(f, "utf8")), `${f}: colour in an inline style`)
 }
 for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx", "app/(developer)/dashboard/[projectId]/page.tsx", "components/ProjectDetailTabs.tsx",
-                 "components/tester/MissionStrip.tsx", "components/tester/SubmissionsFeed.tsx", "components/BrowseMissions.tsx", "components/ExploreGrid.tsx"]) {
+                 "components/tester/MissionStrip.tsx", "components/tester/SubmissionsFeed.tsx", "components/BrowseMissions.tsx", "components/ExploreGrid.tsx",
+                 "components/missions/MissionBrief.tsx", "components/tester/AuditLogForm.tsx", "components/ui/InfoTip.tsx"]) {
   const src = readFileSync(f, "utf8")
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
   assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
@@ -179,6 +188,16 @@ for (const f of ["components/CreateProjectForm.tsx", "components/AddMissionForm.
   assert.ok(!/["'`]h-10 w-full bg-surface/.test(src) && !/w-full bg-surface border rounded-\[8px\] px-4 py-3/.test(src),
     `${f}: fields must use inputClass()/textareaClass() — hand-rolled chrome zooms iOS`)
 }
+
+// The audit-log answers are the most-typed fields in the product.
+for (const f of ["components/tester/AuditLogSteps.tsx", "components/tester/AuditLogForm.tsx"]) {
+  assert.ok(/textareaClass\(/.test(readFileSync(f, "utf8")), `${f}: answers use textareaClass() (16px on touch)`)
+}
+assert.ok(/popover/.test(readFileSync("components/ui/InfoTip.tsx", "utf8")),
+  "InfoTip: opens on tap (Popover API), not only hover/focus")
+// PR 11 follow-up: no dead Linked Accounts control.
+assert.ok(!/Linked Accounts/.test(readFileSync("components/settings/AccountPanel.tsx", "utf8")),
+  "AccountPanel: the Linked Accounts / Manage row is removed")
 
 // The two search fields and the category select must not zoom iOS.
 assert.ok(/inputClass\(/.test(readFileSync("components/ui/SearchField.tsx", "utf8")),
