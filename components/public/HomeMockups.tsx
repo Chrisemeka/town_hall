@@ -28,6 +28,7 @@ import { PassRate, StatusPill, type SubmissionEntry } from "@/components/submiss
 import { Badge } from "@/components/ui/Badge"
 import { Logo } from "@/components/Logo"
 import { swipeStep } from "@/lib/swipe"
+import { SEGMENT, SEGMENTS } from "@/components/ui/segmented"
 
 /*
  * The homepage's product windows. Drawn in JSX from the semantic tokens rather
@@ -697,16 +698,6 @@ const STATUS_ACTIVE: Record<EntryStatus, string> = {
   fail: "border-danger-ink text-danger-ink bg-ember/10",
   blocked: "border-info-ink text-info-ink bg-sky/10",
 }
-
-/*
- * Pass / Fail / Blocked as an M3 segmented button below 600px (three joined
- * 48px segments, the selected one raised so its whole border shows) and
- * today's separate chips from 600px. This mock previews the compact audit-log
- * form, rollout step 4, which lifts these two constants.
- */
-const SEGMENTS = "grid grid-cols-3 medium:flex medium:flex-wrap medium:gap-2"
-const SEGMENT =
-  "h-12 medium:h-10 px-4 inline-flex items-center justify-center border font-mono text-[13px] font-medium rounded-[8px] max-medium:rounded-none max-medium:-ml-px max-medium:first:ml-0 max-medium:first:rounded-l-[8px] max-medium:last:rounded-r-[8px]"
 
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
