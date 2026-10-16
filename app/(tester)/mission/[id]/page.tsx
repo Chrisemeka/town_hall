@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { MissionBrief } from "@/components/missions/MissionBrief";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
-import { CheckCircle2, ChevronRight, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { one } from "@/lib/utils/project";
 import type { Embedded, ProjectRow } from "@/lib/types/db";
@@ -82,10 +82,20 @@ export default async function MissionDetailPage({
     !(await missionsForTester(user.id, [id])).has(id);
 
   return (
-    <div className="max-w-[800px] mx-auto px-6 py-10">
+    <div className="max-w-[800px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-10 expanded:py-10">
 
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
+      {/* Below 600px a 48px back link to the project's missions, which is
+          where a tester came from. From 600px, the trail. */}
+      {project && (
+        <Link
+          href={`/explore/project/${project.id}`}
+          className="medium:hidden inline-flex items-center gap-1 min-h-12 -ml-2 px-2 mb-4 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 [overflow-wrap:anywhere]"
+        >
+          <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+          {project.name}
+        </Link>
+      )}
+      <div className="hidden medium:flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
         <Link href="/explore" className="hover:text-ink transition-colors duration-150">
           Explore
         </Link>
@@ -106,7 +116,7 @@ export default async function MissionDetailPage({
 
       {/* Submission section */}
       {isOwner ? (
-        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+        <div className="flex flex-col items-center justify-center py-10 medium:py-12 border border-dashed border-line rounded-[12px] text-center px-6">
           <ShieldAlert className="w-10 h-10 text-ink-muted mb-4" />
           <h3 className="font-syne font-bold text-[20px] text-ink mb-2">Project Owner</h3>
           <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
@@ -114,13 +124,13 @@ export default async function MissionDetailPage({
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
+            className="mt-6 inline-flex items-center min-h-12 lg:min-h-0 font-mono text-[14px] lg:text-[13px] text-accent-ink hover:underline"
           >
             Go to Dashboard to view results
           </Link>
         </div>
       ) : ownReports ? (
-        <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+        <div className="flex flex-col items-center justify-center py-10 medium:py-12 border border-dashed border-line rounded-[12px] text-center px-6">
           <CheckCircle2 className="w-10 h-10 text-success-ink mb-4" aria-hidden="true" />
           <h3 className="font-syne font-bold text-[20px] text-ink mb-2">You&apos;ve tested this mission</h3>
           {ownStatus === "approved" ? (
@@ -141,7 +151,7 @@ export default async function MissionDetailPage({
           )}
           <Link
             href="/explore"
-            className="mt-6 font-mono text-[13px] text-accent-ink hover:underline"
+            className="mt-6 inline-flex items-center min-h-12 lg:min-h-0 font-mono text-[14px] lg:text-[13px] text-accent-ink hover:underline"
           >
             Find another mission
           </Link>
@@ -149,7 +159,7 @@ export default async function MissionDetailPage({
       ) : (
         <div id="tour-mission-submit-form">
           {unpaidForCohort && (
-            <p className="mb-6 font-mono text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4">
+            <p className="mb-6 font-mono text-[14px] lg:text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4">
               This mission isn&apos;t paid for cohort testers. You can still test it — it earns you a
               report, like anyone else.
             </p>

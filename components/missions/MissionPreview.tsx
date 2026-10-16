@@ -96,6 +96,7 @@ export function TesterView({
     >
       <div className="max-w-[800px] mx-auto">
       <MissionBrief
+        headingLevel={2}
         title={mission.title}
         project={project}
         notes={mission.notes.trim() ? mission.notes : null}
