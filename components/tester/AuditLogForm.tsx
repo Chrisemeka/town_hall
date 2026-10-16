@@ -57,7 +57,6 @@ export default function AuditLogForm({
   const [fileErrors,  setFileErrors]  = useState<string[]>([])
   const [commentError, setCommentError] = useState<string | null>(null)
   const [isDragOver,  setIsDragOver]  = useState(false)
-  const [isHovered,   setIsHovered]   = useState(false)
   const [isSubmitting,setIsSubmitting]= useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSuccess,   setIsSuccess]   = useState(false)
@@ -245,20 +244,6 @@ export default function AuditLogForm({
     shots.length > 0 && (hasSteps ? draftIsComplete(entries, category) : feedback.trim().length > 0)
   const isFull = shots.length >= MAX_SCREENSHOTS
 
-  const zoneBorder = fileErrors.length
-    ? "var(--color-danger-ink)"
-    : isDragOver
-    ? "var(--color-accent-ink)"
-    : isHovered
-    ? "rgba(232,255,71,0.4)"
-    : "var(--color-line)"
-
-  const zoneBg = isDragOver
-    ? "rgba(232,255,71,0.06)"
-    : isHovered
-    ? "rgba(232,255,71,0.03)"
-    : "var(--color-surface-raised)"
-
   const acceptAttr = ALLOWED_SCREENSHOT_TYPES.join(",")
   const maxMb = Math.round(MAX_SCREENSHOT_BYTES / (1024 * 1024))
 
@@ -421,19 +406,17 @@ export default function AuditLogForm({
               setIsDragOver(false)
               addFiles(Array.from(e.dataTransfer.files))
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             onClick={() => fileRef.current?.click()}
-            style={{
-              background: zoneBg,
-              border: `1px dashed ${zoneBorder}`,
-              borderRadius: 12,
-              padding: shots.length > 0 ? 20 : 32,
-              minHeight: shots.length > 0 ? 88 : 140,
-              cursor: "pointer",
-              transition: "border-color 150ms ease, background 150ms ease",
-            }}
-            className="flex flex-col items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            // Classes, not inline styles and a JS hover flag: hover is CSS's job.
+            className={[
+              "flex flex-col items-center justify-center rounded-[12px] border border-dashed cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface",
+              shots.length > 0 ? "p-5 min-h-[88px]" : "p-8 min-h-[140px]",
+              fileErrors.length
+                ? "border-danger-ink bg-surface-raised"
+                : isDragOver
+                  ? "border-accent-ink bg-voltage/[0.06]"
+                  : "border-ink-muted bg-surface-raised hover:border-accent-ink/40 hover:bg-voltage/[0.03]",
+            ].join(" ")}
           >
             <input
               ref={fileRef}
@@ -447,9 +430,16 @@ export default function AuditLogForm({
               }}
             />
             <Upload className="w-6 h-6 text-ink-muted mb-3" />
-            <p className="font-mono text-[13px] text-ink-muted text-center">
-              {shots.length > 0 ? "Add more screenshots" : "Drop your screenshots here"}{" "}
-              <span className="text-accent-ink">or browse files</span>
+            {/* Nothing to drop onto on a phone: the input behind this opens the
+                photo library or the camera. */}
+            <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted text-center">
+              <span className="medium:hidden">
+                {shots.length > 0 ? "Tap to add more screenshots" : "Tap to add screenshots"}
+              </span>
+              <span className="hidden medium:inline">
+                {shots.length > 0 ? "Add more screenshots" : "Drop your screenshots here"}{" "}
+                <span className="text-accent-ink">or browse files</span>
+              </span>
             </p>
           </div>
         )}
