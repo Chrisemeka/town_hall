@@ -207,18 +207,27 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* One column below 1024: beside the sidebar at 840–1023 two cards
+              would be ~256px each. */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {displayed.slice(0, visible).map((project) => (
               <div
                 key={project.id}
-                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30"
+                // The whole card is the project's link: the title's ::after
+                // stretches over it.
+                className="group relative bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink"
                 style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
               >
                 {/* Name + badge */}
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
-                    {project.name}
-                  </h5>
+                  <h2 className="font-syne font-bold text-[20px] leading-7 text-ink min-w-0 max-medium:line-clamp-2 medium:truncate">
+                    <Link
+                      href={`/explore/project/${project.id}`}
+                      className="after:absolute after:inset-0 after:rounded-[12px] focus-visible:outline-none"
+                    >
+                      {project.name}
+                    </Link>
+                  </h2>
                   <Badge variant={project.status} />
                 </div>
 
@@ -266,12 +275,13 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                   </span>
 
                   {project.missionCount > 0 ? (
-                    <Link
-                      href={`/explore/project/${project.id}`}
-                      className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
+                    // Decorative: the title is the link.
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1"
                     >
                       Test it <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    </span>
                   ) : (
                     <span className="font-mono text-[12px] text-ink-muted/50 italic">No missions yet</span>
                   )}

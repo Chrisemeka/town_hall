@@ -27,7 +27,7 @@ export default function Loading() {
           <Bar className="order-first expanded:order-none h-12 lg:h-9 w-full expanded:w-[280px] rounded-[8px] shrink-0" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }, (_, i) => (
             <ProjectCardSkeleton key={i} />
           ))}
