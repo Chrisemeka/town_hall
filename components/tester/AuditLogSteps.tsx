@@ -249,7 +249,7 @@ export function AuditLogSteps({
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised focus-visible:relative focus-visible:z-10",
                       active
                         ? `${STATUS_ACTIVE[status]} relative`
-                        : "border-line text-ink-muted bg-surface hover:border-ink-muted hover:text-ink",
+                        : "border-ink-muted text-ink-muted bg-surface hover:text-ink",
                     ].join(" ")}
                   >
                     {entryStatusCopy(status, category).label}

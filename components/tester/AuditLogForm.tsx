@@ -246,15 +246,9 @@ export default function AuditLogForm({
 
   if (isSuccess) {
     return (
-      <div
-        className="flex flex-col items-center justify-center py-16 border border-dashed rounded-[12px] text-center px-6"
-        style={{ borderColor: "rgba(63,255,162,0.3)" }}
-      >
-        <div
-          className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
-          style={{ background: "rgba(63,255,162,0.1)" }}
-        >
-          <CheckCircle className="w-6 h-6" style={{ color: "var(--color-success-ink)" }} />
+      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-success-ink/30 rounded-[12px] text-center px-6">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-mint/10">
+          <CheckCircle className="w-6 h-6 text-success-ink" />
         </div>
         <h3 className="font-syne font-bold text-[24px] text-ink mb-2">Feedback Submitted</h3>
         <p className="font-mono text-[14px] text-ink-muted">
@@ -284,7 +278,7 @@ export default function AuditLogForm({
         }}
         className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
           unlocked
-            ? "mb-8 border border-line text-ink hover:border-ink-muted"
+            ? "mb-8 border border-ink-muted text-ink hover:bg-ink/[0.06]"
             : "mb-3 bg-voltage text-obsidian hover:bg-voltage-dark"
         }`}
       >
@@ -319,10 +313,7 @@ export default function AuditLogForm({
       {unlocked && (
       <div className="th-fade-in">
         {submitError && (
-          <div
-            className="mb-6 px-4 py-3 rounded-[8px]"
-            style={{ background: "rgba(255,79,79,0.1)", border: "1px solid rgba(255,79,79,0.2)" }}
-          >
+          <div className="mb-6 px-4 py-3 rounded-[8px] bg-danger-ink/10 border border-danger-ink/20">
             <p className="font-mono text-[14px] text-danger-ink">{submitError}</p>
           </div>
         )}

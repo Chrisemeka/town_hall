@@ -85,7 +85,7 @@ export function InfoTip({
         id={id}
         popover="auto"
         role="tooltip"
-        className="m-0 rounded-[8px] border border-line bg-surface p-3 text-ink shadow-[0_2px_12px_rgba(0,0,0,0.4)] max-medium:inset-x-4 max-medium:top-auto max-medium:bottom-4 max-medium:w-auto medium:inset-auto medium:w-[280px] medium:max-w-[70vw]"
+        className="m-0 rounded-[8px] border border-line bg-surface p-3 text-ink shadow-card max-medium:inset-x-4 max-medium:top-auto max-medium:bottom-4 max-medium:w-auto medium:inset-auto medium:w-[280px] medium:max-w-[70vw]"
       >
         {children}
       </span>

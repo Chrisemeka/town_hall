@@ -99,9 +99,9 @@ export default async function MissionDetailPage({
         <Link href="/explore" className="hover:text-ink transition-colors duration-150">
           Explore
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink-muted truncate max-w-[180px]">{project?.name}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink truncate max-w-[200px]">{mission.title}</span>
       </div>
 
