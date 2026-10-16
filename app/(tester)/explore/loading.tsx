@@ -7,7 +7,7 @@ import { Bar, LoadingAnnounce, ProjectCardSkeleton } from "@/components/ui/Skele
  */
 export default function Loading() {
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
       <LoadingAnnounce label="Loading projects…" />
 
       <div aria-hidden="true">
@@ -18,13 +18,13 @@ export default function Loading() {
         </div>
 
         {/* Filter pills + search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col gap-3 expanded:flex-row expanded:items-center expanded:justify-between expanded:gap-4 mb-6 medium:mb-8">
           <div className="flex items-center gap-2 flex-wrap">
             {Array.from({ length: 4 }, (_, i) => (
               <Bar key={i} className="h-8 w-24 rounded-full" />
             ))}
           </div>
-          <Bar className="h-9 w-full sm:w-[280px] rounded-[8px] shrink-0" />
+          <Bar className="order-first expanded:order-none h-12 lg:h-9 w-full expanded:w-[280px] rounded-[8px] shrink-0" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

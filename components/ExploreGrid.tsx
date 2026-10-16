@@ -2,7 +2,10 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search, ArrowRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
+import { SearchField } from "@/components/ui/SearchField"
+import { inputClass } from "@/components/ui/Field"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/Badge"
 import { UNCATEGORISED_LABEL } from "@/lib/vocabulary"
 
@@ -124,9 +127,11 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   return (
     <div>
       {/* Filters + Search */}
-      <div id="tour-explore-filters" className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap justify-between gap-4 mb-8">
+      {/* Below 840px each control is a full-width row, search first: it is
+          the one most used. order-* only, so the DOM order is unchanged. */}
+      <div id="tour-explore-filters" className="flex flex-col gap-3 expanded:flex-row expanded:items-center expanded:flex-wrap expanded:justify-between expanded:gap-4 mb-6 medium:mb-8">
         {/* Pill filters */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-x-2 gap-y-4 flex-wrap">
           {FILTERS.map(({ key, label }) => {
             const active = filter === key
             return (
@@ -162,7 +167,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 w-full sm:w-auto shrink-0 bg-surface-raised border border-line rounded-[8px] px-3 font-mono text-[13px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150"
+            // The shared chrome so iOS does not zoom; 36px from lg, matching
+            // the search beside it.
+            className={cn(inputClass(false, { raised: true }), "lg:h-9 w-full expanded:w-auto shrink-0 cursor-pointer")}
           >
             <option value="">All categories</option>
             {presentCategories.map((option) => (
@@ -174,16 +181,13 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         )}
 
         {/* Search */}
-        <div className="relative w-full sm:w-[280px] shrink-0">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search projects…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
-          />
-        </div>
+        <SearchField
+          label="Search projects"
+          placeholder="Search projects…"
+          value={query}
+          onChange={setQuery}
+          className="order-first expanded:order-none w-full expanded:w-[280px] shrink-0"
+        />
       </div>
 
       {/* Grid */}
