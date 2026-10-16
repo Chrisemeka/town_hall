@@ -114,15 +114,11 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   /* No projects on the platform at all — distinct from a filter/search miss */
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+      // No button: the old one sent testers to /dashboard/new, a builder route
+      // a tester account is bounced off.
+      <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 text-center border border-dashed border-line rounded-[12px]">
         <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing to test yet.</p>
-        <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
-        <Link
-          href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-        >
-          New Project
-        </Link>
+        <p className="font-mono text-[14px] text-ink-muted">New missions land here as builders publish them.</p>
       </div>
     )
   }
