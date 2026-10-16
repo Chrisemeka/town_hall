@@ -9,6 +9,8 @@ import {
 } from "@/lib/vocabulary"
 import { InfoTip } from "@/components/ui/InfoTip"
 import { SEGMENT, SEGMENTS } from "@/components/ui/segmented"
+import { textareaClass } from "@/components/ui/Field"
+import { cn } from "@/lib/utils"
 import { DESCRIPTION_MIN, ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
@@ -318,7 +320,7 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="font-mono text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
+      <span className="font-mono text-[12px] lg:text-[11px] text-ink-muted uppercase tracking-[0.5px]">{label}</span>
       <textarea
         id={name}
         // Not submitted — the whole log goes as one JSON field. The name exists
@@ -329,9 +331,14 @@ function Field({
         maxLength={ENTRY_TEXT_MAX}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-surface border border-line rounded-[8px] px-3 py-2 font-mono text-[13px] leading-5 text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised transition-colors duration-150 resize-none"
+        // The return key still inserts a newline; the hint only labels it.
+        enterKeyHint="next"
+        autoCapitalize="sentences"
+        // The shared chrome (16px on touch, so iOS does not zoom), held to its
+        // two rows: twMerge drops the 120px minimum and the taller padding.
+        className={cn(textareaClass(false, { resizable: false }), "min-h-0 py-2 leading-5")}
       />
-      {helper && <span className="font-mono text-[11px] text-ink-muted">{helper}</span>}
+      {helper && <span className="font-mono text-[12px] lg:text-[11px] text-ink-muted">{helper}</span>}
     </label>
   )
 }

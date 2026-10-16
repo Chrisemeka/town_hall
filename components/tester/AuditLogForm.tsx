@@ -23,6 +23,8 @@ import {
   type DraftEntry,
 } from "@/components/tester/AuditLogSteps"
 import { useFocusFirstError } from "@/lib/hooks/useFocusFirstError"
+import { textareaClass } from "@/components/ui/Field"
+import { cn } from "@/lib/utils"
 
 // Each picked image is paired with its object URL so previews survive reordering
 // and each entry has a stable key.
@@ -471,11 +473,8 @@ export default function AuditLogForm({
             if (commentError) setCommentError(null)
           }}
           placeholder={hasSteps ? "Anything that did not fit the steps above." : "Share what you found — be specific and constructive."}
-          className={[
-            "w-full bg-surface border rounded-[8px] px-4 py-3 font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none transition-colors duration-150 resize-none",
-            commentError ? "border-danger-ink" : "border-line focus:border-accent-ink",
-          ].join(" ")}
-          style={{ minHeight: 160 }}
+          autoCapitalize="sentences"
+          className={cn(textareaClass(!!commentError, { resizable: false }), "min-h-[160px]")}
         />
         <div className="flex items-center justify-between mt-2 mb-8 gap-3">
           {commentError ? (
