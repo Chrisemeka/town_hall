@@ -2,7 +2,10 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search, ArrowRight } from "lucide-react"
+import { LoadMore } from "@/components/ui/LoadMore"
+import { Button } from "@/components/ui/Button"
+import { ArrowRight } from "lucide-react"
+import { SearchField } from "@/components/ui/SearchField"
 import { MissionChips } from "@/components/missions/TestCaseView"
 
 /** How many cards a page shows, and how many each "Load more" adds. */
@@ -58,15 +61,11 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
   /* No missions on the platform at all — distinct from a search miss */
   if (missions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+      // No button: the old one sent testers to /dashboard/new, a builder route
+      // a tester account is bounced off.
+      <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 text-center border border-dashed border-line rounded-[12px]">
         <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions yet.</p>
-        <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
-        <Link
-          href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-        >
-          New Project
-        </Link>
+        <p className="font-mono text-[14px] text-ink-muted">New missions land here as builders publish them.</p>
       </div>
     )
   }
@@ -74,27 +73,21 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
   return (
     <div>
       {/* Search */}
-      <div className="relative w-full sm:w-[280px] mb-8">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-        <input
-          type="text"
-          placeholder="Search missions…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
-        />
-      </div>
+      <SearchField
+        label="Search missions"
+        placeholder="Search missions…"
+        value={query}
+        onChange={setQuery}
+        className="w-full medium:w-[280px] mb-6 medium:mb-8"
+      />
 
       {displayed.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing matches.</p>
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a different search term.</p>
-          <button
-            onClick={() => setQuery("")}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-          >
+          <Button variant="secondary" onClick={() => setQuery("")}>
             Clear search
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -102,19 +95,17 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           {displayed.slice(0, visible).map((mission, i) => {
             const num = (i + 1).toString().padStart(2, "0")
             return (
+              // The whole row is the mission's link: the title's ::after
+              // stretches over it. Nothing else in the row is a link.
               <div
                 key={mission.id}
-                className="relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-6 py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-accent-ink/30"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                className="group relative overflow-hidden bg-surface-raised border border-line rounded-[12px] px-4 py-4 medium:px-6 medium:py-5 flex items-center justify-between gap-4 transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
               >
                 {/* Left content */}
-                <div className="flex-1 min-w-0 relative z-10">
+                <div className="flex-1 min-w-0">
                   {/* Number + project · handle */}
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span
-                      className="font-syne font-bold text-accent-ink leading-none"
-                      style={{ fontSize: 14 }}
-                    >
+                    <span className="font-syne font-bold text-[14px] text-accent-ink leading-none">
                       {num}
                     </span>
                     <span className="font-mono text-[12px] text-ink-muted">
@@ -122,15 +113,20 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                       {" · "}
                       {mission.projectHandle}
                     </span>
-                    <span className="font-mono text-[12px] text-ink-muted/50">
+                    <span className="font-mono text-[12px] text-ink-muted">
                       {relTime(mission.created_at)}
                     </span>
                   </div>
 
                   {/* Mission title */}
-                  <p className="font-syne font-bold text-[18px] text-ink leading-6 truncate">
-                    {mission.title}
-                  </p>
+                  <h2 className="font-syne font-bold text-[18px] text-ink leading-6 max-medium:line-clamp-2 medium:truncate">
+                    <Link
+                      href={`/mission/${mission.id}`}
+                      className="after:absolute after:inset-0 focus-visible:outline-none"
+                    >
+                      {mission.title}
+                    </Link>
+                  </h2>
 
                   <MissionChips
                     category={mission.category}
@@ -146,13 +142,13 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                   )}
                 </div>
 
-                {/* Start → */}
-                <Link
-                  href={`/mission/${mission.id}`}
-                  className="shrink-0 relative z-10 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted hover:text-accent-ink transition-colors duration-150"
+                {/* Decorative: the title is the link. */}
+                <span
+                  aria-hidden="true"
+                  className="shrink-0 flex items-center gap-1.5 font-mono text-[13px] font-medium text-ink-muted group-hover:text-accent-ink transition-colors duration-150"
                 >
                   Start <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </span>
               </div>
             )
           })}
@@ -161,12 +157,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           {/* Load More */}
           {displayed.length > visible && (
             <div className="flex justify-center mt-10">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-              >
-                Load More
-              </button>
+              <LoadMore onClick={() => setVisible((v) => v + PAGE_SIZE)} />
             </div>
           )}
         </>

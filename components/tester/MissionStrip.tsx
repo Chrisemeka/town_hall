@@ -48,8 +48,16 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
     )
   }
 
+  // Below 600px a swipeable row, M3's multi-browse carousel: six cards
+  // stacked were ~1,000px of scroll before the tester's own submissions.
+  // Each card is 85% wide so the next one's edge shows. From 600px the grid.
+  // role="list" because Safari drops list semantics from a styled <ul>, and
+  // "list, 6 items" is what tells a screen reader there is more to swipe to.
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <ul
+      role="list"
+      className="flex overflow-x-auto snap-x snap-mandatory gap-3 -mx-4 px-4 scroll-px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden medium:grid medium:grid-cols-2 medium:gap-4 medium:overflow-visible medium:mx-0 medium:px-0 lg:grid-cols-3"
+    >
       {missions.map((m) => {
         // A load test is a scheduled, real-human, coordinated window — kept
         // visually distinct from open-ended missions on purpose. It is not the
@@ -57,30 +65,32 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
         const isLoadTest = m.loadTestAt !== null
 
         return (
+          <li key={m.id} className="w-[85%] shrink-0 snap-start medium:w-auto">
           <Link
-            key={m.id}
             href={`/mission/${m.id}`}
-            className="group block"
+            className="group block h-full"
           >
             <div
               className={[
-                "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] transition-colors duration-150",
+                "bg-surface-raised border rounded-[12px] p-5 flex flex-col gap-3.5 h-full min-h-[160px] shadow-card transition-colors duration-150 group-active:border-accent-ink",
                 isLoadTest
                   ? "border-info-ink/40 group-hover:border-info-ink"
                   : "border-line group-hover:border-accent-ink/30",
               ].join(" ")}
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
                   {m.isNew && (
                     <span
-                      className="w-1.5 h-1.5 rounded-full shrink-0 bg-voltage"
+                      className="w-1.5 h-1.5 rounded-full shrink-0 bg-accent-ink"
                       title="Posted in the last 24 hours"
-                      aria-label="New"
+                      aria-hidden="true"
                     />
                   )}
                   <span className="font-syne font-bold text-[16px] text-ink truncate group-hover:text-accent-ink transition-colors duration-150">
+                    {/* The dot's meaning, said: an aria-label on a bare span
+                        was never announced. */}
+                    {m.isNew && <span className="sr-only">New, </span>}
                     {m.projectName}
                   </span>
                 </div>
@@ -92,12 +102,12 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
 
               <div className="flex items-center gap-2 flex-wrap">
                 {m.category && (
-                  <span className="font-mono text-[11px] tracking-[0.5px] text-ink/80 border border-line bg-surface px-2.5 py-1 rounded-[6px]">
+                  <span className="font-mono text-[12px] lg:text-[11px] tracking-[0.5px] text-ink/80 border border-line bg-surface px-2.5 py-1 rounded-[6px]">
                     {m.category}
                   </span>
                 )}
                 {isLoadTest && (
-                  <span className="font-mono text-[11px] tracking-[0.5px] text-info-ink border border-info-ink/30 bg-sky/10 px-2.5 py-1 rounded-[6px] flex items-center gap-1.5">
+                  <span className="font-mono text-[12px] lg:text-[11px] tracking-[0.5px] text-info-ink border border-info-ink/30 bg-sky/10 px-2.5 py-1 rounded-[6px] flex items-center gap-1.5">
                     <Clock className="w-3 h-3" />
                     {loadTestWindow(m.loadTestAt!)}
                   </span>
@@ -109,7 +119,7 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
                   Posted {timeAgo(m.createdAt)}
                   {isLoadTest && m.testersNeeded ? (
                     <>
-                      <span className="text-line">·</span>
+                      <span aria-hidden="true" className="text-ink-muted">·</span>
                       <Users className="w-3 h-3 shrink-0" />
                       {m.testersNeeded} needed
                     </>
@@ -121,8 +131,9 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
               </div>
             </div>
           </Link>
+          </li>
         )
       })}
-    </div>
+    </ul>
   )
 }

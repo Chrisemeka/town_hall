@@ -134,12 +134,12 @@ export default async function TesterHomePage() {
   const newCount = missions.filter((m) => m.isNew).length
 
   return (
-    <div className="max-w-[1128px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10 flex flex-col gap-8">
+    <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10 flex flex-col gap-8">
 
       {/* Header + Quick Actions */}
-      <div id="tour-tester-header" className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+      <div id="tour-tester-header" className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 medium:gap-5">
         <div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[32px] sm:leading-[40px] md:text-[36px] md:leading-[44px] tracking-[-0.5px] text-ink">
+          <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
             Tester Home
           </h1>
           <p className="font-mono text-[14px] text-ink-muted mt-1">
@@ -155,7 +155,7 @@ export default async function TesterHomePage() {
               key={label}
               href={href}
               className={[
-                "h-10 px-4 rounded-[8px] font-mono font-medium text-[13px] flex items-center gap-2 transition-colors duration-150",
+                "h-12 w-full justify-center medium:w-auto lg:h-10 px-4 rounded-[8px] font-mono font-medium text-[14px] lg:text-[13px] flex items-center gap-2 transition-colors duration-150",
                 primary
                   ? "bg-voltage text-obsidian hover:bg-voltage-dark"
                   : "bg-surface-raised border border-line text-ink hover:border-accent-ink hover:text-accent-ink",
@@ -172,18 +172,18 @@ export default async function TesterHomePage() {
       <section>
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <p className="font-mono text-[11px] font-medium text-ink-muted uppercase tracking-[1px]">
+            <h2 className="font-mono text-[12px] lg:text-[11px] font-medium text-ink-muted uppercase tracking-[1px]">
               New Missions
-            </p>
+            </h2>
             {newCount > 0 && (
-              <span className="font-mono text-[11px] text-accent-ink bg-voltage/10 px-2 py-0.5 rounded-[6px]">
+              <span className="font-mono text-[12px] lg:text-[11px] text-accent-ink bg-voltage/10 px-2 py-0.5 rounded-[6px]">
                 {newCount} NEW
               </span>
             )}
           </div>
           <Link
             href="/explore/missions"
-            className="font-mono text-[13px] text-ink-muted hover:text-accent-ink transition-colors duration-150"
+            className="inline-flex items-center min-h-12 -my-3 lg:min-h-0 lg:my-0 font-mono text-[14px] lg:text-[13px] text-ink-muted hover:text-accent-ink transition-colors duration-150"
           >
             See all →
           </Link>

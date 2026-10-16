@@ -68,11 +68,11 @@ export default async function BrowseMissionsPage() {
   });
 
   return (
-    <div className="max-w-[800px] mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-10">
+    <div className="max-w-[800px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
 
       {/* Page header */}
-      <div id="tour-browse-missions-header" className="mb-8">
-        <h1 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink">
+      <div id="tour-browse-missions-header" className="mb-6 medium:mb-8">
+        <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
           Browse Missions
         </h1>
         <p className="font-mono text-[14px] text-ink-muted mt-1">

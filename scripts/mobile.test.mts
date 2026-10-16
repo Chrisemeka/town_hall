@@ -90,6 +90,17 @@ const REVAMPED = [
   "components/missions/MissionNotes.tsx",
   "components/missions/MissionPreview.tsx",
   "components/DeleteMissionButton.tsx",
+  "app/(tester)/tester/page.tsx",
+  "app/(tester)/tester/loading.tsx",
+  "app/(tester)/explore/page.tsx",
+  "app/(tester)/explore/loading.tsx",
+  "app/(tester)/explore/missions/page.tsx",
+  "components/tester/MissionStrip.tsx",
+  "components/tester/SubmissionsFeed.tsx",
+  "components/BrowseMissions.tsx",
+  "components/ExploreGrid.tsx",
+  "components/ui/SearchField.tsx",
+  "components/ui/FilterChip.tsx",
 ]
 
 const offences: string[] = []
@@ -156,7 +167,8 @@ assert.ok(
 for (const f of ["app/(developer)/dashboard/page.tsx", "components/MissionListPaged.tsx"]) {
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(readFileSync(f, "utf8")), `${f}: colour in an inline style`)
 }
-for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx", "app/(developer)/dashboard/[projectId]/page.tsx", "components/ProjectDetailTabs.tsx"]) {
+for (const f of ["components/settings/AccountPanel.tsx", "components/FeedbackListPaged.tsx", "app/(developer)/dashboard/[projectId]/page.tsx", "components/ProjectDetailTabs.tsx",
+                 "components/tester/MissionStrip.tsx", "components/tester/SubmissionsFeed.tsx", "components/BrowseMissions.tsx", "components/ExploreGrid.tsx"]) {
   const src = readFileSync(f, "utf8")
   assert.ok(!/style=\{\{[^}]*rgba?\(/.test(src), `${f}: colour in an inline style`)
   assert.ok(!/onMouse(Enter|Leave)=.*\.style\./.test(src), `${f}: hover written in JS — use hover:`)
@@ -167,6 +179,12 @@ for (const f of ["components/CreateProjectForm.tsx", "components/AddMissionForm.
   assert.ok(!/["'`]h-10 w-full bg-surface/.test(src) && !/w-full bg-surface border rounded-\[8px\] px-4 py-3/.test(src),
     `${f}: fields must use inputClass()/textareaClass() — hand-rolled chrome zooms iOS`)
 }
+
+// The two search fields and the category select must not zoom iOS.
+assert.ok(/inputClass\(/.test(readFileSync("components/ui/SearchField.tsx", "utf8")),
+  "SearchField: built on inputClass() (16px on touch)")
+assert.ok(/inputClass\(/.test(readFileSync("components/ExploreGrid.tsx", "utf8")),
+  "ExploreGrid: the category select uses inputClass()")
 
 const row = readFileSync("components/MissionResultRow.tsx", "utf8")
 assert.ok(!/grid-cols-3/.test(row.replace(/medium:grid-cols-3|lg:grid-cols-3/g, "")),

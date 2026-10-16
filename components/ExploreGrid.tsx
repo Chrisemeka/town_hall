@@ -2,7 +2,13 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Search, ArrowRight } from "lucide-react"
+import { LoadMore } from "@/components/ui/LoadMore"
+import { Button } from "@/components/ui/Button"
+import { ArrowRight } from "lucide-react"
+import { SearchField } from "@/components/ui/SearchField"
+import { FilterChip } from "@/components/ui/FilterChip"
+import { inputClass } from "@/components/ui/Field"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/Badge"
 import { UNCATEGORISED_LABEL } from "@/lib/vocabulary"
 
@@ -19,11 +25,14 @@ export type ExploreProject = {
   status: "active" | "needs-testers"
 }
 
-type Filter = "all" | "recent"
+type Filter = "all" | "needs"
 
+// "Recently Added" sorted by created_at, which is the order the page already
+// loads in, so it was the same list as "All". "Need Testers" narrows to the
+// projects whose card carries that badge: no reports yet.
 const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all",    label: "All"            },
-  { key: "recent", label: "Recently Added" },
+  { key: "all",   label: "All"          },
+  { key: "needs", label: "Need Testers" },
 ]
 
 function relativeTime(iso: string) {
@@ -97,9 +106,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
       list = list.filter((p) => p.category === category)
     }
 
-    /* Sort */
-    if (filter === "recent") {
-      list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    /* Need Testers */
+    if (filter === "needs") {
+      list = list.filter((p) => p.status === "needs-testers")
     }
 
     return list
@@ -108,15 +117,11 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   /* No projects on the platform at all — distinct from a filter/search miss */
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
+      // No button: the old one sent testers to /dashboard/new, a builder route
+      // a tester account is bounced off.
+      <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 text-center border border-dashed border-line rounded-[12px]">
         <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing to test yet.</p>
-        <p className="font-mono text-[14px] text-ink-muted mb-6">Be the first to put your work in front of the community.</p>
-        <Link
-          href="/dashboard/new"
-          className="h-10 px-4 inline-flex items-center border border-ink text-ink rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-        >
-          New Project
-        </Link>
+        <p className="font-mono text-[14px] text-ink-muted">New missions land here as builders publish them.</p>
       </div>
     )
   }
@@ -124,34 +129,16 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
   return (
     <div>
       {/* Filters + Search */}
-      <div id="tour-explore-filters" className="flex flex-col sm:flex-row sm:items-center sm:flex-wrap justify-between gap-4 mb-8">
-        {/* Pill filters */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {FILTERS.map(({ key, label }) => {
-            const active = filter === key
-            return (
-              <button
-                key={key}
-                onClick={() => setFilter(key)}
-                className="h-8 px-4 font-mono text-[13px] font-medium transition-colors duration-200 rounded-full"
-                style={
-                  active
-                    ? {
-                        background: "rgba(232,255,71,0.12)",
-                        border: "1px solid rgba(232,255,71,0.4)",
-                        color: "var(--color-accent-ink)",
-                      }
-                    : {
-                        background: "var(--color-surface-raised)",
-                        border: "1px solid var(--color-line)",
-                        color: "var(--color-ink-muted)",
-                      }
-                }
-              >
-                {label}
-              </button>
-            )
-          })}
+      {/* Below 840px each control is a full-width row, search first: it is
+          the one most used. order-* only, so the DOM order is unchanged. */}
+      <div id="tour-explore-filters" className="flex flex-col gap-3 expanded:flex-row expanded:items-center expanded:flex-wrap expanded:justify-between expanded:gap-4 mb-6 medium:mb-8">
+        {/* The same chips as My Submissions on Tester Home. */}
+        <div className="flex items-center gap-x-2 gap-y-4 flex-wrap">
+          {FILTERS.map(({ key, label }) => (
+            <FilterChip key={key} pressed={filter === key} onClick={() => setFilter(key)}>
+              {label}
+            </FilterChip>
+          ))}
         </div>
 
         {/* Category filter — a select rather than more pills: fourteen pills
@@ -162,7 +149,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
             aria-label="Filter by category"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="h-9 w-full sm:w-auto shrink-0 bg-surface-raised border border-line rounded-[8px] px-3 font-mono text-[13px] text-ink focus:outline-none focus:border-accent-ink transition-colors duration-150"
+            // The shared chrome so iOS does not zoom; 36px from lg, matching
+            // the search beside it.
+            className={cn(inputClass(false, { raised: true }), "lg:h-9 w-full expanded:w-auto shrink-0 cursor-pointer")}
           >
             <option value="">All categories</option>
             {presentCategories.map((option) => (
@@ -174,16 +163,13 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         )}
 
         {/* Search */}
-        <div className="relative w-full sm:w-[280px] shrink-0">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search projects…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-9 pl-9 pr-4 bg-surface-raised border border-line rounded-[8px] font-mono text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
-          />
-        </div>
+        <SearchField
+          label="Search projects"
+          placeholder="Search projects…"
+          value={query}
+          onChange={setQuery}
+          className="order-first expanded:order-none w-full expanded:w-[280px] shrink-0"
+        />
       </div>
 
       {/* Grid */}
@@ -191,27 +177,32 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing matches.</p>
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a broader search or clear your filters.</p>
-          <button
-            onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-          >
+          <Button variant="secondary" onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}>
             Clear filters
-          </button>
+          </Button>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* One column below 1024: beside the sidebar at 840–1023 two cards
+              would be ~256px each. */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {displayed.slice(0, visible).map((project) => (
               <div
                 key={project.id}
-                className="bg-surface-raised border border-line rounded-[12px] p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
+                // The whole card is the project's link: the title's ::after
+                // stretches over it.
+                className="group relative bg-surface-raised border border-line rounded-[12px] p-5 medium:p-6 flex flex-col transition-colors duration-150 hover:border-accent-ink/30 active:border-accent-ink has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-accent-ink shadow-card"
               >
                 {/* Name + badge */}
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <h5 className="font-syne font-bold text-[20px] leading-7 text-ink truncate">
-                    {project.name}
-                  </h5>
+                  <h2 className="font-syne font-bold text-[20px] leading-7 text-ink min-w-0 max-medium:line-clamp-2 medium:truncate">
+                    <Link
+                      href={`/explore/project/${project.id}`}
+                      className="after:absolute after:inset-0 after:rounded-[12px] focus-visible:outline-none"
+                    >
+                      {project.name}
+                    </Link>
+                  </h2>
                   <Badge variant={project.status} />
                 </div>
 
@@ -259,14 +250,15 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                   </span>
 
                   {project.missionCount > 0 ? (
-                    <Link
-                      href={`/explore/project/${project.id}`}
-                      className="font-mono text-[13px] font-medium text-ink-muted hover:text-ink transition-colors duration-150 flex items-center gap-1"
+                    // Decorative: the title is the link.
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1"
                     >
                       Test it <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    </span>
                   ) : (
-                    <span className="font-mono text-[12px] text-ink-muted/50 italic">No missions yet</span>
+                    <span className="font-mono text-[12px] text-ink-muted italic">No missions yet</span>
                   )}
                 </div>
               </div>
@@ -276,12 +268,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
           {/* Load More */}
           {displayed.length > visible && (
             <div className="flex justify-center mt-10">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-              >
-                Load More
-              </button>
+              <LoadMore onClick={() => setVisible((v) => v + PAGE_SIZE)} />
             </div>
           )}
         </>
