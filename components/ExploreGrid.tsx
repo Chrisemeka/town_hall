@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { LoadMore } from "@/components/ui/LoadMore"
+import { Button } from "@/components/ui/Button"
 import { ArrowRight } from "lucide-react"
 import { SearchField } from "@/components/ui/SearchField"
 import { inputClass } from "@/components/ui/Field"
@@ -194,12 +196,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
         <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing matches.</p>
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a broader search or clear your filters.</p>
-          <button
-            onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-          >
+          <Button variant="secondary" onClick={() => { setFilter("all"); setQuery(""); setCategory("") }}>
             Clear filters
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -289,12 +288,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
           {/* Load More */}
           {displayed.length > visible && (
             <div className="flex justify-center mt-10">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-              >
-                Load More
-              </button>
+              <LoadMore onClick={() => setVisible((v) => v + PAGE_SIZE)} />
             </div>
           )}
         </>

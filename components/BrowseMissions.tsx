@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
+import { LoadMore } from "@/components/ui/LoadMore"
+import { Button } from "@/components/ui/Button"
 import { ArrowRight } from "lucide-react"
 import { SearchField } from "@/components/ui/SearchField"
 import { MissionChips } from "@/components/missions/TestCaseView"
@@ -83,12 +85,9 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
         <div className="flex flex-col items-center justify-center py-16 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing matches.</p>
           <p className="font-mono text-[14px] text-ink-muted mb-6">Try a different search term.</p>
-          <button
-            onClick={() => setQuery("")}
-            className="h-10 px-4 bg-transparent text-ink border border-line rounded-[8px] font-mono font-medium text-[14px] hover:border-accent-ink hover:text-accent-ink transition-colors duration-150"
-          >
+          <Button variant="secondary" onClick={() => setQuery("")}>
             Clear search
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -159,12 +158,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
           {/* Load More */}
           {displayed.length > visible && (
             <div className="flex justify-center mt-10">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="h-10 px-6 border border-line text-ink rounded-[8px] font-mono text-[14px] hover:bg-surface-raised transition-colors duration-150"
-              >
-                Load More
-              </button>
+              <LoadMore onClick={() => setVisible((v) => v + PAGE_SIZE)} />
             </div>
           )}
         </>
