@@ -356,12 +356,18 @@ export default function AuditLogForm({
             axis="x"
             values={shots}
             onReorder={setShots}
-            className="flex flex-wrap gap-3 mb-4 list-none p-0"
+            // One scrolling row below 600px: a drag along axis="x" reorders
+            // unreliably once thumbnails wrap to a second line.
+            className="flex flex-nowrap overflow-x-auto medium:flex-wrap medium:overflow-visible gap-3 mb-4 list-none p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {shots.map((shot, i) => (
               <Reorder.Item
                 key={shot.url}
                 value={shot}
+                // framer sets touch-action: none; pan-y lets a vertical swipe
+                // that starts on a thumbnail scroll the page, while a
+                // horizontal drag still reorders.
+                style={{ touchAction: "pan-y" }}
                 className="relative w-20 h-20 rounded-[8px] overflow-hidden border border-line bg-surface cursor-grab active:cursor-grabbing shrink-0"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -375,11 +381,14 @@ export default function AuditLogForm({
                   type="button"
                   onClick={() => removeShot(shot)}
                   aria-label={`Remove ${shot.file.name}`}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-surface/85 border border-line text-ink-muted hover:text-danger-ink hover:border-danger-ink transition-colors duration-150 flex items-center justify-center"
+                  // A 32px target around the 20px circle, inside the thumbnail.
+                  className="group/remove absolute top-0 right-0 w-8 h-8 flex items-center justify-center"
                 >
-                  <X className="w-3 h-3" />
+                  <span className="w-5 h-5 rounded-full bg-surface/85 border border-line text-ink-muted group-hover/remove:text-danger-ink group-hover/remove:border-danger-ink transition-colors duration-150 flex items-center justify-center">
+                    <X className="w-3 h-3" />
+                  </span>
                 </button>
-                <span className="absolute bottom-0 left-0 right-0 bg-surface/80 font-mono text-[10px] text-ink-muted text-center leading-4">
+                <span className="absolute bottom-0 left-0 right-0 bg-surface/80 font-mono text-[12px] text-ink-muted text-center leading-4">
                   {i + 1}
                 </span>
               </Reorder.Item>
