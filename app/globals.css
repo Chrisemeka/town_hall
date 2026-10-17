@@ -56,6 +56,9 @@
   /* M3 standard easing — the curve for anything that moves on its own. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
+  /* M3 standard accelerate — for things leaving the screen. */
+  --ease-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
   /* Box Shadows. Themed — the dark value is in the [data-theme="dark"] block. */
   --shadow-card: 0 2px 12px rgb(0 0 0 / 0.08);
 
@@ -200,4 +203,58 @@
 /* Someone who asked for less motion gets the end state, not the animation. */
 @media (prefers-reduced-motion: reduce) {
   .th-fade-in { animation: none; }
+}
+
+/*
+ * Sheets (components/ui/Sheet.tsx) — Design.md §9. In from the trailing edge
+ * over 300ms ease-standard; out over 200ms accelerate, because whatever leaves
+ * should get out of the way. The scrim fades with the sheet: it is the biggest
+ * change on screen, and it used to land at full strength on the first frame.
+ *
+ * Exit works because display and overlay transition discretely: the dialog
+ * stays drawn and in the top layer until the slide ends. Where `overlay`
+ * cannot transition, the dialog leaves the top layer at once and the exit is
+ * instant — the floor, and no worse than before. Entry needs only
+ * @starting-style.
+ */
+.th-sheet,
+.th-sheet::backdrop {
+  transition-property: translate, opacity, display, overlay;
+  transition-behavior: allow-discrete;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-standard-accelerate);
+}
+.th-sheet           { translate: 100% 0; }
+.th-sheet::backdrop { opacity: 0; }
+
+.th-sheet[open],
+.th-sheet[open]::backdrop {
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-standard);
+}
+.th-sheet[open]           { translate: 0 0; }
+.th-sheet[open]::backdrop { opacity: 1; }
+
+@starting-style {
+  .th-sheet[open]           { translate: 100% 0; }
+  .th-sheet[open]::backdrop { opacity: 0; }
+}
+
+/* Less motion is a short fade, not nothing: the sheet still arrives. */
+@media (prefers-reduced-motion: reduce) {
+  .th-sheet,
+  .th-sheet::backdrop,
+  .th-sheet[open],
+  .th-sheet[open]::backdrop {
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+  .th-sheet,
+  .th-sheet[open]  { translate: 0 0; }
+  .th-sheet        { opacity: 0; }
+  .th-sheet[open]  { opacity: 1; }
+
+  @starting-style {
+    .th-sheet[open] { translate: 0 0; opacity: 0; }
+  }
 }

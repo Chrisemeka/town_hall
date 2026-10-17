@@ -9,11 +9,11 @@ const EXPANDED = "(min-width: 840px)"
 const ICON_BUTTON =
   "h-12 w-12 shrink-0 inline-flex items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 
-// M3 modal navigation drawer: slides in from the trailing edge on open, 300ms
-// ease-standard. The transition lives under `open:` so closing is instant, and
-// the start offset is motion-safe so reduced motion gets no slide at all.
+// M3 modal navigation drawer from the trailing edge. The motion — sheet and
+// scrim, in and out, and the reduced-motion fade — is `.th-sheet` in
+// app/globals.css; a Tailwind variant chain cannot say allow-discrete.
 const SHEET =
-  "m-0 ml-auto h-full max-h-full max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60 open:transition-[translate] open:duration-300 open:ease-standard motion-safe:starting:open:translate-x-full" // ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
+  "th-sheet m-0 ml-auto h-full max-h-full max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60" // ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
 
 export type SheetTrigger =
   | { kind: "menu" }
