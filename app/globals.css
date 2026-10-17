@@ -3,6 +3,13 @@
 /* Tailwind v4: include classes used by Onborda's dist files */
 @source "../node_modules/onborda/dist/**/*.{js,ts,jsx,tsx}";
 
+/* The homepage hero's scroll layout (SPEC-motion-hero-scroll): on only where
+   it can work — motion allowed, and tall enough that the header is still
+   sticky (PublicHeader turns static below 480px of height; keep them equal).
+   CSS rather than JS, so the server-rendered page already has the right
+   layout and hydration moves nothing. */
+@custom-variant hero-scroll (@media (prefers-reduced-motion: no-preference) and (min-height: 480px));
+
 @theme {
   /* Font Families */
   --font-syne: var(--font-syne);
