@@ -53,6 +53,7 @@ const REVAMPED = [
   "components/layout/Sidebar.tsx",
   "components/layout/BottomNav.tsx",
   "components/layout/AccountSheet.tsx",
+  "components/ui/Sheet.tsx",
   "components/GlobalSearch.tsx",
   "components/ui/Button.tsx",
   "components/MissionListPaged.tsx",
@@ -244,8 +245,8 @@ assert.ok(
 )
 
 assert.ok(
-  !readFileSync("components/public/MobileNav.tsx", "utf8").includes("backdrop:bg-surface"),
-  "MobileNav's scrim follows the theme — it must stay literal Obsidian",
+  readFileSync("components/ui/Sheet.tsx", "utf8").includes("backdrop:bg-obsidian/60"),
+  "Sheet's scrim must stay literal Obsidian — one that follows the theme stops being a scrim",
 )
 
 console.log(`mobile: ${REVAMPED.length} revamped files ok`)
