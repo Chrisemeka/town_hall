@@ -418,7 +418,12 @@ export function HeroDemo({ glow }: { glow?: MotionValue<number> }) {
   const [t, setT] = useState(0)
   // null until someone presses Play or Pause: autoplay from 600px, idle below.
   const [playing, setPlaying] = useState<boolean | null>(null)
-  const running = !still && compact !== null && (playing ?? !compact)
+  // From 600px the autoplay waits until the window is half in view, so the
+  // story starts at scene 01 when someone arrives rather than on page load,
+  // mid-scene by the time they scroll to it. t is still 0 when this flips.
+  const root = useRef<HTMLDivElement>(null)
+  const seen = useInView(root, { once: true, amount: 0.5 })
+  const running = !still && compact !== null && (playing ?? (!compact && seen))
   const swipe = useRef<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
@@ -441,7 +446,7 @@ export function HeroDemo({ glow }: { glow?: MotionValue<number> }) {
   }
 
   return (
-    <div className="relative">
+    <div ref={root} className="relative">
       {/* Dark-only glow; see .th-glow in globals.css. It starts at 0.6 in CSS
           under the hero-scroll layout, so the scroll's value takes over from
           the same number and hydration does not snap it. */}
