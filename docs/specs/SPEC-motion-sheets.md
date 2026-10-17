@@ -1,6 +1,9 @@
 # SPEC: Motion Pass 1 — The Two Sheets
 
-**Status:** Draft, awaiting approval
+**Status:** Implemented 2026-10-17. Deviations from this draft: the account
+band is `pr-20 medium:pr-24` (a 16/24px gap beside the X, not flush), and the
+dialog is callback-ref state rather than a ref, because `close` is handed to
+children during render and `react-hooks/refs` refuses that
 **Branch:** `feat/motion-sheets`
 **Base:** `main`
 **Source:** `docs/TWNHALL_MOTION_SHEETS_PROMPT.md`
