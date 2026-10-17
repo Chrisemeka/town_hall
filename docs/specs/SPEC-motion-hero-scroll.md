@@ -1,6 +1,9 @@
 # SPEC: Motion Pass 2 — The Hero Window Rises on Scroll
 
-**Status:** Draft, awaiting approval
+**Status:** Implemented 2026-10-17. §6 confirmed in Chrome before the fix:
+after scrolling, Tab focused both hero links under the window and scrolled
+nothing. The demo's start uses Framer's `useInView` (an IntersectionObserver,
+already used in `HomeMockups`) rather than a hand-rolled one
 **Branch:** `feat/motion-hero-scroll`
 **Base:** `main`
 **Source:** `docs/TWNHALL_MOTION_HERO_SCROLL_PROMPT.md`
