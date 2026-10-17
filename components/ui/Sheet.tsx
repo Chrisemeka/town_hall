@@ -15,7 +15,7 @@ const ICON_BUTTON =
 // scrim, in and out, and the reduced-motion fade — is `.th-sheet` in
 // app/globals.css; a Tailwind variant chain cannot say allow-discrete.
 const SHEET =
-  "th-sheet m-0 ml-auto h-full max-h-full max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60" // ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
+  "th-sheet overflow-visible m-0 ml-auto h-full max-h-full max-w-none rounded-l-[16px] bg-surface p-0 text-ink backdrop:bg-obsidian/60" // ponytail: the scrim is literal Obsidian on purpose — dark in both themes; one that follows the theme stops being a scrim.
 
 export type SheetTrigger =
   | { kind: "menu" }
@@ -121,7 +121,7 @@ export function Sheet({
           placeClose(dialog, e.currentTarget, bandRef.current)
           setOpen(true)
         }}
-        className={`${ICON_BUTTON} ${shape}`}
+        className={`th-sheet-trigger ${ICON_BUTTON} ${shape}`}
       >
         {trigger.kind === "avatar" ? trigger.node : <MenuMorphIcon />}
       </button>
@@ -140,12 +140,15 @@ export function Sheet({
         // right as a full-height sheet. backdrop:bg-* styles ::backdrop.
         className={`${SHEET} ${width}`}
       >
+        {/* The pin slides opposite to the sheet, so the X holds still over
+            the trigger while the sheet passes under it (.th-sheet-pin). */}
+        <div className="th-sheet-pin pointer-events-none absolute inset-0 z-10">
         <button
           type="button"
           aria-label={closeLabel}
           autoFocus
           onClick={close}
-          className={`${ICON_BUTTON} ${shape} absolute z-10 top-(--th-x-top) right-(--th-x-right)`}
+          className={`${ICON_BUTTON} ${shape} pointer-events-auto absolute top-(--th-x-top) right-(--th-x-right)`}
         >
           {/* Both glyphs, stacked. Which one shows is the dialog's [open]
               (.th-bar-* / .th-handoff-* in globals.css), so Esc, the scrim
@@ -165,8 +168,11 @@ export function Sheet({
             )}
           </span>
         </button>
+        </div>
 
-        <div className="flex h-full flex-col">
+        {/* The dialog is overflow-visible so the pinned X is never clipped;
+            scrolling lives here instead. */}
+        <div className="flex h-full flex-col overflow-y-auto">
           <div ref={bandRef} className={`${bandClassName} flex shrink-0 items-center`}>
             {band}
           </div>
