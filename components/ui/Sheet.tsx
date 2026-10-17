@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { Menu, X } from "lucide-react"
+import { X } from "lucide-react"
+import { MenuMorphIcon } from "@/components/ui/MenuMorphIcon"
 import { closeButtonPosition } from "@/lib/sheet"
 
 // The `expanded:` breakpoint. The sheets never render from here up.
@@ -73,11 +74,12 @@ export function Sheet({
   band?: ReactNode
   children: (close: () => void) => ReactNode
 }) {
-  const ref = useRef<HTMLDialogElement>(null)
+  // State, not a ref: `close` is handed to children during render.
+  const [dialog, setDialog] = useState<HTMLDialogElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const bandRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
-  const close = () => ref.current?.close()
+  const close = () => dialog?.close()
   const shape = trigger.kind === "avatar" ? "rounded-full" : "rounded-[8px]"
 
   // The wrapper is expanded:hidden, so crossing 840px while open (a tablet
@@ -86,22 +88,22 @@ export function Sheet({
   useEffect(() => {
     const mq = window.matchMedia(EXPANDED)
     const onChange = () => {
-      if (mq.matches) ref.current?.close()
+      if (mq.matches) dialog?.close()
     }
     mq.addEventListener("change", onChange)
     return () => mq.removeEventListener("change", onChange)
-  }, [])
+  }, [dialog])
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !dialog) return
     const onResize = () => {
-      if (ref.current && triggerRef.current && bandRef.current) {
-        placeClose(ref.current, triggerRef.current, bandRef.current)
+      if (triggerRef.current && bandRef.current) {
+        placeClose(dialog, triggerRef.current, bandRef.current)
       }
     }
     window.addEventListener("resize", onResize)
     return () => window.removeEventListener("resize", onResize)
-  }, [open])
+  }, [open, dialog])
 
   return (
     <div className="expanded:hidden">
@@ -114,7 +116,6 @@ export function Sheet({
         aria-controls={id}
         title={trigger.kind === "avatar" ? trigger.title : undefined}
         onClick={(e) => {
-          const dialog = ref.current
           if (!dialog || !bandRef.current) return
           dialog.showModal()
           placeClose(dialog, e.currentTarget, bandRef.current)
@@ -122,12 +123,12 @@ export function Sheet({
         }}
         className={`${ICON_BUTTON} ${shape}`}
       >
-        {trigger.kind === "avatar" ? trigger.node : <Menu size={20} aria-hidden="true" />}
+        {trigger.kind === "avatar" ? trigger.node : <MenuMorphIcon />}
       </button>
 
       <dialog
         id={id}
-        ref={ref}
+        ref={setDialog}
         onClose={() => setOpen(false)}
         // A tap on the scrim lands on the dialog itself — its content box
         // fills it edge to edge, so anything else is a tap inside.
@@ -146,7 +147,23 @@ export function Sheet({
           onClick={close}
           className={`${ICON_BUTTON} ${shape} absolute z-10 top-(--th-x-top) right-(--th-x-right)`}
         >
-          <X size={20} aria-hidden="true" />
+          {/* Both glyphs, stacked. Which one shows is the dialog's [open]
+              (.th-bar-* / .th-handoff-* in globals.css), so Esc, the scrim
+              and a link all animate the same way, with no state in the loop. */}
+          <span aria-hidden="true" className="grid place-items-center *:[grid-area:1/1]">
+            {trigger.kind === "avatar" ? (
+              <>
+                <span className="th-handoff-avatar">{trigger.node}</span>
+                <X size={20} className="th-handoff-x" />
+              </>
+            ) : (
+              <>
+                <MenuMorphIcon />
+                {/* Reduced motion only: the bars fade out, this fades in. */}
+                <X size={20} className="th-morph-x" />
+              </>
+            )}
+          </span>
         </button>
 
         <div className="flex h-full flex-col">

@@ -258,3 +258,55 @@
     .th-sheet[open] { translate: 0 0; opacity: 0; }
   }
 }
+
+/*
+ * The trigger becomes the close button (Sheet.tsx). The X carries both glyphs
+ * and the dialog's [open] picks one, so entry and exit play the same motion
+ * backwards and the last frame of a close sits exactly on the bar's trigger.
+ *
+ * Hamburger → X: the three bars of lucide's Menu (MenuMorphIcon). Transforms
+ * apply right to left — onto the centre line, then about the centre.
+ * Avatar → X: a hand-off, since a photo cannot become two lines.
+ */
+.th-sheet :is(.th-bar, .th-morph-x, .th-handoff-avatar, .th-handoff-x) {
+  transition-property: transform, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-standard-accelerate);
+}
+.th-sheet[open] :is(.th-bar, .th-morph-x, .th-handoff-avatar, .th-handoff-x) {
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-standard);
+}
+.th-sheet .th-bar { transform-box: view-box; transform-origin: 12px 12px; }
+.th-sheet .th-morph-x { opacity: 0; }
+
+.th-sheet[open] .th-bar-top { transform: rotate(45deg) translateY(7px); }
+.th-sheet[open] .th-bar-mid { transform: scaleX(0); opacity: 0; transition-duration: 100ms; }
+.th-sheet[open] .th-bar-bot { transform: rotate(-45deg) translateY(-7px); }
+
+.th-sheet .th-handoff-x               { transform: rotate(-90deg); opacity: 0; }
+.th-sheet[open] .th-handoff-x         { transform: none; opacity: 1; }
+.th-sheet[open] .th-handoff-avatar    { transform: scale(0.6) rotate(90deg); opacity: 0; }
+
+@starting-style {
+  .th-sheet[open] .th-bar              { transform: none; opacity: 1; }
+  .th-sheet[open] .th-handoff-avatar   { transform: none; opacity: 1; }
+  .th-sheet[open] .th-handoff-x        { transform: rotate(-90deg); opacity: 0; }
+}
+
+/* Less motion: no rotation — the trigger glyph fades out and an X fades in. */
+@media (prefers-reduced-motion: reduce) {
+  .th-sheet :is(.th-bar, .th-morph-x, .th-handoff-avatar, .th-handoff-x),
+  .th-sheet[open] :is(.th-bar, .th-morph-x, .th-handoff-avatar, .th-handoff-x) {
+    transform: none;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+  .th-sheet[open] .th-bar     { opacity: 0; }
+  .th-sheet[open] .th-morph-x { opacity: 1; }
+
+  @starting-style {
+    .th-sheet[open] :is(.th-bar, .th-handoff-avatar) { opacity: 1; }
+    .th-sheet[open] :is(.th-morph-x, .th-handoff-x)  { opacity: 0; }
+  }
+}
