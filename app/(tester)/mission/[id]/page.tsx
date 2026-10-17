@@ -84,20 +84,20 @@ export default async function MissionDetailPage({
   return (
     <div className="max-w-[800px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-10 expanded:py-10">
 
-      {/* Below 600px a 48px back link to the project's missions, which is
-          where a tester came from. From 600px, the trail. */}
-      {project && (
-        <Link
-          href={`/explore/project/${project.id}`}
-          className="medium:hidden inline-flex items-center gap-1 min-h-12 -ml-2 px-2 mb-4 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150 [overflow-wrap:anywhere]"
-        >
-          <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
-          {project.name}
-        </Link>
-      )}
+      {/* Starts at Available Missions, where testers usually open a mission
+          from — and the nav item lit for this page (NAV_ALIASES in
+          lib/appNav.ts). Change one, change the other. Below 600px a 48px
+          back link there; from 600px, the trail. */}
+      <Link
+        href="/explore/missions"
+        className="medium:hidden inline-flex items-center gap-1 min-h-12 -ml-2 px-2 mb-4 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150"
+      >
+        <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
+        Available Missions
+      </Link>
       <div className="hidden medium:flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
-        <Link href="/explore" className="hover:text-ink transition-colors duration-150">
-          Explore
+        <Link href="/explore/missions" className="hover:text-ink transition-colors duration-150">
+          Available Missions
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink-muted truncate max-w-[180px]">{project?.name}</span>

@@ -47,8 +47,9 @@ export function navIsActive(pathname: string, href: string): boolean {
  */
 const NAV_ALIASES: Record<AccountType, { prefix: string; href: string }[]> = {
   builder: [],
-  // /mission/[id]: "Explore › project › mission".
-  tester: [{ prefix: "/mission", href: "/explore" }],
+  // /mission/[id]: "Available Missions › project › mission" — where testers
+  // usually open a mission from, by the founder's call.
+  tester: [{ prefix: "/mission", href: "/explore/missions" }],
 }
 
 /**

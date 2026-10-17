@@ -54,8 +54,8 @@ export function navIsActive(pathname: string, href: string): boolean
  */
 const NAV_ALIASES: Record<AccountType, { prefix: string; href: string }[]> = {
   builder: [],
-  // /mission/[id]: Explore › project › mission.
-  tester: [{ prefix: "/mission", href: "/explore" }],
+  // /mission/[id]: Available Missions › project › mission.
+  tester: [{ prefix: "/mission", href: "/explore/missions" }],
 }
 
 /** The one nav href that owns this pathname, or null. */
@@ -71,9 +71,11 @@ export function navCurrent(pathname: string, href: string): "page" | "true"
   is active.
 - `EXACT_MATCH` is deleted. `navIsActive` stays, as the plain segment-wise
   test, because the Settings row still uses it (`/settings`, not in `NAV`).
-- The tester alias follows the breadcrumb, as the prompt decides. The founder
-  question (Available Missions instead) is noted in the prompt; if the answer
-  changes, the alias and the breadcrumb change together.
+- **Revised 2026-10-17, founder's call:** `/mission/[id]` lights **Available
+  Missions**, where testers usually open a mission from, and its breadcrumb
+  changed with it: the trail starts at Available Missions, and the phone back
+  link goes there (it went to the project's page). The alias and the
+  breadcrumb still agree; change one, change the other.
 
 ### A.3 Callers
 

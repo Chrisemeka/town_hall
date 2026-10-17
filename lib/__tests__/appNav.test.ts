@@ -48,8 +48,8 @@ describe("activeNavHref", () => {
     ["/explore", "tester", "/explore"],
     ["/explore/missions", "tester", "/explore/missions"],
     ["/explore/project/p1", "tester", "/explore"],
-    // Outside the nav's tree: follows the page's breadcrumb, Explore › … .
-    ["/mission/m1", "tester", "/explore"],
+    // Outside the nav's tree: follows the page's breadcrumb, Available Missions › … .
+    ["/mission/m1", "tester", "/explore/missions"],
     ["/dashboardx", "builder", null],
     ["/missionx", "tester", null],
     // A builder href never lights for a tester, nor the reverse.
@@ -71,6 +71,6 @@ describe("navCurrent", () => {
   it("is page on the destination and true on a page it owns", () => {
     expect(navCurrent("/dashboard", "/dashboard")).toBe("page")
     expect(navCurrent("/dashboard/new", "/dashboard")).toBe("true")
-    expect(navCurrent("/mission/m1", "/explore")).toBe("true")
+    expect(navCurrent("/mission/m1", "/explore/missions")).toBe("true")
   })
 })
