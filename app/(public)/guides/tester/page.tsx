@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { DocLayout } from "@/components/public/DocNav"
+import { Reveal } from "@/components/public/Reveal"
 import { docSection } from "@/lib/docNav"
 import {
   H3,
@@ -256,7 +257,7 @@ export default function TesterGuidePage() {
         </Section>
       </div>
 
-      <div className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
+      <Reveal className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
           Testing earns you feedback on your own work. The builder guide covers
           the other half — setting up a project and writing a test case.
@@ -265,7 +266,7 @@ export default function TesterGuidePage() {
         <Link href="/guides/builder" className={`${LINK_INLINE} min-h-12 inline-flex items-center self-start lg:min-h-0`}>
           Read the builder guide →
         </Link>
-      </div>
+      </Reveal>
     </DocLayout>
   )
 }

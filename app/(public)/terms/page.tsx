@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { DocLayout } from "@/components/public/DocNav";
 import { ANCHOR } from "@/components/public/prose";
 import { docSection } from "@/lib/docNav";
+import { Reveal } from "@/components/public/Reveal";
 
 export const metadata: Metadata = { title: "Terms of Service — Twnhall" };
 
@@ -10,14 +11,20 @@ export default function TermsPage() {
   return (
     <DocLayout slug="terms">
 
-        <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
-          Terms of Service
-        </h1>
-        <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: October 13, 2026</p>
+        <Reveal>
+          <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
+            Terms of Service
+          </h1>
+        </Reveal>
+        <Reveal step={1}>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: October 13, 2026</p>
+        </Reveal>
 
+        <Reveal step={2}>
         <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-10 medium:mb-12">
           Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
+        </Reveal>
 
         <div className="flex flex-col gap-8 medium:gap-10">
 
@@ -127,12 +134,12 @@ export default function TermsPage() {
             </p>
           </Section>
 
-          <div className="pt-6 border-t border-line">
+          <Reveal className="pt-6 border-t border-line">
             {/* The sentence the page exists for: body text below lg, today's look from lg. */}
             <p className="font-sans text-[16px] leading-7 text-ink lg:font-mono lg:text-[13px] lg:leading-6">
               By using Twnhall, you agree to these terms and conditions. If you do not agree with any part of these terms, please do not use the app.
             </p>
-          </div>
+          </Reveal>
 
         </div>
     </DocLayout>
@@ -141,7 +148,7 @@ export default function TermsPage() {
 
 function Section({ id, number, title, children }: { id: string; number?: string; title: string; children: React.ReactNode }) {
   return (
-    <div>
+    <Reveal>
       <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-3 medium:mb-4 ${ANCHOR}`}>
         <span className="text-accent-ink font-mono text-[14px] mr-2">{number}.</span>
         {title}
@@ -150,6 +157,6 @@ function Section({ id, number, title, children }: { id: string; number?: string;
       <div className="flex flex-col gap-4 font-sans text-[16px] leading-7 text-ink lg:gap-3 lg:text-[14px]">
         {children}
       </div>
-    </div>
+    </Reveal>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DocLayout } from "@/components/public/DocNav";
 import { ANCHOR } from "@/components/public/prose";
 import { docSection } from "@/lib/docNav";
+import { Reveal } from "@/components/public/Reveal";
 
 export const metadata: Metadata = { title: "Privacy Policy — Twnhall" };
 
@@ -9,16 +10,22 @@ export default function PrivacyPolicyPage() {
   return (
     <DocLayout slug="privacy">
 
-        <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
-          Privacy Policy
-        </h1>
-        <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: October 13, 2026</p>
+        <Reveal>
+          <h1 className="font-syne font-bold text-[32px] leading-10 medium:text-[40px] medium:leading-[48px] tracking-[-0.5px] text-ink mb-2">
+            Privacy Policy
+          </h1>
+        </Reveal>
+        <Reveal step={1}>
+          <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: October 13, 2026</p>
+        </Reveal>
 
         <div className="flex flex-col gap-8 medium:gap-10">
 
+          <Reveal step={2}>
           <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px]">
             At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
           </p>
+          </Reveal>
 
           <Section {...docSection("privacy", "collect")}>
             <p>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
@@ -112,12 +119,12 @@ export default function PrivacyPolicyPage() {
 // No number: the policy is unnumbered (docNav's `numbered: false`).
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <div>
+    <Reveal>
       <h2 id={id} tabIndex={-1} className={`font-syne font-bold text-[20px] text-ink mb-3 medium:mb-4 ${ANCHOR}`}>{title}</h2>
       {/* 16px below lg, as every other long-form public page; 14px from lg. */}
       <div className="flex flex-col gap-4 font-sans text-[16px] leading-7 text-ink lg:gap-3 lg:text-[14px]">
         {children}
       </div>
-    </div>
+    </Reveal>
   );
 }

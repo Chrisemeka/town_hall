@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Mail, MessageCircle } from "lucide-react"
 import { META, P, PageHeader } from "@/components/public/prose"
+import { Reveal } from "@/components/public/Reveal"
 import { CONTACT_EMAIL, X_URL, mailto } from "@/lib/contact"
 
 export const metadata: Metadata = {
@@ -46,9 +47,10 @@ export default function ContactPage() {
       />
 
       <div className="grid gap-4 medium:gap-6 medium:grid-cols-2">
-        {ROUTES.map(({ icon: Icon, title, body, href, label }) => (
-          <div
+        {ROUTES.map(({ icon: Icon, title, body, href, label }, i) => (
+          <Reveal
             key={title}
+            step={i}
             className="flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6"
           >
             <Icon size={20} className="text-accent-ink" aria-hidden="true" />
@@ -65,11 +67,11 @@ export default function ContactPage() {
             >
               {label} →
             </a>
-          </div>
+          </Reveal>
         ))}
       </div>
 
-      <div className="mt-12 pt-8 border-t border-line flex flex-col gap-3">
+      <Reveal className="mt-12 pt-8 border-t border-line flex flex-col gap-3">
         <p className={P}>
           If your mail client does not open, the address is{" "}
           {/* Never broken mid-address; one tap selects it for copying. */}
@@ -91,7 +93,7 @@ export default function ContactPage() {
           Please do not send credentials or anything you would not put in an
           ordinary email.
         </p>
-      </div>
+      </Reveal>
     </div>
   )
 }

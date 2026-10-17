@@ -8,6 +8,8 @@
 // Everything here is semantic-token only (Design.md §4.1) — these render on
 // public surfaces, which follow the theme.
 
+import { Reveal } from "@/components/public/Reveal"
+
 /** Long-form prose. DM Sans, `ink` rather than `ink-muted`: ink-muted is 6.3:1
  *  on Bone and Design.md wants 7:1 for body text. */
 export const P = "font-sans text-[16px] leading-8 text-ink"
@@ -67,10 +69,16 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-col gap-4 mb-10 medium:mb-12">
-      <h1 className={H1}>
-        {title}
-      </h1>
-      {lede && <p className={`${P} max-w-2xl`}>{lede}</p>}
+      <Reveal>
+        <h1 className={H1}>
+          {title}
+        </h1>
+      </Reveal>
+      {lede && (
+        <Reveal step={1}>
+          <p className={`${P} max-w-2xl`}>{lede}</p>
+        </Reveal>
+      )}
     </div>
   )
 }
@@ -89,7 +97,7 @@ export function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="flex flex-col gap-4">
+    <Reveal as="section" className="flex flex-col gap-4">
       <h2 id={id} tabIndex={id ? -1 : undefined} className={`${H2} ${ANCHOR}`}>
         {number && (
           <span className="font-mono text-[14px] text-accent-ink mr-3">
@@ -99,6 +107,6 @@ export function Section({
         {title}
       </h2>
       {children}
-    </section>
+    </Reveal>
   )
 }

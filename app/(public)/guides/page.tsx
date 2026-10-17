@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowRight } from "lucide-react"
 import { H3, PageHeader } from "@/components/public/prose"
+import { Reveal } from "@/components/public/Reveal"
 
 export const metadata: Metadata = {
   title: "Guides — Twnhall",
@@ -33,11 +34,11 @@ export default function GuidesIndexPage() {
       />
 
       <div className="grid gap-4 medium:grid-cols-2 medium:gap-6">
-        {GUIDES.map(({ href, title, blurb }) => (
+        {GUIDES.map(({ href, title, blurb }, i) => (
+          <Reveal key={href} step={i}>
           <Link
-            key={href}
             href={href}
-            className="group flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 hover:border-accent-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="group h-full flex flex-col gap-3 rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 hover:border-accent-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             <h2 className={H3}>{title}</h2>
             <p className="font-sans text-[14px] leading-6 text-ink">{blurb}</p>
@@ -46,6 +47,7 @@ export default function GuidesIndexPage() {
               <ArrowRight size={14} aria-hidden="true" />
             </span>
           </Link>
+          </Reveal>
         ))}
       </div>
     </div>

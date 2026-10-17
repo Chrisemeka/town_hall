@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { LINK_INLINE, P, PageHeader, Section } from "@/components/public/prose"
+import { Reveal } from "@/components/public/Reveal"
 
 export const metadata: Metadata = {
   title: "About — Twnhall",
@@ -66,7 +67,7 @@ export default function AboutPage() {
         </Section>
       </div>
 
-      <div className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
+      <Reveal className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
           Questions, or want to talk about Pro?{" "}
           <Link href="/contact" className={LINK_INLINE}>
@@ -74,7 +75,7 @@ export default function AboutPage() {
           </Link>
           .
         </p>
-      </div>
+      </Reveal>
     </div>
   )
 }
