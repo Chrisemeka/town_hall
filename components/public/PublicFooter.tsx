@@ -90,7 +90,7 @@ export function PublicFooter() {
 
           <div className="medium:hidden border-t border-line">
             {COLUMNS.map(({ heading, links }) => (
-              <details key={heading} className="group border-b border-line">
+              <details key={heading} className="th-accordion group border-b border-line">
                 <summary
                   className={`flex min-h-12 cursor-pointer list-none items-center justify-between rounded-[4px] [&::-webkit-details-marker]:hidden ${FOCUS}`}
                 >

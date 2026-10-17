@@ -996,6 +996,8 @@ Empty state layout: centered icon 48×48px (Ash, `margin-bottom: 16px`) + H4 (Sy
 | Mobile sheet close | Slide to trailing edge + scrim fade out | 200ms | `ease-standard-accelerate` |
 | Sheet trigger → close | Held in place over the trigger while the sheet slides under it. Hamburger: bars close onto one line (140ms), then it turns into the X (160ms); closing rotates flat (100ms), then splits (100ms). Avatar: hands off to the X | 300ms in, 200ms out | `ease-standard` (hamburger) / as the sheet (avatar) |
 | Sheet, reduced motion | Sheet, scrim and icon fade only | 150ms | `ease-out` |
+| Accordion open / close (every `<details>`) | Height grows and the content is uncovered; closing reverses. Pricing FAQ is one group: opening a question closes the last | 300ms open, 200ms close | `ease-standard` / `ease-standard-accelerate` |
+| Accordion plus → X | The sheets' two beats: the vertical bar swings flat into one line, then the line splits into the X; reversed on close | 140ms + 160ms open, 100ms + 100ms close | `ease-standard` |
 | Hero scroll | Copy pins and fades; product window rises over it | Scroll-linked | Linear to scroll |
 | Hero demo start | Plays from scene 01 when ≥50% in view (≥600px) | — | — |
 

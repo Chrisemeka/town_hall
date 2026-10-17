@@ -369,3 +369,64 @@
 @media print {
   [data-reveal] { opacity: 1 !important; transform: none !important; }
 }
+
+/*
+ * Accordions — every native <details> on the public pages (the pricing FAQ,
+ * the docs' phone section list, the phone footer). The height grows and the
+ * content is uncovered top down, after GitHub's: 300ms ease-standard open,
+ * 200ms accelerate closed, the sheets' numbers. CSS only, so they stay native
+ * <details> with no client JS. interpolate-size lets `auto` transition, and
+ * content-visibility is discrete so a closing panel stays drawn until it has
+ * shrunk. Where ::details-content is unsupported (Firefox, for now) the panel
+ * opens instantly, as before.
+ */
+.th-accordion { interpolate-size: allow-keywords; }
+.th-accordion::details-content {
+  block-size: 0;
+  overflow: clip;
+  opacity: 0;
+  transition-property: block-size, opacity, content-visibility;
+  transition-behavior: allow-discrete;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-standard-accelerate);
+}
+.th-accordion[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+  transition-duration: 300ms;
+  transition-timing-function: var(--ease-standard);
+}
+
+/*
+ * Plus ⇄ X on an accordion's summary (PlusMorphIcon), in the sheets' two
+ * beats: opening, the vertical bar swings down onto the horizontal — one
+ * line — then that line splits into the X; closing rotates back to the one
+ * line, then the bar swings up. The beats are separate properties (`rotate`,
+ * then `transform`) so each gets its own delay; both rotate about the centre,
+ * so they add. The vertical bar is already at 90°: +90° lays it flat on the
+ * horizontal, then −45° (against the horizontal's +45°) makes the X.
+ */
+.th-plus {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+  transition-property: rotate, transform;
+  transition-timing-function: var(--ease-standard);
+  transition-duration: 100ms;
+  transition-delay: 100ms, 0ms;
+}
+details[open] > summary .th-plus {
+  transition-duration: 140ms, 160ms;
+  transition-delay: 0ms, 140ms;
+  transform: rotate(45deg);
+}
+details[open] > summary .th-plus-v { transform: rotate(-45deg); }
+/* Its own rule, and a different selector, on purpose: in one rule beside
+   `transform`, the production minifier drops `rotate` as if overridden, and
+   the morph loses its first beat and ends as a single line. */
+details[open] > summary path.th-plus-v { rotate: 90deg; }
+
+/* Less motion: the end state at once — no growing panel, no rotation. */
+@media (prefers-reduced-motion: reduce) {
+  .th-accordion::details-content,
+  .th-plus { transition: none; }
+}
