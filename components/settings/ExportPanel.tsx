@@ -1,16 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import { Download } from "lucide-react"
+import { Download, FileText } from "lucide-react"
 import { inputClass } from "@/components/ui/Field"
+
+const BUTTON =
+  "h-12 lg:h-10 w-full justify-center medium:w-auto px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] aria-disabled:opacity-60 aria-disabled:cursor-wait transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
 
 /** A project and the missions on it that have reports — nothing else is offered. */
 export type ExportProject = { id: string; name: string; missions: { id: string; title: string }[] }
 
 /**
- * Export the feedback on one of your projects: one mission as CSV, or every
- * mission as an Excel workbook with a sheet each. A CSV cannot hold sheets,
- * which is the only reason the format changes with the choice.
+ * Export the feedback on one of your projects, two ways from one selection:
+ *
+ *   - a spreadsheet: one mission as CSV, or every mission as an Excel workbook
+ *     with a sheet each. A CSV cannot hold sheets, which is the only reason the
+ *     format changes with the choice.
+ *   - a PDF report (/api/export/report): one mission, or every mission in one
+ *     document with a section each. It does not split.
  *
  * Above Danger Zone on purpose: both are operations on your own data, and
  * export-then-delete is the familiar pairing.
@@ -20,9 +27,9 @@ export type ExportProject = { id: string; name: string; missions: { id: string; 
  * on that link, so there is no state to submit.
  *
  * A plain click fetches instead of navigating, so a refusal (the rate limit's
- * 429, or a failed build) can be said here in the app's own alert rather than
- * as the browser's failed-download notice. The route's plain-text body is the
- * message; it never states the limit.
+ * 429, the PDF's size cap, or a failed build) can be said here in the app's
+ * own alert rather than as the browser's failed-download notice. The route's
+ * plain-text body is the message; it never states the limit.
  */
 export function ExportPanel({
   projects,
@@ -33,21 +40,37 @@ export function ExportPanel({
   hasFeedback: boolean
 }) {
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "")
-  // "" is every mission in the project, as a workbook.
+  // "" is every mission in the project: a workbook, or one PDF with a section each.
   const [missionId, setMissionId] = useState("")
+  // On by default — the report is asked to be as detailed as it can be.
+  const [screenshots, setScreenshots] = useState(true)
+  // The href being fetched, so only that button says it is working.
+  const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
   const workbook = missionId === ""
-  const href =
-    `/api/export/feedback?project=${encodeURIComponent(projectId)}` +
+  const scope =
+    `?project=${encodeURIComponent(projectId)}` +
     (workbook ? "" : `&mission=${encodeURIComponent(missionId)}`)
+  const sheetHref = `/api/export/feedback${scope}`
+  const pdfHref = `/api/export/report${scope}${screenshots ? "" : "&screenshots=0"}`
 
-  async function download(e: React.MouseEvent<HTMLAnchorElement>) {
+  async function download(e: React.MouseEvent<HTMLAnchorElement>, href: string, fallback: string) {
     // Modified clicks keep the link's own behaviour (new tab, save as).
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
     e.preventDefault()
+    if (busy) return
     setError(null)
+    setBusy(href)
+    try {
+      await save(href, fallback)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function save(href: string, fallback: string) {
     const res = await fetch(href)
     // requireAccount() redirected (session gone, role unverified): go where it said.
     if (res.redirected) {
@@ -58,9 +81,7 @@ export function ExportPanel({
       setError((await res.text()) || "Could not build the export.")
       return
     }
-    const name =
-      /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ??
-      (workbook ? "twnhall-feedback.xlsx" : "twnhall-feedback.csv")
+    const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? fallback
     const url = URL.createObjectURL(await res.blob())
     const a = document.createElement("a")
     a.href = url
@@ -80,7 +101,7 @@ export function ExportPanel({
         // looks like a broken export rather than an empty one.
         <p className="font-sans text-[14px] leading-6 text-ink">
           Nothing to export yet. Once testers have filed reports on your
-          missions, you can download all of it as a spreadsheet.
+          missions, you can download all of it as a spreadsheet or a PDF report.
         </p>
       ) : (
         <>
@@ -88,7 +109,8 @@ export function ExportPanel({
             The reports on a project — one row per test-case step, with what
             the tester did, what happened, and how to reproduce it. Pick one
             mission for a CSV, or all of them for an Excel workbook with a sheet
-            per mission. Both open in Excel, Numbers or Google Sheets.
+            per mission. Or download a PDF report to read or pass on: what to
+            fix first, then every answer, step by step.
           </p>
 
           <div className="flex flex-col medium:flex-row medium:items-end gap-4">
@@ -126,7 +148,7 @@ export function ExportPanel({
                 onChange={(e) => setMissionId(e.target.value)}
                 className={`${inputClass(false)} cursor-pointer`}
               >
-                <option value="">All missions — one sheet each</option>
+                <option value="">All missions</option>
                 {(project?.missions ?? []).map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.title}
@@ -134,15 +156,42 @@ export function ExportPanel({
                 ))}
               </select>
             </div>
+          </div>
 
+          <div className="flex flex-col medium:flex-row medium:items-center gap-4 mt-4">
+            <label className="flex items-center gap-3 min-h-12 lg:min-h-0 cursor-pointer w-fit medium:mr-auto">
+              <input
+                type="checkbox"
+                checked={screenshots}
+                onChange={(e) => setScreenshots(e.target.checked)}
+                className="w-5 h-5 lg:w-4 lg:h-4 accent-voltage rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+              />
+              <span className="font-mono text-[14px] text-ink">
+                Include screenshots in the PDF
+                <span className="block font-mono text-[12px] text-ink-muted">Makes the file larger.</span>
+              </span>
+            </label>
+
+            {/* Two equal exports, so neither is the Voltage CTA. */}
             <a
-              href={href}
-              onClick={download}
+              href={sheetHref}
+              onClick={(e) => download(e, sheetHref, workbook ? "twnhall-feedback.xlsx" : "twnhall-feedback.csv")}
               download
-              className="h-12 lg:h-10 w-full justify-center medium:w-auto px-5 shrink-0 inline-flex items-center gap-2 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+              aria-disabled={busy !== null}
+              className={BUTTON}
             >
               <Download size={14} aria-hidden="true" />
               {workbook ? "Download Excel" : "Download CSV"}
+            </a>
+            <a
+              href={pdfHref}
+              onClick={(e) => download(e, pdfHref, "twnhall-report.pdf")}
+              download
+              aria-disabled={busy !== null}
+              className={BUTTON}
+            >
+              <FileText size={14} aria-hidden="true" />
+              {busy === pdfHref ? "Preparing…" : "Download PDF"}
             </a>
           </div>
 
