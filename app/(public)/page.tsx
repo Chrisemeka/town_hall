@@ -1,9 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  type Variants,
+} from "framer-motion";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { Features, HeroDemo } from "@/components/public/HomeMockups";
+import { heroProgress } from "@/lib/heroScroll";
 
 /*
  * The homepage shows the product rather than describing it: every window on
@@ -51,6 +60,15 @@ const LOOP_NUMBER =
   "max-lg:size-10 max-lg:rounded-full max-lg:bg-ink/[0.06] max-lg:flex max-lg:items-center max-lg:justify-center " +
   "max-medium:absolute max-medium:left-0 max-medium:top-0";
 
+// The hero-scroll variant's other half (globals.css): the same short-viewport
+// boundary, read in JS so the motion values switch off where the layout does.
+const SHORT = "(max-height: 479px)";
+const subscribeShort = (onChange: () => void) => {
+  const mq = matchMedia(SHORT);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+
 const LOOP = [
   { n: "01", title: "Test someone's project", body: "Work through their test case and file the report." },
   { n: "02", title: "Earn a report", body: "One report written is one report credited, for each mission you test." },
@@ -70,15 +88,58 @@ export default function LandingPage() {
       };
   const up = still ? undefined : fadeUp;
 
+  // The hero scroll (SPEC-motion-hero-scroll). Motion values, so a scroll
+  // re-renders nothing. Linear to the scroll on purpose: the reader's thumb is
+  // the easing, and a spring here lags and fights them.
+  const short = useSyncExternalStore(subscribeShort, () => matchMedia(SHORT).matches, () => true);
+  const scrolling = !still && !short;
+  const regionRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLDivElement>(null);
+  const regionHeight = useMotionValue(0);
+  const copyHeight = useMotionValue(0);
+  const { scrollY } = useScroll();
+  const progress = useTransform(() => heroProgress(scrollY.get(), regionHeight.get(), copyHeight.get()));
+  const copyOpacity = useTransform(progress, [0.1, 0.7], [1, 0]);
+  const copyScale = useTransform(progress, [0, 1], [1, 0.96]);
+
+  // offsetHeight ignores the scale, so measuring never feeds back into itself.
+  useEffect(() => {
+    const region = regionRef.current;
+    const copy = copyRef.current;
+    if (!region || !copy) return;
+    const measure = () => {
+      regionHeight.set(region.offsetHeight);
+      copyHeight.set(copy.offsetHeight);
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(region);
+    ro.observe(copy);
+    return () => ro.disconnect();
+  }, [regionHeight, copyHeight]);
+
   return (
     <>
       {/* ── Hero ─────────────────────────────────────────────────────────
-          Centred copy over the product window, GitHub-style. */}
+          Centred copy over the product window, GitHub-style. At rest the
+          window peeks in below the copy; scrolling, the copy holds and fades
+          while the window rises over it. The layout is the hero-scroll
+          variant (globals.css); off it, this is the static layout.
+          overflow-x-clip, never overflow-hidden: hidden makes the section a
+          scroll container, and that silently kills the copy's sticky. */}
       <section className="w-full overflow-x-clip">
         <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pb-12 medium:pb-20 lg:pb-28">
-          {/* The copy's region: the space above the window. */}
-          <div className="pt-10 medium:pt-16 lg:pt-24">
+          {/* The copy's region: the space above the window's peek (96, 128,
+              then 160px), with the copy centred in it and 24px clear of the
+              window. A minimum, so a viewport too short for both grows it
+              and the peek shrinks first — never the actions below the fold.
+              Compound variants where they must beat a medium:/lg: padding. */}
           <motion.div
+            ref={regionRef}
+            style={scrolling ? { opacity: copyOpacity, scale: copyScale } : undefined}
+            className="flex flex-col justify-center pt-10 medium:pt-16 lg:pt-24 hero-scroll:sticky hero-scroll:top-16 hero-scroll:py-6 medium:hero-scroll:py-6 lg:hero-scroll:py-6 hero-scroll:min-h-[calc(100svh-4rem-96px)] medium:hero-scroll:min-h-[calc(100svh-4rem-128px)] lg:hero-scroll:min-h-[calc(100svh-4rem-160px)]"
+          >
+          <motion.div
+            ref={copyRef}
             {...rise}
             variants={stagger}
             className="flex flex-col items-center text-center max-w-3xl mx-auto"
@@ -115,11 +176,13 @@ export default function LandingPage() {
               </Link>
             </motion.div>
           </motion.div>
-          </div>
-
-          <motion.div {...rise} variants={up} className="mt-12 medium:mt-16 lg:mt-20">
-            <HeroDemo />
           </motion.div>
+
+          {/* Above the copy and opaque, so it covers the text rather than
+              mixing with it. No entrance of its own: the scroll is it. */}
+          <div className="relative z-10 mt-12 medium:mt-16 lg:mt-20 hero-scroll:mt-0 medium:hero-scroll:mt-0 lg:hero-scroll:mt-0">
+            <HeroDemo />
+          </div>
         </div>
       </section>
 
