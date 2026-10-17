@@ -101,6 +101,8 @@ export default function LandingPage() {
   const progress = useTransform(() => heroProgress(scrollY.get(), regionHeight.get(), copyHeight.get()));
   const copyOpacity = useTransform(progress, [0.1, 0.7], [1, 0]);
   const copyScale = useTransform(progress, [0, 1], [1, 0.96]);
+  // Dark only in effect: in light .th-glow has no background to fade.
+  const glowOpacity = useTransform(progress, [0, 0.5], [0.6, 1]);
 
   // offsetHeight ignores the scale, so measuring never feeds back into itself.
   useEffect(() => {
@@ -181,7 +183,7 @@ export default function LandingPage() {
           {/* Above the copy and opaque, so it covers the text rather than
               mixing with it. No entrance of its own: the scroll is it. */}
           <div className="relative z-10 mt-12 medium:mt-16 lg:mt-20 hero-scroll:mt-0 medium:hero-scroll:mt-0 lg:hero-scroll:mt-0">
-            <HeroDemo />
+            <HeroDemo glow={scrolling ? glowOpacity : undefined} />
           </div>
         </div>
       </section>

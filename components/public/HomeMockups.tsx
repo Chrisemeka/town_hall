@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { useInView, useReducedMotion } from "framer-motion"
+import { motion, useInView, useReducedMotion, type MotionValue } from "framer-motion"
 import {
   AlertTriangle,
   ArrowRight,
@@ -411,7 +411,8 @@ const finished = (i: number) => STARTS[i] + SCENES[i].ms - 1
  * scene. `compact` is null on the server and on the first client render, so
  * hydration matches, then the stage swaps inside its fixed height.
  */
-export function HeroDemo() {
+/** `glow`: the hero scroll's opacity for the glow, 0.6 → 1 as the window arrives. */
+export function HeroDemo({ glow }: { glow?: MotionValue<number> }) {
   const still = useReducedMotion()
   const compact = useSyncExternalStore(subscribeWide, () => !matchMedia(WIDE).matches, () => null)
   const [t, setT] = useState(0)
@@ -441,8 +442,14 @@ export function HeroDemo() {
 
   return (
     <div className="relative">
-      {/* Dark-only glow; see .th-glow in globals.css. */}
-      <div aria-hidden="true" className="th-glow pointer-events-none absolute -inset-x-8 -top-16 -bottom-8" />
+      {/* Dark-only glow; see .th-glow in globals.css. It starts at 0.6 in CSS
+          under the hero-scroll layout, so the scroll's value takes over from
+          the same number and hydration does not snap it. */}
+      <motion.div
+        aria-hidden="true"
+        style={glow ? { opacity: glow } : undefined}
+        className="th-glow pointer-events-none absolute -inset-x-8 -top-16 -bottom-8 hero-scroll:opacity-60"
+      />
 
       <Window
         title={`twnhall · ${SCENES[scene].path}`}
