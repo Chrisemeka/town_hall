@@ -6,7 +6,7 @@ import { Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
-import { NAV, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref, navIsActive } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
 
 function NavItem({
@@ -99,6 +99,7 @@ export function AccountActions({
  *  sheet carry the same destinations and actions. */
 export function Sidebar({ account = "builder" }: { account?: AccountType }) {
   const pathname = usePathname()
+  const current = activeNavHref(pathname, account)
 
   return (
     <aside className="hidden expanded:flex fixed inset-y-0 left-0 w-[240px] bg-surface border-r border-line flex-col z-40 pt-[56px]">
@@ -110,7 +111,7 @@ export function Sidebar({ account = "builder" }: { account?: AccountType }) {
           </p>
           <div className="flex flex-col gap-0.5">
             {NAV[account].links.map((link) => (
-              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={navIsActive(pathname, link.href)} />
+              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={link.href === current} />
             ))}
           </div>
         </div>

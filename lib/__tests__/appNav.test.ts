@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
-import { NAV, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref, navIsActive } from "@/lib/appNav"
+import type { AccountType } from "@/lib/access"
 
 describe("NAV", () => {
   it("gives every account three destinations, each with a short label that fits a bar cell", () => {
@@ -16,14 +17,52 @@ describe("NAV", () => {
 })
 
 describe("navIsActive", () => {
-  it("matches a parent destination exactly", () => {
+  it("matches the href and what sits under it, segment-wise", () => {
     expect(navIsActive("/dashboard", "/dashboard")).toBe(true)
-    expect(navIsActive("/dashboard/missions", "/dashboard")).toBe(false)
-    expect(navIsActive("/explore/missions", "/explore")).toBe(false)
+    expect(navIsActive("/dashboard/missions", "/dashboard")).toBe(true)
+    expect(navIsActive("/explore/missions/x", "/explore/missions")).toBe(true)
+    expect(navIsActive("/settings", "/settings")).toBe(true)
   })
 
-  it("matches a leaf destination and what sits under it", () => {
-    expect(navIsActive("/explore/missions/x", "/explore/missions")).toBe(true)
+  it("never matches a longer word", () => {
+    expect(navIsActive("/dashboardx", "/dashboard")).toBe(false)
     expect(navIsActive("/dashboard/abc123", "/dashboard/missions")).toBe(false)
+  })
+})
+
+describe("activeNavHref", () => {
+  // Every page.tsx under (developer) and (tester), params filled with p1/m1.
+  const ROUTES: [string, AccountType, string | null][] = [
+    ["/dashboard", "builder", "/dashboard"],
+    ["/dashboard/new", "builder", "/dashboard"],
+    ["/dashboard/p1", "builder", "/dashboard"],
+    ["/dashboard/p1/edit", "builder", "/dashboard"],
+    ["/dashboard/p1/mission/new", "builder", "/dashboard"],
+    ["/dashboard/p1/mission/m1", "builder", "/dashboard"],
+    ["/dashboard/p1/mission/m1/edit", "builder", "/dashboard"],
+    ["/dashboard/missions", "builder", "/dashboard/missions"],
+    ["/dashboard/feedback", "builder", "/dashboard/feedback"],
+    ["/settings", "builder", null],
+    ["/settings", "tester", null],
+    ["/tester", "tester", "/tester"],
+    ["/explore", "tester", "/explore"],
+    ["/explore/missions", "tester", "/explore/missions"],
+    ["/explore/project/p1", "tester", "/explore"],
+    // Outside the nav's tree: follows the page's breadcrumb, Explore › … .
+    ["/mission/m1", "tester", "/explore"],
+    ["/dashboardx", "builder", null],
+    ["/missionx", "tester", null],
+    // A builder href never lights for a tester, nor the reverse.
+    ["/dashboard", "tester", null],
+    ["/explore", "builder", null],
+  ]
+
+  it.each(ROUTES)("%s (%s) → %s", (pathname, account, expected) => {
+    expect(activeNavHref(pathname, account)).toBe(expected)
+  })
+
+  it.each(ROUTES)("%s (%s) lights at most one link", (pathname, account) => {
+    const lit = NAV[account].links.filter((l) => l.href === activeNavHref(pathname, account))
+    expect(lit.length).toBeLessThanOrEqual(1)
   })
 })

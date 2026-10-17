@@ -35,14 +35,35 @@ export const NAV: Record<AccountType, { heading: string; links: NavLink[] }> = {
   },
 }
 
-// A parent of another destination matches only itself: /dashboard must not
-// light up on /dashboard/missions.
-const EXACT_MATCH = new Set(["/dashboard", "/explore", "/tester"])
-
+/** Segment-wise prefix: /dashboard owns /dashboard/x, never /dashboardx. */
 export function navIsActive(pathname: string, href: string): boolean {
-  return EXACT_MATCH.has(href)
-    ? pathname === href
-    : pathname === href || pathname.startsWith(href + "/")
+  return pathname === href || pathname.startsWith(href + "/")
+}
+
+/*
+ * Routes outside every nav href's URL tree, mapped to the first link of the
+ * page's own breadcrumb, so the nav and the breadcrumb never disagree. Change
+ * one, change the other.
+ */
+const NAV_ALIASES: Record<AccountType, { prefix: string; href: string }[]> = {
+  builder: [],
+  // /mission/[id]: "Explore › project › mission".
+  tester: [{ prefix: "/mission", href: "/explore" }],
+}
+
+/**
+ * The one nav href that owns this pathname, or null: the longest href that is
+ * a segment-wise prefix of it. /dashboard/missions goes to My Missions because
+ * that href is longer than /dashboard; /dashboard/new and everything under a
+ * project fall to My Projects. One rule, so at most one item is ever active —
+ * the exact-match list it replaces switched the parent off on every subpage.
+ */
+export function activeNavHref(pathname: string, account: AccountType): string | null {
+  let best: string | null = null
+  for (const { href } of NAV[account].links) {
+    if (navIsActive(pathname, href) && href.length > (best?.length ?? -1)) best = href
+  }
+  return best ?? NAV_ALIASES[account].find((a) => navIsActive(pathname, a.prefix))?.href ?? null
 }
 
 /**

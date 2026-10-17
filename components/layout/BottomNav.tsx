@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { NAV, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
 
 /**
@@ -22,6 +22,7 @@ import type { AccountType } from "@/lib/access"
  */
 export function BottomNav({ account }: { account: AccountType }) {
   const pathname = usePathname()
+  const current = activeNavHref(pathname, account)
 
   return (
     <nav
@@ -30,7 +31,7 @@ export function BottomNav({ account }: { account: AccountType }) {
     >
       <ul className="grid grid-cols-3">
         {NAV[account].links.map(({ href, short, icon: Icon }) => {
-          const active = navIsActive(pathname, href)
+          const active = href === current
           return (
             <li key={href}>
               <Link
