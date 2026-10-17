@@ -1,7 +1,10 @@
 "use client"
 
-import { useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Menu, X } from "lucide-react"
+
+// The `expanded:` breakpoint. The sheets never render from here up.
+const EXPANDED = "(min-width: 840px)"
 
 const ICON_BUTTON =
   "h-12 w-12 shrink-0 inline-flex items-center justify-center text-ink-muted hover:text-ink hover:bg-ink/[0.06] active:bg-ink/[0.10] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
@@ -51,6 +54,18 @@ export function Sheet({
   const ref = useRef<HTMLDialogElement>(null)
   const [open, setOpen] = useState(false)
   const close = () => ref.current?.close()
+
+  // The wrapper is expanded:hidden, so crossing 840px while open (a tablet
+  // rotating, a window widening) hid the dialog but left it modal: the whole
+  // page inert under something nobody could see. Close it instead.
+  useEffect(() => {
+    const mq = window.matchMedia(EXPANDED)
+    const onChange = () => {
+      if (mq.matches) ref.current?.close()
+    }
+    mq.addEventListener("change", onChange)
+    return () => mq.removeEventListener("change", onChange)
+  }, [])
   const shape = trigger.kind === "avatar" ? "rounded-full" : "rounded-[8px]"
 
   return (
