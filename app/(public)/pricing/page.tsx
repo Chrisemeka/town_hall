@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
-import { Check, Plus } from "lucide-react"
+import { Check } from "lucide-react"
+import { PlusMorphIcon } from "@/components/ui/PlusMorphIcon"
 import {
   BTN_SECONDARY,
   H1,
@@ -307,17 +308,15 @@ export default function PricingPage() {
           Questions and answers
         </h2>
         {/* ponytail: native <details> — keyboard and screen reader support
-            for free, no client JS. */}
+            for free, no client JS. The motion is CSS (.th-accordion,
+            .th-plus); `name` makes them one group, so opening a question
+            closes the last, as GitHub's does. */}
         <div className="border-t border-line">
           {FAQ.map(({ q, a }) => (
-            <details key={q} className="group border-b border-line">
+            <details key={q} name="pricing-faq" className="th-accordion group border-b border-line">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 medium:py-6 font-mono font-medium text-[16px] text-ink rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink [&::-webkit-details-marker]:hidden">
                 {q}
-                <Plus
-                  aria-hidden
-                  size={16}
-                  className="shrink-0 text-ink-muted transition-transform duration-150 motion-reduce:transition-none group-open:rotate-45"
-                />
+                <PlusMorphIcon className="shrink-0 text-ink-muted" />
               </summary>
               <p className={`${P} pb-6 max-w-2xl`}>{a}</p>
             </details>

@@ -66,7 +66,7 @@ export function DocLayout({ slug, children }: { slug: DocSlug; children?: React.
       </aside>
 
       <div className="min-w-0 w-full max-w-[720px] mx-auto lg:mx-0">
-        <details className="lg:hidden mb-10 medium:mb-12 rounded-[12px] border border-line bg-surface-raised group">
+        <details className="th-accordion lg:hidden mb-10 medium:mb-12 rounded-[12px] border border-line bg-surface-raised group">
           <summary
             className={`flex items-center justify-between min-h-12 px-4 cursor-pointer list-none rounded-[12px] font-mono font-medium text-[14px] text-ink [&::-webkit-details-marker]:hidden ${FOCUS}`}
           >
