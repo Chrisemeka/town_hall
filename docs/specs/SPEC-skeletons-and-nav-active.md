@@ -1,6 +1,9 @@
 # SPEC: Per-Page Skeletons + Nav Highlight on Subpages
 
-**Status:** Draft, awaiting approval
+**Status:** Implemented 2026-10-17. The skeletons were checked rendered on
+their own at 360/768/1280, not against the signed-in pages; the guard test
+was proved by deleting `mission/[id]/loading.tsx`, which it named, then
+restoring it
 **Branch:** `fix/skeletons-nav-active`
 **Base:** `main`
 **Source:** `docs/TWNHALL_SKELETONS_NAV_PROMPT.md`
