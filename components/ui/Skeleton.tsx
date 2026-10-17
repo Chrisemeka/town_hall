@@ -26,7 +26,7 @@ export function Bar({ className }: { className: string }) {
 
 /**
  * The project card shared by /dashboard and /explore — both render the same
- * shape into the same `grid-cols-1 md:grid-cols-2 gap-6`.
+ * shape into the same `grid-cols-1 lg:grid-cols-2 gap-6`.
  */
 export function ProjectCardSkeleton() {
   return (
