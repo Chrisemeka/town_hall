@@ -6,7 +6,7 @@ import { Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
-import { NAV, activeNavHref, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref, navCurrent, navIsActive } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
 
 function NavItem({
@@ -14,6 +14,7 @@ function NavItem({
   name,
   icon: Icon,
   isActive,
+  current,
   onClick,
   className,
 }: {
@@ -21,12 +22,15 @@ function NavItem({
   name: string
   icon: React.ElementType
   isActive: boolean
+  /** aria-current, so the active state is never colour alone (Design.md §10). */
+  current?: "page" | "true"
   onClick?: () => void
   className?: string
 }) {
   return (
     <Link
       href={href}
+      aria-current={isActive ? current : undefined}
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 h-10 px-3 rounded-[8px] font-mono text-[14px] transition-colors duration-150",
@@ -75,6 +79,7 @@ export function AccountActions({
         name="Settings"
         icon={Settings}
         isActive={navIsActive(pathname, "/settings")}
+        current={navCurrent(pathname, "/settings")}
         onClick={onNavigate}
         className={rowClassName}
       />
@@ -111,7 +116,7 @@ export function Sidebar({ account = "builder" }: { account?: AccountType }) {
           </p>
           <div className="flex flex-col gap-0.5">
             {NAV[account].links.map((link) => (
-              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={link.href === current} />
+              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={link.href === current} current={navCurrent(pathname, link.href)} />
             ))}
           </div>
         </div>

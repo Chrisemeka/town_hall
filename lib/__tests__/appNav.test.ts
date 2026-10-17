@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { NAV, activeNavHref, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref, navCurrent, navIsActive } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
 
 describe("NAV", () => {
@@ -64,5 +64,13 @@ describe("activeNavHref", () => {
   it.each(ROUTES)("%s (%s) lights at most one link", (pathname, account) => {
     const lit = NAV[account].links.filter((l) => l.href === activeNavHref(pathname, account))
     expect(lit.length).toBeLessThanOrEqual(1)
+  })
+})
+
+describe("navCurrent", () => {
+  it("is page on the destination and true on a page it owns", () => {
+    expect(navCurrent("/dashboard", "/dashboard")).toBe("page")
+    expect(navCurrent("/dashboard/new", "/dashboard")).toBe("true")
+    expect(navCurrent("/mission/m1", "/explore")).toBe("true")
   })
 })

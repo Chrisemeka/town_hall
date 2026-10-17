@@ -67,6 +67,15 @@ export function activeNavHref(pathname: string, account: AccountType): string | 
 }
 
 /**
+ * aria-current for an active nav link: "page" on the destination itself,
+ * "true" on a page it owns — /dashboard/new is My Projects' territory, not
+ * the My Projects page, and a screen reader should hear the difference.
+ */
+export function navCurrent(pathname: string, href: string): "page" | "true" {
+  return pathname === href ? "page" : "true"
+}
+
+/**
  * Form routes carry their own primary action; the top bar's "+ New Project"
  * steps aside.
  * On /dashboard/new it linked to the page you were on, and on every form it
