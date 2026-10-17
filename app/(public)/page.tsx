@@ -75,7 +75,9 @@ export default function LandingPage() {
       {/* ── Hero ─────────────────────────────────────────────────────────
           Centred copy over the product window, GitHub-style. */}
       <section className="w-full overflow-x-clip">
-        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pt-10 pb-12 medium:pt-16 medium:pb-20 lg:pt-24 lg:pb-28">
+        <div className="max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pb-12 medium:pb-20 lg:pb-28">
+          {/* The copy's region: the space above the window. */}
+          <div className="pt-10 medium:pt-16 lg:pt-24">
           <motion.div
             {...rise}
             variants={stagger}
@@ -113,6 +115,7 @@ export default function LandingPage() {
               </Link>
             </motion.div>
           </motion.div>
+          </div>
 
           <motion.div {...rise} variants={up} className="mt-12 medium:mt-16 lg:mt-20">
             <HeroDemo />
