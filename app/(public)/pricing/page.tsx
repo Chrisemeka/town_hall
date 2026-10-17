@@ -12,6 +12,7 @@ import {
   P_SMALL,
 } from "@/components/public/prose"
 import { PLANS, SIGNUP_GRANT, type Plan } from "@/lib/plans"
+import { Reveal } from "@/components/public/Reveal"
 
 export const metadata: Metadata = {
   title: "Pricing — Twnhall",
@@ -150,7 +151,8 @@ function PlanCard({
   // "$19/month · ₦10–12k" → "$19"; the note beside it carries the rest.
   const amount = plan.price.split(/[/ ]/)[0]
   return (
-    <div className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
+    // Pro is the second card, so it lands a beat after Community.
+    <Reveal step={featured ? 1 : 0} className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
       <h3 className={H3}>{plan.name}</h3>
       {/* The min height only aligns two cards side by side, from 840px. */}
       <p className={`${P_SMALL} mt-2 expanded:min-h-[56px]`}>{plan.summary}</p>
@@ -173,7 +175,7 @@ function PlanCard({
           ))}
         </ul>
       </div>
-    </div>
+    </Reveal>
   )
 }
 
@@ -182,14 +184,18 @@ export default function PricingPage() {
     <div className="flex-1 w-full max-w-[1200px] mx-auto px-4 medium:px-6 lg:px-8 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-24">
       {/* ─── Hero ──────────────────────────────────────────────────────── */}
       <div className="flex flex-col items-center gap-4 text-center mb-10 medium:mb-16">
-        <h1 className={H1}>
-          Feedback you earn, or feedback you buy.
-        </h1>
+        <Reveal>
+          <h1 className={H1}>
+            Feedback you earn, or feedback you buy.
+          </h1>
+        </Reveal>
+        <Reveal step={1}>
         <p className={`${P} max-w-2xl`}>
           Test someone else&apos;s product and you earn a report on your own.
           Community is free and always will be. Pro is for builders with no one
           on the team to spare for testing.
         </p>
+        </Reveal>
       </div>
 
       {/* ─── The two tiers ─────────────────────────────────────────────── */}
@@ -219,13 +225,15 @@ export default function PricingPage() {
             }
           />
         </div>
-        <p className={`${META} mt-6 text-center`}>
-          There is no checkout. Pro starts as a conversation.
-        </p>
+        <Reveal step={2}>
+          <p className={`${META} mt-6 text-center`}>
+            There is no checkout. Pro starts as a conversation.
+          </p>
+        </Reveal>
       </section>
 
       {/* ─── The comparison ────────────────────────────────────────────── */}
-      <section aria-labelledby="compare-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
+      <Reveal as="section" aria-labelledby="compare-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="compare-heading" className={`${H2} mb-8`}>
           Compare plans
         </h2>
@@ -291,10 +299,10 @@ export default function PricingPage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </Reveal>
 
       {/* ─── FAQ ───────────────────────────────────────────────────────── */}
-      <section aria-labelledby="faq-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
+      <Reveal as="section" aria-labelledby="faq-heading" className="mb-16 medium:mb-24 max-w-[880px] mx-auto">
         <h2 id="faq-heading" className={`${H2} mb-8`}>
           Questions and answers
         </h2>
@@ -315,10 +323,11 @@ export default function PricingPage() {
             </details>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* ─── Close ─────────────────────────────────────────────────────── */}
-      <section
+      <Reveal
+        as="section"
         aria-labelledby="close-heading"
         className="flex flex-col items-center gap-6 rounded-[12px] border border-line bg-surface-raised px-5 py-10 medium:px-6 medium:py-16 text-center max-w-[880px] mx-auto"
       >
@@ -337,7 +346,7 @@ export default function PricingPage() {
             Read the builder guide
           </Link>
         </div>
-      </section>
+      </Reveal>
     </div>
   )
 }
