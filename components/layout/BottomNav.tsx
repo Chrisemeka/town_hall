@@ -16,6 +16,9 @@ import type { AccountType } from "@/lib/access"
  * viewport and a fixed bar rides up over the field being typed into. The
  * shell is `group/shell`. A <select> is left out — its picker overlays the
  * page and opens no keyboard — and so are checkboxes and radios.
+ *
+ * It also steps aside for the audit log's progress bar (ReportProgressBar),
+ * which takes its place while it shows.
  */
 export function BottomNav({ account }: { account: AccountType }) {
   const pathname = usePathname()
@@ -23,7 +26,7 @@ export function BottomNav({ account }: { account: AccountType }) {
   return (
     <nav
       aria-label="Main"
-      className="expanded:hidden group-has-[:is(input:not([type=checkbox]):not([type=radio]),textarea):focus]/shell:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-line pb-[env(safe-area-inset-bottom)]"
+      className="expanded:hidden group-has-[[data-report-bar]]/shell:hidden group-has-[:is(input:not([type=checkbox]):not([type=radio]),textarea):focus]/shell:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-line pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-3">
         {NAV[account].links.map(({ href, short, icon: Icon }) => {

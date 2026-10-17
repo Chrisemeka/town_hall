@@ -16,6 +16,7 @@ export function MissionBrief({
   category,
   deviceTarget,
   steps,
+  headingLevel = 1,
 }: {
   title: string
   project: { name: string; app_url: string | null; description: string | null } | null
@@ -24,29 +25,33 @@ export function MissionBrief({
   deviceTarget: string | null
   /** Raw — TestCaseView parses it. */
   steps: unknown
+  /** 1 on the mission page; 2 inside the builder's preview, whose dialog has
+   *  its own heading and sits on a page that already has an h1. */
+  headingLevel?: 1 | 2
 }) {
+  const Title = headingLevel === 1 ? "h1" : "h2"
   return (
     <>
       {/* Mission title */}
-      <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-6">
+      <Title className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 lg:text-[36px] lg:leading-[44px] tracking-[-0.5px] text-ink [overflow-wrap:anywhere] mb-4 medium:mb-6">
         {title}
-      </h2>
+      </Title>
 
       {/* Project context card */}
       <div
         id="tour-mission-project"
-        className="mb-8 border border-line"
-        style={{ background: "var(--color-surface-raised)", borderRadius: 12, padding: "20px 24px" }}
+        className="mb-8 border border-line bg-surface-raised rounded-[12px] px-4 py-4 medium:px-6 medium:py-5"
       >
-        <h5 className="font-syne font-bold text-[18px] text-ink mb-1">
+        <h2 className="font-syne font-bold text-[18px] text-ink mb-1">
           {project?.name}
-        </h5>
+        </h2>
         {project?.app_url && (
           <a
             href={project.app_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[13px] text-info-ink hover:underline block mb-2 truncate"
+            // 48px below lg without moving the layout; still one truncated line.
+            className="block truncate max-w-full leading-[48px] -my-3 lg:leading-[inherit] lg:my-0 font-mono text-[14px] lg:text-[13px] text-info-ink hover:underline mb-2"
           >
             {project.app_url.replace(/^https?:\/\//, "")}
           </a>
@@ -64,20 +69,10 @@ export function MissionBrief({
             block, not a screen with nothing on it (Design.md §8). */}
         {notes && (
           <div className="mb-6">
-            <p
-              className="font-mono text-[11px] font-medium uppercase text-accent-ink mb-3"
-              style={{ letterSpacing: "1px" }}
-            >
+            <p className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mb-3">
               Notes from the Builder
             </p>
-            <div
-              style={{
-                background: "rgba(232,255,71,0.05)",
-                borderLeft: "3px solid var(--color-accent-ink)",
-                borderRadius: "0 8px 8px 0",
-                padding: "16px 20px",
-              }}
-            >
+            <div className="bg-voltage/5 border-l-[3px] border-accent-ink rounded-r-[8px] px-4 py-4 medium:px-5">
               <p className="font-mono text-[16px] text-ink leading-6 whitespace-pre-wrap">
                 {notes}
               </p>

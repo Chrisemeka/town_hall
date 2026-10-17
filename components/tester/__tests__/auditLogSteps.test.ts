@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
+import { createElement } from "react"
+import { renderToStaticMarkup } from "react-dom/server"
 import {
+  AuditLogSteps,
   draftIsComplete,
   entryFieldName,
   firstIncompleteEntry,
@@ -144,5 +147,22 @@ describe("entryFieldName", () => {
   it("matches the name the step inputs render", () => {
     expect(entryFieldName(3, "actual_result")).toBe("entries.3.actual_result")
     expect(entryFieldName(0, "status")).toBe("entries.0.status")
+  })
+})
+
+describe("the status control", () => {
+  const render = (status: DraftEntry["status"]) =>
+    renderToStaticMarkup(createElement(AuditLogSteps, { entries: [entry({ status })], onChange: () => {} }))
+
+  it("is a radio group of three, the first answering for the step", () => {
+    const html = render("")
+    expect(html).toContain('role="radiogroup"')
+    expect(html.match(/role="radio"/g)).toHaveLength(3)
+    expect(html).toMatch(/id="entries\.0\.status"[^>]*role="radio"/)
+    expect(html).not.toContain('aria-checked="true"')
+  })
+
+  it("checks exactly one radio once a status is chosen", () => {
+    expect(render("fail").match(/aria-checked="true"/g)).toHaveLength(1)
   })
 })
