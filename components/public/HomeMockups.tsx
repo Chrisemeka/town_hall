@@ -28,6 +28,7 @@ import { PassRate, StatusPill, type SubmissionEntry } from "@/components/submiss
 import { Badge } from "@/components/ui/Badge"
 import { Logo } from "@/components/Logo"
 import { swipeStep } from "@/lib/swipe"
+import { Reveal } from "@/components/public/Reveal"
 import { SEGMENT, SEGMENTS } from "@/components/ui/segmented"
 
 /*
@@ -974,7 +975,9 @@ export function Features() {
   return (
     <div className="flex flex-col gap-12 medium:gap-16 lg:gap-24">
       {FEATURES.map(({ title, body, link, Mock }, i) => (
-        <article
+        // Each card, window and all, reveals as it scrolls in (Reveal).
+        <Reveal
+          as="article"
           key={title}
           // Below 600px the card and the stage drop their frames: the
           // Browser window is the one border around each mock.
@@ -993,7 +996,7 @@ export function Features() {
           <div className={`lg:col-span-8 th-stage rounded-[12px] medium:border border-line medium:p-8 lg:p-12 ${i % 2 ? "lg:order-1" : ""}`}>
             <Mock />
           </div>
-        </article>
+        </Reveal>
       ))}
     </div>
   )
