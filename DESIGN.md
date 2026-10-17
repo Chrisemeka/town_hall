@@ -979,7 +979,8 @@ Empty state layout: centered icon 48×48px (Ash, `margin-bottom: 16px`) + H4 (Sy
 
 | Interaction | Animation | Duration | Easing |
 |-------------|-----------|----------|--------|
-| Landing page load | Staggered fade-up (hero elements) | 400ms, 100ms stagger | `ease-out` |
+| Page reveal (every public page) | Fade + 8px rise, the first time each block enters view: on load above the fold, on scroll below. Siblings staggered. `components/public/Reveal.tsx` | 600ms, 100ms stagger | `ease-standard` |
+| Homepage hero window load | Fade only, after the copy (its position belongs to the hero scroll) | 600ms, 300ms delay | `ease-standard` |
 | Button hover | Background/color transition | 150ms | `ease` |
 | Card hover | Border shifts to Voltage at 30% opacity | 150ms | `ease` |
 | Filter pill switch | Background fill | 200ms | `ease-in-out` |
