@@ -991,7 +991,10 @@ Empty state layout: centered icon 48×48px (Ash, `margin-bottom: 16px`) + H4 (Sy
 | Modal open | Fade + scale 96% → 100% | 200ms | `ease-out` |
 | Toast notification | Slide in from bottom-right | 250ms | `spring` |
 | Sidebar nav hover | Background fill | 120ms | `ease` |
-| Mobile sheet open | Slide from trailing edge | 300ms | `ease-standard` |
+| Mobile sheet open | Slide from trailing edge + scrim fade in | 300ms | `ease-standard` |
+| Mobile sheet close | Slide to trailing edge + scrim fade out | 200ms | `ease-standard-accelerate` |
+| Sheet trigger → close | Held in place over the trigger while the sheet slides under it. Hamburger: bars close onto one line (140ms), then it turns into the X (160ms); closing rotates flat (100ms), then splits (100ms). Avatar: hands off to the X | 300ms in, 200ms out | `ease-standard` (hamburger) / as the sheet (avatar) |
+| Sheet, reduced motion | Sheet, scrim and icon fade only | 150ms | `ease-out` |
 
 No infinite animations. No looping effects. Motion nudges attention once, then stops.
 
