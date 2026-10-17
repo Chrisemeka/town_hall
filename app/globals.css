@@ -362,3 +362,10 @@
     .th-sheet[open] :is(.th-morph-x, .th-handoff-x)  { opacity: 0; }
   }
 }
+
+/* A block the page reveal (components/public/Reveal.tsx) has not reached yet
+   is still at opacity 0 — and printing a legal page is exactly when someone
+   has not scrolled it. Print shows everything. */
+@media print {
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+}

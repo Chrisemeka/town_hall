@@ -13,6 +13,7 @@ import {
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { Features, HeroDemo } from "@/components/public/HomeMockups";
 import { heroProgress } from "@/lib/heroScroll";
+import { REVEAL } from "@/components/public/Reveal";
 
 /*
  * The homepage shows the product rather than describing it: every window on
@@ -27,16 +28,17 @@ import { heroProgress } from "@/lib/heroScroll";
  * pricing page's honesty rule applies here too. Add them when they exist.
  */
 
-// Entrance only, and inside the brief's budget: 16px of travel, 300ms. The
+// Entrance only: the public pages' one reveal (components/public/Reveal.tsx),
+// as variants so the hero and the loop can stagger their children. The
 // annotation keeps `ease` from widening to `string`, which is what the old
 // page reached for `as any` to silence.
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  hidden: REVEAL.hidden,
+  visible: { ...REVEAL.visible, transition: REVEAL.transition },
 };
 const stagger: Variants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
+  visible: { transition: { staggerChildren: REVEAL.stagger } },
 };
 
 // 48px tall below lg (SPEC-m3-foundations §3.4); desktop keeps its text height.
@@ -191,10 +193,21 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Above the copy and opaque, so it covers the text rather than
-              mixing with it. No entrance of its own: the scroll is it. */}
-          <div className="relative z-10 mt-12 medium:mt-16 lg:mt-20 hero-scroll:mt-0 medium:hero-scroll:mt-0 lg:hero-scroll:mt-0">
+              mixing with it. Its load entrance is opacity only, after the
+              copy's three: the scroll owns where it sits, so a rise here
+              would move the peek. */}
+          <motion.div
+            {...(still
+              ? {}
+              : {
+                  initial: { opacity: 0 },
+                  animate: { opacity: 1 },
+                  transition: { ...REVEAL.transition, delay: 3 * REVEAL.stagger },
+                })}
+            className="relative z-10 mt-12 medium:mt-16 lg:mt-20 hero-scroll:mt-0 medium:hero-scroll:mt-0 lg:hero-scroll:mt-0"
+          >
             <HeroDemo glow={scrolling ? glowOpacity : undefined} />
-          </div>
+          </motion.div>
         </div>
       </section>
 

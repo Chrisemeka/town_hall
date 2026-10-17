@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { DocLayout } from "@/components/public/DocNav"
+import { Reveal } from "@/components/public/Reveal"
 import { docSection } from "@/lib/docNav"
 import {
   H3,
@@ -258,7 +259,7 @@ export default function BuilderGuidePage() {
         </Section>
       </div>
 
-      <div className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
+      <Reveal className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
           Testing someone else&apos;s project is how you earn reports on your
           own — and the tester guide is worth reading even if you never write a
@@ -268,7 +269,7 @@ export default function BuilderGuidePage() {
         <Link href="/guides/tester" className={`${LINK_INLINE} min-h-12 inline-flex items-center self-start lg:min-h-0`}>
           Read the tester guide →
         </Link>
-      </div>
+      </Reveal>
     </DocLayout>
   )
 }
