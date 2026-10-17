@@ -55,6 +55,7 @@ const REVAMPED = [
   "components/layout/AccountSheet.tsx",
   "components/ui/Sheet.tsx",
   "components/ui/MenuMorphIcon.tsx",
+  "components/ui/PlusMorphIcon.tsx",
   "components/GlobalSearch.tsx",
   "components/ui/Button.tsx",
   "components/MissionListPaged.tsx",
