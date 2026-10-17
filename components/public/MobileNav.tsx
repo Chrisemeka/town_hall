@@ -35,6 +35,7 @@ export function MobileNav({
       closeLabel="Close menu"
       trigger={{ kind: "menu" }}
       width="w-[min(22.5rem,85vw)]"
+      bandClassName="h-16"
     >
       {(close) => (
         <>

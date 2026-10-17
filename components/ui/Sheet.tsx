@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { Menu, X } from "lucide-react"
+import { closeButtonPosition } from "@/lib/sheet"
 
 // The `expanded:` breakpoint. The sheets never render from here up.
 const EXPANDED = "(min-width: 840px)"
@@ -19,6 +20,21 @@ export type SheetTrigger =
   | { kind: "menu" }
   | { kind: "avatar"; node: ReactNode; title?: string }
 
+// Measured, not hard-coded: the public bar is 64px and sticky (static below
+// 480px of height), the app bar 56px and fixed, and both insets change at
+// 600px. Runs right after showModal(), in the same task, so nothing paints in
+// between; before it the dialog is display:none and has no width to read.
+function placeClose(dialog: HTMLDialogElement, trigger: HTMLElement, band: HTMLElement) {
+  const { top, right } = closeButtonPosition(
+    trigger.getBoundingClientRect(),
+    document.documentElement.clientWidth,
+    dialog.offsetWidth,
+    band.offsetHeight,
+  )
+  dialog.style.setProperty("--th-x-top", `${top}px`)
+  dialog.style.setProperty("--th-x-right", `${right}px`)
+}
+
 /**
  * The sheet below 840px: the public MobileNav and the app's AccountSheet.
  *
@@ -28,6 +44,9 @@ export type SheetTrigger =
  * the trigger on close — for no code. `open` state exists only to drive
  * aria-expanded on the trigger; the dialog's own `close` event keeps it honest
  * when Esc or the backdrop closes it without us.
+ *
+ * The close button covers the trigger exactly and comes first in the DOM, so
+ * showModal() puts focus on the spot the person just pressed.
  */
 export function Sheet({
   id,
@@ -36,6 +55,7 @@ export function Sheet({
   closeLabel,
   trigger,
   width,
+  bandClassName,
   band,
   children,
 }: {
@@ -47,13 +67,18 @@ export function Sheet({
   trigger: SheetTrigger
   /** A width utility, e.g. `w-[min(22.5rem,85vw)]`. */
   width: string
-  /** Content beside the close button in the sheet's top band. */
+  /** The top band — the bar's height, so the X centres in it as the trigger does in the bar. */
+  bandClassName: string
+  /** Content in the top band; it must leave room for the X on the right. */
   band?: ReactNode
   children: (close: () => void) => ReactNode
 }) {
   const ref = useRef<HTMLDialogElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const bandRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const close = () => ref.current?.close()
+  const shape = trigger.kind === "avatar" ? "rounded-full" : "rounded-[8px]"
 
   // The wrapper is expanded:hidden, so crossing 840px while open (a tablet
   // rotating, a window widening) hid the dialog but left it modal: the whole
@@ -66,19 +91,33 @@ export function Sheet({
     mq.addEventListener("change", onChange)
     return () => mq.removeEventListener("change", onChange)
   }, [])
-  const shape = trigger.kind === "avatar" ? "rounded-full" : "rounded-[8px]"
+
+  useEffect(() => {
+    if (!open) return
+    const onResize = () => {
+      if (ref.current && triggerRef.current && bandRef.current) {
+        placeClose(ref.current, triggerRef.current, bandRef.current)
+      }
+    }
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [open])
 
   return (
     <div className="expanded:hidden">
       <button
+        ref={triggerRef}
         type="button"
         aria-label={openLabel}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={id}
         title={trigger.kind === "avatar" ? trigger.title : undefined}
-        onClick={() => {
-          ref.current?.showModal()
+        onClick={(e) => {
+          const dialog = ref.current
+          if (!dialog || !bandRef.current) return
+          dialog.showModal()
+          placeClose(dialog, e.currentTarget, bandRef.current)
           setOpen(true)
         }}
         className={`${ICON_BUTTON} ${shape}`}
@@ -100,14 +139,21 @@ export function Sheet({
         // right as a full-height sheet. backdrop:bg-* styles ::backdrop.
         className={`${SHEET} ${width}`}
       >
-        <div className="flex h-full flex-col p-4">
-          <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1">{band}</div>
-            <button type="button" aria-label={closeLabel} onClick={close} className={`${ICON_BUTTON} ${shape}`}>
-              <X size={20} aria-hidden="true" />
-            </button>
+        <button
+          type="button"
+          aria-label={closeLabel}
+          autoFocus
+          onClick={close}
+          className={`${ICON_BUTTON} ${shape} absolute z-10 top-(--th-x-top) right-(--th-x-right)`}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+
+        <div className="flex h-full flex-col">
+          <div ref={bandRef} className={`${bandClassName} flex shrink-0 items-center`}>
+            {band}
           </div>
-          {children(close)}
+          <div className="px-4 pb-4">{children(close)}</div>
         </div>
       </dialog>
     </div>

@@ -25,8 +25,10 @@ export function AccountSheet({
       closeLabel="Close account menu"
       trigger={{ kind: "avatar", node: avatar, title: displayName ?? undefined }}
       width="w-[min(20rem,85vw)]"
+      bandClassName="h-14"
       band={
-        <div className="flex items-center gap-3 pl-2">
+        // pr clears the X at the bar's inset: 16 + 48 + 16, then 24 + 48 + 24 from 600px.
+        <div className="flex w-full min-w-0 items-center gap-3 pl-6 pr-20 medium:pr-24">
           {avatar}
           <div className="min-w-0 flex-1">
             <p className="font-mono text-[14px] text-ink truncate">{displayName ?? "Your account"}</p>
