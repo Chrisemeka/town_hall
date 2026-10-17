@@ -1,5 +1,10 @@
 # Twnhall — Shareable Report (PDF): Implementation Prompt for Claude Code
 
+> **SUPERSEDED** by `docs/TWNHALL_PDF_REPORT_PROMPT.md` and
+> `docs/specs/SPEC-pdf-report.md`. The requirements changed: a real
+> downloadable file, free to every builder for now, one document rather than
+> two variants. Kept for history only — do not implement this one.
+
 **Paste this whole file into Claude Code at the root of the `townhall` repo.**
 
 ---

@@ -38,6 +38,10 @@ const BUILDER_FACING = [
   ...walk(join("app", "(developer)")),
   ...walk("components").filter((f) => !isAdmin(f)),
   ...walk(join("app", "api", "export")),
+  // The exports' shared read and the PDF report's content — their output is
+  // a file a builder downloads and can forward.
+  join("lib", "exportDb.ts"),
+  join("lib", "report.ts"),
   ...walk("emails"),
 ]
 

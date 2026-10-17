@@ -31,6 +31,7 @@ components/           React components
   missions/           TestCaseEditor (authoring), TestCaseView (display),
                       MissionBrief (the tester page's top), MissionPreview
   submissions/        SubmissionBody — the one place audit-log vs legacy branches
+  report/             The PDF report's own react-pdf tree and bundled fonts
   tester/             AuditLogForm and the tester's own surfaces
 lib/
   auth.ts             requireAccount(), requireAdmin(), requireProjectOwner()
@@ -48,6 +49,9 @@ lib/
   docNav.ts           The four long documents' sections — headings and nav from one list
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
+  exportDb.ts         loadFeedback() — the one owner-scoped read behind both exports
+  report.ts           The PDF report's content — agreement, grouping, caps (pure)
+  reportImages.ts     Screenshot fetches for the PDF — own bucket only, never throws
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
@@ -317,6 +321,35 @@ never sent the builder's `owner_id`.
   control in `AuditLogForm`.
 - **Copy says "we don't share your name with builders", never "anonymous".**
   The first is true; the second is a guarantee screenshots break.
+
+**The PDF report is free, with the gate marked, and has its own component
+tree.** `GET /api/export/report` (`?project=P[&mission=M][&screenshots=0]`)
+renders `components/report/ReportDocument.tsx` with `@react-pdf/renderer`.
+No plan check: a `ponytail:` comment in the route marks where it goes. Do not
+put "Shareable formatted report" back on Pro in `lib/plans.ts` until that gate
+exists — listing a free feature as Pro is its own kind of false.
+
+- **Its own tree, deliberately.** It reuses no web component. The preview rule
+  below is about mirroring the tester's page; this is a report with its own
+  layout. It shares logic — `lib/report.ts` (pure: agreement counts, the
+  by-step grouping, the caps), `testerNumbers()`, `entryStatusCopy()` — and no
+  markup. The document renders the model and computes nothing.
+- **Agreement is the headline, detail is by step.** Page one lists steps by
+  how many testers reported a problem ("4 of 5 testers: Unclear"); the detail
+  groups every answer to a step together. Headings come from the reports'
+  `step_action`/`step_expected` snapshots, never `missions.test_steps`.
+- **Capped before any work:** 60 reports and 40 screenshots per document
+  (`REPORT_CAP`, `SCREENSHOT_CAP`), refused with a 413 message naming the way
+  out, never a cut-short file. Its own rate limit, `export:pdf:account`, 5 an
+  hour — a render is far heavier than a CSV.
+- **Screenshots are fetched only from our own public `screenshots` bucket**
+  (`isOwnScreenshot()`), PNG/JPEG by magic bytes; anything else is a caption.
+- **react-pdf traps, each found the hard way:** `break` on a View taller than
+  a page loops forever, so every section is its own `<Page>`; any `lineHeight`
+  (on the Page, inherited, or in points) breaks layout or drops the page
+  number; a render-prop `Text` with an array `style` renders nothing. Fonts
+  load off disk and ship through `outputFileTracingIncludes` in
+  `next.config.ts`.
 
 **The mission preview is the tester's page, never a copy of it.** The
 Preview button beside Publish (`components/missions/MissionPreview.tsx`)
@@ -689,6 +722,11 @@ Canonical reference: `Test.md`. Every feature ships with:
   - **XLSX:** every string is an inline-string cell, which Excel never
     evaluates, so it is *not* neutralised — there the apostrophe would show as
     a literal character. Never write a tester's text as a formula cell.
+  - **PDF:** `app/api/export/report`, same scope and same rule — "Tester N"
+    through `testerLabel()`, nothing else, on every exported surface. A PDF
+    cannot be unshared. Both routes read through `loadFeedback()` in
+    `lib/exportDb.ts`, which never selects `tester_id`; add a column there,
+    not a second query.
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
   the other tier includes, and that is all: **no usage meter, no "3 of 5
