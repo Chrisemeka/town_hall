@@ -138,6 +138,16 @@ export default function LandingPage() {
           <motion.div
             ref={regionRef}
             style={scrolling ? { opacity: copyOpacity, scale: copyScale } : undefined}
+            // WCAG 2.4.11: a sticky element is always "in view", so tabbing to
+            // a link under the window scrolls nothing and the focus ring is
+            // drawn beneath an opaque window. Bring the copy back instead.
+            // Keyboard only (:focus-visible), so a click on "See how it works"
+            // never fights its own jump to #tour.
+            onFocus={(e) => {
+              if (scrolling && progress.get() > 0 && e.target.matches(":focus-visible")) {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
+            }}
             className="flex flex-col justify-center pt-10 medium:pt-16 lg:pt-24 hero-scroll:sticky hero-scroll:top-16 hero-scroll:py-6 medium:hero-scroll:py-6 lg:hero-scroll:py-6 hero-scroll:min-h-[calc(100svh-4rem-96px)] medium:hero-scroll:min-h-[calc(100svh-4rem-128px)] lg:hero-scroll:min-h-[calc(100svh-4rem-160px)]"
           >
           <motion.div
