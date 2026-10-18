@@ -134,9 +134,10 @@ describe("screenshots", () => {
     expect(isOwnScreenshot(`${BASE}/storage/v1/object/public/screenshots/x.png`, undefined)).toBe(false)
   })
 
-  it("knows PNG and JPEG by their bytes, and nothing else", () => {
+  it("knows PNG, JPEG and WebP by their bytes, and nothing else", () => {
     expect(imageFormat(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBe("png")
     expect(imageFormat(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]))).toBe("jpg")
-    expect(imageFormat(new TextEncoder().encode("RIFF....WEBP"))).toBeNull()
+    expect(imageFormat(new TextEncoder().encode("RIFF....WEBP"))).toBe("webp")
+    expect(imageFormat(new TextEncoder().encode("GIF89a"))).toBeNull()
   })
 })
