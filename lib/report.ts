@@ -16,6 +16,7 @@
 
 import type { FeedbackEntry, FeedbackRow } from "@/lib/exportDb"
 import { testerLabel, testerNumbers } from "@/lib/testerNumbers"
+import { screenshotList } from "@/lib/utils/screenshots"
 import { STATUS_LABEL, toStatus } from "@/lib/review"
 import {
   deviceTargetLabel,
@@ -226,7 +227,7 @@ function missionSection(rows: FeedbackRow[]): ReportMission {
       comment: text(r.tester_comment),
       legacy: (r.test_result_entries ?? []).length === 0,
       aiSummary: text(r.ai_summary),
-      screenshots: r.screenshot_urls ?? [],
+      screenshots: screenshotList(r),
     })),
   }
 }

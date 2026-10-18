@@ -51,6 +51,7 @@ export function report(
     ai_summary: null,
     ai_sentiment: null,
     screenshot_urls: [],
+    screenshot_url: null,
     missions: DESIGN,
     test_result_entries: entries,
     ...extra,

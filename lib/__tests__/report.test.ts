@@ -125,6 +125,11 @@ describe("the cap", () => {
 })
 
 describe("screenshots", () => {
+  it("reads the legacy column through screenshotList", () => {
+    const old = report("r1", "2026-09-02T10:00:00Z", [entry(0, "pass")], { screenshot_url: "legacy.png" })
+    expect(buildReport([old], true).missions[0].testers[0].screenshots).toEqual(["legacy.png"])
+  })
+
   const BASE = "https://abc.supabase.co"
   it("only fetches our own public screenshots bucket", () => {
     expect(isOwnScreenshot(`${BASE}/storage/v1/object/public/screenshots/u/1.png`, BASE)).toBe(true)

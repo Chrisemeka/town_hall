@@ -6,6 +6,7 @@ import { download, loadFeedback, slug, today } from "@/lib/exportDb"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { buildReport, reportCapMessage } from "@/lib/report"
 import { fetchScreenshots } from "@/lib/reportImages"
+import { screenshotList } from "@/lib/utils/screenshots"
 import { ReportDocument } from "@/components/report/ReportDocument"
 
 /*
@@ -55,7 +56,7 @@ export async function GET(request: Request) {
   // The same answer for "not yours" and "no reports yet" — the CSV's words.
   if (rows.length === 0) return new Response("Nothing to export there yet.", { status: 404 })
 
-  const urls = withScreenshots ? rows.flatMap((r) => r.screenshot_urls ?? []) : []
+  const urls = withScreenshots ? rows.flatMap(screenshotList) : []
   const tooMuch = reportCapMessage(rows.length, urls.length, !!mission)
   if (tooMuch) return new Response(tooMuch, { status: 413 })
 

@@ -4,6 +4,7 @@
 import { requireAccount } from "@/lib/auth"
 import { CSV_BOM, toCsv } from "@/lib/csv"
 import { testerNumbers } from "@/lib/testerNumbers"
+import { screenshotList } from "@/lib/utils/screenshots"
 import { sheetNames, toXlsx, type Cell } from "@/lib/xlsx"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
@@ -76,7 +77,7 @@ function rowsFor(submissions: FeedbackRow[]): Cell[][] {
       s.rating,
       s.tester_comment ?? "",
     ]
-    const screenshots = s.screenshot_urls?.length ?? 0
+    const screenshots = screenshotList(s).length
     const entries = [...(s.test_result_entries ?? [])].sort(
       (a, b) => a.step_index - b.step_index,
     )

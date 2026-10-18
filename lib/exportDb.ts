@@ -35,6 +35,8 @@ export type FeedbackRow = {
   ai_summary: string | null
   ai_sentiment: string | null
   screenshot_urls: string[] | null
+  /** Legacy single screenshot — read both through screenshotList(), never directly. */
+  screenshot_url: string | null
   missions: {
     title: string
     created_at: string
@@ -57,7 +59,7 @@ export async function loadFeedback(
   let query = createAdminClient()
     .from("test_results")
     .select(
-      `id, mission_id, created_at, status, rating, tester_comment, ai_summary, ai_sentiment, screenshot_urls,
+      `id, mission_id, created_at, status, rating, tester_comment, ai_summary, ai_sentiment, screenshot_urls, screenshot_url,
        missions!inner(title, created_at, category, device_target, projects!inner(name, owner_id)),
        test_result_entries(step_id, step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
     )
