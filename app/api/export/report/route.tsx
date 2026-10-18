@@ -4,8 +4,8 @@ import { renderToBuffer } from "@react-pdf/renderer"
 import { requireAccount } from "@/lib/auth"
 import { download, loadFeedback, slug, today } from "@/lib/exportDb"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
-import { buildReport, reportCapMessage } from "@/lib/report"
-import { fetchScreenshots } from "@/lib/reportImages"
+import { buildReport, reportCapMessage, screenshotsMissing } from "@/lib/report"
+import { fetchScreenshots, isMiss } from "@/lib/reportImages"
 import { screenshotList } from "@/lib/utils/screenshots"
 import { ReportDocument } from "@/components/report/ReportDocument"
 
@@ -63,12 +63,26 @@ export async function GET(request: Request) {
   const report = buildReport(rows, !!mission)
   try {
     const images = withScreenshots ? await fetchScreenshots(urls) : null
+    // Once per image left out, with its reason and report. Never the URL: it
+    // is the storage path of a builder's private screenshot.
+    for (const r of images ? rows : []) {
+      for (const url of screenshotList(r)) {
+        const img = images?.get(url)
+        if (isMiss(img)) {
+          console.warn("[export/report] screenshot left out", { reason: img?.failed, detail: img?.detail, report: r.id })
+        }
+      }
+    }
     const pdf = await renderToBuffer(<ReportDocument report={report} images={images} />)
-    return download(
+    const res = download(
       new Uint8Array(pdf),
       "application/pdf",
       `${slug(report.project)}-${mission ? slug(report.scope) : "all-missions"}-report-${today()}.pdf`,
     )
+    // ExportPanel reads this to say so at download, not only on page one.
+    const missing = screenshotsMissing(images)
+    if (missing) res.headers.set("X-Screenshots-Missing", `${missing.failed}/${missing.total}`)
+    return res
   } catch (e) {
     console.error("[export/report] render failed:", e)
     return new Response("Could not build the report.", { status: 500 })

@@ -146,3 +146,31 @@ describe("the file", () => {
     expect(res.headers.get("Content-Disposition")).toMatch(/recipe-book-all-missions-report-/)
   }, 30_000)
 })
+
+describe("screenshots left out", () => {
+  it("are logged once each with reason and report, never the URL, and counted in a header", async () => {
+    const own = "https://x.supabase.co/storage/v1/object/public/screenshots/u/private-shot.png"
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://x.supabase.co")
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    // The stub answers "not an image" for our own bucket; the other is foreign.
+    fakeAdmin([report("r1", "2026-10-02T09:00:00Z", [entry(0, "pass")], { screenshot_urls: [own, "https://evil.example/x.png"] })])
+
+    const res = await GET(req("?project=p1&mission=m-design"))
+    expect(res.status).toBe(200)
+    expect(res.headers.get("X-Screenshots-Missing")).toBe("2/2")
+    const logged = warn.mock.calls.filter(([m]) => m === "[export/report] screenshot left out").map(([, d]) => d)
+    expect(logged).toEqual([
+      { reason: "format", detail: "unrecognised bytes", report: "r1" },
+      { reason: "foreign", detail: undefined, report: "r1" },
+    ])
+    expect(JSON.stringify(warn.mock.calls)).not.toMatch(/private-shot|evil\.example/)
+    warn.mockRestore()
+    vi.unstubAllEnvs()
+  }, 30_000)
+
+  it("sends no header when nothing was left out", async () => {
+    fakeAdmin(FIVE)
+    const res = await GET(req("?project=p1&mission=m-design&screenshots=0"))
+    expect(res.headers.get("X-Screenshots-Missing")).toBeNull()
+  }, 30_000)
+})

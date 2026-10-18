@@ -4,14 +4,14 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs"
 import { ReportDocument } from "@/components/report/ReportDocument"
 import { buildReport } from "@/lib/report"
-import type { ReportImage } from "@/lib/reportImages"
+import type { ScreenshotResult } from "@/lib/reportImages"
 import { entry, FIVE, FLOW, report, STEPS, TESTER } from "@/lib/__tests__/reportFixtures"
 
 // A real PDF, rendered and read back as text. Asserting on the model alone
 // would miss anything the document adds on its own — which is exactly where
 // a name would sneak in.
 
-async function render(rows = FIVE, oneMission = true, images: Map<string, ReportImage | null> | null = null) {
+async function render(rows = FIVE, oneMission = true, images: Map<string, ScreenshotResult> | null = null) {
   const el = createElement(ReportDocument, { report: buildReport(rows, oneMission), images })
   return renderToBuffer(el as unknown as React.ReactElement<DocumentProps>)
 }
@@ -87,7 +87,7 @@ describe("screenshots", () => {
   it("off: no image in the file, and no caption either", async () => {
     const pdf = await render(withShot, true, null)
     expect(pdf.toString("latin1")).not.toContain("/Subtype /Image")
-    expect(await textOf(pdf)).not.toContain("Screenshot couldn")
+    expect(await textOf(pdf)).not.toMatch(/Screenshot|screenshots? couldn/)
   }, 30_000)
 
   it("on: the image is embedded", async () => {
@@ -95,10 +95,24 @@ describe("screenshots", () => {
     expect(pdf.toString("latin1")).toContain("/Subtype /Image")
   }, 30_000)
 
-  it("a broken image is a caption, never a broken box", async () => {
-    const pdf = await render(withShot, true, new Map([[URL_A, null]]))
+  it("a broken image is a caption naming its cause, never a broken box", async () => {
+    const pdf = await render(withShot, true, new Map([[URL_A, { failed: "format" as const }]]))
     expect(pdf.toString("latin1")).not.toContain("/Subtype /Image")
-    expect(await textOf(pdf)).toMatch(/Screenshot couldn.t be included/)
+    expect(await textOf(pdf)).toContain("Screenshot format not supported in PDF.")
+  }, 30_000)
+
+  it("every image failing still renders, with the count on the cover", async () => {
+    const urls = ["a", "b", "c"].map((k) => `https://abc.supabase.co/storage/v1/object/public/screenshots/${k}.webp`)
+    const rows = [report("a", "2026-10-02T09:00:00Z", [entry(0, "pass")], { screenshot_urls: urls })]
+    const images = new Map<string, ScreenshotResult>([
+      [urls[0], { failed: "unavailable", detail: "HTTP 404" }],
+      [urls[1], { failed: "network" }],
+      [urls[2], { failed: "foreign" }],
+    ])
+    const text = await textOf(await render(rows, true, images))
+    expect(text).toContain("3 of 3 screenshots couldn't be included")
+    expect(text.match(/Screenshot could not be loaded\./g)).toHaveLength(2)
+    expect(text).toContain("Screenshot left out — not stored by Twnhall.")
   }, 30_000)
 })
 

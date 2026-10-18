@@ -3,12 +3,28 @@
 // A server that fetches whatever URL a row holds is an SSRF waiting for the
 // day something else writes that row. submitTestResult writes these today, but
 // only our own public screenshots bucket is fetched regardless: anything else
-// becomes the document's caption, the same as a failed fetch.
+// is refused as "foreign" — a reason of its own, never mistaken for a broken
+// image in the log.
 
 import sharp from "sharp"
 import type { ScreenshotFormat } from "@/lib/utils/screenshots"
 
 export type ReportImage = { data: Buffer; format: "png" | "jpg" }
+
+/**
+ * Why a screenshot is not in the document. Each is logged as itself; the
+ * caption (screenshotCaption in lib/report.ts) merges the two transient ones.
+ *   foreign      not in our screenshots bucket — the SSRF guard, never fetched
+ *   unavailable  storage answered non-2xx (404, 403)
+ *   network      timed out or the fetch threw
+ *   format       not PNG, JPEG or a WebP that decodes
+ */
+export type ScreenshotFailure = "foreign" | "unavailable" | "network" | "format"
+/** `detail` is for the log — an HTTP status, an error name. Never the URL. */
+export type ScreenshotMiss = { failed: ScreenshotFailure; detail?: string }
+export type ScreenshotResult = ReportImage | ScreenshotMiss
+
+export const isMiss = (r: ScreenshotResult | undefined): r is ScreenshotMiss => !r || "failed" in r
 
 const TIMEOUT_MS = 5000
 const PARALLEL = 6
@@ -66,20 +82,23 @@ export async function toEmbeddable(data: Buffer): Promise<ReportImage | null> {
   }
 }
 
-async function fetchOne(url: string): Promise<ReportImage | null> {
-  if (!isOwnScreenshot(url, process.env.NEXT_PUBLIC_SUPABASE_URL)) return null
+async function fetchOne(url: string): Promise<ScreenshotResult> {
+  if (!isOwnScreenshot(url, process.env.NEXT_PUBLIC_SUPABASE_URL)) return { failed: "foreign" }
+  let data: Buffer
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) })
-    if (!res.ok) return null
-    return await toEmbeddable(Buffer.from(await res.arrayBuffer()))
-  } catch {
-    return null
+    if (!res.ok) return { failed: "unavailable", detail: `HTTP ${res.status}` }
+    data = Buffer.from(await res.arrayBuffer())
+  } catch (e) {
+    return { failed: "network", detail: e instanceof Error ? e.name : "unknown" }
   }
+  const image = await toEmbeddable(data)
+  return image ?? { failed: "format", detail: imageFormat(data) ? `${imageFormat(data)} did not decode` : "unrecognised bytes" }
 }
 
-/** URL → image, or null for anything that could not be included. Never throws. */
-export async function fetchScreenshots(urls: string[]): Promise<Map<string, ReportImage | null>> {
-  const out = new Map<string, ReportImage | null>()
+/** URL → image, or why it is not one. Never throws. */
+export async function fetchScreenshots(urls: string[]): Promise<Map<string, ScreenshotResult>> {
+  const out = new Map<string, ScreenshotResult>()
   const queue = [...new Set(urls)]
   await Promise.all(
     Array.from({ length: PARALLEL }, async () => {

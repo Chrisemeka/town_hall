@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest"
-import { agreementHeadline, buildReport, REPORT_CAP, reportCapMessage, SCREENSHOT_CAP } from "@/lib/report"
+import {
+  agreementHeadline,
+  buildReport,
+  REPORT_CAP,
+  reportCapMessage,
+  SCREENSHOT_CAP,
+  screenshotCaption,
+  screenshotNote,
+  screenshotsMissing,
+} from "@/lib/report"
+import type { ScreenshotResult } from "@/lib/reportImages"
 import { imageFormat, isOwnScreenshot } from "@/lib/reportImages"
 import { entry, FIVE, FLOW, report, STEPS, TESTER } from "./reportFixtures"
 
@@ -125,6 +135,24 @@ describe("the cap", () => {
 })
 
 describe("screenshots", () => {
+  it("captions say which kind of failure it was", () => {
+    expect(screenshotCaption("format")).toBe("Screenshot format not supported in PDF.")
+    expect(screenshotCaption("unavailable")).toBe("Screenshot could not be loaded.")
+    expect(screenshotCaption("network")).toBe("Screenshot could not be loaded.")
+    expect(screenshotCaption("foreign")).toMatch(/not stored by Twnhall/)
+  })
+
+  it("counts what was left out, and says nothing when nothing was", () => {
+    const ok: ScreenshotResult = { data: Buffer.from([]), format: "png" }
+    const some = new Map<string, ScreenshotResult>([["a", ok], ["b", { failed: "format" }], ["c", ok]])
+    expect(screenshotsMissing(null)).toBeNull()
+    expect(screenshotsMissing(new Map([["a", ok]]))).toBeNull()
+    expect(screenshotNote(new Map([["a", ok]]))).toBeNull()
+    expect(screenshotsMissing(some)).toEqual({ failed: 1, total: 3 })
+    expect(screenshotNote(some)).toBe("1 of 3 screenshots couldn't be included — each is marked where it would appear.")
+    expect(screenshotNote(new Map([["a", { failed: "network" }]]))).toMatch(/^1 of 1 screenshot couldn't/)
+  })
+
   it("reads the legacy column through screenshotList", () => {
     const old = report("r1", "2026-09-02T10:00:00Z", [entry(0, "pass")], { screenshot_url: "legacy.png" })
     expect(buildReport([old], true).missions[0].testers[0].screenshots).toEqual(["legacy.png"])

@@ -17,6 +17,7 @@
 import type { FeedbackEntry, FeedbackRow } from "@/lib/exportDb"
 import { testerLabel, testerNumbers } from "@/lib/testerNumbers"
 import { screenshotList } from "@/lib/utils/screenshots"
+import type { ScreenshotFailure, ScreenshotResult } from "@/lib/reportImages"
 import { STATUS_LABEL, toStatus } from "@/lib/review"
 import {
   deviceTargetLabel,
@@ -126,6 +127,34 @@ export function agreementHeadline(statuses: string[], category: string | null | 
     return `${of} hit a problem — ${fail} ${statusLabel("fail", category)}, ${blocked} ${statusLabel("blocked", category)}`
   }
   return `${of}: ${statusLabel(fail ? "fail" : "blocked", category)}`
+}
+
+/** What the document says in place of a screenshot it could not include. */
+export function screenshotCaption(reason: ScreenshotFailure): string {
+  switch (reason) {
+    case "foreign":
+      return "Screenshot left out — not stored by Twnhall."
+    case "unavailable":
+    case "network":
+      return "Screenshot could not be loaded."
+    case "format":
+      return "Screenshot format not supported in PDF."
+  }
+}
+
+/** How many screenshots failed, of how many — null when none did, or they were off. */
+export function screenshotsMissing(
+  images: Map<string, ScreenshotResult> | null,
+): { failed: number; total: number } | null {
+  if (!images) return null
+  const failed = [...images.values()].filter((r) => "failed" in r).length
+  return failed ? { failed, total: images.size } : null
+}
+
+/** The cover's line when screenshots were left out — so nobody finds out by reading. */
+export function screenshotNote(images: Map<string, ScreenshotResult> | null): string | null {
+  const m = screenshotsMissing(images)
+  return m ? `${m.failed} of ${plural(m.total, "screenshot")} couldn't be included — each is marked where it would appear.` : null
 }
 
 /**

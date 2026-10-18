@@ -343,7 +343,23 @@ exists — listing a free feature as Pro is its own kind of false.
   out, never a cut-short file. Its own rate limit, `export:pdf:account`, 5 an
   hour — a render is far heavier than a CSV.
 - **Screenshots are fetched only from our own public `screenshots` bucket**
-  (`isOwnScreenshot()`), PNG/JPEG by magic bytes; anything else is a caption.
+  (`isOwnScreenshot()`), formats sniffed by magic bytes, never the extension.
+- **Accepted and embeddable formats are one map**, `SCREENSHOT_FORMATS` in
+  `lib/utils/screenshots.ts`: `ALLOWED_SCREENSHOT_TYPES` is its keys, and
+  `toEmbeddable()` in `lib/reportImages.ts` switches over its values
+  exhaustively. react-pdf embeds PNG and JPEG only, so WebP — which
+  `compressImage()` produces for most uploads — is converted to JPEG with
+  `sharp`. Accepting a new format without saying how it embeds is a type
+  error; `reportImages.test.ts` round-trips a real file of every accepted type.
+- **Every screenshot read goes through `screenshotList()`**, the PDF and the
+  CSV included — the legacy `screenshot_url` column is selected beside the
+  array. No inline `screenshot_urls ?? []`.
+- **A screenshot left out says why.** `fetchScreenshots` answers
+  `foreign` (the SSRF guard — never fetched), `unavailable` (non-2xx),
+  `network` (timeout, throw) or `format`. The route logs each, once, with
+  the report id and **never the URL**. The caption comes from
+  `screenshotCaption()`. The count goes on the cover (`screenshotNote()`) and
+  in `X-Screenshots-Missing`, which `ExportPanel` shows at download.
 - **react-pdf traps, each found the hard way:** `break` on a View taller than
   a page loops forever, so every section is its own `<Page>`; any `lineHeight`
   (on the Page, inherited, or in points) breaks layout or drops the page

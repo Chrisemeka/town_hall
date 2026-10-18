@@ -1,7 +1,7 @@
 import path from "node:path"
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import type { ReportMission, ReportModel, ReportStep } from "@/lib/report"
-import type { ReportImage } from "@/lib/reportImages"
+import { screenshotCaption, screenshotNote, type ReportMission, type ReportModel, type ReportStep } from "@/lib/report"
+import type { ScreenshotResult } from "@/lib/reportImages"
 
 /*
  * The PDF report. Its own component tree, deliberately: this is a report with
@@ -173,7 +173,7 @@ function Testers({
 }: {
   mission: ReportMission
   /** Null when screenshots were left out of this document. */
-  images: Map<string, ReportImage | null> | null
+  images: Map<string, ScreenshotResult> | null
 }) {
   return (
     <View>
@@ -198,14 +198,14 @@ function Testers({
           )}
           {images &&
             t.screenshots.map((url, i) => {
-              const img = images.get(url)
-              return img ? (
+              const img = images.get(url) ?? { failed: "network" as const }
+              return "failed" in img ? (
+                <Text key={i} style={[s.muted, s.field]}>
+                  {screenshotCaption(img.failed)}
+                </Text>
+              ) : (
                 // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf's Image has no alt
                 <Image key={i} style={s.shot} src={img} />
-              ) : (
-                <Text key={i} style={[s.muted, s.field]}>
-                  Screenshot couldn&apos;t be included.
-                </Text>
               )
             })}
         </View>
@@ -242,9 +242,10 @@ export function ReportDocument({
   images,
 }: {
   report: ReportModel
-  images: Map<string, ReportImage | null> | null
+  images: Map<string, ScreenshotResult> | null
 }) {
   const one = !report.allMissions
+  const missing = screenshotNote(images)
   const footer = `${report.project} · ${report.scope}`
 
   return (
@@ -255,6 +256,7 @@ export function ReportDocument({
         <Text style={s.scope}>{report.scope}</Text>
         <Text style={s.meta}>{report.generated}</Text>
         <Text style={s.meta}>{report.evidence}</Text>
+        {missing && <Text style={s.meta}>{missing}</Text>}
 
         {one ? (
           <View>

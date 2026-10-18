@@ -1,6 +1,6 @@
 # SPEC: PDF Screenshots Silently Dropped
 
-**Status:** Draft 2026-10-18 — awaiting approval
+**Status:** Approved 2026-10-18 with all three recommendations — implemented
 **Branch:** `fix/pdf-screenshots`
 **Source:** `docs/TWNHALL_PDF_SCREENSHOTS_FIX_PROMPT.md`
 **Migration:** none
@@ -194,6 +194,24 @@ path.
 3. **Download note via `X-Screenshots-Missing` + ExportPanel line**, in
    addition to the cover line — recommended. Say if the cover line alone is
    enough.
+
+## Implementation notes — where the build differs from the above
+
+- **The WebP is ours, not Android's.** `compressImage()` (`lib/image.ts`)
+  re-encodes every upload to WebP in the browser whenever that comes out
+  smaller, so nearly every new screenshot is WebP on any device. This makes
+  converting server-side the only real fix: refusing WebP at upload would have
+  refused our own output.
+- **The CSV had the same bug.** `app/api/export/feedback` counted
+  `screenshot_urls` only; it now goes through `screenshotList()` too.
+- **`detail` on the log line** is the HTTP status, the error name
+  (`TimeoutError`), or `"webp did not decode"` / `"unrecognised bytes"`.
+- **Verified live.** The real route (only auth and the limiter mocked) ran on
+  the project with the most WebP: 6 screenshots, 4 of them WebP, and all 6
+  drawn in the PDF (pdfjs `paintImageXObject` count, because `pdfimages` is
+  not installed here). With one URL forced to 404: 5 drawn,
+  `X-Screenshots-Missing: 1/6`, one log line with `unavailable`, `HTTP 404`
+  and the report id, and no URL.
 
 ## Out of scope
 

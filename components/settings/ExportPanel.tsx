@@ -47,6 +47,8 @@ export function ExportPanel({
   // The href being fetched, so only that button says it is working.
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Said at download, not left for the builder to find on page one.
+  const [note, setNote] = useState<string | null>(null)
 
   const project = projects.find((p) => p.id === projectId)
   const workbook = missionId === ""
@@ -62,6 +64,7 @@ export function ExportPanel({
     e.preventDefault()
     if (busy) return
     setError(null)
+    setNote(null)
     setBusy(href)
     try {
       await save(href, fallback)
@@ -82,6 +85,8 @@ export function ExportPanel({
       return
     }
     const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? fallback
+    const [failed, total] = (res.headers.get("X-Screenshots-Missing") ?? "").split("/")
+    if (total) setNote(`Downloaded — ${failed} of ${total} screenshots couldn't be included. Each is marked in the PDF.`)
     const url = URL.createObjectURL(await res.blob())
     const a = document.createElement("a")
     a.href = url
@@ -198,6 +203,11 @@ export function ExportPanel({
           {error && (
             <p role="alert" className="font-mono text-[13px] leading-5 text-danger-ink mt-4">
               {error}
+            </p>
+          )}
+          {note && (
+            <p role="status" className="font-mono text-[13px] leading-5 text-info-ink mt-4">
+              {note}
             </p>
           )}
 
