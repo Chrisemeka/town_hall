@@ -348,6 +348,22 @@ exists — listing a free feature as Pro is its own kind of false.
   how many testers reported a problem ("4 of 5 testers: Unclear"); the detail
   groups every answer to a step together. Headings come from the reports'
   `step_action`/`step_expected` snapshots, never `missions.test_steps`.
+- **Layered for two readers, never two variants.** The builder, and whoever
+  they forward it to. The front — opening (what happened, to whom, when;
+  "mission" said once, "test" after), findings, legend — is plain English;
+  the step-by-step detail after it stays complete and precise. Each finding
+  leads with a sentence (`findingSentence()`, templated from counts and
+  category, never paraphrasing the step), with the "4 of 5 testers: Unclear"
+  line and a dot per answer — filled vs. hollow, never colour — beneath it.
+  Do not cut detail to make the front plainer, and do not add a toggle.
+- **The legend is `entryStatusCopy()`, quoted, never retyped** — so it is
+  `ENTRY_STATUS_HINTS` on a functional test and the design copy on
+  `ui_design`. The hints say "you" to the tester, so the legend introduces
+  them as what the tester was shown. The glossary at the back holds only the
+  back half's terms the document actually contains, and never the statuses.
+- **No ratings, by decision.** The builder's rating describes a tester's
+  report, and a forwarded reader takes it as a rating of the product. The
+  model carries no rating; `reportDocument.test.ts` asserts none renders.
 - **Capped before any work:** 60 reports and 40 screenshots per document
   (`REPORT_CAP`, `SCREENSHOT_CAP`), refused with a 413 message naming the way
   out, never a cut-short file. Its own rate limit, `export:pdf:account`, 5 an

@@ -4,6 +4,7 @@ import { renderToBuffer, type DocumentProps } from "@react-pdf/renderer"
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs"
 import { ReportDocument } from "@/components/report/ReportDocument"
 import { buildReport } from "@/lib/report"
+import { ENTRY_STATUS_HINTS } from "@/lib/vocabulary"
 import type { ScreenshotResult } from "@/lib/reportImages"
 import { entry, FIVE, FLOW, report, STEPS, TESTER } from "@/lib/__tests__/reportFixtures"
 
@@ -120,10 +121,41 @@ describe("every mission", () => {
   it("is one document with a contents page and a section per mission", async () => {
     const rows = [...FIVE, report("f1", "2026-10-06T09:00:00Z", [entry(0, "fail")], { mission_id: "m-flow", missions: FLOW })]
     const text = await textOf(await render(rows, false))
-    expect(text).toContain("All missions")
-    expect(text).toContain("Contents")
+    expect(text).toContain("All tests")
+    expect(text).toContain("In this report")
     expect(text).toContain("First impressions")
     expect(text).toContain("Checkout flow")
     expect(text).toContain("1 of 1 tester: Fail")
+  }, 30_000)
+})
+
+describe("the front, for a reader who has never heard of Twnhall", () => {
+  it("opens by saying what happened, on one mission and on every mission", async () => {
+    expect(await textOf(await render())).toContain("Five people were asked to try Recipe Book")
+    const rows = [...FIVE, report("f1", "2026-10-06T09:00:00Z", [entry(0, "fail")], { mission_id: "m-flow", missions: FLOW })]
+    expect(await textOf(await render(rows, false))).toContain("In two separate tests, people were asked to try Recipe Book")
+  }, 30_000)
+
+  it("leads each finding with its sentence, the count after it", async () => {
+    const text = await textOf(await render())
+    const sentence = text.indexOf("Four of the five people said this did not come across the way it was meant to.")
+    expect(sentence).toBeGreaterThan(-1)
+    expect(text.indexOf("4 of 5 testers: Unclear", sentence)).toBeGreaterThan(sentence)
+  }, 30_000)
+
+  it("quotes the functional hints on a functional test", async () => {
+    const text = await textOf(await render(FIVE.map((r) => ({ ...r, missions: FLOW }))))
+    for (const hint of Object.values(ENTRY_STATUS_HINTS)) expect(text).toContain(hint)
+  }, 30_000)
+
+  it("carries no rating of any kind", async () => {
+    expect(await textOf(await render())).not.toMatch(/\brat(ing|ed)\b|\/ 5/i)
+  }, 30_000)
+
+  it("explains only words the document uses, every one of them outside the glossary", async () => {
+    const model = buildReport(FIVE, true)
+    const text = await textOf(await render())
+    const body = text.slice(0, text.lastIndexOf("What the words mean")).toLowerCase()
+    for (const g of model.glossary) expect(body).toContain(g.term.toLowerCase())
   }, 30_000)
 })
