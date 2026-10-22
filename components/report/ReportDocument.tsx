@@ -1,6 +1,13 @@
 import path from "node:path"
-import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import { screenshotCaption, screenshotNote, type ReportMission, type ReportModel, type ReportStep } from "@/lib/report"
+import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import {
+  screenshotCaption,
+  screenshotNote,
+  type ReportLegend,
+  type ReportMission,
+  type ReportModel,
+  type ReportStep,
+} from "@/lib/report"
 import type { ScreenshotResult } from "@/lib/reportImages"
 
 /*
@@ -8,6 +15,10 @@ import type { ScreenshotResult } from "@/lib/reportImages"
  * its own layout, not a mirror of the tester's view, so the mission preview's
  * rule ("the tester's page, never a copy") does not apply. It shares logic —
  * lib/report.ts, testerNumbers, the vocabulary — and no markup.
+ *
+ * Two readers, in order: the front (opening, legend, "What we found") is plain
+ * English for whoever the builder forwards this to; the detail after it is the
+ * builder's, complete and unchanged. Layered, never a second variant.
  *
  * Renders a ReportModel and does no arithmetic. Light always: a printed
  * document has nothing to do with the th_theme cookie, and a dark PDF is
@@ -63,8 +74,15 @@ const s = StyleSheet.create({
   muted: { color: C.muted },
   strong: { fontWeight: 500 },
   rule: { borderBottomWidth: 1, borderBottomColor: C.line, marginVertical: 16 },
-  fix: { marginBottom: 12, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: C.danger },
-  headline: { fontWeight: 500, color: C.danger },
+  fix: { marginBottom: 16, paddingLeft: 12, borderLeftWidth: 3, borderLeftColor: C.danger },
+  finding: { fontSize: 12, fontWeight: 500, marginBottom: 4 },
+  headline: { fontFamily: "DM Mono", fontSize: 9, color: C.muted },
+  agreement: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", marginTop: 8 },
+  // Filled for a problem, hollow for not, both in ink: the shape carries it, so
+  // it reads in greyscale and never by colour alone — and the count sits beside it.
+  dot: { width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: C.ink, marginRight: 4, marginBottom: 4 },
+  para: { marginBottom: 8 },
+  link: { color: C.ink, textDecoration: "none" },
   step: { marginTop: 20, marginBottom: 8 },
   answer: { marginBottom: 12, paddingLeft: 12, borderLeftWidth: 2, borderLeftColor: C.line },
   field: { marginTop: 4 },
@@ -86,51 +104,113 @@ function Field({ label, value }: { label: string; value: string }) {
   )
 }
 
-/** Page one of a mission: what to fix, in order, then the shape of the evidence. */
-function Summary({ mission }: { mission: ReportMission }) {
+/** One dot per person who answered the step, filled where they hit a problem. */
+function Agreement({ step }: { step: ReportStep }) {
+  return (
+    <View style={s.agreement}>
+      {step.answers.map((a, i) => (
+        <View key={i} style={[s.dot, i < step.problems ? { backgroundColor: C.ink } : {}]} />
+      ))}
+      <Text style={[s.headline, { marginLeft: 4, marginBottom: 4 }]}>
+        Step {step.number} · {step.headline}
+      </Text>
+    </View>
+  )
+}
+
+/** The statuses, as the testers were shown them. Quoted: the hints say "you" to the tester. */
+function Legend({ legends }: { legends: ReportLegend[] }) {
   return (
     <View>
-      <Text style={s.h2}>What to fix first</Text>
+      <Text style={s.h2} minPresenceAhead={96}>
+        How each step was answered
+      </Text>
+      {legends.map((l) => (
+        <View key={l.intro} style={{ marginBottom: 8 }} wrap={false}>
+          <Text style={s.para}>{l.intro}</Text>
+          {l.entries.map((e) => (
+            <Text key={e.label} style={{ marginBottom: 4 }}>
+              <Text style={s.strong}>{e.label}</Text> — “{e.hint}”
+            </Text>
+          ))}
+        </View>
+      ))}
+    </View>
+  )
+}
+
+/** A line of "In this report" — a link in a viewer, a list on paper. */
+function Entry({ to, title, note }: { to: string; title: string; note?: string }) {
+  return (
+    <View style={s.contentsRow} wrap={false}>
+      <View style={{ flex: 1, paddingRight: 12 }}>
+        <Link src={`#${to}`} style={s.link}>
+          <Text style={s.strong}>{title}</Text>
+        </Link>
+        {note && <Text style={s.muted}>{note}</Text>}
+      </View>
+    </View>
+  )
+}
+
+/** The front of a test: what was found, in sentences, then what was asked. */
+function Summary({ mission }: { mission: ReportMission }) {
+  return (
+    <View id={`found-${mission.id}`}>
+      <Text style={s.h2} minPresenceAhead={96}>
+        What we found
+      </Text>
       {mission.steps.length === 0 ? (
         <Text>
-          These reports were filed before step-by-step testing. Each tester&apos;s notes are at the end.
+          These reports were filed before step-by-step testing. Each person&apos;s notes are at the end.
         </Text>
       ) : mission.fixFirst.length === 0 ? (
-        <Text>Every tester passed every step.</Text>
+        <Text>Nobody reported a problem on any step.</Text>
       ) : (
         mission.fixFirst.map((step) => (
           <View key={step.number} style={s.fix} wrap={false}>
-            <Text style={s.strong}>
-              Step {step.number} — “{step.action}”
-            </Text>
-            <Text style={s.headline}>{step.headline}</Text>
+            {/* The sentence leads; the count is the builder's scanning line. */}
+            <Text style={s.finding}>{step.sentence}</Text>
+            <Text>They were asked to: {step.action}</Text>
+            <Text style={s.muted}>What should have happened: {step.expected}</Text>
+            <Agreement step={step} />
           </View>
         ))
       )}
-      {mission.fixFirst.length > 0 && mission.clean.length > 0 && (
-        <Text style={s.muted}>
-          No problems reported on {mission.clean.length === 1 ? "step" : "steps"} {mission.clean.join(", ")}.
-        </Text>
-      )}
+      {mission.cleanLine && <Text style={s.muted}>{mission.cleanLine}</Text>}
 
       <View style={s.rule} />
       <Text style={s.meta}>{mission.mix}</Text>
-      <Text style={s.meta}>{mission.rating}</Text>
 
       {mission.steps.length > 0 && (
         <View>
-          <Text style={s.h3}>The test case</Text>
+          <Text style={s.h3}>What we asked them to try</Text>
           {mission.steps.map((step) => (
-            <View key={step.number} style={{ marginBottom: 6 }} wrap={false}>
+            <View key={step.number} style={{ marginBottom: 8 }} wrap={false}>
               <Text>
                 <Text style={s.strong}>{step.number}. </Text>
                 {step.action}
               </Text>
-              <Text style={s.muted}>Expected: {step.expected}</Text>
+              <Text style={s.muted}>What should have happened: {step.expected}</Text>
             </View>
           ))}
         </View>
       )}
+    </View>
+  )
+}
+
+/** "UI Design Testing · Mobile & Desktop", then what that kind of test looks at. */
+function MissionMeta({ mission, people }: { mission: ReportMission; people: boolean }) {
+  const line = [
+    mission.category,
+    mission.device,
+    people && `${mission.reports} ${mission.reports === 1 ? "person" : "people"}`,
+  ].filter(Boolean)
+  return (
+    <View>
+      {line.length > 0 && <Text style={s.meta}>{line.join(" · ")}</Text>}
+      {mission.blurb && <Text style={s.meta}>{mission.blurb}</Text>}
     </View>
   )
 }
@@ -176,14 +256,13 @@ function Testers({
   images: Map<string, ScreenshotResult> | null
 }) {
   return (
-    <View>
-      <Text style={s.h2}>Each tester</Text>
+    <View id={`testers-${mission.id}`}>
+      <Text style={s.h2}>Each person&apos;s notes and screenshots</Text>
       {mission.testers.map((t) => (
         <View key={t.tester} style={s.tester}>
           <View wrap={false}>
             <Text style={{ fontFamily: "DM Mono", fontSize: 10 }}>
               {t.tester} · {t.status}
-              {t.rating != null ? ` · Rated ${t.rating} / 5` : ""}
             </Text>
             {t.legacy && <Text style={[s.muted, s.field]}>Filed before step-by-step reports.</Text>}
             <Field label="Anything else" value={t.comment} />
@@ -248,6 +327,8 @@ export function ReportDocument({
   const missing = screenshotNote(images)
   const footer = `${report.project} · ${report.scope}`
 
+  const people = (m: ReportMission) => `${m.reports} ${m.reports === 1 ? "person" : "people"}`
+
   return (
     <Document title={`${report.project} — ${report.scope}`} author="Twnhall" creator="Twnhall">
       <Sheet footer={footer}>
@@ -257,52 +338,61 @@ export function ReportDocument({
         <Text style={s.meta}>{report.generated}</Text>
         <Text style={s.meta}>{report.evidence}</Text>
         {missing && <Text style={s.meta}>{missing}</Text>}
+        {one && <MissionMeta mission={report.missions[0]} people={false} />}
 
+        <View style={{ marginTop: 16 }}>
+          {report.opening.map((p) => (
+            <Text key={p} style={s.para}>
+              {p}
+            </Text>
+          ))}
+        </View>
+
+        {/* Findings straight after the opening: a reader who stops at page one
+            should stop having read them. */}
+        {one && <Summary mission={report.missions[0]} />}
+
+        <Legend legends={report.legends} />
+
+        <Text style={s.h2} minPresenceAhead={64}>
+          In this report
+        </Text>
         {one ? (
           <View>
-            {(report.missions[0].category || report.missions[0].device) && (
-              <Text style={s.meta}>
-                {[report.missions[0].category, report.missions[0].device].filter(Boolean).join(" · ")}
-              </Text>
+            {report.missions[0].steps.length > 0 && (
+              <Entry to={`steps-${report.missions[0].id}`} title="What each person did, step by step" />
             )}
-            <Summary mission={report.missions[0]} />
+            <Entry to={`testers-${report.missions[0].id}`} title="Each person's notes and screenshots" />
           </View>
         ) : (
-          <View>
-            <Text style={s.h2}>Contents</Text>
-            {report.missions.map((m) => (
-              <View key={m.id} style={s.contentsRow} wrap={false}>
-                <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text style={s.strong}>{m.title}</Text>
-                  <Text style={s.muted}>
-                    {m.fixFirst[0]
-                      ? `Top issue: Step ${m.fixFirst[0].number}, ${m.fixFirst[0].headline}`
-                      : "No problems reported"}
-                  </Text>
-                </View>
-                <Text style={s.meta}>
-                  {m.reports} {m.reports === 1 ? "report" : "reports"}
-                </Text>
-              </View>
-            ))}
-          </View>
+          report.missions.map((m) => (
+            <Entry
+              key={m.id}
+              to={`found-${m.id}`}
+              title={m.title}
+              note={`${people(m)} · ${m.fixFirst[0] ? `Step ${m.fixFirst[0].number}: ${m.fixFirst[0].sentence}` : "Nobody reported a problem."}`}
+            />
+          ))
         )}
+        <Entry to="glossary" title="What the words mean" />
       </Sheet>
 
       {report.missions.flatMap((m) => [
-        // One mission: its summary is page one, so this starts at the detail.
+        // One mission: its summary is on page one, so this starts at the detail.
         // Every mission: each opens with its own summary.
         <Sheet key={m.id} footer={one ? footer : `${report.project} · ${m.title}`}>
           {!one && (
             <View>
               <Text style={s.h1}>{m.title}</Text>
-              <Text style={s.meta}>
-                {[m.category, m.device, `${m.reports} ${m.reports === 1 ? "report" : "reports"}`].filter(Boolean).join(" · ")}
-              </Text>
+              <MissionMeta mission={m} people />
               <Summary mission={m} />
             </View>
           )}
-          {m.steps.length > 0 && <Text style={s.h2}>Step by step</Text>}
+          {m.steps.length > 0 && (
+            <Text id={`steps-${m.id}`} style={s.h2}>
+              What each person did, step by step
+            </Text>
+          )}
           {m.steps.map((step) => (
             <StepDetail key={step.number} step={step} />
           ))}
@@ -313,6 +403,20 @@ export function ReportDocument({
           <Testers mission={m} images={images} />
         </Sheet>,
       ])}
+
+      <Sheet footer={footer}>
+        <View id="glossary">
+          <Text style={s.h2}>What the words mean</Text>
+          <Text style={[s.muted, s.para]}>
+            The words used in the step-by-step pages, for anyone reading without the builder.
+          </Text>
+          {report.glossary.map((g) => (
+            <Text key={g.term} style={s.para}>
+              <Text style={s.strong}>{g.term}</Text> — {g.definition}
+            </Text>
+          ))}
+        </View>
+      </Sheet>
     </Document>
   )
 }
