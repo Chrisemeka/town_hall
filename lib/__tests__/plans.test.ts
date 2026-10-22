@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { PLANS, SIGNUP_GRANT, otherPlan, planFor } from "@/lib/plans"
+import { PLANS, SIGNUP_GRANT, otherPlan, planFor, priceLine } from "@/lib/plans"
 
 // /pricing and /settings both read these, so the numbers are asserted once
 // here. The copy lines are held to the numeric fields beside them: a string
@@ -11,7 +11,9 @@ describe("the tiers", () => {
     expect(PLANS.pro).toMatchObject({ monthlyReports: 10, testersPerMission: 5, activeMissions: 5 })
     expect(PLANS.community).toMatchObject({ monthlyReports: 0, testersPerMission: 5, activeMissions: 2 })
     expect(SIGNUP_GRANT).toBe(3)
-    expect(PLANS.pro.price).toBe("$19/month · ₦10–12k")
+    // Written by hand, naira first. Compensation doc §7.1, ₦1,350 = $1.
+    expect(PLANS.pro.price).toEqual({ naira: "₦30,000", dollars: "~$22" })
+    expect(PLANS.community.price).toBeNull()
   })
 
   it("states each number in its copy", () => {
@@ -33,6 +35,11 @@ describe("the tiers", () => {
         expect(line).not.toMatch(/priority|queue|shareable/i)
       }
     }
+  })
+
+  it("prints the naira figure first, the dollar beside it", () => {
+    expect(priceLine(PLANS.pro)).toBe("₦30,000 / month · ~$22")
+    expect(priceLine(PLANS.community)).toBe("Free")
   })
 
   it("resolves a plan and the other one", () => {

@@ -13,14 +13,22 @@
 // lib/allowanceDb.ts (the ledger): monthlyReports, testersPerMission,
 // activeMissions and SIGNUP_GRANT are read there. Never at submission — see
 // CLAUDE.md. The AI-insight line is still content only; nothing counts it.
+//
+// PRICES: naira first, dollar beside it, both written by hand. FX at the time
+// of writing: ₦1,350 = $1, checked 22 October 2026 (compensation doc, FX
+// basis). Never convert one into the other at render — a page that computes a
+// price from a hardcoded rate is wrong a different way every time the rate
+// moves. Check the pair by hand instead: "$19/month · ₦10–12k" sat on
+// /pricing quoting less than half the dollar price. Revisit both if the rate
+// moves more than 10% (§7.6).
 
 import type { PlanId } from "@/lib/vocabulary"
 
 export type Plan = {
   id: PlanId
   name: string
-  /** What it costs, as a line rather than a number — there is no checkout. */
-  price: string
+  /** Per month, as written — there is no checkout. null on Community, which is free. */
+  price: { naira: string; dollars: string } | null
   summary: string
   /** Reports that arrive each calendar month. 0 on Community. */
   monthlyReports: number
@@ -37,7 +45,7 @@ export const PLANS: Record<PlanId, Plan> = {
   community: {
     id: "community",
     name: "Community",
-    price: "Free",
+    price: null,
     summary:
       "For builders who test as well as ship. Everything you need, paid for by taking part.",
     monthlyReports: 0,
@@ -56,10 +64,7 @@ export const PLANS: Record<PlanId, Plan> = {
   pro: {
     id: "pro",
     name: "Pro",
-    // The naira figure is a range on purpose: the plan flags its ₦1,400/$1
-    // rate as months old, and a range does not go stale the way a computed
-    // figure does.
-    price: "$19/month · ₦10–12k",
+    price: { naira: "₦30,000", dollars: "~$22" },
     summary:
       "For teams with nobody to spare for testing — usually an agency, or a founder on their own.",
     monthlyReports: 10,
@@ -79,6 +84,11 @@ export const PLANS: Record<PlanId, Plan> = {
       "CSV export",
     ],
   },
+}
+
+/** "₦30,000 / month · ~$22", or "Free". */
+export function priceLine(plan: Plan): string {
+  return plan.price ? `${plan.price.naira} / month · ${plan.price.dollars}` : "Free"
 }
 
 export function planFor(id: PlanId): Plan {

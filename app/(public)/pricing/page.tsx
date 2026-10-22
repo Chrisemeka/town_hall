@@ -12,13 +12,13 @@ import {
   P,
   P_SMALL,
 } from "@/components/public/prose"
-import { PLANS, SIGNUP_GRANT, type Plan } from "@/lib/plans"
+import { PLANS, SIGNUP_GRANT, priceLine, type Plan } from "@/lib/plans"
 import { Reveal } from "@/components/public/Reveal"
 
 export const metadata: Metadata = {
   title: "Pricing — Twnhall",
   description:
-    "Community is free: three tester reports to start, and one more for every report you write. Pro is $19/month for ten a month.",
+    `Community is free: three tester reports to start, and one more for every report you write. Pro is ${priceLine(PLANS.pro)} for ten a month.`,
 }
 
 /*
@@ -138,19 +138,19 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
 
 function PlanCard({
   plan,
-  priceNote,
   cta,
   featured = false,
 }: {
   plan: Plan
-  priceNote: string
   cta: React.ReactNode
   /** Marked by the card's accent-ink border, never a Voltage button: the
    *  header's Get started is the page's one Voltage fill. */
   featured?: boolean
 }) {
-  // "$19/month · ₦10–12k" → "$19"; the note beside it carries the rest.
-  const amount = plan.price.split(/[/ ]/)[0]
+  // Naira is the figure; the dollar rides in the note. Both as written in
+  // lib/plans.ts — never converted here.
+  const amount = plan.price?.naira ?? "Free"
+  const note = plan.price ? `/ month · ${plan.price.dollars}` : "forever"
   return (
     // Pro is the second card, so it lands a beat after Community.
     <Reveal step={featured ? 1 : 0} className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
@@ -161,7 +161,7 @@ function PlanCard({
         {amount}
         <span className="font-mono font-normal text-[14px] text-ink-muted">
           {" "}
-          {priceNote}
+          {note}
         </span>
       </p>
       <div className="mt-6 [&>*]:w-full">{cta}</div>
@@ -208,7 +208,6 @@ export default function PricingPage() {
         <div className="grid gap-6 expanded:grid-cols-2 max-w-[880px] mx-auto">
           <PlanCard
             plan={COMMUNITY}
-            priceNote="forever"
             cta={
               <Link href="/signup" className={BTN_SECONDARY}>
                 Start testing
@@ -217,7 +216,6 @@ export default function PricingPage() {
           />
           <PlanCard
             plan={PRO}
-            priceNote="/ month"
             featured
             cta={
               <Link href="/contact" className={BTN_SECONDARY}>

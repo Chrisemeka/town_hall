@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Check } from "lucide-react"
-import { otherPlan, planFor } from "@/lib/plans"
+import { otherPlan, planFor, priceLine } from "@/lib/plans"
 import type { PlanId } from "@/lib/vocabulary"
 import { SettingsSection } from "@/components/settings/SettingsSection"
 
@@ -42,7 +42,7 @@ export function PlanSection({ planId }: { planId: PlanId }) {
               Your plan
             </span>
           </div>
-          <p className="font-mono text-[14px] text-ink mt-1">{current.price}</p>
+          <p className="font-mono text-[14px] text-ink mt-1">{priceLine(current)}</p>
           <p className="font-sans text-[14px] leading-6 text-ink mt-3">
             {current.summary}
           </p>
@@ -58,7 +58,7 @@ export function PlanSection({ planId }: { planId: PlanId }) {
 
         <div className="rounded-[12px] border border-line p-5 medium:p-6">
           <h3 className="font-syne font-bold text-[18px] text-ink">{other.name}</h3>
-          <p className="font-mono text-[14px] text-ink mt-1">{other.price}</p>
+          <p className="font-mono text-[14px] text-ink mt-1">{priceLine(other)}</p>
           <p className="font-sans text-[14px] leading-6 text-ink mt-3">
             {other.summary}
           </p>
