@@ -10,6 +10,7 @@ import { UserPlanControl } from "@/components/admin/UserPlanControl"
 import { CohortControl } from "@/components/admin/CohortControl"
 import { recentAccountChanges } from "@/lib/cohortDb"
 import { planIdFor, type PlanId } from "@/lib/vocabulary"
+import { planFor } from "@/lib/plans"
 
 export const metadata = { title: "Users — Admin · Twnhall" }
 
@@ -331,7 +332,7 @@ export default async function AdminUsersPage() {
               const who = profileById.get(c.profile_id)
               const by = profileById.get(c.changed_by)
               const label = (v: string | null) =>
-                c.field === "plan_id" ? (v === "pro" ? "Pro" : "Community") : v === "member" ? "in cohort" : "not in cohort"
+                c.field === "plan_id" ? planFor(planIdFor(v)).name : v === "member" ? "in cohort" : "not in cohort"
               return (
                 <li key={c.id} className="px-5 py-3 border-t border-line/60 font-mono text-[12px] text-ink flex flex-wrap gap-x-2">
                   <span>{who?.full_name || who?.email || c.profile_id}</span>

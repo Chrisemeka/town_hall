@@ -1,4 +1,4 @@
-// The two tiers, as content.
+// The three tiers, as content.
 //
 // Static TypeScript rather than a table, the same reasoning as
 // lib/testTemplates.ts: this is copy the team edits, not user data, and a
@@ -22,7 +22,7 @@
 // /pricing quoting less than half the dollar price. Revisit both if the rate
 // moves more than 10% (§7.6).
 
-import type { PlanId } from "@/lib/vocabulary"
+import { PLAN_IDS, type PlanId } from "@/lib/vocabulary"
 
 export type Plan = {
   id: PlanId
@@ -61,12 +61,35 @@ export const PLANS: Record<PlanId, Plan> = {
       "CSV export",
     ],
   },
+  // Starter and Pro carry the same price per report on purpose — the tenth
+  // report costs the cohort exactly what the first does, so there is no
+  // volume discount and no "best value" (compensation doc §7.3). They differ
+  // in size: one test round a month, or two.
+  starter: {
+    id: "starter",
+    name: "Starter",
+    price: { naira: "₦15,000", dollars: "~$11" },
+    summary:
+      "For a solo founder or a small team shipping steadily. One proper round of testing a month, five people on what you built.",
+    monthlyReports: 5,
+    testersPerMission: 5,
+    activeMissions: 3,
+    includes: [
+      "Unlimited projects",
+      "5 tester reports a month",
+      "+1 report for every report you write as a tester",
+      "Up to 5 testers on a mission",
+      "3 active missions at once",
+      "Unlimited AI insights",
+      "CSV export",
+    ],
+  },
   pro: {
     id: "pro",
     name: "Pro",
     price: { naira: "₦30,000", dollars: "~$22" },
     summary:
-      "For teams with nobody to spare for testing — usually an agency, or a founder on their own.",
+      "For teams shipping every week, usually an agency. Two full rounds a month: test, fix, then test the fix.",
     monthlyReports: 10,
     testersPerMission: 5,
     activeMissions: 5,
@@ -95,7 +118,7 @@ export function planFor(id: PlanId): Plan {
   return PLANS[id]
 }
 
-/** The tier someone is not on, which is the one worth describing to them. */
-export function otherPlan(id: PlanId): Plan {
-  return PLANS[id === "pro" ? "community" : "pro"]
+/** The tiers someone is not on, cheapest first — the ones worth describing to them. */
+export function otherPlans(id: PlanId): Plan[] {
+  return PLAN_IDS.filter((p) => p !== id).map((p) => PLANS[p])
 }

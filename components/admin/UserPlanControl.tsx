@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { setUserPlan } from "@/actions/admin/users"
 import { PLAN_IDS, type PlanId } from "@/lib/vocabulary"
+import { planFor } from "@/lib/plans"
 
 /**
  * The manual upgrade path, in full.
@@ -63,7 +64,7 @@ export function UserPlanControl({
       >
         {PLAN_IDS.map((id) => (
           <option key={id} value={id}>
-            {id === "pro" ? "Pro" : "Community"}
+            {planFor(id).name}
           </option>
         ))}
       </select>

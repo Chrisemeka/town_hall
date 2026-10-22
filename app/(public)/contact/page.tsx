@@ -6,7 +6,7 @@ import { CONTACT_EMAIL, X_URL, mailto } from "@/lib/contact"
 
 export const metadata: Metadata = {
   title: "Contact — Twnhall",
-  description: "Email us about Pro, or about anything else. We read everything.",
+  description: "Email us about Starter or Pro, or about anything else. We read everything.",
 }
 
 /*
@@ -25,9 +25,9 @@ const ROUTES = [
   {
     icon: Mail,
     title: "Hitting your report limit?",
-    body: "Pro starts as a conversation rather than a checkout. Tell us what you are building and how much testing you need, and we will sort it out from there.",
-    href: mailto("Twnhall Pro"),
-    label: "Email us about Pro",
+    body: "Starter and Pro start as a conversation rather than a checkout. Tell us what you are building and how much testing you need, and we will sort it out from there.",
+    href: mailto("Twnhall Starter or Pro"),
+    label: "Email us about a plan",
   },
   {
     icon: MessageCircle,

@@ -554,7 +554,8 @@ export const TIMEZONES = Intl.supportedValuesOf("timeZone").concat("UTC") as [
  * PROJECT_CATEGORIES — a plan id is something code branches on, and the label
  * belongs in lib/plans.ts with the rest of the tier content.
  */
-export const PLAN_IDS = ["community", "pro"] as const
+/** Cheapest first: /pricing, /settings and the admin control list them in this order. */
+export const PLAN_IDS = ["community", "starter", "pro"] as const
 
 export type PlanId = (typeof PLAN_IDS)[number]
 

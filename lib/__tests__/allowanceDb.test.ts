@@ -138,6 +138,21 @@ describe("publishMission", () => {
     expect(reservedFor(M1)).toEqual([expect.objectContaining({ bucket: "monthly", slots: -5 })])
   })
 
+  it("spends a Starter builder's whole month on one 5-tester mission", async () => {
+    planId = "starter"
+    expect(await publishMission(M1, BUILDER)).toEqual({ status: "published", slots: 5, requested: 5 })
+    expect(reservedFor(M1)).toEqual([expect.objectContaining({ bucket: "monthly", slots: -5 })])
+    // Lands at zero: the next mission finds nothing to spend, not Pro's other five.
+    expect(await publishMission(M2, BUILDER)).toEqual({ status: "empty" })
+  })
+
+  it("holds a Starter builder to three active missions", async () => {
+    planId = "starter"
+    for (const id of ["a", "b", "c"]) missions[id] = { owner: BUILDER, is_active: true, testers_needed: 5 }
+    expect(await publishMission(M1, BUILDER)).toEqual({ status: "active_limit", limit: 3 })
+    expect(reservedFor(M1)).toEqual([])
+  })
+
   it("lets only one of two concurrent publishes take the last slots", async () => {
     ledger.push(grantRow())
     const [a, b] = await Promise.all([publishMission(M1, BUILDER), publishMission(M2, BUILDER)])

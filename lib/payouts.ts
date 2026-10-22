@@ -59,7 +59,7 @@ export function memberAt(periods: readonly Period[], at: string): boolean {
 
 /**
  * How many reports the cohort may be paid for on one mission: its held slots
- * from pools the cohort may serve — Pro's monthly allowance and the signup
+ * from pools the cohort may serve — a paid plan's monthly allowance and the signup
  * grant, never earned credit (compensation doc §8: this does not bend).
  */
 export function cohortSlots(missionRows: readonly LedgerRow[]): number {

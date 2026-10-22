@@ -1,11 +1,11 @@
 import Link from "next/link"
 import { Check } from "lucide-react"
-import { otherPlan, planFor, priceLine } from "@/lib/plans"
+import { otherPlans, planFor, priceLine } from "@/lib/plans"
 import type { PlanId } from "@/lib/vocabulary"
 import { SettingsSection } from "@/components/settings/SettingsSection"
 
 /**
- * Which plan this account is on, and what the other one includes.
+ * Which plan this account is on, and what the other two include.
  *
  * THERE IS NO CHECKOUT, and this section is closer to that danger than
  * /pricing is: it sits inside an account, so a control here reads as "change
@@ -21,17 +21,17 @@ import { SettingsSection } from "@/components/settings/SettingsSection"
  */
 export function PlanSection({ planId }: { planId: PlanId }) {
   const current = planFor(planId)
-  const other = otherPlan(planId)
+  const others = otherPlans(planId)
 
   return (
     <SettingsSection
       title="Plan"
-      description="What your account includes, and what the other tier does."
+      description="What your account includes, and what the other tiers do."
     >
       {/* Stacked below 1024: inside the 640px column two cards are ~264px,
           too narrow for a price line and a five-line list. */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-[12px] border border-accent-ink p-5 medium:p-6">
+        <div className="lg:col-span-2 rounded-[12px] border border-accent-ink p-5 medium:p-6">
           <div className="flex items-baseline justify-between gap-3 flex-wrap">
             <h3 className="font-syne font-bold text-[18px] text-ink">
               {current.name}
@@ -56,26 +56,30 @@ export function PlanSection({ planId }: { planId: PlanId }) {
           </ul>
         </div>
 
-        <div className="rounded-[12px] border border-line p-5 medium:p-6">
-          <h3 className="font-syne font-bold text-[18px] text-ink">{other.name}</h3>
-          <p className="font-mono text-[14px] text-ink mt-1">{priceLine(other)}</p>
-          <p className="font-sans text-[14px] leading-6 text-ink mt-3">
-            {other.summary}
-          </p>
-          <ul className="mt-5 flex flex-col gap-2">
-            {other.includes.map((line) => (
-              <li key={line} className="flex gap-2 font-sans text-[14px] leading-6 text-ink">
-                <Check size={14} aria-hidden="true" className="mt-1.5 shrink-0 text-ink-muted" />
-                {line}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* The other two side by side from 1024, under the one you are on,
+            so "Your plan" is always the first thing in the tab. */}
+        {others.map((other) => (
+          <div key={other.id} className="rounded-[12px] border border-line p-5 medium:p-6">
+            <h3 className="font-syne font-bold text-[18px] text-ink">{other.name}</h3>
+            <p className="font-mono text-[14px] text-ink mt-1">{priceLine(other)}</p>
+            <p className="font-sans text-[14px] leading-6 text-ink mt-3">
+              {other.summary}
+            </p>
+            <ul className="mt-5 flex flex-col gap-2">
+              {other.includes.map((line) => (
+                <li key={line} className="flex gap-2 font-sans text-[14px] leading-6 text-ink">
+                  <Check size={14} aria-hidden="true" className="mt-1.5 shrink-0 text-ink-muted" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
 
       <div className="mt-6 pt-6 border-t border-line">
         <p className="font-sans text-[14px] leading-6 text-ink">
-          {planId === "pro"
+          {planId !== "community"
             ? "Need to change something about your plan? Tell us and we'll sort it."
             : "Hitting your limit, or want to skip the testing side? Get in touch — there's no checkout, we'd rather talk first."}
         </p>

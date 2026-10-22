@@ -9,7 +9,7 @@
 // arrives — a submission is one-shot, nothing represents a report in progress,
 // and refusing one would destroy work the tester has already done.
 
-/** Spend order. A Pro builder must never spend earned credit while this month's sits unused. */
+/** Spend order. A Starter or Pro builder must never spend earned credit while this month's sits unused. */
 export const BUCKETS = ["monthly", "grant", "earned"] as const
 export type Bucket = (typeof BUCKETS)[number]
 

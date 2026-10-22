@@ -69,7 +69,7 @@ export default function AboutPage() {
 
       <Reveal className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
-          Questions, or want to talk about Pro?{" "}
+          Questions, or want to talk about Starter or Pro?{" "}
           <Link href="/contact" className={LINK_INLINE}>
             Get in touch
           </Link>

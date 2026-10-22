@@ -13,12 +13,13 @@ import {
   P_SMALL,
 } from "@/components/public/prose"
 import { PLANS, SIGNUP_GRANT, priceLine, type Plan } from "@/lib/plans"
+import { PLAN_IDS, type PlanId } from "@/lib/vocabulary"
 import { Reveal } from "@/components/public/Reveal"
 
 export const metadata: Metadata = {
   title: "Pricing — Twnhall",
   description:
-    `Community is free: three tester reports to start, and one more for every report you write. Pro is ${priceLine(PLANS.pro)} for ten a month.`,
+    `Community is free: three tester reports to start, and one more for every report you write. Starter is ${priceLine(PLANS.starter)} for five a month; Pro is ${priceLine(PLANS.pro)} for ten.`,
 }
 
 /*
@@ -37,44 +38,46 @@ export const metadata: Metadata = {
  *   1. It describes the shape of the offer, never the state of an account.
  *      No "you're on Community", no usage meter — and no monthly/yearly
  *      toggle, which Cursor has and we cannot honour.
- *   2. The Pro call to action is /contact, worded as a conversation. Never
+ *   2. The paid calls to action are /contact, worded as a conversation. Never
  *      "Subscribe" or "Upgrade" — a dead checkout is worse than an honest one.
  *   3. Nothing unshipped is listed. A pricing table is a promise.
  *
  * Use the plan's vocabulary exactly: tester report, testers per mission, active
  * missions. Do not substitute "session", "credit" or "feedback".
+ *
+ * No tier is featured and none is "best value": Starter and Pro cost the same
+ * per report, deliberately (compensation doc §7.3), so a badge would be false.
+ * Prices are lib/plans.ts's, as written — nothing here converts a currency.
  */
 
-const { community: COMMUNITY, pro: PRO } = PLANS
+const TIERS = PLAN_IDS.map((id) => PLANS[id])
+const { starter: STARTER, pro: PRO } = PLANS
 
-/** The comparison. Row order is the plan's. The numeric rows come from
- *  lib/plans.ts; the rest is copy. */
-const ROWS: { label: string; community: string; pro: string; emphasis?: boolean }[] = [
-  { label: "Projects", community: "Unlimited", pro: "Unlimited" },
+/** The comparison, one value per tier in PLAN_IDS order. Row order is the
+ *  plan's. The numeric rows come from lib/plans.ts; the rest is copy. */
+const ROWS: { label: string; values: string[]; emphasis?: boolean }[] = [
+  { label: "Projects", values: TIERS.map(() => "Unlimited") },
   {
     label: "Tester reports",
-    community: `${SIGNUP_GRANT} to start`,
-    pro: `${PRO.monthlyReports} a month`,
+    values: TIERS.map((t) => (t.monthlyReports ? `${t.monthlyReports} a month` : `${SIGNUP_GRANT} to start`)),
     emphasis: true,
   },
   {
     label: "Earn extra reports by testing",
-    community: "+1 per report you complete",
-    pro: "Same",
+    values: TIERS.map((t) => (t.id === "community" ? "+1 per report you complete" : "Same")),
   },
-  {
-    label: "Testers per mission",
-    community: `Up to ${COMMUNITY.testersPerMission}`,
-    pro: `Up to ${PRO.testersPerMission}`,
-  },
-  {
-    label: "Active missions at once",
-    community: String(COMMUNITY.activeMissions),
-    pro: String(PRO.activeMissions),
-  },
-  { label: "AI insights", community: "3 / month", pro: "Unlimited" },
-  { label: "CSV export", community: "Included", pro: "Included" },
+  { label: "Testers per mission", values: TIERS.map((t) => `Up to ${t.testersPerMission}`) },
+  { label: "Active missions at once", values: TIERS.map((t) => String(t.activeMissions)) },
+  { label: "AI insights", values: TIERS.map((t) => (t.id === "community" ? "3 / month" : "Unlimited")) },
+  { label: "CSV export", values: TIERS.map(() => "Included") },
 ]
+
+/** Each card's call to action. Paid tiers open a conversation — see 2. above. */
+const CTA: Record<PlanId, { href: string; label: string }> = {
+  community: { href: "/signup", label: "Start testing" },
+  starter: { href: "/contact", label: "Ask about Starter" },
+  pro: { href: "/contact", label: "Ask about Pro" },
+}
 
 /** Every answer here is something the product does today — see CLAUDE.md,
  *  "The report allowance is a ledger". */
@@ -89,21 +92,25 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "How do I earn extra reports?",
-    a: "Test someone else's product. Every report you write as a tester adds one to your own balance, on either plan. That is the whole idea: feedback you earn, or feedback you buy.",
+    a: "Test someone else's product. Every report you write as a tester adds one to your own balance, on every plan. That is the whole idea: feedback you earn, or feedback you buy.",
   },
   {
     q: "What happens if I run low on reports?",
     a: "Your mission still opens, with as many testers as your balance covers, and we tell you so beside the publish button. Only an empty balance keeps a mission in draft. Testers are never turned away mid-report.",
   },
   {
-    q: "Do unused Pro reports roll over?",
-    a: "No. Pro's ten arrive each calendar month and expire with it. Reports from a mission you close early go back to the month they came from. Reports you earn by testing do not expire.",
+    q: "What is the difference between Starter and Pro?",
+    a: `Size, nothing else. Starter's ${STARTER.monthlyReports} reports a month are one full round — five testers on one mission. Pro's ${PRO.monthlyReports} are two: test, fix, then test the fix. A report costs the same on either, so pick the one that matches how often you ship.`,
   },
   {
-    q: "How do I pay for Pro?",
+    q: "Do unused monthly reports roll over?",
+    a: `No. Starter's ${STARTER.monthlyReports} and Pro's ${PRO.monthlyReports} arrive each calendar month and expire with it. Reports from a mission you close early go back to the month they came from. Reports you earn by testing do not expire.`,
+  },
+  {
+    q: "How do I pay for Starter or Pro?",
     a: (
       <>
-        There is no checkout. Pro starts as a conversation — we are a small
+        There is no checkout. Both start as a conversation — we are a small
         cohort and we would rather talk to you first.{" "}
         <Link href="/contact" className={LINK_INLINE}>
           Get in touch
@@ -136,27 +143,17 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
 ]
 
-function PlanCard({
-  plan,
-  cta,
-  featured = false,
-}: {
-  plan: Plan
-  cta: React.ReactNode
-  /** Marked by the card's accent-ink border, never a Voltage button: the
-   *  header's Get started is the page's one Voltage fill. */
-  featured?: boolean
-}) {
+function PlanCard({ plan, step }: { plan: Plan; step: number }) {
   // Naira is the figure; the dollar rides in the note. Both as written in
   // lib/plans.ts — never converted here.
   const amount = plan.price?.naira ?? "Free"
   const note = plan.price ? `/ month · ${plan.price.dollars}` : "forever"
   return (
-    // Pro is the second card, so it lands a beat after Community.
-    <Reveal step={featured ? 1 : 0} className={`flex flex-col rounded-[12px] border ${featured ? "border-accent-ink" : "border-line"} bg-surface-raised p-5 medium:p-6 lg:p-8`}>
+    // Cheapest first, each a beat after the last.
+    <Reveal step={step} className="flex flex-col rounded-[12px] border border-line bg-surface-raised p-5 medium:p-6 lg:p-8">
       <h3 className={H3}>{plan.name}</h3>
-      {/* The min height only aligns two cards side by side, from 840px. */}
-      <p className={`${P_SMALL} mt-2 expanded:min-h-[56px]`}>{plan.summary}</p>
+      {/* The min height only aligns the three cards side by side, from 1024px. */}
+      <p className={`${P_SMALL} mt-2 lg:min-h-[96px]`}>{plan.summary}</p>
       <p className="mt-6 font-syne font-bold text-[40px] leading-[48px] text-ink">
         {amount}
         <span className="font-mono font-normal text-[14px] text-ink-muted">
@@ -164,7 +161,12 @@ function PlanCard({
           {note}
         </span>
       </p>
-      <div className="mt-6 [&>*]:w-full">{cta}</div>
+      <div className="mt-6">
+        {/* The header's Get started is the page's one Voltage fill. */}
+        <Link href={CTA[plan.id].href} className={`${BTN_SECONDARY} w-full`}>
+          {CTA[plan.id].label}
+        </Link>
+      </div>
       <div className="mt-8 border-t border-line pt-6">
         <p className={`${META} mb-4`}>Includes</p>
         <ul className="flex flex-col gap-3">
@@ -193,40 +195,29 @@ export default function PricingPage() {
         <Reveal step={1}>
         <p className={`${P} max-w-2xl`}>
           Test someone else&apos;s product and you earn a report on your own.
-          Community is free and always will be. Pro is for builders with no one
-          on the team to spare for testing.
+          Community is free and always will be. Starter and Pro are for
+          builders who would rather buy their reports than earn them — one
+          round of testing a month, or two.
         </p>
         </Reveal>
       </div>
 
-      {/* ─── The two tiers ─────────────────────────────────────────────── */}
+      {/* ─── The three tiers ───────────────────────────────────────────── */}
       <section aria-labelledby="tiers-heading" className="mb-16 medium:mb-24">
         <h2 id="tiers-heading" className="sr-only">
           Plans
         </h2>
-        {/* Stacked until 840px: side by side at 768 left each card ~200px. */}
-        <div className="grid gap-6 expanded:grid-cols-2 max-w-[880px] mx-auto">
-          <PlanCard
-            plan={COMMUNITY}
-            cta={
-              <Link href="/signup" className={BTN_SECONDARY}>
-                Start testing
-              </Link>
-            }
-          />
-          <PlanCard
-            plan={PRO}
-            featured
-            cta={
-              <Link href="/contact" className={BTN_SECONDARY}>
-                Hitting your limit? Get in touch
-              </Link>
-            }
-          />
+        {/* Stacked until 1024px, at a readable width rather than the full
+            tablet line; three across at 840 left each card ~250px. Cheapest
+            first, so on a phone the free tier is the first thing you read. */}
+        <div className="grid gap-6 max-w-[560px] mx-auto lg:max-w-none lg:grid-cols-3">
+          {TIERS.map((plan, i) => (
+            <PlanCard key={plan.id} plan={plan} step={i} />
+          ))}
         </div>
-        <Reveal step={2}>
+        <Reveal step={3}>
           <p className={`${META} mt-6 text-center`}>
-            There is no checkout. Pro starts as a conversation.
+            There is no checkout. Starter and Pro start as a conversation.
           </p>
         </Reveal>
       </section>
@@ -236,50 +227,46 @@ export default function PricingPage() {
         <h2 id="compare-heading" className={`${H2} mb-8`}>
           Compare plans
         </h2>
-        {/* Below 600px a three-column table either scrolls or wraps a value to
-            four lines, so each row becomes a block with both values under
-            their plan names. Both render from ROWS, and display:none keeps
-            the hidden copy out of the accessibility tree, as the footer does. */}
-        <ul aria-label="Community and Pro compared, feature by feature" className="medium:hidden border-t border-line">
-          {ROWS.map(({ label, community, pro, emphasis }) => (
+        {/* Below 840px a four-column table either scrolls or wraps a value to
+            four lines, so each row becomes a block: the feature, then one line
+            per plan. Both render from ROWS, and display:none keeps the hidden
+            copy out of the accessibility tree, as the footer does. */}
+        <ul aria-label="Community, Starter and Pro compared, feature by feature" className="expanded:hidden border-t border-line">
+          {ROWS.map(({ label, values, emphasis }) => (
             <li key={label} className="flex flex-col gap-3 py-4 border-b border-line">
               <p className={`font-sans text-[14px] leading-6 text-ink ${emphasis ? "font-medium" : ""}`}>{label}</p>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  ["Community", community],
-                  ["Pro", pro],
-                ].map(([plan, value]) => (
-                  <div key={plan} className="flex flex-col gap-1">
-                    <span className={`${META} uppercase`}>{plan}</span>
-                    <span className="font-mono text-[14px] text-ink">{value}</span>
+              <dl className="flex flex-col gap-2">
+                {TIERS.map((plan, i) => (
+                  <div key={plan.id} className="flex items-baseline justify-between gap-4">
+                    <dt className={`${META} uppercase`}>{plan.name}</dt>
+                    <dd className="font-mono text-[14px] text-ink text-right">{values[i]}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </li>
           ))}
         </ul>
-        {/* From 600px the table fits its min width; overflow-x-auto stays as
+        {/* From 840px the table fits its min width; overflow-x-auto stays as
             a guard so the page body never scrolls sideways. */}
-        <div className="hidden medium:block overflow-x-auto">
-          <table className="w-full min-w-[520px] border-collapse text-left">
+        <div className="hidden expanded:block overflow-x-auto">
+          <table className="w-full min-w-[640px] border-collapse text-left">
             <caption className="sr-only">
-              Community and Pro compared, feature by feature
+              Community, Starter and Pro compared, feature by feature
             </caption>
             <thead>
               <tr className="border-b border-line">
                 <th scope="col" className="py-4 pr-4 font-mono text-[12px] font-medium uppercase tracking-[1px] text-ink-muted">
                   Feature
                 </th>
-                <th scope="col" className="py-4 px-4 font-mono text-[14px] font-medium text-ink">
-                  Community
-                </th>
-                <th scope="col" className="py-4 pl-4 font-mono text-[14px] font-medium text-ink">
-                  Pro
-                </th>
+                {TIERS.map((plan) => (
+                  <th key={plan.id} scope="col" className="py-4 px-4 last:pr-0 font-mono text-[14px] font-medium text-ink">
+                    {plan.name}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {ROWS.map(({ label, community, pro, emphasis }) => (
+              {ROWS.map(({ label, values, emphasis }) => (
                 <tr key={label} className="border-b border-line">
                   <th
                     scope="row"
@@ -287,12 +274,11 @@ export default function PricingPage() {
                   >
                     {label}
                   </th>
-                  <td className="py-4 px-4 font-mono text-[14px] text-ink">
-                    {community}
-                  </td>
-                  <td className="py-4 pl-4 font-mono text-[14px] text-ink">
-                    {pro}
-                  </td>
+                  {values.map((value, i) => (
+                    <td key={TIERS[i].id} className="py-4 px-4 last:pr-0 font-mono text-[14px] text-ink">
+                      {value}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
