@@ -162,7 +162,17 @@ The `20260924_01` migration comment saying nothing enforces it is history — th
 migration is applied and stays untouched; this paragraph supersedes it.
 `lib/plans.ts` holds the tier content, from
 `docs/Twnhall_Cohort_Compensation_Model.md` §7–§8, and `/pricing` reads its
-numbers from it, so the two cannot disagree. The
+numbers from it, so the two cannot disagree. **Three tiers** — Community
+(free), Starter (5 reports a month, 3 active missions), Pro (10, 5) — and
+`monthlyReports` is the single source for the monthly allowance: a Starter
+account read as Pro gives away five paid cohort reports a month, so
+`allowance.test.ts` asserts 0 / 5 / 10 from the stored column. Starter and Pro
+cost the same per report by decision (§7.3): no "best value", no featured tier.
+**Prices are written, never computed:** `Plan.price` holds the naira figure
+(primary — the first market is Nigeria) and the dollar figure, both by hand,
+with the rate and the date it was checked in a comment. Nothing converts one
+into the other at render; `/pricing` and `/settings` print them through
+`priceLine()` or as written. The
 only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
 manual upgrade path because there is no checkout.
 
@@ -210,7 +220,7 @@ sheet reads the history, so removing someone never changes a month already
 paid. Only `set_account_field` writes either — the change and its log row in
 one transaction — through `setUserPlan` / `setCohortMember`.
 
-- **The cohort serves only paid-for slots:** Pro's monthly allowance and the
+- **The cohort serves only paid-for slots:** a paid plan's monthly allowance and the
   signup grant, never earned credit (`cohortEligible()`; compensation doc §8,
   "this does not bend"). Per mission, cohort slots = net reserved slots from
   those two pools; the first that many cohort reports, by `created_at`, are
