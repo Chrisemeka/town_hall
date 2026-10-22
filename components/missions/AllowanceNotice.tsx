@@ -8,8 +8,8 @@ import type { AllowanceView } from "@/lib/allowanceDb"
  * place the balance appears: /settings keeps its no-meter rule.
  *
  * The capped line is the free tier's whole growth mechanism, said at the
- * moment it is relevant — so it points at testing, not at Pro. Only an empty
- * balance offers both. There is no checkout; Pro is a conversation.
+ * moment it is relevant — so it points at testing, not at a paid plan. Only an
+ * empty balance offers both. There is no checkout; a plan is a conversation.
  */
 export function AllowanceNotice({ view }: { view: AllowanceView }) {
   const { total, testersPerMission, activeMissions, activeLimit } = view
@@ -33,8 +33,8 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
         You have no reports available — each live mission holds one per tester it is open to.
         Publishing will keep this as a draft. {earn} to earn one, close a live mission to get its
         unused reports back, or{" "}
-        <a href={mailto("Twnhall Pro")} className={LINK_INLINE}>
-          get in touch about Pro
+        <a href={mailto("Twnhall Starter or Pro")} className={LINK_INLINE}>
+          get in touch about Starter or Pro
         </a>
         . {slots}
       </>

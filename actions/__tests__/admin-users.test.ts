@@ -59,6 +59,12 @@ describe("setUserPlan", () => {
     ])
   })
 
+  it("writes Starter by its id", async () => {
+    const calls = fakeAdmin()
+    await setUserPlan(TARGET_ID, "builder", "starter")
+    expect(calls[0].args.p_value).toBe("starter")
+  })
+
   it("writes Community as null, never 'community'", async () => {
     // The plan_id migration: "not assigned a plan" and "on the free plan" are
     // the same fact, and writing the word would invent a distinction.

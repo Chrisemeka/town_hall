@@ -1,13 +1,14 @@
-import { createAdminClient } from "@/lib/supabase/admin"
 // requireAccount, not a hand-rolled getUser(): it carries the
 // email-confirmation and per-role verification gates with it, and skipping
 // either here would make this route a way around them.
 import { requireAccount } from "@/lib/auth"
 import { CSV_BOM, toCsv } from "@/lib/csv"
 import { testerNumbers } from "@/lib/testerNumbers"
+import { screenshotList } from "@/lib/utils/screenshots"
 import { sheetNames, toXlsx, type Cell } from "@/lib/xlsx"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
+import { download, loadFeedback, slug, today, type FeedbackRow } from "@/lib/exportDb"
 
 /*
  * Every piece of feedback on the caller's own projects, one row per test-case
@@ -20,9 +21,8 @@ import { deviceTargetLabel, testCategoryLabel } from "@/lib/vocabulary"
  * opinion rather than a second one. Do not remove it on the grounds that
  * "middleware handles it".
  *
- * OWNERSHIP IS THE WHOLE FILE. Service role bypasses RLS, so the owner_id
- * filter on the join is the only thing scoping this read. Getting it wrong
- * hands one builder another builder's feedback.
+ * OWNERSHIP is lib/exportDb.ts's loadFeedback(), shared with the PDF report
+ * so the one filter that matters exists once.
  *
  * ponytail: the whole result is assembled in memory before it is sent. Fine
  * at the current volume — tens of submissions — and it will need streaming
@@ -58,45 +58,8 @@ const HEADERS = [
   "Screenshots",
 ] as const
 
-type EntryRow = {
-  step_index: number
-  step_action: string
-  step_expected: string
-  status: string
-  actual_result: string | null
-  issue_summary: string | null
-  steps_to_reproduce: string | null
-}
-
-type SubmissionRow = {
-  id: string
-  mission_id: string
-  created_at: string
-  status: string
-  rating: number | null
-  tester_comment: string | null
-  ai_sentiment: string | null
-  screenshot_urls: string[] | null
-  missions: {
-    title: string
-    created_at: string
-    category: string | null
-    device_target: string | null
-    projects: { name: string; owner_id: string } | null
-  } | null
-  test_result_entries: EntryRow[] | null
-}
-
-/** Something safe in a Content-Disposition header: ASCII, no quotes. */
-function slug(text: string | undefined): string {
-  const s = (text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40)
-  return s || "export"
-}
-
-const today = () => new Date().toISOString().slice(0, 10)
-
 /** One row per test-case step, or one for a legacy comment-only report. */
-function rowsFor(submissions: SubmissionRow[]): Cell[][] {
+function rowsFor(submissions: FeedbackRow[]): Cell[][] {
   // Every report of an exported mission is exported (scope never narrows
   // within a mission), so these numbers match the app's.
   const numbers = testerNumbers(submissions)
@@ -114,7 +77,7 @@ function rowsFor(submissions: SubmissionRow[]): Cell[][] {
       s.rating,
       s.tester_comment ?? "",
     ]
-    const screenshots = s.screenshot_urls?.length ?? 0
+    const screenshots = screenshotList(s).length
     const entries = [...(s.test_result_entries ?? [])].sort(
       (a, b) => a.step_index - b.step_index,
     )
@@ -146,17 +109,6 @@ function rowsFor(submissions: SubmissionRow[]): Cell[][] {
   return rows
 }
 
-/** A person's own feedback, assembled per request. Never a shared cache. */
-function download(body: BodyInit, type: string, name: string): Response {
-  return new Response(body, {
-    headers: {
-      "Content-Type": type,
-      "Content-Disposition": `attachment; filename="${name}"`,
-      "Cache-Control": "no-store",
-    },
-  })
-}
-
 /**
  * Two shapes, both scoped to one project:
  *
@@ -180,31 +132,12 @@ export async function GET(request: Request) {
   const mission = params.get("mission")
   if (!project) return new Response("Choose a project to export.", { status: 400 })
 
-  let query = createAdminClient()
-    .from("test_results")
-    .select(
-      `id, mission_id, created_at, status, rating, tester_comment, ai_sentiment, screenshot_urls,
-       missions!inner(title, created_at, category, device_target, projects!inner(name, owner_id)),
-       test_result_entries(step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
-    )
-    // The ownership filter. Service role sees everything, so this is the only
-    // thing keeping one builder's export out of another's.
-    .eq("missions.projects.owner_id", userId)
-    // Narrowing is ADDITIONAL to the owner filter, never instead of it: an id
-    // the caller does not own then matches nothing, rather than returning
-    // somebody else's feedback.
-    .eq("missions.project_id", project)
-    .order("created_at", { ascending: true })
-
-  if (mission) query = query.eq("mission_id", mission)
-
-  const { data, error } = await query
+  const { rows: submissions, error } = await loadFeedback(userId, project, mission)
   if (error) {
-    console.error("[export/feedback] query failed:", error.message)
+    console.error("[export/feedback] query failed:", error)
     return new Response("Could not build the export.", { status: 500 })
   }
 
-  const submissions = (data ?? []) as unknown as SubmissionRow[]
   // The same answer for "not yours" and "no reports yet", so a refusal does
   // not confirm a project exists. A header-only file looks like a broken
   // export, and a workbook with no sheets will not open at all.
@@ -225,7 +158,7 @@ export async function GET(request: Request) {
   }
 
   // One sheet per mission, oldest mission first — the order they were run.
-  const byMission = new Map<string, SubmissionRow[]>()
+  const byMission = new Map<string, FeedbackRow[]>()
   for (const s of submissions) byMission.set(s.mission_id, [...(byMission.get(s.mission_id) ?? []), s])
   const groups = [...byMission.values()].sort((a, b) =>
     (a[0].missions?.created_at ?? "") < (b[0].missions?.created_at ?? "") ? -1 : 1,

@@ -55,7 +55,7 @@ describe("RATE_LIMITS", () => {
   })
 
   it("the cost-bearing rules fail closed", () => {
-    for (const name of ["submit:account", "publish:account", "project:account", "export:account"] as const) {
+    for (const name of ["submit:account", "publish:account", "project:account", "export:account", "export:pdf:account"] as const) {
       expect(RATE_LIMITS[name].mode).toBe("closed")
     }
   })

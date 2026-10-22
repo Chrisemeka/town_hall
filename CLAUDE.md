@@ -31,6 +31,7 @@ components/           React components
   missions/           TestCaseEditor (authoring), TestCaseView (display),
                       MissionBrief (the tester page's top), MissionPreview
   submissions/        SubmissionBody — the one place audit-log vs legacy branches
+  report/             The PDF report's own react-pdf tree and bundled fonts
   tester/             AuditLogForm and the tester's own surfaces
 lib/
   auth.ts             requireAccount(), requireAdmin(), requireProjectOwner()
@@ -48,6 +49,9 @@ lib/
   docNav.ts           The four long documents' sections — headings and nav from one list
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
+  exportDb.ts         loadFeedback() — the one owner-scoped read behind both exports
+  report.ts           The PDF report's content — agreement, grouping, caps (pure)
+  reportImages.ts     Screenshot fetches for the PDF — own bucket only, never throws
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
@@ -158,7 +162,17 @@ The `20260924_01` migration comment saying nothing enforces it is history — th
 migration is applied and stays untouched; this paragraph supersedes it.
 `lib/plans.ts` holds the tier content, from
 `docs/Twnhall_Cohort_Compensation_Model.md` §7–§8, and `/pricing` reads its
-numbers from it, so the two cannot disagree. The
+numbers from it, so the two cannot disagree. **Three tiers** — Community
+(free), Starter (5 reports a month, 3 active missions), Pro (10, 5) — and
+`monthlyReports` is the single source for the monthly allowance: a Starter
+account read as Pro gives away five paid cohort reports a month, so
+`allowance.test.ts` asserts 0 / 5 / 10 from the stored column. Starter and Pro
+cost the same per report by decision (§7.3): no "best value", no featured tier.
+**Prices are written, never computed:** `Plan.price` holds the naira figure
+(primary — the first market is Nigeria) and the dollar figure, both by hand,
+with the rate and the date it was checked in a comment. Nothing converts one
+into the other at render; `/pricing` and `/settings` print them through
+`priceLine()` or as written. The
 only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
 manual upgrade path because there is no checkout.
 
@@ -206,7 +220,7 @@ sheet reads the history, so removing someone never changes a month already
 paid. Only `set_account_field` writes either — the change and its log row in
 one transaction — through `setUserPlan` / `setCohortMember`.
 
-- **The cohort serves only paid-for slots:** Pro's monthly allowance and the
+- **The cohort serves only paid-for slots:** a paid plan's monthly allowance and the
   signup grant, never earned credit (`cohortEligible()`; compensation doc §8,
   "this does not bend"). Per mission, cohort slots = net reserved slots from
   those two pools; the first that many cohort reports, by `created_at`, are
@@ -317,6 +331,51 @@ never sent the builder's `owner_id`.
   control in `AuditLogForm`.
 - **Copy says "we don't share your name with builders", never "anonymous".**
   The first is true; the second is a guarantee screenshots break.
+
+**The PDF report is free, with the gate marked, and has its own component
+tree.** `GET /api/export/report` (`?project=P[&mission=M][&screenshots=0]`)
+renders `components/report/ReportDocument.tsx` with `@react-pdf/renderer`.
+No plan check: a `ponytail:` comment in the route marks where it goes. Do not
+put "Shareable formatted report" back on Pro in `lib/plans.ts` until that gate
+exists — listing a free feature as Pro is its own kind of false.
+
+- **Its own tree, deliberately.** It reuses no web component. The preview rule
+  below is about mirroring the tester's page; this is a report with its own
+  layout. It shares logic — `lib/report.ts` (pure: agreement counts, the
+  by-step grouping, the caps), `testerNumbers()`, `entryStatusCopy()` — and no
+  markup. The document renders the model and computes nothing.
+- **Agreement is the headline, detail is by step.** Page one lists steps by
+  how many testers reported a problem ("4 of 5 testers: Unclear"); the detail
+  groups every answer to a step together. Headings come from the reports'
+  `step_action`/`step_expected` snapshots, never `missions.test_steps`.
+- **Capped before any work:** 60 reports and 40 screenshots per document
+  (`REPORT_CAP`, `SCREENSHOT_CAP`), refused with a 413 message naming the way
+  out, never a cut-short file. Its own rate limit, `export:pdf:account`, 5 an
+  hour — a render is far heavier than a CSV.
+- **Screenshots are fetched only from our own public `screenshots` bucket**
+  (`isOwnScreenshot()`), formats sniffed by magic bytes, never the extension.
+- **Accepted and embeddable formats are one map**, `SCREENSHOT_FORMATS` in
+  `lib/utils/screenshots.ts`: `ALLOWED_SCREENSHOT_TYPES` is its keys, and
+  `toEmbeddable()` in `lib/reportImages.ts` switches over its values
+  exhaustively. react-pdf embeds PNG and JPEG only, so WebP — which
+  `compressImage()` produces for most uploads — is converted to JPEG with
+  `sharp`. Accepting a new format without saying how it embeds is a type
+  error; `reportImages.test.ts` round-trips a real file of every accepted type.
+- **Every screenshot read goes through `screenshotList()`**, the PDF and the
+  CSV included — the legacy `screenshot_url` column is selected beside the
+  array. No inline `screenshot_urls ?? []`.
+- **A screenshot left out says why.** `fetchScreenshots` answers
+  `foreign` (the SSRF guard — never fetched), `unavailable` (non-2xx),
+  `network` (timeout, throw) or `format`. The route logs each, once, with
+  the report id and **never the URL**. The caption comes from
+  `screenshotCaption()`. The count goes on the cover (`screenshotNote()`) and
+  in `X-Screenshots-Missing`, which `ExportPanel` shows at download.
+- **react-pdf traps, each found the hard way:** `break` on a View taller than
+  a page loops forever, so every section is its own `<Page>`; any `lineHeight`
+  (on the Page, inherited, or in points) breaks layout or drops the page
+  number; a render-prop `Text` with an array `style` renders nothing. Fonts
+  load off disk and ship through `outputFileTracingIncludes` in
+  `next.config.ts`.
 
 **The mission preview is the tester's page, never a copy of it.** The
 Preview button beside Publish (`components/missions/MissionPreview.tsx`)
@@ -689,6 +748,11 @@ Canonical reference: `Test.md`. Every feature ships with:
   - **XLSX:** every string is an inline-string cell, which Excel never
     evaluates, so it is *not* neutralised — there the apostrophe would show as
     a literal character. Never write a tester's text as a formula cell.
+  - **PDF:** `app/api/export/report`, same scope and same rule — "Tester N"
+    through `testerLabel()`, nothing else, on every exported surface. A PDF
+    cannot be unshared. Both routes read through `loadFeedback()` in
+    `lib/exportDb.ts`, which never selects `tester_id`; add a column there,
+    not a second query.
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
   the other tier includes, and that is all: **no usage meter, no "3 of 5

@@ -9,6 +9,8 @@ import {
   type LedgerRow,
   type Slots,
 } from "@/lib/allowance"
+import { planFor } from "@/lib/plans"
+import { planIdFor } from "@/lib/vocabulary"
 
 // The arithmetic that decides what a builder can spend and what the cohort may
 // be paid against. Every case here is one that costs someone money if wrong.
@@ -44,6 +46,18 @@ describe("monthOf — Africa/Lagos, UTC+1", () => {
 })
 
 describe("balance", () => {
+  // The one place a wrong number gives cohort supply away: a Starter account
+  // read as Pro is five paid reports a month for nothing. From the stored
+  // column, through the same two calls lib/allowanceDb.ts makes.
+  it.each([
+    [null, 0],
+    ["community", 0],
+    ["starter", 5],
+    ["pro", 10],
+  ])("gives plan_id %s a monthly entitlement of %i", (planId, monthly) => {
+    expect(balance(planFor(planIdFor(planId)).monthlyReports, [], OCT).monthly).toBe(monthly)
+  })
+
   it("gives Pro its monthly entitlement with no rows at all", () => {
     expect(balance(10, [], OCT)).toEqual({ monthly: 10, grant: 0, earned: 0, total: 10 })
   })

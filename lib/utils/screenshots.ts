@@ -1,4 +1,19 @@
 /**
+ * Every screenshot format a tester may upload, and how the PDF report embeds
+ * it. The upload schema's accepted types are this map's keys, and
+ * lib/reportImages.ts switches over its values exhaustively — so a format
+ * cannot be accepted at upload without the PDF knowing what to do with it.
+ * react-pdf embeds PNG and JPEG only; WebP is converted to JPEG there.
+ */
+export const SCREENSHOT_FORMATS = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+} as const
+
+export type ScreenshotFormat = (typeof SCREENSHOT_FORMATS)[keyof typeof SCREENSHOT_FORMATS]
+
+/**
  * Read the screenshots off a test_result row.
  *
  * Submissions used to carry a single `screenshot_url`; they now carry a

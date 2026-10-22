@@ -46,6 +46,9 @@ export const RATE_LIMITS = {
   "publish:account": { limit: 20, windowSeconds: HOUR, fallback: 0, mode: "closed" },
   "project:account": { limit: 10, windowSeconds: HOUR, fallback: 0, mode: "closed" },
   "export:account": { limit: 10, windowSeconds: HOUR, fallback: 0, mode: "closed" },
+  // Half the CSV's: one render is seconds of CPU and up to 40 image fetches.
+  // Five still covers download, flip the screenshot toggle, download again.
+  "export:pdf:account": { limit: 5, windowSeconds: HOUR, fallback: 0, mode: "closed" },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

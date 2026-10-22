@@ -19,6 +19,7 @@ import {
   countryName,
   isDesignCategory,
 } from "../vocabulary.ts"
+import { SCREENSHOT_FORMATS } from "../utils/screenshots.ts"
 import type { AccountType } from "../access.ts"
 
 /* ──────────────────────────────────────────────────────────────
@@ -246,11 +247,9 @@ export type UpdateMissionInput = z.infer<typeof updateMissionSchema>
  * ──────────────────────────────────────────────────────────── */
 
 export const COMMENT_MIN = 100
-export const ALLOWED_SCREENSHOT_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-] as const
+/** The keys of SCREENSHOT_FORMATS — the PDF report reads the same map. */
+export const ALLOWED_SCREENSHOT_TYPES = Object.keys(SCREENSHOT_FORMATS) as (keyof typeof SCREENSHOT_FORMATS)[]
+const SCREENSHOT_TYPE_NAMES = Object.values(SCREENSHOT_FORMATS).map((f) => f.toUpperCase())
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 export const MAX_SCREENSHOTS = 10
 
@@ -389,7 +388,9 @@ export const screenshotSchema = z
   .instanceof(File, { message: "A screenshot is required." })
   .refine(
     (f) => (ALLOWED_SCREENSHOT_TYPES as readonly string[]).includes(f.type),
-    { message: "File must be PNG, JPG, or WEBP." },
+    {
+      message: `File must be ${SCREENSHOT_TYPE_NAMES.slice(0, -1).join(", ")}, or ${SCREENSHOT_TYPE_NAMES.at(-1)}.`,
+    },
   )
   .refine((f) => f.size <= MAX_SCREENSHOT_BYTES, {
     message: "Screenshot must be 5 MB or smaller.",

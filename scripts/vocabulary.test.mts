@@ -186,6 +186,7 @@ assert.equal(planIdFor(undefined), DEFAULT_PLAN)
 assert.equal(planIdFor(""), DEFAULT_PLAN)
 assert.equal(planIdFor("community"), "community")
 assert.equal(planIdFor("pro"), "pro")
+assert.equal(planIdFor("starter"), "starter")
 
 // There is no CHECK constraint on the column — Zod is the only thing standing
 // between a typo and the database — so a value that is not in the vocabulary

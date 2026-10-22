@@ -1,4 +1,4 @@
-// The two tiers, as content.
+// The three tiers, as content.
 //
 // Static TypeScript rather than a table, the same reasoning as
 // lib/testTemplates.ts: this is copy the team edits, not user data, and a
@@ -13,14 +13,22 @@
 // lib/allowanceDb.ts (the ledger): monthlyReports, testersPerMission,
 // activeMissions and SIGNUP_GRANT are read there. Never at submission — see
 // CLAUDE.md. The AI-insight line is still content only; nothing counts it.
+//
+// PRICES: naira first, dollar beside it, both written by hand. FX at the time
+// of writing: ₦1,350 = $1, checked 22 October 2026 (compensation doc, FX
+// basis). Never convert one into the other at render — a page that computes a
+// price from a hardcoded rate is wrong a different way every time the rate
+// moves. Check the pair by hand instead: "$19/month · ₦10–12k" sat on
+// /pricing quoting less than half the dollar price. Revisit both if the rate
+// moves more than 10% (§7.6).
 
-import type { PlanId } from "@/lib/vocabulary"
+import { PLAN_IDS, type PlanId } from "@/lib/vocabulary"
 
 export type Plan = {
   id: PlanId
   name: string
-  /** What it costs, as a line rather than a number — there is no checkout. */
-  price: string
+  /** Per month, as written — there is no checkout. null on Community, which is free. */
+  price: { naira: string; dollars: string } | null
   summary: string
   /** Reports that arrive each calendar month. 0 on Community. */
   monthlyReports: number
@@ -37,7 +45,7 @@ export const PLANS: Record<PlanId, Plan> = {
   community: {
     id: "community",
     name: "Community",
-    price: "Free",
+    price: null,
     summary:
       "For builders who test as well as ship. Everything you need, paid for by taking part.",
     monthlyReports: 0,
@@ -53,15 +61,35 @@ export const PLANS: Record<PlanId, Plan> = {
       "CSV export",
     ],
   },
+  // Starter and Pro carry the same price per report on purpose — the tenth
+  // report costs the cohort exactly what the first does, so there is no
+  // volume discount and no "best value" (compensation doc §7.3). They differ
+  // in size: one test round a month, or two.
+  starter: {
+    id: "starter",
+    name: "Starter",
+    price: { naira: "₦15,000", dollars: "~$11" },
+    summary:
+      "For a solo founder or a small team shipping steadily. One proper round of testing a month, five people on what you built.",
+    monthlyReports: 5,
+    testersPerMission: 5,
+    activeMissions: 3,
+    includes: [
+      "Unlimited projects",
+      "5 tester reports a month",
+      "+1 report for every report you write as a tester",
+      "Up to 5 testers on a mission",
+      "3 active missions at once",
+      "Unlimited AI insights",
+      "CSV export",
+    ],
+  },
   pro: {
     id: "pro",
     name: "Pro",
-    // The naira figure is a range on purpose: the plan flags its ₦1,400/$1
-    // rate as months old, and a range does not go stale the way a computed
-    // figure does.
-    price: "$19/month · ₦10–12k",
+    price: { naira: "₦30,000", dollars: "~$22" },
     summary:
-      "For teams with nobody to spare for testing — usually an agency, or a founder on their own.",
+      "For teams shipping every week, usually an agency. Two full rounds a month: test, fix, then test the fix.",
     monthlyReports: 10,
     testersPerMission: 5,
     activeMissions: 5,
@@ -81,11 +109,16 @@ export const PLANS: Record<PlanId, Plan> = {
   },
 }
 
+/** "₦30,000 / month · ~$22", or "Free". */
+export function priceLine(plan: Plan): string {
+  return plan.price ? `${plan.price.naira} / month · ${plan.price.dollars}` : "Free"
+}
+
 export function planFor(id: PlanId): Plan {
   return PLANS[id]
 }
 
-/** The tier someone is not on, which is the one worth describing to them. */
-export function otherPlan(id: PlanId): Plan {
-  return PLANS[id === "pro" ? "community" : "pro"]
+/** The tiers someone is not on, cheapest first — the ones worth describing to them. */
+export function otherPlans(id: PlanId): Plan[] {
+  return PLAN_IDS.filter((p) => p !== id).map((p) => PLANS[p])
 }

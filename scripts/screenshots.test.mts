@@ -23,6 +23,11 @@ for (const type of ["image/gif", "application/pdf", "text/plain", ""]) {
   assert.equal(screenshotSchema.safeParse(fakeFile(10, type)).success, false, `${type} should be rejected`)
 }
 assert.equal(screenshotSchema.safeParse("not-a-file").success, false)
+// Derived from SCREENSHOT_FORMATS, so it cannot name a format the list dropped.
+assert.equal(
+  screenshotSchema.safeParse(fakeFile(10, "image/gif")).error?.issues[0].message,
+  "File must be PNG, JPG, or WEBP.",
+)
 
 /* ── size ────────────────────────────────────────────────────────────── */
 

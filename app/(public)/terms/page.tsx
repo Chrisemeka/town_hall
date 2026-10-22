@@ -49,7 +49,7 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "missions")}>
             <p>
-              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Missions carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per mission, and publishing a mission spends reports from your balance. Pro adds a monthly allowance and is arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
+              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Missions carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per mission, and publishing a mission spends reports from your balance. Starter and Pro add a monthly allowance and are arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
             </p>
             <p>
               A submission moves from Pending Review to Approved, with a rating and an optional note from the Builder. A submission is not sent back for changes. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the mission brief is a violation of these terms.

@@ -15,6 +15,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.8",
+    "@react-pdf/renderer": "^4.9.0",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.0",
     "ai": "^6.0.136",
@@ -28,6 +29,7 @@
     "react-dom": "19.2.4",
     "recharts": "^3.8.1",
     "resend": "^6.12.3",
+    "sharp": "0.34.5",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"
   },
@@ -39,6 +41,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "pdfjs-dist": "^6.4.299",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"

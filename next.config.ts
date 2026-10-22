@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "6mb",
     },
   },
+  // The PDF report reads its fonts off disk (components/report/ReportDocument.tsx);
+  // file tracing cannot see a path.join, so the function is told to ship them.
+  outputFileTracingIncludes: {
+    "/api/export/report": ["./components/report/fonts/**"],
+  },
   // /guidelines predates the v2 testing model and is gone — the page is
   // deleted, not left behind this. The redirect stays permanently for traffic
   // we do not control: anything already linking or bookmarked, and the search
