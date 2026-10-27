@@ -108,7 +108,7 @@ describe("the cap", () => {
     fakeAdmin(many)
     const res = await GET(req("?project=p1"))
     expect(res.status).toBe(413)
-    expect(await res.text()).toMatch(/choose a single mission/)
+    expect(await res.text()).toMatch(/choose a single test case/)
     expect(screenshotFetches()).toEqual([])
   })
 

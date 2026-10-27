@@ -23,8 +23,8 @@ describe("the tiers", () => {
     expect(PLANS.starter.includes).toContain(`${PLANS.starter.monthlyReports} tester reports a month`)
     expect(PLANS.community.includes).toContain(`${SIGNUP_GRANT} tester reports to get you started`)
     for (const plan of Object.values(PLANS)) {
-      expect(plan.includes).toContain(`Up to ${plan.testersPerMission} testers on a mission`)
-      expect(plan.includes).toContain(`${plan.activeMissions} active missions at once`)
+      expect(plan.includes).toContain(`Up to ${plan.testersPerMission} testers on a test case`)
+      expect(plan.includes).toContain(`${plan.activeMissions} active test cases at once`)
     }
   })
 
