@@ -4,7 +4,6 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import { requireAdmin } from "@/lib/auth"
 import type { AccountType } from "@/lib/access"
-import { planIdSchema } from "@/lib/validation/schemas"
 
 async function ensureModerable(
   admin: ReturnType<typeof createAdminClient>,
@@ -52,7 +51,7 @@ export async function suspendUser(targetUserId: string, reason: string, duration
     .eq("id", targetUserId)
   if (profileErr) throw new Error(profileErr.message)
 
-  revalidatePath("/admin/users")
+  revalidatePath("/admin/accounts", "layout")
   revalidatePath("/admin")
 }
 
@@ -82,7 +81,7 @@ export async function banUser(targetUserId: string, reason: string) {
     .eq("id", targetUserId)
   if (profileErr) throw new Error(profileErr.message)
 
-  revalidatePath("/admin/users")
+  revalidatePath("/admin/accounts", "layout")
   revalidatePath("/admin")
 }
 
@@ -106,21 +105,21 @@ export async function reactivateUser(targetUserId: string) {
     .eq("id", targetUserId)
   if (profileErr) throw new Error(profileErr.message)
 
-  revalidatePath("/admin/users")
+  revalidatePath("/admin/accounts", "layout")
   revalidatePath("/admin")
 }
 
 /**
- * Applies an account change and logs it, in one transaction
- * (set_account_field). A plan or cohort change without its record of who and
- * when is the thing this exists to make impossible.
+ * Applies a cohort change and logs it, in one transaction
+ * (set_account_field). Plans no longer come through here: apply_subscription
+ * (actions/admin/subscriptions.ts) is their one writer.
  */
 async function setAccountField(
   admin: ReturnType<typeof createAdminClient>,
   adminUserId: string,
   targetUserId: string,
   role: AccountType,
-  field: "plan_id" | "cohort",
+  field: "cohort",
   value: string | null,
 ) {
   const { data, error } = await admin.rpc("set_account_field", {
@@ -136,43 +135,6 @@ async function setAccountField(
 }
 
 /**
- * Records which plan an account is on — the whole manual upgrade path, since
- * there is no checkout. Logged with who and when: this is the field that
- * decides what a builder is entitled to.
- *
- * NOT moderation, so it deliberately does not call ensureModerable(): setting
- * an admin's own plan is a billing fact rather than an action against someone.
- *
- * Community is written as NULL, never 'community' — the plan_id migration's
- * rule: "has not been assigned a plan" and "is on the free plan" are the same
- * fact. planIdFor() reads both the same way.
- */
-export async function setUserPlan(
-  targetUserId: string,
-  role: AccountType,
-  planId: string,
-) {
-  const { admin, adminUserId } = await requireAdmin()
-
-  // The column has no CHECK constraint, so this parse is the only thing
-  // between a typo and the database. Zod at the boundary, per CLAUDE.md.
-  const parsed = planIdSchema.safeParse(planId)
-  if (!parsed.success) throw new Error("Unknown plan.")
-
-  await setAccountField(
-    admin,
-    adminUserId,
-    targetUserId,
-    role,
-    "plan_id",
-    parsed.data === "community" ? null : parsed.data,
-  )
-
-  revalidatePath("/admin/users")
-  revalidatePath("/settings")
-}
-
-/**
  * Adds a tester to the paid cohort, or takes them out. Tester accounts only —
  * membership is a property of the tester role. Leaving records a leave date
  * rather than clearing the join date, so a month already paid never changes.
@@ -180,6 +142,6 @@ export async function setUserPlan(
 export async function setCohortMember(targetUserId: string, member: boolean) {
   const { admin, adminUserId } = await requireAdmin()
   await setAccountField(admin, adminUserId, targetUserId, "tester", "cohort", member ? "member" : "not_member")
-  revalidatePath("/admin/users")
+  revalidatePath("/admin/accounts", "layout")
   revalidatePath("/admin/payouts")
 }

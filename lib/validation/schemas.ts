@@ -848,3 +848,39 @@ export type EmailCaptchaInput = z.input<typeof emailCaptchaSchema>
  * thing standing between a typo and the column.
  */
 export const planIdSchema = z.enum(PLAN_IDS, { message: "Unknown plan." })
+
+// ── Admin plan changes (actions/admin/subscriptions.ts) ────────────────────
+
+const lagosDay = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.")
+const reason = z.string().trim().min(3, "Say why, in a few words.").max(500)
+const reference = z.string().trim().max(120).optional().transform((v) => v || null)
+const amountNgn = z.coerce.number().int().min(0).max(10_000_000).optional().nullable()
+
+export const changePlanSchema = z.object({
+  userId: z.string().uuid(),
+  planId: z.enum(["starter", "pro"], { message: "Choose Starter or Pro." }),
+  periodEnd: lagosDay,
+  amountNgn,
+  paymentReference: reference,
+  reason,
+  notify: z.boolean(),
+})
+export type ChangePlanInput = z.input<typeof changePlanSchema>
+
+export const downgradeSchema = z.object({
+  userId: z.string().uuid(),
+  planId: z.enum(["community", "starter"]),
+  when: z.enum(["now", "period_end"]),
+  reason,
+  notify: z.boolean(),
+})
+export type DowngradeInput = z.input<typeof downgradeSchema>
+
+export const extendSchema = z.object({
+  userId: z.string().uuid(),
+  periodEnd: lagosDay,
+  amountNgn,
+  paymentReference: reference,
+  notify: z.boolean(),
+})
+export type ExtendInput = z.input<typeof extendSchema>

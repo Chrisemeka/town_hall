@@ -10,7 +10,7 @@ import { signOutAction } from "@/actions/auth"
 
 const NAV_LINKS = [
   { name: "Dashboard",   href: "/admin" },
-  { name: "Users",       href: "/admin/users" },
+  { name: "Accounts",    href: "/admin/accounts" },
   { name: "Projects",    href: "/admin/projects" },
   { name: "Test Cases",    href: "/admin/missions" },
   { name: "Submissions", href: "/admin/submissions" },

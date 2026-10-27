@@ -190,7 +190,7 @@ export default async function AdminHomePage() {
 
       {/* ── Nav cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        <NavCard href="/admin/users"       icon={Users}         title="Users"       desc="Browse every account, signup dates, projects submitted, and test cases completed." />
+        <NavCard href="/admin/accounts"    icon={Users}         title="Accounts"    desc="Every account, its plan, cohort and standing. Change a plan from here." />
         <NavCard href="/admin/projects"    icon={FolderOpen}    title="Projects"    desc="Review every submitted project, flag inappropriate content, or remove it." />
         <NavCard href="/admin/missions"    icon={Target}        title="Test Cases"    desc="Every test case across the platform with status, owner, and test report counts." />
         <NavCard href="/admin/submissions" icon={MessageSquare} title="Submissions" desc="Every test result by a tester with comments, AI summaries, and screenshots." />

@@ -11,7 +11,7 @@ import { CSV_BOM, toCsv } from "@/lib/csv"
  *
  * Tester names are user-controlled and go through toCsv(), which neutralises
  * a leading = + - @ before quoting. Email is included on purpose: this file
- * stays with admins, who see emails in /admin/users already, and a name alone
+ * stays with admins, who see emails in /admin/accounts already, and a name alone
  * does not identify a bank transfer. The builder-export rule against emails
  * is about files that leave to builders.
  */

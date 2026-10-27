@@ -203,3 +203,14 @@ export async function requireAccountForVerification(
   // it is already loaded here, so asking for it again would be a second query.
   return { userId: resolved.userId, verified: resolved.verified }
 }
+
+/** Every admin's address — the recipients of plan reminders and alerts. */
+export async function adminRecipients(): Promise<{ id: string; email: string; name: string }[]> {
+  const { data } = await createAdminClient()
+    .from("profiles")
+    .select("id, email, full_name")
+    .eq("role", "admin")
+  return (data ?? [])
+    .filter((p) => !!p.email)
+    .map((p) => ({ id: p.id as string, email: p.email as string, name: (p.full_name as string | null) ?? "" }))
+}
