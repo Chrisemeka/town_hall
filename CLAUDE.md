@@ -55,6 +55,8 @@ lib/
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
+  events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
+  track.ts            Page-view shaping for /api/track — path, device, referrer (pure)
   initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
   validation/         Zod schemas
@@ -84,6 +86,9 @@ ai_usage_events   one row per AI analysis — a cost record, linked loosely
 report_ledger     the report allowance, append-only — per profile
 admin_account_changes   every plan and cohort change an admin makes
 rate_limits       fixed-window abuse counters — service role only, garbage
+page_views        first-party page views, 90 days raw — service role only
+traffic_daily     page_views rolled up by Lagos day and path, after 90 days
+app_events        in-app activity no row records already — service role only
 ```
 
 | Table          | Key columns |
@@ -180,7 +185,9 @@ with the rate and the date it was checked in a comment. Nothing converts one
 into the other at render; `/pricing` and `/settings` print them through
 `priceLine()` or as written. The
 only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
-manual upgrade path because there is no checkout.
+manual upgrade path because there is no checkout yet. Phase 1 of
+`docs/specs/SPEC-admin-revamp.md` replaces it with `apply_subscription`, the one
+writer an admin and a future checkout will share (see **Payments**).
 
 **The report allowance is a ledger, spent at publish, never at submission.**
 `submitTestResult` is a one-shot post — nothing represents a report in
@@ -247,6 +254,30 @@ one transaction — through `setUserPlan` / `setCohortMember`.
   `/api/admin/payouts` calls `requireAdmin()` itself — `app/api` has no
   middleware. It includes emails, deliberately: it stays with admins, unlike
   the builder export.
+
+**Traffic and activity are first-party tables, not a third-party script.**
+`components/Tracker.tsx` (root layout) beacons each route change to
+`app/api/track`, which answers 204 to everything — including its own
+failures — and writes `page_views`. No raw IP is stored; a logged-out
+visitor is the random `th_vid` cookie (1 year) and `th_sid` (30 minutes,
+rolling). Not counted: bots, `/admin/**`, `/api/**`, admin profiles. Paths
+lose their ids in `normalisePath()`. Rolled into `traffic_daily` after 90
+days by `roll_up_page_views()`.
+
+- **`app_events` holds only what no row records already.** Signups, gates,
+  projects, publishes, reports and reviews have their own timestamps and are
+  read, never copied. The closed list is `EVENT_NAMES` in `lib/events.ts`;
+  add a name there, not a string at the call site.
+- **`recordEvent()` never throws** (the `recordAiUsage()` contract) and
+  `recordEventLater()` runs it in `after()`. An event never carries an email
+  address, an IP, a rate-limit key or a message body — the rule name, the
+  template, the profile id.
+- **Server errors are `error.server`**, from `onRequestError` in
+  `instrumentation.ts`: normalised path, digest, message capped at 500.
+- **`test_results.started_at`** is when the tester first opened the project,
+  from their browser (`AuditLogForm`, a localStorage key beside the draft).
+  Raw and imperfect — read the median, never the mean. A malformed value is
+  dropped to null, never a refused report.
 
 **A rate limit is not an allowance.** The allowance is a business quota
 spent at publish (`lib/allowance.ts`); a rate limit is a short-window abuse
@@ -640,7 +671,7 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
   — the allowance (`20260930_01`). Compare-and-append, same grants as above.
 - `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments
   were removed from the product entirely. Named here only because the pattern they used is the one
-  to follow; nothing in Twnhall moves money.
+  to follow; nothing in Twnhall pays money out (builder plan billing is the one inbound exception — see **Payments**).
 
 When you need a transaction: write the SQL function in a new migration, invoke via `.rpc()`. Never simulate transactions with sequential `.from().update()` calls.
 
@@ -783,7 +814,7 @@ Canonical reference: `Test.md`. Every feature ships with:
   plan" rather than "read about plans". The balance is shown where it is
   spent, beside the publish button, and nowhere here. The call to action is
   `/contact`.
-- **Payments** — the product moves no money, by decision. `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, and the tester's earnings panel with them. Testing is reciprocal; the paid cohort is paid by bank transfer from `/admin/payouts`' CSV, outside the product. Do not reintroduce a payout field, a money balance, a wallet, a tester-facing earnings view or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.)
+- **Payments** — money moves in **one direction only: builders pay for a plan.** Decided 27 Oct 2026, superseding "the product moves no money". Builder billing is in scope: a `subscriptions` record (`docs/specs/SPEC-admin-revamp.md`, Phase 1) that an admin writes today and a checkout (Paystack or Flutterwave) will drive later through the same RPC, so `accounts.plan_id` keeps one writer path. Nothing pays *out* through the product: `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, testing stays reciprocal, and the paid cohort is still paid by bank transfer from `/admin/payouts`' CSV, outside the product. Do not reintroduce a payout field, a money balance, a wallet, a tester-facing earnings view or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.) Until a checkout ships, no card or bank details are collected anywhere in the app.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).
