@@ -2,6 +2,7 @@
 // email-confirmation and per-role verification gates with it, and skipping
 // either here would make this route a way around them.
 import { requireAccount } from "@/lib/auth"
+import { recordEventLater } from "@/lib/events"
 import { CSV_BOM, toCsv } from "@/lib/csv"
 import { testerNumbers } from "@/lib/testerNumbers"
 import { screenshotList } from "@/lib/utils/screenshots"
@@ -146,6 +147,14 @@ export async function GET(request: Request) {
   }
 
   const projectName = submissions[0].missions?.projects?.name
+  recordEventLater({
+    name: "export.csv",
+    profileId: userId,
+    accountType: "builder",
+    subjectType: mission ? "mission" : "project",
+    subjectId: mission ?? project,
+    props: { format: mission ? "csv" : "xlsx", reports: submissions.length },
+  })
 
   if (mission) {
     // The BOM is what makes Excel read this as UTF-8 rather than the local

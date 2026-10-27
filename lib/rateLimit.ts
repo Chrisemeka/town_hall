@@ -40,6 +40,9 @@ export const RATE_LIMITS = {
   "callback:ip": { limit: 30, windowSeconds: 10 * MIN, fallback: 10, mode: "degrade" },
   // The legitimate caller is Supabase itself: this caps a flood, it does not meter submissions.
   "webhook:ip": { limit: 120, windowSeconds: MIN, fallback: 40, mode: "degrade" },
+  // Page-view beacons. A limited beacon is dropped silently: this caps a
+  // flood of fake views, it never blocks a page.
+  "track:ip": { limit: 120, windowSeconds: 10 * MIN, fallback: 40, mode: "degrade" },
 
   // Tier 2 — authenticated, cost-bearing. Keyed on the profile id.
   "submit:account": { limit: 10, windowSeconds: HOUR, fallback: 0, mode: "closed" },

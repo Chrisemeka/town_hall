@@ -8,6 +8,7 @@ import "server-only"
 // up with one of them seeing the balance the other left.
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { recordEventLater } from "@/lib/events"
 import { SIGNUP_GRANT, planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { balance, held, release, reserve, type Balance, type LedgerRow, type Slots } from "@/lib/allowance"
@@ -19,6 +20,25 @@ const ATTEMPTS = 3
 
 /** The tag to search logs for. A missed credit is a user who was cheated. */
 const ALERT = "[allowance] missed credit"
+
+/** The log line, and the same fact as an event the alerts can count. */
+function missedCredit(kind: "grant" | "report", id: string, detail: unknown) {
+  console.error(ALERT, kind, id, detail)
+  recordEventLater({
+    name: "allowance.missed_credit",
+    profileId: kind === "grant" ? id : null,
+    subjectType: kind === "report" ? "test_result" : "profile",
+    subjectId: id,
+    props: { kind, detail: String(detail instanceof Error ? detail.message : detail).slice(0, 300) },
+  })
+}
+
+const publishEvent = (
+  name: "allowance.capped" | "allowance.refused",
+  missionId: string,
+  profileId: string,
+  props: Record<string, unknown>,
+) => recordEventLater({ name, profileId, accountType: "builder", subjectType: "mission", subjectId: missionId, props })
 
 async function builderAccount(admin: Admin, profileId: string) {
   const { data } = await admin
@@ -92,7 +112,10 @@ export async function publishMission(missionId: string, profileId: string): Prom
     const rows = await ledgerRows(admin, profileId)
     const slots = reserve(balance(plan.monthlyReports, rows, now), plan.testersPerMission, now)
     const granted = slots.reduce((n, s) => n + s.slots, 0)
-    if (granted === 0) return { status: "empty" }
+    if (granted === 0) {
+      publishEvent("allowance.refused", missionId, profileId, { reason: "empty" })
+      return { status: "empty" }
+    }
 
     const { data, error } = await admin.rpc("publish_mission", {
       p_mission_id: missionId,
@@ -104,9 +127,17 @@ export async function publishMission(missionId: string, profileId: string): Prom
       p_rows: asRows(slots, -1),
     })
     if (error) throw new Error(error.message)
-    if (data === "ok") return { status: "published", slots: granted, requested: plan.testersPerMission }
+    if (data === "ok") {
+      if (granted < plan.testersPerMission) {
+        publishEvent("allowance.capped", missionId, profileId, { slots: granted, requested: plan.testersPerMission })
+      }
+      return { status: "published", slots: granted, requested: plan.testersPerMission }
+    }
     if (data === "already") return { status: "already" }
-    if (data === "active_limit") return { status: "active_limit", limit: plan.activeMissions }
+    if (data === "active_limit") {
+      publishEvent("allowance.refused", missionId, profileId, { reason: "active_limit", limit: plan.activeMissions })
+      return { status: "active_limit", limit: plan.activeMissions }
+    }
     if (data === "not_found") throw new Error("Not authorized")
     // "stale": someone else wrote to this ledger since we read it. Read again.
   }
@@ -163,9 +194,9 @@ export async function grantSignup(profileId: string, accountId: string | null): 
       slots: SIGNUP_GRANT,
     })
     // 23505: already granted. The ordinary case, not a failure.
-    if (error && error.code !== "23505") console.error(ALERT, "grant", profileId, error.message)
+    if (error && error.code !== "23505") missedCredit("grant", profileId, error.message)
   } catch (err) {
-    console.error(ALERT, "grant", profileId, err)
+    missedCredit("grant", profileId, err)
   }
 }
 
@@ -178,9 +209,9 @@ export async function grantSignup(profileId: string, accountId: string | null): 
 export async function reportLanded(resultId: string): Promise<void> {
   try {
     const { error } = await createAdminClient().rpc("report_landed", { p_result_id: resultId })
-    if (error) console.error(ALERT, "report", resultId, error.message)
+    if (error) missedCredit("report", resultId, error.message)
   } catch (err) {
-    console.error(ALERT, "report", resultId, err)
+    missedCredit("report", resultId, err)
   }
 }
 

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CHOOSE_ACCOUNT_PATH, RESET_PASSWORD_PATH, homeFor, type AccountType } from '@/lib/access'
 import { checkRateLimit, clientIp } from '@/lib/rateLimitDb'
+import { recordEventLater } from '@/lib/events'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
+        recordEventLater({ name: 'auth.login', profileId: user.id, props: { method: 'callback' } })
         const admin = createAdminClient()
 
         // Self-heal a missing profile. The `on_auth_user_created` trigger only

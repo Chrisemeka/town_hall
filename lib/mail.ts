@@ -2,6 +2,7 @@ import "server-only"
 
 import { Resend } from "resend"
 import { render } from "@react-email/render"
+import { recordEvent } from "@/lib/events"
 import FeedbackNotification, {
   type FeedbackNotificationProps,
 } from "@/emails/feedback-notification"
@@ -22,6 +23,23 @@ const FROM_ADMIN =
 
 const BATCH_SIZE = 50
 
+/**
+ * email.sent / email.failed, by template — never the address or the body.
+ * Awaited: every sender already runs inside after(), off the response path.
+ */
+async function logged(template: string, failure?: unknown): Promise<void> {
+  await recordEvent(
+    failure === undefined
+      ? { name: "email.sent", props: { template } }
+      : { name: "email.failed", props: { template, error: describe(failure) } },
+  )
+}
+
+function describe(failure: unknown): string {
+  const text = failure instanceof Error ? failure.message : typeof failure === "string" ? failure : JSON.stringify(failure)
+  return (text ?? "unknown").slice(0, 300)
+}
+
 let cachedResend: Resend | null = null
 function getResend(): Resend | null {
   const key = process.env.RESEND_API_KEY
@@ -37,7 +55,7 @@ export async function sendFeedbackNotification(
   props: FeedbackNotificationProps & { to: string },
 ): Promise<void> {
   const resend = getResend()
-  if (!resend) return
+  if (!resend) return logged("feedback-notification", "RESEND_API_KEY is not set")
 
   try {
     const { to, ...rest } = props
@@ -54,9 +72,13 @@ export async function sendFeedbackNotification(
 
     if (error) {
       console.error("[mail.sendFeedbackNotification] Resend error:", error)
+      await logged("feedback-notification", error)
+    } else {
+      await logged("feedback-notification")
     }
   } catch (err) {
     console.error("[mail.sendFeedbackNotification] unexpected error:", err)
+    await logged("feedback-notification", err)
   }
 }
 
@@ -73,7 +95,7 @@ export async function sendWelcomeEmail(
   props: WelcomeProps & { to: string },
 ): Promise<void> {
   const resend = getResend()
-  if (!resend) return
+  if (!resend) return logged("welcome", "RESEND_API_KEY is not set")
 
   try {
     const { to, ...rest } = props
@@ -97,9 +119,13 @@ export async function sendWelcomeEmail(
 
     if (error) {
       console.error("[mail.sendWelcomeEmail] Resend error:", error)
+      await logged("welcome", error)
+    } else {
+      await logged("welcome")
     }
   } catch (err) {
     console.error("[mail.sendWelcomeEmail] unexpected error:", err)
+    await logged("welcome", err)
   }
 }
 
@@ -114,7 +140,7 @@ export async function sendApprovalNotification(
   props: ApprovalNotificationProps & { to: string },
 ): Promise<void> {
   const resend = getResend()
-  if (!resend) return
+  if (!resend) return logged("approval-notification", "RESEND_API_KEY is not set")
 
   try {
     const { to, ...rest } = props
@@ -133,9 +159,13 @@ export async function sendApprovalNotification(
 
     if (error) {
       console.error("[mail.sendApprovalNotification] Resend error:", error)
+      await logged("approval-notification", error)
+    } else {
+      await logged("approval-notification")
     }
   } catch (err) {
     console.error("[mail.sendApprovalNotification] unexpected error:", err)
+    await logged("approval-notification", err)
   }
 }
 
@@ -143,7 +173,10 @@ export async function sendAdminBroadcast(
   props: AdminBroadcastProps & { to: string | string[] },
 ): Promise<{ sent: number }> {
   const resend = getResend()
-  if (!resend) return { sent: 0 }
+  if (!resend) {
+    await logged("admin-broadcast", "RESEND_API_KEY is not set")
+    return { sent: 0 }
+  }
 
   const { to, ...rest } = props
   const recipients = Array.isArray(to) ? to : [to]
@@ -156,6 +189,7 @@ export async function sendAdminBroadcast(
     text = await render(AdminBroadcast(rest), { plainText: true })
   } catch (err) {
     console.error("[mail.sendAdminBroadcast] render error:", err)
+    await logged("admin-broadcast", err)
     return { sent: 0 }
   }
 
@@ -173,13 +207,16 @@ export async function sendAdminBroadcast(
       const { error } = await resend.batch.send(payload)
       if (error) {
         console.error("[mail.sendAdminBroadcast] batch error:", error)
+        await logged("admin-broadcast", error)
         continue
       }
       sent += batch.length
     } catch (err) {
       console.error("[mail.sendAdminBroadcast] batch threw:", err)
+      await logged("admin-broadcast", err)
     }
   }
 
+  if (sent > 0) await recordEvent({ name: "email.sent", props: { template: "admin-broadcast", count: sent } })
   return { sent }
 }

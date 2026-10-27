@@ -15,6 +15,7 @@ import "server-only"
 // abuse is less throttled, never that anyone gets in without credentials.
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { recordEventLater } from "@/lib/events"
 import {
   RATE_LIMITS,
   hitMemory,
@@ -53,6 +54,7 @@ async function hit(name: RateLimitName, id: string): Promise<RateLimitResult> {
     return row.allowed ? { ok: true } : { ok: false, retryAfter: row.retry_after }
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err)
+    recordEventLater({ name: "rate_limit.store_degraded", props: { rule: name, mode: rule.mode } })
     if (rule.mode === "closed") {
       console.error(`[rate-limit] store unavailable, refusing ${name}:`, reason)
       return { ok: false, retryAfter: CLOSED_RETRY_AFTER }
@@ -78,6 +80,11 @@ export async function checkRateLimit(
   const results = await Promise.all(checks.map(([name, id]) => hit(name, id)))
   const refused = results.filter((r): r is { ok: false; retryAfter: number } => !r.ok)
   if (refused.length === 0) return { ok: true }
+  // The rule names only — never the key, which is an IP or an email address.
+  recordEventLater({
+    name: "rate_limit.hit",
+    props: { rules: checks.filter((_, i) => !results[i].ok).map(([name]) => name) },
+  })
   return { ok: false, retryAfter: Math.max(...refused.map((r) => r.retryAfter)) }
 }
 

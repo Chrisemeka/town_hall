@@ -383,6 +383,12 @@ export const submissionSchema = z.object({
   })
 export type SubmissionInput = z.infer<typeof submissionSchema>
 
+/**
+ * When the tester first opened the project, from their browser. A metric, not
+ * an input: anything unparseable is dropped (null), never a refused report.
+ */
+export const startedAtSchema = z.iso.datetime({ offset: true }).nullable().catch(null)
+
 /** File validation is separate so the screenshot can be supplied as a Blob. */
 export const screenshotSchema = z
   .instanceof(File, { message: "A screenshot is required." })

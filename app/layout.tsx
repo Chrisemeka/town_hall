@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, readTheme } from "@/lib/theme";
 import { Syne, DM_Mono, DM_Sans } from "next/font/google";
+import { Tracker } from "@/components/Tracker";
 import "./globals.css";
 
 const syne = Syne({
@@ -97,6 +98,7 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
         {children}
+        <Tracker />
       </body>
     </html>
   );

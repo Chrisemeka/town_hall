@@ -16,6 +16,7 @@ import {
   storedTestStepsSchema,
   submissionSchema,
   screenshotsSchema,
+  startedAtSchema,
   toFieldErrors,
   type SubmissionInput,
   type FieldErrors,
@@ -191,6 +192,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       p_screenshot_urls: publicUrls,
       p_tester_comment: comment ?? "",
       p_entries: entries,
+      p_started_at: startedAtSchema.parse(formData.get("startedAt")),
     })
 
     // 23505 from the function is the same rule, lost to a race — a double tap.
