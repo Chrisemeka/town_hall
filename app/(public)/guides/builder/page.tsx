@@ -55,7 +55,7 @@ export default function BuilderGuidePage() {
   return (
     <DocLayout slug="builder">
       <PageHeader
-        title="Getting feedback worth having."
+        title="Getting test reports worth having."
         lede="You get structured reports from real people. You pay for them by testing other people's work — that is the whole deal. This is how to ask for something specific enough that what comes back is useful."
       />
 
@@ -69,7 +69,7 @@ export default function BuilderGuidePage() {
             The summary is capped at {PROJECT_SUMMARY_MAX} characters. That is
             not us being
             precious about length — a tester decides whether to pick up your
-            mission from this sentence and the mission title. Say what it does
+            test case from this sentence and the test case title. Say what it does
             and who it is for. Skip the positioning.
           </p>
           <p className={NOTE}>
@@ -81,8 +81,8 @@ export default function BuilderGuidePage() {
 
         <Section {...docSection("builder", "test-kind")}>
           <p className={P}>
-            Missions come in three kinds. Picking the right one changes who
-            self-selects into your mission and what they look at.
+            Test cases come in three kinds. Picking the right one changes who
+            self-selects into your test case and what they look at.
           </p>
           <dl className="flex flex-col gap-3 medium:gap-4">
             {(
@@ -108,7 +108,7 @@ export default function BuilderGuidePage() {
 
         <Section {...docSection("builder", "test-case")}>
           <p className={P}>
-            The test case is the brief. It is an ordered list of steps, and each
+            The test steps are the brief. They are an ordered list, and each
             step is two things: <strong>an action</strong> the tester takes, and{" "}
             <strong>what should happen</strong> when they do. The action is
             capped at {STEP_ACTION_MAX} characters and the expected result at{" "}
@@ -120,7 +120,7 @@ export default function BuilderGuidePage() {
             are grouped by the three categories above and cover the flows most
             projects share — sign-up, password reset, checkout, form validation,
             first impressions, mobile layout. A template is copied onto your
-            mission, so edit it freely afterwards.
+            test case, so edit it freely afterwards.
           </p>
           <h3 className={H3}>What makes a step testable</h3>
           <ul className={`${UL} ${P}`}>
@@ -141,7 +141,7 @@ export default function BuilderGuidePage() {
           </ul>
           <p className={NOTE}>
             Your wording is copied onto every report as it was at the moment the
-            tester submitted. Editing the mission later never rewrites what a
+            tester submitted. Editing the test case later never rewrites what a
             tester appears to have been asked.
           </p>
         </Section>
@@ -151,7 +151,7 @@ export default function BuilderGuidePage() {
             There is a notes field, tucked behind a disclosure, and it is
             genuinely optional. It is notes — a login you want them to use, a
             warning that the payment step is a sandbox. It is not the brief. The
-            test case directly below it is the brief.
+            test steps directly below it are the brief.
           </p>
           <p className={P}>
             If you find yourself writing the instructions in here, they belong
@@ -189,10 +189,10 @@ export default function BuilderGuidePage() {
             , and it is one of the most cited results in usability research.
           </p>
           <p className={P}>
-            The practical consequence is about <em>mission sizing</em>, not
-            about a number you pick. Scope a mission to one flow that five
+            The practical consequence is about <em>test case sizing</em>, not
+            about a number you pick. Scope a test case to one flow that five
             people can cover properly. Testing something else as well? That is
-            a second mission. Ten missions of five beats one mission of fifty.
+            a second test case. Ten test cases of five beats one test case of fifty.
           </p>
           <p className={NOTE}>
             This holds for qualitative usability testing, which is what Twnhall
@@ -248,7 +248,7 @@ export default function BuilderGuidePage() {
           <p className={P}>
             A report arrives pending, and you approve it with a rating out of
             five. There is no sending it back: a tester files one report per
-            mission. The rating is required — an approval without one
+            test case. The rating is required — an approval without one
             leaves the tester nothing to build a reputation on, and reputation
             is the only thing Twnhall has to offer testers.
           </p>

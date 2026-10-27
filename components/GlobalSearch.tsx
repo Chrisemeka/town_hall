@@ -134,11 +134,11 @@ export function GlobalSearch({
           // version renders as "Search projects o", which reads as a bug.
           // CSS cannot swap placeholder text, so the breakpoint is read here.
           // Text is 16px on touch so iOS does not zoom in on focus.
-          placeholder={narrow ? "Search…" : "Search projects or missions..."}
+          placeholder={narrow ? "Search…" : "Search projects or test cases..."}
           onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          aria-label="Search projects or missions"
+          aria-label="Search projects or test cases"
           className="w-full h-10 lg:h-9 pl-9 pr-8 bg-surface-raised border border-line rounded-[8px] font-mono text-[16px] pointer-fine:text-[14px] text-ink placeholder:text-ink-muted focus:outline-none focus:border-accent-ink transition-colors duration-150"
         />
       </label>
@@ -206,7 +206,7 @@ export function GlobalSearch({
                     className="font-mono text-[12px] lg:text-[11px] uppercase text-ink-muted px-4 pt-3 pb-1"
                     style={{ letterSpacing: "1px" }}
                   >
-                    Missions
+                    Test Cases
                   </p>
                   {missionResults.map((r) => {
                     const idx = flatItems.indexOf(r)

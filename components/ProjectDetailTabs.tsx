@@ -97,11 +97,11 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
         <div className="flex items-end justify-between">
           <div role="tablist" aria-label="Project sections" onKeyDown={onKeyDown} className="flex flex-1 medium:flex-none items-end medium:gap-6">
             {[
-              { key: "missions" as const, label: <>Missions</>, count: missions.length },
+              { key: "missions" as const, label: <>Test Cases</>, count: missions.length },
               // "Feedback Received (3)" cannot share 328px with "Missions (4)"
               // as fixed tabs. The word is hidden visually below 600px only;
               // the accessible name is the same at every width.
-              { key: "feedback" as const, label: <>Feedback<span className="hidden medium:inline"> Received</span></>, count: feedbackCount },
+              { key: "feedback" as const, label: <>Test Reports<span className="hidden medium:inline"> Received</span></>, count: feedbackCount },
             ].map(({ key, label, count }, i) => (
               <button
                 key={key}
@@ -147,7 +147,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               // its own full-width copy; only one is ever displayed.
               className="hidden medium:flex h-12 lg:h-9 px-4 border border-ink-muted text-ink rounded-[8px] font-mono text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 items-center gap-1.5 mb-3 w-fit"
             >
-              + Add Mission
+              + Add Test Case
             </Link>
           )}
         </div>
@@ -166,17 +166,17 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
               for the list. */}
           {missions.length > 0 && (
             <Button variant="secondary" asChild className="medium:hidden w-full">
-              <Link href={`/dashboard/${projectId}/mission/new`}>+ Add Mission</Link>
+              <Link href={`/dashboard/${projectId}/mission/new`}>+ Add Test Case</Link>
             </Button>
           )}
           {missions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
-              <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions added.</p>
+              <p className="font-syne font-bold text-[24px] text-ink mb-2">No test cases added.</p>
               <p className="font-mono text-[14px] text-ink-muted mb-6 text-center">
-                Add a mission to activate your project and start receiving tester feedback.
+                Add a test case to activate your project and start receiving test reports.
               </p>
               <Button variant="secondary" asChild>
-                <Link href={`/dashboard/${projectId}/mission/new`}>Add Mission</Link>
+                <Link href={`/dashboard/${projectId}/mission/new`}>Add Test Case</Link>
               </Button>
             </div>
           ) : (
@@ -220,7 +220,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                     {/* Footer */}
                     <div className="flex items-center justify-between pt-2 border-t border-line mt-1">
                       <span className="font-mono text-[12px] text-ink-muted">
-                        {fbCount} Feedback{fbCount !== 1 ? "s" : ""}
+                        {fbCount} Test Reports{fbCount !== 1 ? "s" : ""}
                       </span>
                       {/* Decorative: the title is the link. */}
                       <span
@@ -249,9 +249,9 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
         >
           {feedbackCount === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-16 border border-dashed border-line rounded-[12px]">
-              <p className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</p>
+              <p className="font-syne font-bold text-[24px] text-ink mb-2">No test reports yet.</p>
               <p className="font-mono text-[14px] text-ink-muted">
-                Share your project in the community to start receiving feedback.
+                Share your project in the community to start receiving test reports.
               </p>
             </div>
           ) : (
@@ -287,14 +287,14 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         <PassRate entries={result.entries} />
                       ) : (
                         <p className="font-mono text-[16px] leading-6 text-ink line-clamp-3">
-                          {result.tester_comment ?? "No written feedback."}
+                          {result.tester_comment ?? "No written comment."}
                         </p>
                       )}
 
                       <ScreenshotStrip urls={screenshotList(result)} />
 
                       <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
-                        Read full feedback
+                        Read full test report
                         <ArrowRight className="w-3 h-3" />
                       </span>
                     </Link>

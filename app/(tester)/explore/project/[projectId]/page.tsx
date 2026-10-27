@@ -92,7 +92,7 @@ export default async function ProjectMissionsPage({
 
       {/* Missions header */}
       <div id="tour-project-missions" className="mb-5">
-        <h2 className="font-syne font-bold text-[20px] text-ink">Missions</h2>
+        <h2 className="font-syne font-bold text-[20px] text-ink">Test Cases</h2>
         <p className="font-mono text-[13px] text-ink-muted mt-0.5">
           {missions.length} available to test
         </p>
@@ -123,7 +123,7 @@ export default async function ProjectMissionsPage({
                 />
                 {feedbackCount > 0 && (
                   <p className="font-mono text-[12px] text-ink-muted mt-1">
-                    {feedbackCount} feedback{feedbackCount !== 1 ? "s" : ""}
+                    {feedbackCount} test report{feedbackCount !== 1 ? "s" : ""}
                   </p>
                 )}
               </div>

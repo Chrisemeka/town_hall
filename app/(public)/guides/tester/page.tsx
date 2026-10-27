@@ -28,7 +28,7 @@ import {
 export const metadata: Metadata = {
   title: "Guide for testers — Twnhall",
   description:
-    "How to work through a mission's test case, what pass, fail and blocked each mean, and what makes a report worth a good rating.",
+    "How to work through a test case step by step, what pass, fail and blocked each mean, and what makes a report worth a good rating.",
 }
 
 /*
@@ -64,13 +64,13 @@ export default function TesterGuidePage() {
     <DocLayout slug="tester">
       <PageHeader
         title="Writing a report someone can act on."
-        lede="A mission takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
+        lede="A test case takes a few minutes. The difference between a report that gets fixed and one that gets skimmed is almost entirely in how specific you are — and the form is built to make specific easy."
       />
 
       <div className="flex flex-col gap-10 medium:gap-12">
         <Section {...docSection("tester", "mission")}>
           <p className={P}>
-            One project, one thing to test, and a test case to work through. The
+            One project, one thing to test, and a list of test steps to work through. The
             builder has written an ordered list of steps: each one is an action
             to take and what they believe should happen when you take it.
           </p>
@@ -87,7 +87,7 @@ export default function TesterGuidePage() {
             you can plan around both.
           </p>
           <p className={P}>
-            Then open the project in another tab and keep the mission page
+            Then open the project in another tab and keep the test case page
             beside it. The log is meant to be filled as you go, not
             reconstructed from memory at the end — that is where &ldquo;it
             broke somewhere around checkout&rdquo; comes from.
@@ -170,9 +170,9 @@ export default function TesterGuidePage() {
           {/* auditLogSchemaFor("ui_design") is the authority: actual_result of
               at least DESCRIPTION_MIN on every entry, pass included. The
               labels are entryStatusCopy's, the same the form renders. */}
-          <h3 className={H3}>{testCategoryLabel("ui_design")} missions</h3>
+          <h3 className={H3}>{testCategoryLabel("ui_design")} test cases</h3>
           <p className={P}>
-            A design mission asks for your impressions — &ldquo;describe your
+            A design test case asks for your impressions — &ldquo;describe your
             first impression of the page&rdquo; — so each step has a{" "}
             <strong>What you saw</strong> box, and it is required on every
             step, whatever you answer. At least {DESCRIPTION_MIN} characters,
@@ -259,7 +259,7 @@ export default function TesterGuidePage() {
 
       <Reveal className="mt-12 medium:mt-16 pt-8 border-t border-line flex flex-col gap-4">
         <p className={P}>
-          Testing earns you feedback on your own work. The builder guide covers
+          Testing earns you test reports on your own work. The builder guide covers
           the other half — setting up a project and writing a test case.
         </p>
         {/* A link on its own line is a target, not inline text: 48px below lg. */}

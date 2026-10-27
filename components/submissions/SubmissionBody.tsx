@@ -42,7 +42,7 @@ export function SubmissionBody({
         {comment}
       </p>
     ) : (
-      <p className="font-mono text-[13px] text-ink-muted italic">No written feedback.</p>
+      <p className="font-mono text-[13px] text-ink-muted italic">No written comment.</p>
     )
   }
 

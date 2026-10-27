@@ -69,13 +69,13 @@ export function GiveAndTake({
             Nothing counted yet.
           </p>
           <p className="font-sans text-[14px] leading-6 text-ink mt-2 max-w-md mx-auto">
-            Pick up a mission and file a report, and this fills in.
+            Pick up a test case and file a report, and this fills in.
           </p>
           <Link
             href="/explore/missions"
             className="mt-6 inline-flex h-12 lg:h-11 w-full justify-center medium:w-auto px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
-            Browse missions
+            Browse test cases
           </Link>
         </div>
       </SettingsSection>
@@ -125,13 +125,13 @@ function TesterRecord({ stats }: { stats: Reciprocity }) {
             No reports yet.
           </p>
           <p className="font-sans text-[14px] leading-6 text-ink mt-2 max-w-md mx-auto">
-            Pick up a mission and file a report, and this fills in.
+            Pick up a test case and file a report, and this fills in.
           </p>
           <Link
             href="/explore/missions"
             className="mt-6 inline-flex h-12 lg:h-11 w-full justify-center medium:w-auto px-6 items-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
           >
-            Browse missions
+            Browse test cases
           </Link>
         </div>
       </SettingsSection>

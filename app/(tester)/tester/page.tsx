@@ -45,7 +45,7 @@ type MissionRow = {
 const STRIP_LIMIT = 6
 
 const QUICK_ACTIONS = [
-  { label: "Browse Missions", href: "/explore/missions", icon: Compass, primary: true },
+  { label: "Browse Test Cases", href: "/explore/missions", icon: Compass, primary: true },
 ]
 
 export default async function TesterHomePage() {
@@ -144,7 +144,7 @@ export default async function TesterHomePage() {
           </h1>
           <p className="font-mono text-[14px] text-ink-muted mt-1">
             {missions.length > 0
-              ? `${missions.length} open mission${missions.length !== 1 ? "s" : ""} waiting for you.`
+              ? `${missions.length} open test case${missions.length !== 1 ? "s" : ""} waiting for you.`
               : "Nothing open right now — check back soon."}
           </p>
         </div>
@@ -173,7 +173,7 @@ export default async function TesterHomePage() {
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2.5">
             <h2 className="font-mono text-[12px] lg:text-[11px] font-medium text-ink-muted uppercase tracking-[1px]">
-              New Missions
+              New Test Cases
             </h2>
             {newCount > 0 && (
               <span className="font-mono text-[12px] lg:text-[11px] text-accent-ink bg-voltage/10 px-2 py-0.5 rounded-[6px]">

@@ -22,7 +22,7 @@ export function TestCaseView({ steps }: { steps: unknown }) {
   if (!parsed.success) {
     return (
       <p className="font-mono text-[13px] text-ink-muted italic">
-        This test case could not be read. Ask the builder to re-save the mission.
+        This test case could not be read. Ask the builder to re-save the test case.
       </p>
     )
   }

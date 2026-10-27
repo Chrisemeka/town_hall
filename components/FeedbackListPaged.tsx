@@ -105,7 +105,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                   <ScreenshotStrip urls={screenshotList(item)} />
 
                   <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
-                    Read full feedback
+                    Read full test report
                     <ArrowRight className="w-3 h-3" />
                   </span>
                 </Link>

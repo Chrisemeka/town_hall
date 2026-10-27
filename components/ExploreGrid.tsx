@@ -121,7 +121,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
       // a tester account is bounced off.
       <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 text-center border border-dashed border-line rounded-[12px]">
         <p className="font-syne font-bold text-[24px] text-ink mb-2">Nothing to test yet.</p>
-        <p className="font-mono text-[14px] text-ink-muted">New missions land here as builders publish them.</p>
+        <p className="font-mono text-[14px] text-ink-muted">New test cases land here as builders publish them.</p>
       </div>
     )
   }
@@ -244,9 +244,9 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                 {/* Footer */}
                 <div className="pt-4 border-t border-line flex items-center justify-between">
                   <span className="font-mono text-[12px] text-ink-muted">
-                    {project.missionCount} Mission{project.missionCount !== 1 ? "s" : ""}
+                    {project.missionCount} Test Case{project.missionCount !== 1 ? "s" : ""}
                     {" · "}
-                    {project.feedbackCount} Feedback{project.feedbackCount !== 1 ? "s" : ""}
+                    {project.feedbackCount} Test Report{project.feedbackCount !== 1 ? "s" : ""}
                   </span>
 
                   {project.missionCount > 0 ? (
@@ -258,7 +258,7 @@ export function ExploreGrid({ projects }: { projects: ExploreProject[] }) {
                       Test it <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   ) : (
-                    <span className="font-mono text-[12px] text-ink-muted italic">No missions yet</span>
+                    <span className="font-mono text-[12px] text-ink-muted italic">No test cases yet</span>
                   )}
                 </div>
               </div>

@@ -176,7 +176,7 @@ export default function MissionResultRow({
         {/* WRITTEN FEEDBACK */}
         <div className="order-1 lg:order-2 flex flex-col gap-3">
           <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
-            {entries?.length ? "AUDIT LOG" : "WRITTEN FEEDBACK"}
+            {entries?.length ? "AUDIT LOG" : "WRITTEN COMMENT"}
           </p>
           <div className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 flex-1 flex flex-col justify-between">
             <SubmissionBody entries={entries} comment={result.tester_comment} />

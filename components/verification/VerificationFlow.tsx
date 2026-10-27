@@ -421,7 +421,7 @@ function ReviewStep({
     <>
       <p className="font-sans text-[16px] leading-6 text-ink lg:text-[14px]">
         {role === "tester"
-          ? "Check this over — builders see your name and skills when they review your feedback."
+          ? "Check this over — builders see your name and skills when they review your test reports."
           : "Check this over before we open up your dashboard."}
       </p>
 
@@ -512,7 +512,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
           />
           <p className="font-mono text-[14px] text-ink-muted">
             {role === "tester"
-              ? "Opening the mission board…"
+              ? "Opening the test case board…"
               : "Opening your dashboard…"}
           </p>
         </div>
@@ -548,7 +548,7 @@ function CompletionPanel({ role, href }: { role: AccountType; href: string }) {
           onClick={handOff}
           className="h-12 w-full justify-center medium:w-auto medium:self-start lg:h-11 px-6 inline-flex items-center gap-2 rounded-[8px] bg-accent text-obsidian font-mono font-medium text-[14px] tracking-[0.2px] hover:bg-voltage-dark transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
         >
-          {role === "tester" ? "Find a mission" : "Go to your dashboard"}
+          {role === "tester" ? "Find a test case" : "Go to your dashboard"}
           <ArrowRight size={14} aria-hidden="true" />
         </a>
         {/* True: completeVerification sends sendWelcomeEmail inside after(). */}

@@ -11,7 +11,7 @@ type MissionLite = Pick<
 type ProjectLite = Pick<ProjectRow, "id" | "name" | "owner_id" | "flagged_at">
 type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email">
 
-export const metadata = { title: "Missions — Admin · Twnhall" }
+export const metadata = { title: "Test Cases — Admin · Twnhall" }
 
 type MissionStatus = "active" | "inactive"
 
@@ -93,28 +93,28 @@ export default async function AdminMissionsPage() {
       <div className="flex items-center gap-3 mb-2">
         <ShieldCheck className="w-4 h-4 text-accent-ink" />
         <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
-          Admin · Missions
+          Admin · Test Cases
         </p>
       </div>
       <h1 className="font-syne font-bold text-[36px] leading-[40px] tracking-[-0.5px] text-ink mb-1">
-        Mission Activity
+        Test Case Activity
       </h1>
       <p className="font-mono text-[14px] text-ink-muted mb-8">
-        Every mission across the platform — drafts, active testing, and finished.
+        Every test case across the platform — drafts, active testing, and finished.
       </p>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard icon={Target}        label="Total Missions" value={totalMissions} />
+        <KpiCard icon={Target}        label="Total Test Cases" value={totalMissions} />
         <KpiCard icon={CheckCircle2}  label="Active"         value={activeCount}        accent="#7AE18A" />
         <KpiCard icon={PauseCircle}   label="Inactive"       value={inactiveCount}      accent="#7C7C8A" />
-        <KpiCard icon={MessageSquare} label="With Feedback"  value={withFeedbackCount}  accent="var(--color-accent-ink)" />
+        <KpiCard icon={MessageSquare} label="With Test Reports"  value={withFeedbackCount}  accent="var(--color-accent-ink)" />
       </div>
 
       {/* Table */}
       <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
         <div className="px-5 py-4 border-b border-line flex items-center justify-between">
-          <h2 className="font-syne font-bold text-[16px] text-ink">All Missions</h2>
+          <h2 className="font-syne font-bold text-[16px] text-ink">All Test Cases</h2>
           <span className="font-mono text-[12px] text-ink-muted">{totalMissions} total</span>
         </div>
 
@@ -122,11 +122,11 @@ export default async function AdminMissionsPage() {
           <table className="w-full">
             <thead className="bg-surface/40">
               <tr className="text-left font-mono text-[11px] uppercase tracking-[1px] text-ink-muted">
-                <th className="px-5 py-3 font-medium">Mission</th>
+                <th className="px-5 py-3 font-medium">Test Case</th>
                 <th className="px-5 py-3 font-medium">Project</th>
                 <th className="px-5 py-3 font-medium">Owner</th>
                 <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium text-right">Feedback</th>
+                <th className="px-5 py-3 font-medium text-right">Test Reports</th>
                 <th className="px-5 py-3 font-medium">Created</th>
               </tr>
             </thead>
@@ -134,7 +134,7 @@ export default async function AdminMissionsPage() {
               {missions.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
-                    No missions yet.
+                    No test cases yet.
                   </td>
                 </tr>
               )}

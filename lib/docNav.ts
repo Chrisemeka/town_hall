@@ -35,7 +35,7 @@ export const DOCS = [
     href: "/guides/tester",
     numbered: true,
     sections: [
-      { id: "mission", title: "What a mission is" },
+      { id: "mission", title: "What a test case is" },
       { id: "read-first", title: "Read the whole test case first" },
       { id: "statuses", title: "Pass, fail, or blocked" },
       { id: "fields", title: "What each field wants" },
@@ -51,7 +51,7 @@ export const DOCS = [
     sections: [
       { id: "agreement", title: "User Agreement" },
       { id: "accounts", title: "Accounts and Account Types" },
-      { id: "missions", title: "Missions and Review" },
+      { id: "missions", title: "Test Cases and Review" },
       { id: "ratings", title: "Ratings and Reputation" },
       { id: "content", title: "Your Content" },
       { id: "privacy", title: "Privacy Policy" },

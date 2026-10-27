@@ -70,7 +70,7 @@ export default function AdminBroadcast({
               This message was sent by the Twnhall admin team.
             </Text>
             <Text style={footerText}>
-              Twnhall · Real feedback for real builders.
+              Twnhall · Real test reports for real builders.
             </Text>
           </Section>
         </Container>

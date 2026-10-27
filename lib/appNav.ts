@@ -21,15 +21,15 @@ export const NAV: Record<AccountType, { heading: string; links: NavLink[] }> = {
     heading: "My Work",
     links: [
       { name: "My Projects",       short: "Projects", href: "/dashboard",          icon: LayoutDashboard },
-      { name: "My Missions",       short: "Missions", href: "/dashboard/missions", icon: Target },
-      { name: "Feedback Received", short: "Feedback", href: "/dashboard/feedback", icon: MessageSquare },
+      { name: "My Test Cases",       short: "Tests",    href: "/dashboard/missions", icon: Target },
+      { name: "Test Reports", short: "Reports", href: "/dashboard/feedback", icon: MessageSquare },
     ],
   },
   tester: {
     heading: "Tester",
     links: [
       { name: "Tester Home",        short: "Home",     href: "/tester",           icon: LayoutGrid },
-      { name: "Available Missions", short: "Missions", href: "/explore/missions", icon: Compass },
+      { name: "Available Test Cases", short: "Tests",    href: "/explore/missions", icon: Compass },
       { name: "Explore Projects",   short: "Explore",  href: "/explore",          icon: Telescope },
     ],
   },

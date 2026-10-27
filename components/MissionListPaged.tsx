@@ -49,7 +49,7 @@ export function MissionListPaged({ missions }: { missions: PagedMission[] }) {
               </Link>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="font-mono text-[12px] text-ink-muted">
-                  {mission.feedbackCount} feedback{mission.feedbackCount !== 1 ? "s" : ""}
+                  {mission.feedbackCount} test report{mission.feedbackCount !== 1 ? "s" : ""}
                 </span>
                 <Badge variant={mission.status} className="max-medium:order-first" />
                 {/* Decorative: the title is the link. */}

@@ -322,7 +322,7 @@ export default async function AdminAIReportsPage() {
                             {r.mission.title}
                           </Link>
                         ) : (
-                          <span className="text-danger-ink">mission missing</span>
+                          <span className="text-danger-ink">test case missing</span>
                         )}
                         <span
                           className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.5px] rounded px-2 py-0.5"

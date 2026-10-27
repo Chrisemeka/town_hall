@@ -90,7 +90,7 @@ export default function AddMissionForm({
 
       {/* Header */}
       <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 lg:text-[36px] lg:leading-[44px] tracking-[-0.5px] text-ink mb-1">
-        Create a Mission
+        Create a Test Case
       </h1>
       <p className="font-mono text-[14px] text-ink-muted mb-8">
         For:{" "}
@@ -116,7 +116,7 @@ export default function AddMissionForm({
         {/* Mission Title */}
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
-            Mission Title
+            Test Case Title
           </label>
           <input
             id="title"
@@ -168,8 +168,8 @@ export default function AddMissionForm({
             </Button>
           </div>
           <p className="font-mono text-[14px] lg:text-[12px] text-ink-muted leading-5">
-            Publishing puts this mission — and your project — on the Explore feed where testers
-            pick it up. Drafts stay private, and a project with no published mission stays hidden.
+            Publishing puts this test case — and your project — on the Explore feed where testers
+            pick it up. Drafts stay private, and a project with no published test case stays hidden.
           </p>
           {allowance}
         </div>
@@ -189,7 +189,7 @@ function PublishButton() {
       disabled={pending}
       className="h-12 w-full medium:w-auto px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark transition-colors duration-150 disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface medium:focus-visible:ring-offset-surface-raised"
     >
-      {pending ? "Publishing…" : "Publish Mission"}
+      {pending ? "Publishing…" : "Publish Test Case"}
     </button>
   )
 }

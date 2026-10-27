@@ -106,15 +106,15 @@ export function ExportPanel({
         // looks like a broken export rather than an empty one.
         <p className="font-sans text-[14px] leading-6 text-ink">
           Nothing to export yet. Once testers have filed reports on your
-          missions, you can download all of it as a spreadsheet or a PDF report.
+          test cases, you can download all of it as a spreadsheet or a PDF report.
         </p>
       ) : (
         <>
           <p className="font-sans text-[14px] leading-6 text-ink mb-6">
-            The reports on a project — one row per test-case step, with what
+            The reports on a project — one row per test step, with what
             the tester did, what happened, and how to reproduce it. Pick one
-            mission for a CSV, or all of them for an Excel workbook with a sheet
-            per mission. Or download a PDF report to read or pass on: what to
+            test case for a CSV, or all of them for an Excel workbook with a sheet
+            per test case. Or download a PDF report to read or pass on: what to
             fix first, then every answer, step by step.
           </p>
 
@@ -144,7 +144,7 @@ export function ExportPanel({
 
             <div className="flex flex-col gap-2 flex-1 min-w-0">
               <label htmlFor="mission" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
-                Mission
+                Test Case
               </label>
               <select
                 id="mission"
@@ -153,7 +153,7 @@ export function ExportPanel({
                 onChange={(e) => setMissionId(e.target.value)}
                 className={`${inputClass(false)} cursor-pointer`}
               >
-                <option value="">All missions</option>
+                <option value="">All test cases</option>
                 {(project?.missions ?? []).map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.title}
@@ -180,7 +180,7 @@ export function ExportPanel({
             {/* Two equal exports, so neither is the Voltage CTA. */}
             <a
               href={sheetHref}
-              onClick={(e) => download(e, sheetHref, workbook ? "twnhall-feedback.xlsx" : "twnhall-feedback.csv")}
+              onClick={(e) => download(e, sheetHref, workbook ? "twnhall-test-reports.xlsx" : "twnhall-test-reports.csv")}
               download
               aria-disabled={busy !== null}
               className={BUTTON}
@@ -212,8 +212,8 @@ export function ExportPanel({
           )}
 
           <p className="font-mono text-[12px] text-ink-muted mt-4 leading-5">
-            Testers appear as Tester 1, 2, 3 — numbered within each mission, so
-            Tester 1 on two missions is two different people. No names or email
+            Testers appear as Tester 1, 2, 3 — numbered within each test case, so
+            Tester 1 on two test cases is two different people. No names or email
             addresses: a downloaded file is out of your hands.
           </p>
         </>

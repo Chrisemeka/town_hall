@@ -135,7 +135,7 @@ export default async function ProjectDetailPage({
               This project has been flagged by an admin.
             </p>
             <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mt-1 leading-5">
-              Your project is hidden from public discovery (Explore, Browse Missions, search) until the issue is resolved.
+              Your project is hidden from public discovery (Explore, Browse Test Cases, search) until the issue is resolved.
             </p>
             {project.flag_reason && (
               <div className="mt-3 rounded-[8px] p-3 bg-ink/[0.04] border border-danger-ink/20">

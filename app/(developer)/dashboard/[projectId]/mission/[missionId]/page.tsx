@@ -143,7 +143,7 @@ export default async function DeveloperMissionDetailPage({
             className="h-12 justify-center lg:h-8 px-3 border border-ink-muted text-ink-muted rounded-[8px] lg:rounded-[6px] font-mono text-[14px] lg:text-[13px] hover:text-ink hover:border-ink-muted transition-colors duration-150 flex items-center gap-1.5"
           >
             <Pencil className="w-3 h-3" />
-            Edit Mission
+            Edit Test Case
           </Link>
 
           <form
@@ -214,7 +214,7 @@ export default async function DeveloperMissionDetailPage({
         <div className="flex flex-col items-center justify-center py-12 px-6 medium:py-20 border border-dashed border-line rounded-[12px]">
           <p className="font-syne font-bold text-[20px] text-ink mb-2">No submissions yet.</p>
           <p className="font-mono text-[14px] text-ink-muted">
-            Results will appear here once testers start submitting feedback.
+            Results will appear here once testers start submitting test reports.
           </p>
         </div>
       ) : (

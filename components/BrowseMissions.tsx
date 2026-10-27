@@ -64,8 +64,8 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
       // No button: the old one sent testers to /dashboard/new, a builder route
       // a tester account is bounced off.
       <div className="flex flex-col items-center justify-center py-12 medium:py-16 px-6 text-center border border-dashed border-line rounded-[12px]">
-        <p className="font-syne font-bold text-[24px] text-ink mb-2">No missions yet.</p>
-        <p className="font-mono text-[14px] text-ink-muted">New missions land here as builders publish them.</p>
+        <p className="font-syne font-bold text-[24px] text-ink mb-2">No test cases yet.</p>
+        <p className="font-mono text-[14px] text-ink-muted">New test cases land here as builders publish them.</p>
       </div>
     )
   }
@@ -74,8 +74,8 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
     <div>
       {/* Search */}
       <SearchField
-        label="Search missions"
-        placeholder="Search missions…"
+        label="Search test cases"
+        placeholder="Search test cases…"
         value={query}
         onChange={setQuery}
         className="w-full medium:w-[280px] mb-6 medium:mb-8"
@@ -137,7 +137,7 @@ export function BrowseMissions({ missions }: { missions: BrowseMission[] }) {
                   {/* Feedback count */}
                   {mission.feedbackCount > 0 && (
                     <p className="font-mono text-[12px] text-ink-muted mt-1">
-                      {mission.feedbackCount} feedback{mission.feedbackCount !== 1 ? "s" : ""}
+                      {mission.feedbackCount} test report{mission.feedbackCount !== 1 ? "s" : ""}
                     </p>
                   )}
                 </div>

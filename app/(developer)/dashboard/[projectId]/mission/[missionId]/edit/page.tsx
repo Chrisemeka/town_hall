@@ -10,7 +10,7 @@ import { AllowanceNotice } from "@/components/missions/AllowanceNotice";
 import { reportBalance } from "@/lib/allowanceDb";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
 
-export const metadata = { title: "Edit Mission — Twnhall" };
+export const metadata = { title: "Edit Test Case — Twnhall" };
 
 export default async function EditMissionPage({
   params,
@@ -68,7 +68,7 @@ export default async function EditMissionPage({
           href={`/dashboard/${projectId}/mission/${missionId}`}
           className="hover:text-ink transition-colors duration-150"
         >
-          Mission
+          Test Case
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
         <span className="text-ink">Edit</span>

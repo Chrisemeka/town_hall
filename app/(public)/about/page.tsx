@@ -6,7 +6,7 @@ import { Reveal } from "@/components/public/Reveal"
 export const metadata: Metadata = {
   title: "About — Twnhall",
   description:
-    "Twnhall is a reciprocal testing platform for developers, built in Nigeria. You earn feedback on your product by testing someone else's.",
+    "Twnhall is a reciprocal testing platform for developers, built in Nigeria. You earn test reports on your product by testing someone else's.",
 }
 
 export default function AboutPage() {
@@ -31,7 +31,7 @@ export default function AboutPage() {
           <p className={P}>
             Nobody buys their way in. You earn a report on your own product by
             writing one on someone else&apos;s, one for one. That is the whole
-            economy, and it is why the feedback is any good: the person testing
+            economy, and it is why the test reports is any good: the person testing
             your checkout has shipped a checkout, and knows which parts are hard.
           </p>
           <p className={P}>

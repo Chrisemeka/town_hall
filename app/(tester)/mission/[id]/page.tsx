@@ -93,11 +93,11 @@ export default async function MissionDetailPage({
         className="medium:hidden inline-flex items-center gap-1 min-h-12 -ml-2 px-2 mb-4 font-mono text-[14px] text-ink-muted hover:text-ink transition-colors duration-150"
       >
         <ChevronLeft className="w-4 h-4 shrink-0" aria-hidden="true" />
-        Available Missions
+        Available Test Cases
       </Link>
       <div className="hidden medium:flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-8 flex-wrap">
         <Link href="/explore/missions" className="hover:text-ink transition-colors duration-150">
-          Available Missions
+          Available Test Cases
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
         <span className="text-ink-muted truncate max-w-[180px]">{project?.name}</span>
@@ -120,7 +120,7 @@ export default async function MissionDetailPage({
           <ShieldAlert className="w-10 h-10 text-ink-muted mb-4" />
           <h3 className="font-syne font-bold text-[20px] text-ink mb-2">Project Owner</h3>
           <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
-            You created this project. Developers cannot submit test results for their own missions.
+            You created this project. Developers cannot submit test results for their own test cases.
           </p>
           <Link
             href="/dashboard"
@@ -132,7 +132,7 @@ export default async function MissionDetailPage({
       ) : ownReports ? (
         <div className="flex flex-col items-center justify-center py-10 medium:py-12 border border-dashed border-line rounded-[12px] text-center px-6">
           <CheckCircle2 className="w-10 h-10 text-success-ink mb-4" aria-hidden="true" />
-          <h3 className="font-syne font-bold text-[20px] text-ink mb-2">You&apos;ve tested this mission</h3>
+          <h3 className="font-syne font-bold text-[20px] text-ink mb-2">You&apos;ve tested this test case</h3>
           {ownStatus === "approved" ? (
             <p className="font-mono text-[14px] text-ink max-w-[400px]">
               The builder approved your report
@@ -140,7 +140,7 @@ export default async function MissionDetailPage({
             </p>
           ) : (
             <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
-              Your report is with the builder. Each mission takes one report per tester.
+              Your report is with the builder. Each test case takes one report per tester.
             </p>
           )}
           {/* In full here — the feed card that links to this page clamps it. */}
@@ -153,14 +153,14 @@ export default async function MissionDetailPage({
             href="/explore"
             className="mt-6 inline-flex items-center min-h-12 lg:min-h-0 font-mono text-[14px] lg:text-[13px] text-accent-ink hover:underline"
           >
-            Find another mission
+            Find another test case
           </Link>
         </div>
       ) : (
         <div id="tour-mission-submit-form">
           {unpaidForCohort && (
             <p className="mb-6 font-mono text-[14px] lg:text-[13px] leading-5 text-ink border-l-2 border-info-ink pl-4">
-              This mission isn&apos;t paid for cohort testers. You can still test it — it earns you a
+              This test case isn&apos;t paid for cohort testers. You can still test it — it earns you a
               report, like anyone else.
             </p>
           )}

@@ -28,7 +28,7 @@ export default function FeedbackNotification({
   submissionSummary,
   feedbackUrl,
 }: FeedbackNotificationProps) {
-  const previewText = `New feedback on ${projectName}`
+  const previewText = `New test report on ${projectName}`
 
   return (
     <Html>
@@ -38,18 +38,18 @@ export default function FeedbackNotification({
         <Container style={container}>
           <Section style={header}>
             <Text style={brand}>Twnhall</Text>
-            <Text style={tagline}>Real feedback for real builders.</Text>
+            <Text style={tagline}>Real test reports for real builders.</Text>
           </Section>
 
           <Section style={content}>
             <Text style={greeting}>Hi {ownerName || "there"},</Text>
             <Text style={paragraph}>
-              A tester just submitted feedback on your project{" "}
+              A tester just submitted a test report on your project{" "}
               <strong style={strong}>{projectName}</strong>.
             </Text>
 
             <Section style={card}>
-              <Text style={cardLabel}>Mission</Text>
+              <Text style={cardLabel}>Test Case</Text>
               <Text style={cardValue}>{missionTitle}</Text>
 
               {submissionSummary ? (
@@ -62,7 +62,7 @@ export default function FeedbackNotification({
 
             <Section style={{ textAlign: "center", margin: "32px 0" }}>
               <Button style={cta} href={feedbackUrl}>
-                View Feedback
+                View Test Report
               </Button>
             </Section>
 
@@ -79,7 +79,7 @@ export default function FeedbackNotification({
               You&apos;re receiving this because you own a project on Twnhall.
             </Text>
             <Text style={footerText}>
-              Twnhall · Real feedback for real builders.
+              Twnhall · Real test reports for real builders.
             </Text>
           </Section>
         </Container>

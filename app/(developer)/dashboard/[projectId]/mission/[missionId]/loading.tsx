@@ -7,7 +7,7 @@ import { Bar, LoadingAnnounce, StepCardSkeleton } from "@/components/ui/Skeleton
 export default function Loading() {
   return (
     <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-8">
-      <LoadingAnnounce label="Loading the mission…" />
+      <LoadingAnnounce label="Loading the test case…" />
 
       <div aria-hidden="true">
         {/* Nav bar */}

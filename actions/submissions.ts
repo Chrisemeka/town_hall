@@ -29,14 +29,14 @@ export type SubmissionResult =
   | { success: true }
   | { success: false; error: string; fieldErrors?: SubmissionFieldErrors }
 
-const ALREADY_SUBMITTED = "You've already submitted a report for this mission."
+const ALREADY_SUBMITTED = "You've already submitted a report for this test case."
 
 export async function submitTestResult(formData: FormData): Promise<SubmissionResult> {
   try {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: "You must be logged in to submit feedback." }
+    if (!user) return { success: false, error: "You must be logged in to submit a test report." }
 
     // Submitting feedback is the Tester account's job. Middleware gates the page
     // this posts from, but the action is the thing that actually writes — so the
@@ -47,7 +47,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     // is the better outcome here anyway — the form can show it.
     const account = await getActiveAccount()
     if (account?.active !== "tester") {
-      return { success: false, error: "Switch to your Tester account to submit feedback." }
+      return { success: false, error: "Switch to your Tester account to submit a test report." }
     }
 
     const parsed = submissionSchema.safeParse({
@@ -129,14 +129,14 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       if (entries.length !== stepIds.size) {
         return {
           success: false,
-          error: "This mission changed while you were testing. Reload and try again.",
+          error: "This test case changed while you were testing. Reload and try again.",
         }
       }
       const unknownStep = entries.find((e) => !stepIds.has(e.step_id))
       if (unknownStep) {
         return {
           success: false,
-          error: "This mission changed while you were testing. Reload and try again.",
+          error: "This test case changed while you were testing. Reload and try again.",
         }
       }
     }
@@ -197,7 +197,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     if (dbError?.code === "23505") return { success: false, error: ALREADY_SUBMITTED }
     if (dbError || !resultId) {
       console.error("[submitTestResult] submit_audit_log failed:", dbError)
-      return { success: false, error: "Failed to save your feedback. Please try again." }
+      return { success: false, error: "Failed to save your test report. Please try again." }
     }
 
     // The submission is committed. The tester's earned credit, and the mission

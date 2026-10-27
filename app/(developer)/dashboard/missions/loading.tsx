@@ -6,7 +6,7 @@ import { ListRowSkeleton, LoadingAnnounce, PageHeaderSkeleton } from "@/componen
 export default function Loading() {
   return (
     <div className="max-w-[800px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
-      <LoadingAnnounce label="Loading your missions…" />
+      <LoadingAnnounce label="Loading your test cases…" />
 
       <div aria-hidden="true">
         <PageHeaderSkeleton action />

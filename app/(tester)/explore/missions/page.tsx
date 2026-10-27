@@ -9,7 +9,7 @@ type BrowseRow = Pick<MissionRow, "id" | "title" | "created_at" | "category" | "
   projects: Embedded<Pick<ProjectRow, "id" | "name" | "app_url" | "flagged_at">>;
 };
 
-export const metadata = { title: "Browse Missions — Twnhall" };
+export const metadata = { title: "Browse Test Cases — Twnhall" };
 
 function handleFromUrl(url: string | null, name: string) {
   if (url) {
@@ -73,10 +73,10 @@ export default async function BrowseMissionsPage() {
       {/* Page header */}
       <div id="tour-browse-missions-header" className="mb-6 medium:mb-8">
         <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
-          Browse Missions
+          Browse Test Cases
         </h1>
         <p className="font-mono text-[14px] text-ink-muted mt-1">
-          Pick a mission and start testing.
+          Pick a test case and start testing.
         </p>
       </div>
 
