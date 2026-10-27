@@ -1,11 +1,12 @@
 import { Mail, ShieldCheck } from "lucide-react"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdmin } from "@/lib/auth"
 import { BroadcastForm } from "@/components/admin/BroadcastForm"
 
 export const metadata = { title: "Email Broadcast — Admin · Twnhall" }
 
 export default async function AdminEmailPage() {
-  const admin = createAdminClient()
+  // The layout checks too; a page re-checks so a layout change cannot open it.
+  const { admin } = await requireAdmin()
   const { count } = await admin
     .from("profiles")
     .select("*", { count: "exact", head: true })

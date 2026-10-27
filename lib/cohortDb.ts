@@ -6,7 +6,7 @@ import "server-only"
 // report_ledger and admin_account_changes have no read policies.
 
 import { createAdminClient } from "@/lib/supabase/admin"
-import type { LedgerRow } from "@/lib/allowance"
+import { monthOf, type LedgerRow } from "@/lib/allowance"
 import {
   cohortSlots,
   openToCohort,
@@ -104,28 +104,34 @@ export async function missionsForTester(userId: string | null | undefined, missi
 
 export type PayoutRow = TesterPayout & { name: string; email: string }
 
-/** The payout sheet for a Lagos month ("2026-10-01"). */
-export async function payoutSheet(month: string): Promise<{ rows: PayoutRow[]; totalNgn: number }> {
-  const admin = createAdminClient()
+/**
+ * Every report any cohort member has ever filed, and which of them are
+ * payable. All of them, not one month's: earlier months' reports used up
+ * slots on the same missions, so they decide what is payable now.
+ */
+async function cohortReports(admin: Admin) {
   const periods = await cohortPeriods(admin)
   const testerIds = [...periods.keys()]
-  if (testerIds.length === 0) return { rows: [], totalNgn: 0 }
-
-  // Every report any cohort member has ever filed: earlier months' reports
-  // used up slots on the same missions, so they decide what is payable now.
-  const [reportsRes, profilesRes] = await Promise.all([
-    admin
-      .from("test_results")
-      .select("id, tester_id, mission_id, created_at, rating")
-      .in("tester_id", testerIds),
-    admin.from("profiles").select("id, full_name, email").in("id", testerIds),
-  ])
+  if (testerIds.length === 0) return { periods, reports: [] as FiledReport[], payable: new Set<string>() }
+  const reportsRes = await admin
+    .from("test_results")
+    .select("id, tester_id, mission_id, created_at, rating")
+    .in("tester_id", testerIds)
   if (reportsRes.error) throw new Error(reportsRes.error.message)
   const reports = (reportsRes.data ?? []).filter((r) => r.mission_id).map(toReport)
   const slots = await slotsFor(admin, [...new Set(reports.map((r) => r.missionId))])
+  return { periods, reports, payable: payableReports(reports, slots, periods) }
+}
 
-  const sheet = payoutMonth(month, reports, payableReports(reports, slots, periods), periods)
-  const who = new Map((profilesRes.data ?? []).map((p) => [p.id, p]))
+/** The payout sheet for a Lagos month ("2026-10-01"). */
+export async function payoutSheet(month: string): Promise<{ rows: PayoutRow[]; totalNgn: number }> {
+  const admin = createAdminClient()
+  const { periods, reports, payable } = await cohortReports(admin)
+  if (periods.size === 0) return { rows: [], totalNgn: 0 }
+  const { data: people } = await admin.from("profiles").select("id, full_name, email").in("id", [...periods.keys()])
+
+  const sheet = payoutMonth(month, reports, payable, periods)
+  const who = new Map((people ?? []).map((p) => [p.id, p]))
   return {
     totalNgn: sheet.totalNgn,
     rows: sheet.rows.map((r) => ({
@@ -134,6 +140,14 @@ export async function payoutSheet(month: string): Promise<{ rows: PayoutRow[]; t
       email: who.get(r.testerId)?.email ?? "",
     })),
   }
+}
+
+/** This month's payable reports and the missions they were on — for cost per builder. */
+export async function payableIn(month: string): Promise<{ id: string; missionId: string }[]> {
+  const { reports, payable } = await cohortReports(createAdminClient())
+  return reports
+    .filter((r) => payable.has(r.id) && monthOf(new Date(r.createdAt)) === month)
+    .map((r) => ({ id: r.id, missionId: r.missionId }))
 }
 
 /** The latest plan and cohort changes, newest first — /admin/accounts shows them. */

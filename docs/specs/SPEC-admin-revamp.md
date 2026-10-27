@@ -1,6 +1,6 @@
 # SPEC: Admin Console Revamp
 
-**Status:** Draft for review — nothing built
+**Status:** Built, Phases 0–5 (27 October 2026). Open questions below still stand.
 **Date:** 27 October 2026
 **Branch plan:** one branch per phase, each off `main` after the previous merges (see *Phases*)
 **Source:** `docs/Twnhall_Admin_Metrics.md` (what to measure and why) + the admin audit of 27 Oct 2026 (below)

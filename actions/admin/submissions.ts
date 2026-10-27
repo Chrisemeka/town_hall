@@ -30,8 +30,7 @@ export async function deleteSubmission(submissionId: string) {
     }
   }
 
-  revalidatePath("/admin/submissions")
-  revalidatePath("/admin/missions")
+  revalidatePath("/admin/content")
   if (submission.mission_id) {
     revalidatePath(`/admin/missions/${submission.mission_id}`)
   }

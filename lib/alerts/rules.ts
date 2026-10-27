@@ -86,20 +86,20 @@ export function decide(
 
 /** Where an alert about this rule should send you. */
 export const RULE_LINKS: Record<AlertRuleKey, string> = {
-  uncredited_reports: "/admin/submissions",
+  uncredited_reports: "/admin/content?tab=reports",
   server_errors: "/admin/activity?event=error.server",
   rate_limit_degraded: "/admin/activity?event=rate_limit.store_degraded",
-  mission_closed_unfilled: "/admin/missions",
-  reports_pending_review: "/admin/submissions",
-  unfilled_slots_ageing: "/admin/missions",
+  mission_closed_unfilled: "/admin/content?tab=cases",
+  reports_pending_review: "/admin/content?tab=reports",
+  unfilled_slots_ageing: "/admin/content?tab=cases",
   ai_failure_rate: "/admin/ai-reports",
   email_failures: "/admin/activity?event=email.failed",
   rate_limit_spike: "/admin/activity?event=rate_limit.hit",
   signups_stalled: "/admin/traffic",
-  cohort_over_budget: "/admin/payouts",
+  cohort_over_budget: "/admin/money",
   ai_over_budget: "/admin/ai-reports",
   subscription_lapsing: "/admin/accounts",
-  flagged_projects: "/admin/projects",
+  flagged_projects: "/admin/content?tab=projects&flagged=1",
 }
 
 export function isRuleKey(key: string): key is AlertRuleKey {

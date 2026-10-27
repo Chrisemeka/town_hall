@@ -1,19 +1,17 @@
 import Link from "next/link"
 import { Avatar } from "@/components/ui/Avatar"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdmin } from "@/lib/auth"
 import {
   Sparkles, ShieldCheck, Smile, Frown, AlertTriangle, Meh, CircleDollarSign, Gauge, Activity,
 } from "lucide-react"
 import { SignupsChart, type SignupPoint } from "@/components/admin/SignupsChart"
-import type { AiUsageEventRow, MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+import type { AiUsageEventRow, ProfileRow, TestResultRow } from "@/lib/types/db"
 
-/** Exactly what the four selects below ask for. */
+/** Exactly what the listing selects below ask for. */
 type ResultLite = Pick<
   TestResultRow,
   "id" | "mission_id" | "tester_id" | "tester_comment" | "ai_summary" | "ai_sentiment" | "created_at"
 >
-type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">
-type ProjectLite = Pick<ProjectRow, "id" | "name">
 type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
 type UsageLite = Pick<AiUsageEventRow, "status" | "estimated_cost_usd">
 
@@ -77,7 +75,8 @@ function sentimentStyle(s: Sentiment) {
 }
 
 export default async function AdminAIReportsPage() {
-  const admin = createAdminClient()
+  // The layout checks too; a page re-checks so a layout change cannot open it.
+  const { admin } = await requireAdmin()
 
   // Async Server Component: renders once per request on the server, so
   // reading the clock here is the intent.
@@ -85,14 +84,13 @@ export default async function AdminAIReportsPage() {
   const today = new Date(now)
   const monthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1)).toISOString()
 
-  const [resultsRes, missionsRes, projectsRes, profilesRes, usageRes] = await Promise.all([
-    admin
-      .from("test_results")
-      .select("id, mission_id, tester_id, tester_comment, ai_summary, ai_sentiment, created_at")
-      .order("created_at", { ascending: false }),
-    admin.from("missions").select("id, title, project_id"),
-    admin.from("projects").select("id, name"),
-    admin.from("profiles").select("id, full_name, email, avatar_url"),
+  // Counts in SQL (admin_ai_summary); the lists are the latest few, joined.
+  // This page used to load every report, mission, project and profile.
+  const listed = "id, mission_id, tester_id, tester_comment, ai_summary, ai_sentiment, created_at, missions(id, title, projects(id, name))"
+  const [summaryRes, okRes, failedRes, usageRes] = await Promise.all([
+    admin.rpc("admin_ai_summary", { p_days: 30 }),
+    admin.from("test_results").select(listed).not("ai_summary", "is", null).neq("ai_summary", "").order("created_at", { ascending: false }).limit(REPORT_LIMIT),
+    admin.from("test_results").select(listed).or("ai_summary.is.null,ai_summary.eq.").order("created_at", { ascending: false }).limit(10),
     // Cost record, not a quota ledger — read here only to be looked at.
     admin.from("ai_usage_events").select("status, estimated_cost_usd").gte("created_at", monthStart),
   ])
@@ -108,79 +106,50 @@ export default async function AdminAIReportsPage() {
   const monthFailed = usage.filter((u) => u.status === "failed").length
   const failureRate = monthAnalyses > 0 ? `${Math.round((monthFailed / monthAnalyses) * 100)}%` : "—"
 
-  const missionById = new Map(
-    ((missionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, { title: m.title, projectId: m.project_id }]),
-  )
-  const projectById = new Map(
-    ((projectsRes.data ?? []) as ProjectLite[]).map((p) => [p.id, { name: p.name }]),
-  )
+  type Listed = ResultLite & { missions: { id: string; title: string; projects: { id: string; name: string } | null } | null }
+  const okRows = (okRes.data ?? []) as unknown as (Listed & { ai_summary: string })[]
+  const failed = (failedRes.data ?? []) as unknown as Listed[]
+  const testerIds = [...new Set([...okRows, ...failed].map((r) => r.tester_id))]
+  const { data: profiles } = testerIds.length
+    ? await admin.from("profiles").select("id, full_name, email, avatar_url").in("id", testerIds)
+    : { data: [] }
   const profileById = new Map(
-    ((profilesRes.data ?? []) as ProfileLite[]).map((p) => [
-      p.id,
-      {
-        fullName: p.full_name ?? "",
-        email: p.email ?? "",
-        avatarUrl: p.avatar_url ?? null,
-      },
-    ]),
+    ((profiles ?? []) as ProfileLite[]).map((p) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "", avatarUrl: p.avatar_url ?? null }]),
   )
 
-  const allResults = (resultsRes.data ?? []) as ResultLite[]
-  const totalSubmissions = allResults.length
-
-  // Type predicate, not just a boolean: the filter is what makes ai_summary
-  // non-null for every row downstream, and ReportRow requires it.
-  const successful = allResults.filter(
-    (r): r is ResultLite & { ai_summary: string } =>
-      !!r.ai_summary && r.ai_summary.trim() !== "",
-  )
-  const failed = allResults.filter((r) => !r.ai_summary || r.ai_summary.trim() === "")
-
-  const sentimentCounts = { POSITIVE: 0, NEUTRAL: 0, FRUSTRATED: 0, UNKNOWN: 0 }
-  for (const r of successful) sentimentCounts[normalizeSentiment(r.ai_sentiment)] += 1
-
-  const totalReports = successful.length
-  const failedCount = failed.length
+  const summary = ((summaryRes.data as Record<string, unknown>[] | null)?.[0] ?? {}) as Record<string, unknown>
+  const num = (k: string) => Number(summary[k] ?? 0)
+  const totalSubmissions = num("total")
+  const totalReports = num("generated")
+  const failedCount = num("failed")
+  const sentimentCounts = { POSITIVE: num("positive"), NEUTRAL: num("neutral"), FRUSTRATED: num("frustrated"), UNKNOWN: num("unknown") }
   const coverage = totalSubmissions > 0 ? Math.round((totalReports / totalSubmissions) * 100) : 0
 
-  const reports: ReportRow[] = successful.slice(0, REPORT_LIMIT).map((r) => {
-    const mission = missionById.get(r.mission_id)
-    const project = mission ? projectById.get(mission.projectId) : undefined
-    const tester = profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null }
-    return {
-      id: r.id,
-      createdAt: r.created_at,
-      aiSummary: r.ai_summary,
-      aiSentiment: normalizeSentiment(r.ai_sentiment),
-      testerComment: r.tester_comment ?? "",
-      mission: mission ? { id: r.mission_id, title: mission.title } : null,
-      project: mission && project ? { id: mission.projectId, name: project.name } : null,
-      tester,
-    }
-  })
+  const reports: ReportRow[] = okRows.map((r) => ({
+    id: r.id,
+    createdAt: r.created_at,
+    aiSummary: r.ai_summary,
+    aiSentiment: normalizeSentiment(r.ai_sentiment),
+    testerComment: r.tester_comment ?? "",
+    mission: r.missions ? { id: r.missions.id, title: r.missions.title } : null,
+    project: r.missions?.projects ? { id: r.missions.projects.id, name: r.missions.projects.name } : null,
+    tester: profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null },
+  }))
 
-  const failedRows: FailedRow[] = failed.slice(0, 10).map((r) => {
-    const mission = missionById.get(r.mission_id)
-    const tester = profileById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null }
-    return {
-      id: r.id,
-      createdAt: r.created_at,
-      testerComment: r.tester_comment ?? "",
-      mission: mission ? { id: r.mission_id, title: mission.title } : null,
-      tester,
-    }
-  })
+  const failedRows: FailedRow[] = failed.map((r) => ({
+    id: r.id,
+    createdAt: r.created_at,
+    testerComment: r.tester_comment ?? "",
+    mission: r.missions ? { id: r.missions.id, title: r.missions.title } : null,
+    tester: profileById.get(r.tester_id) ?? { fullName: "", email: "" },
+  }))
 
   // Reports per day for last 30 days
+  const daily = (summary.daily ?? {}) as Record<string, number>
   const reportsByDay: SignupPoint[] = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(now - (29 - i) * ONE_DAY_MS)
-    return { date: d.toISOString().slice(0, 10), count: 0 }
+    const date = new Date(now - (29 - i) * ONE_DAY_MS).toISOString().slice(0, 10)
+    return { date, count: Number(daily[date] ?? 0) }
   })
-  const dayIndex = new Map(reportsByDay.map((p, i) => [p.date, i]))
-  for (const r of successful) {
-    const idx = dayIndex.get(r.created_at.slice(0, 10))
-    if (idx !== undefined) reportsByDay[idx].count += 1
-  }
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
