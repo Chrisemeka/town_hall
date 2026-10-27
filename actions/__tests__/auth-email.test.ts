@@ -7,6 +7,7 @@ vi.mock("next/navigation", () => ({
   }),
 }))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
+vi.mock("@/lib/events", () => ({ recordEvent: vi.fn(), recordEventLater: vi.fn() }))
 vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }))
 // The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
 // passes unless a test says otherwise, and never reaches the admin client.
@@ -25,6 +26,7 @@ import {
 } from "@/actions/auth"
 import { createClient } from "@/lib/supabase/server"
 import { checkRateLimit } from "@/lib/rateLimitDb"
+import { recordEventLater } from "@/lib/events"
 
 type AuthStub = {
   signInWithOAuth?: ReturnType<typeof vi.fn>
@@ -131,10 +133,19 @@ describe("signUpWithEmail", () => {
 
 describe("signInWithEmail", () => {
   it("signs in and hands off to the gate chain", async () => {
-    given({ signInWithPassword: vi.fn().mockResolvedValue({ error: null }) })
+    given({ signInWithPassword: vi.fn().mockResolvedValue({ data: { user: { id: "u1" } }, error: null }) })
     await expect(
       signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "correcthorse" })),
     ).rejects.toThrow("NEXT_REDIRECT:/")
+    // One login event, against the profile — never the address.
+    expect(recordEventLater).toHaveBeenCalledWith({ name: "auth.login", profileId: "u1", props: { method: "password" } })
+  })
+
+  it("records no login for a failed sign-in", async () => {
+    vi.mocked(recordEventLater).mockClear()
+    given({ signInWithPassword: vi.fn().mockResolvedValue({ error: { message: "Invalid login credentials" } }) })
+    await signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "wrongwrong" }))
+    expect(recordEventLater).not.toHaveBeenCalled()
   })
 
   it("does not distinguish a wrong password from an unknown address", async () => {

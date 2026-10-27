@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { accountRowsFor } from "@/lib/auth"
 import { grantSignup } from "@/lib/allowanceDb"
 import { ACCOUNT_COOKIE, landingFor, type AccountType } from "@/lib/access"
+import { recordEventLater } from "@/lib/events"
 
 const VALID: AccountType[] = ["builder", "tester"]
 
@@ -78,5 +79,6 @@ export async function switchAccount(type: AccountType) {
   if (!row) throw new Error("You don't have a " + type + " account.")
 
   await setActive(type)
+  recordEventLater({ name: "account.switched", profileId: user.id, accountType: type })
   redirect(landingFor(type, !!row.verification_completed_at))
 }

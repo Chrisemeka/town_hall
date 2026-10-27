@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+vi.mock("@/lib/events", () => ({ recordEvent: vi.fn(), recordEventLater: vi.fn() }))
 vi.mock("@/lib/rateLimitDb", () => ({
   checkRateLimit: vi.fn(async () => ({ ok: true })),
   clientIp: vi.fn(() => "203.0.113.7"),

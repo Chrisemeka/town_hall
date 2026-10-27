@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { checkRateLimit, clientIp } from "@/lib/rateLimitDb";
 import { normaliseEmail, tooManyMessage, type RateLimitName } from "@/lib/rateLimit";
 import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH } from "@/lib/access";
+import { recordEventLater } from "@/lib/events";
 import {
   emailCaptchaSchema,
   resetPasswordSchema,
@@ -43,6 +44,8 @@ export async function signInWithGoogle() {
 }
 export async function signOutAction() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) recordEventLater({ name: "auth.logout", profileId: user.id });
   await supabase.auth.signOut();
   redirect("/");
 }
@@ -194,7 +197,7 @@ export async function signInWithEmail(
 
   const supabase = await createClient()
   const { email, password, captcha_token } = parsed.data
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
     options: { captchaToken: captcha_token },
@@ -216,6 +219,7 @@ export async function signInWithEmail(
     return { success: false, error: "That email and password do not match." }
   }
 
+  recordEventLater({ name: "auth.login", profileId: data?.user?.id, props: { method: "password" } })
   // Where they land is the gate chain's business, not this action's: the
   // callback route and middleware own terms, account choice and verification.
   redirect("/")
@@ -310,6 +314,9 @@ export async function requestPasswordReset(
   const captcha = captchaFailed<EmailCaptchaInput>(error)
   if (captcha) return captcha
   if (error) console.error("Password reset request failed:", error.message)
+  // No profile and no address: whether one exists is exactly what this form
+  // must not record against anyone.
+  else recordEventLater({ name: "auth.password_reset_requested" })
 
   return { success: true }
 }

@@ -10,6 +10,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ accountRowsFor: vi.fn() }))
 vi.mock("@/lib/allowanceDb", () => ({ grantSignup: vi.fn() }))
+vi.mock("@/lib/events", () => ({ recordEvent: vi.fn(), recordEventLater: vi.fn() }))
 
 import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"

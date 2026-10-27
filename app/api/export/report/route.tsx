@@ -2,6 +2,7 @@ import { renderToBuffer } from "@react-pdf/renderer"
 // requireAccount, not a hand-rolled getUser(): it carries the
 // email-confirmation and per-role verification gates with it.
 import { requireAccount } from "@/lib/auth"
+import { recordEventLater } from "@/lib/events"
 import { download, loadFeedback, slug, today } from "@/lib/exportDb"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { buildReport, reportCapMessage, screenshotsMissing } from "@/lib/report"
@@ -82,6 +83,14 @@ export async function GET(request: Request) {
     // ExportPanel reads this to say so at download, not only on page one.
     const missing = screenshotsMissing(images)
     if (missing) res.headers.set("X-Screenshots-Missing", `${missing.failed}/${missing.total}`)
+    recordEventLater({
+      name: "export.pdf",
+      profileId: userId,
+      accountType: "builder",
+      subjectType: mission ? "mission" : "project",
+      subjectId: mission ?? project,
+      props: { reports: rows.length, screenshots: withScreenshots },
+    })
     return res
   } catch (e) {
     console.error("[export/report] render failed:", e)
