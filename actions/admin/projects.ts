@@ -20,7 +20,7 @@ export async function flagProject(projectId: string, reason: string) {
     .eq("id", projectId)
   if (error) throw new Error(error.message)
 
-  revalidatePath("/admin/projects")
+  revalidatePath("/admin/content")
   revalidatePath("/explore")
   revalidatePath("/explore/missions")
   revalidatePath(`/dashboard/${projectId}`)
@@ -34,7 +34,7 @@ export async function unflagProject(projectId: string) {
     .eq("id", projectId)
   if (error) throw new Error(error.message)
 
-  revalidatePath("/admin/projects")
+  revalidatePath("/admin/content")
   revalidatePath("/explore")
   revalidatePath("/explore/missions")
   revalidatePath(`/dashboard/${projectId}`)
@@ -80,10 +80,8 @@ export async function removeProject(projectId: string) {
     }
   }
 
-  revalidatePath("/admin/projects")
+  revalidatePath("/admin/content")
   revalidatePath("/admin")
-  revalidatePath("/admin/missions")
-  revalidatePath("/admin/submissions")
   revalidatePath("/admin/ai-reports")
   revalidatePath("/explore")
   revalidatePath("/explore/missions")
