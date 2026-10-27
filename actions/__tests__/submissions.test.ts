@@ -229,6 +229,21 @@ describe("submitTestResult", () => {
     expect(rpc[0].args.p_mission_id).toBe(MISSION_ID)
     expect(rpc[0].args.p_tester_id).toBe(TESTER_ID)
     expect((rpc[0].args.p_entries as unknown[]).length).toBe(2)
+    expect(rpc[0].args.p_started_at).toBeNull()
+  })
+
+  it("passes the tester's start time through, and drops a malformed one rather than refusing", async () => {
+    let rpc = mocks()
+    const fd = formData()
+    fd.set("startedAt", "2026-10-27T09:00:00.000Z")
+    expect((await submitTestResult(fd)).success).toBe(true)
+    expect(rpc[0].args.p_started_at).toBe("2026-10-27T09:00:00.000Z")
+
+    rpc = mocks()
+    const bad = formData()
+    bad.set("startedAt", "yesterday-ish")
+    expect((await submitTestResult(bad)).success).toBe(true)
+    expect(rpc[0].args.p_started_at).toBeNull()
   })
 
   it("uploads screenshots before the write, so a failed upload persists nothing (SUB-03)", async () => {

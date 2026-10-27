@@ -35,6 +35,10 @@ type Shot = { file: File; url: string }
 
 /** Where a half-finished log lives between visits. */
 const draftKey = (missionId: string) => `twnhall:audit-log:${missionId}`
+// When the tester first opened the project — time per report (Admin Metrics
+// §10). Kept across reloads and never overwritten, so a reload does not
+// restart the clock. Raw on purpose; the admin side reads a median.
+const startedKey = (missionId: string) => `${draftKey(missionId)}:started`
 
 export default function AuditLogForm({
   missionId,
@@ -224,12 +228,19 @@ export default function AuditLogForm({
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
       fd.append("entries", JSON.stringify(hasSteps ? entries : []))
+      try {
+        const startedAt = window.localStorage.getItem(startedKey(missionId))
+        if (startedAt) fd.append("startedAt", startedAt)
+      } catch {
+        // Unmeasured, not refused.
+      }
       for (const file of compressed) fd.append("screenshots", file)
       const result = await submitTestResult(fd)
       if (result.success) {
         setIsSuccess(true)
         try {
           window.localStorage.removeItem(draftKey(missionId))
+          window.localStorage.removeItem(startedKey(missionId))
         } catch {
           // Nothing to do — the submission already succeeded.
         }
@@ -275,6 +286,13 @@ export default function AuditLogForm({
         onClick={() => {
           if (appUrl) window.open(appUrl, "_blank", "noopener,noreferrer")
           setUnlocked(true)
+          try {
+            if (!window.localStorage.getItem(startedKey(missionId))) {
+              window.localStorage.setItem(startedKey(missionId), new Date().toISOString())
+            }
+          } catch {
+            // No storage, no measurement. The report is unaffected.
+          }
         }}
         className={`w-full h-12 rounded-[8px] font-mono font-medium text-[14px] transition-colors duration-150 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
           unlocked
