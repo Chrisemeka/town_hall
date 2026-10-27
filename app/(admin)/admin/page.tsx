@@ -1,299 +1,245 @@
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdmin } from "@/lib/auth"
+import { PageHeader, Panel, Stat, Empty, formatDateTime } from "@/components/admin/ui"
+import { Sparkline } from "@/components/admin/Sparkline"
+import { payoutSheet } from "@/lib/cohortDb"
+import { monthOf } from "@/lib/allowance"
+import { planFor } from "@/lib/plans"
+import { planIdFor } from "@/lib/vocabulary"
+import { formatNgn, mrr, type Subscription } from "@/lib/subscriptions"
+import { FX, INFRA_USD_MONTHLY, usdToNgn } from "@/lib/costs"
 import {
-  Users, FolderOpen, Target, MessageSquare, Sparkles,
-  ArrowRight, ShieldCheck, UserPlus, Flag, Activity, AlertTriangle, Mail,
-} from "lucide-react"
-import { LiveClock } from "@/components/admin/LiveClock"
-import { reportsWithoutCredit } from "@/lib/allowanceDb"
-import type { MissionRow, ProfileRow, ProjectRow, TestResultRow } from "@/lib/types/db"
+  BREAK_EVEN_REPORTS,
+  capacityFor,
+  change,
+  fills,
+  formatDuration,
+  median,
+  monthStart,
+  monthsBack,
+  paidReportsSold,
+  percentile,
+  previous,
+  rangeFor,
+  ratio,
+} from "@/lib/metrics"
+import { cn } from "@/lib/utils"
 
-/** Exactly what the feed selects below ask for. */
-type SubmissionLite = Pick<TestResultRow, "id" | "tester_id" | "mission_id" | "created_at">
-type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email">
-type MissionLite = Pick<MissionRow, "id" | "title">
-/** flagged_at is nullable on the column but not here: this select filters with
- *  `.not("flagged_at", "is", null)`, which is why the feed can use it directly. */
-type FlaggedLite = Pick<ProjectRow, "id" | "name" | "flag_reason"> & { flagged_at: string }
+export const metadata = { title: "Overview — Admin · Twnhall" }
 
-type ActivityKind = "signup" | "submission" | "flag"
-type ActivityItem = {
-  kind: ActivityKind
-  timestamp: string
-  text: React.ReactNode
-}
+// Admin Metrics §3 and §9: the alarms first, then the five numbers that say
+// whether this is working, each with the decision it informs. Everything
+// below the alarm row follows the date range.
 
-function relativeTime(iso: string): string {
-  const seconds = Math.max(0, Math.floor((Date.now() - +new Date(iso)) / 1000))
-  if (seconds < 60) return `${seconds}s ago`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
-}
+const RANGES = [["7", "7 days"], ["30", "30 days"], ["90", "90 days"], ["month", "This month"]] as const
+const FEEDS = [["all", "All"], ["events", "Events"], ["reports", "Reports"], ["signups", "Signups"]] as const
 
-export default async function AdminHomePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const admin = createAdminClient()
+const shortMonth = (m: string) => new Date(`${m}T12:00:00Z`).toLocaleDateString("en-GB", { month: "short" })
 
-  const displayName =
-    (user?.user_metadata?.display_name as string | undefined) ||
-    (user?.user_metadata?.full_name as string | undefined) ||
-    user?.email ||
-    "Admin"
+type Feed = { at: string; kind: string; text: string; href?: string }
 
-  // ── Counts (head queries, no row data fetched) ──────────────
-  const [
-    usersCountRes,
-    projectsCountRes,
-    missionsCountRes,
-    submissionsCountRes,
-    flaggedCountRes,
-    aiReportsCountRes,
-    missingCredits,
-  ] = await Promise.all([
-    admin.from("profiles").select("*", { count: "exact", head: true }),
-    admin.from("projects").select("*", { count: "exact", head: true }),
-    admin.from("missions").select("*", { count: "exact", head: true }),
-    admin.from("test_results").select("*", { count: "exact", head: true }),
-    admin.from("projects").select("*", { count: "exact", head: true }).not("flagged_at", "is", null),
-    admin.from("test_results").select("*", { count: "exact", head: true }).not("ai_summary", "is", null).neq("ai_summary", ""),
-    // The alert for a tester who wrote a report and was not credited. Zero is
-    // healthy; anything else is someone to make whole.
-    reportsWithoutCredit(),
-  ])
+export default async function AdminOverviewPage({ searchParams }: { searchParams: Promise<{ range?: string; feed?: string }> }) {
+  const { admin } = await requireAdmin()
+  const sp = await searchParams
+  // Async Server Component, once per request: reading the clock is the intent.
+  const now = new Date()
+  const range = rangeFor(sp.range, now)
+  const before = previous(range)
+  const feed = FEEDS.some(([f]) => f === sp.feed) ? sp.feed! : "all"
 
-  const usersCount       = usersCountRes.count ?? 0
-  const projectsCount    = projectsCountRes.count ?? 0
-  const missionsCount    = missionsCountRes.count ?? 0
-  const submissionsCount = submissionsCountRes.count ?? 0
-  const flaggedCount     = flaggedCountRes.count ?? 0
-  const aiReportsCount   = aiReportsCountRes.count ?? 0
+  const months = monthsBack(now, 6)
+  const sixStart = new Date(`${months[0]}T00:00:00+01:00`)
+  const thisMonth = monthOf(now)
+  const iso = (d: Date) => d.toISOString()
 
-  // ── Recent activity sources ────────────────────────────────
-  const [recentUsersRes, recentSubmissionsRes, recentFlaggedRes] = await Promise.all([
-    admin.auth.admin.listUsers({ page: 1, perPage: 5 }),
-    admin
-      .from("test_results")
-      .select("id, tester_id, mission_id, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    admin
-      .from("projects")
-      .select("id, name, flagged_at, flag_reason")
-      .not("flagged_at", "is", null)
-      .order("flagged_at", { ascending: false })
-      .limit(5),
-  ])
+  const [alertsRes, missionsRes, reportsRes, subsRes, starterRes, proRes, aiRangeRes, aiMonthRes, trafficNow, trafficBefore, sheets, eventsRes] =
+    await Promise.all([
+      admin.from("alerts").select("rule_key, alert_rules(severity)").neq("status", "resolved"),
+      admin.from("missions").select("id, title, created_at, testers_needed").gte("created_at", iso(sixStart)),
+      admin.from("test_results").select("id, mission_id, created_at").gte("created_at", iso(sixStart)).order("created_at", { ascending: false }),
+      admin.from("subscriptions").select("plan_id, status, period_start, period_end, amount_ngn, ended_at"),
+      admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "starter"),
+      admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "pro"),
+      admin.from("ai_usage_events").select("estimated_cost_usd").gte("created_at", iso(range.from)),
+      admin.from("ai_usage_events").select("estimated_cost_usd").gte("created_at", iso(monthStart(now))),
+      admin.rpc("admin_traffic_totals", { p_from: iso(range.from), p_to: iso(range.to) }),
+      admin.rpc("admin_traffic_totals", { p_from: iso(before.from), p_to: iso(before.to) }),
+      Promise.all(months.map((m) => payoutSheet(m).catch(() => null))),
+      admin.from("app_events").select("name, occurred_at, profile_id, props").order("occurred_at", { ascending: false }).limit(20),
+    ])
 
-  // Lookups for submission feed
-  const recentSubmissions = (recentSubmissionsRes.data ?? []) as SubmissionLite[]
-  const subTesterIds  = Array.from(new Set(recentSubmissions.map((r) => r.tester_id).filter(Boolean)))
-  const subMissionIds = Array.from(new Set(recentSubmissions.map((r) => r.mission_id).filter(Boolean)))
+  // ── Alarm row ─────────────────────────────────────────────────────────
+  const live = (alertsRes.data ?? []) as unknown as { alert_rules: { severity: string } | null }[]
+  const bySeverity = (s: string) => live.filter((a) => a.alert_rules?.severity === s).length
 
-  const [subTestersRes, subMissionsRes] = await Promise.all([
-    subTesterIds.length
-      ? admin.from("profiles").select("id, full_name, email").in("id", subTesterIds)
-      : Promise.resolve({ data: [] }),
-    subMissionIds.length
-      ? admin.from("missions").select("id, title").in("id", subMissionIds)
-      : Promise.resolve({ data: [] }),
-  ])
+  // ── Reports, fills, cohort ────────────────────────────────────────────
+  const reports = (reportsRes.data ?? []) as { id: string; mission_id: string; created_at: string }[]
+  const missions = (missionsRes.data ?? []) as { id: string; title: string; created_at: string; testers_needed: number | null }[]
+  const times = new Map<string, string[]>()
+  for (const r of reports) times.set(r.mission_id, [...(times.get(r.mission_id) ?? []), r.created_at])
+  const filled = fills(missions.map((m) => ({ id: m.id, createdAt: m.created_at, testersNeeded: m.testers_needed })), times)
+  const inRange = (at: string) => at >= iso(range.from) && at < iso(range.to)
+  const fillMs = filled.filter((f) => inRange(f.at)).map((f) => f.ms)
+  const fillByMonth = months.map((m) => median(filled.filter((f) => monthOf(new Date(f.at)) === m).map((f) => f.ms)))
 
-  const testerById  = new Map(((subTestersRes.data ?? []) as ProfileLite[]).map((p) => [p.id, { fullName: p.full_name ?? "", email: p.email ?? "" }]))
-  const missionById = new Map(((subMissionsRes.data ?? []) as MissionLite[]).map((m) => [m.id, m.title]))
+  const delivered = reports.filter((r) => inRange(r.created_at)).length
+  const reportsByMonth = months.map((m) => reports.filter((r) => monthOf(new Date(r.created_at)) === m).length)
+  const capacity = capacityFor(range.days)
 
-  // Build combined activity feed
-  const activity: ActivityItem[] = []
+  const cohortCost = months.map((_, i) => sheets[i]?.totalNgn ?? null)
+  const payable = months.map((_, i) => (sheets[i] ? sheets[i]!.rows.reduce((n, r) => n + r.payable, 0) : null))
+  const share = months.map((_, i) => (payable[i] !== null && reportsByMonth[i] > 0 ? Math.round((payable[i]! / reportsByMonth[i]) * 100) : null))
+  const monthIdx = months.indexOf(thisMonth)
 
-  for (const u of recentUsersRes.data?.users ?? []) {
-    activity.push({
-      kind: "signup",
-      timestamp: u.created_at,
-      text: (
-        <>
-          <span className="text-ink">{(u.user_metadata?.full_name as string | undefined) || u.email || "Someone"}</span>{" "}
-          joined the community
-        </>
-      ),
-    })
+  // ── Paying builders ───────────────────────────────────────────────────
+  const subs = (subsRes.data ?? []) as Pick<Subscription, "plan_id" | "status" | "period_start" | "period_end" | "amount_ngn" | "ended_at">[]
+  const paidAt = (end: Date) =>
+    paidReportsSold(
+      subs
+        .filter((s) => s.status !== "scheduled" && s.plan_id !== "community" && Date.parse(s.period_start) < end.getTime() && (!s.ended_at || Date.parse(s.ended_at) >= end.getTime()))
+        .reduce<Record<string, number>>((c, s) => ({ ...c, [s.plan_id]: (c[s.plan_id] ?? 0) + 1 }), {}),
+      (p) => planFor(planIdFor(p)).monthlyReports,
+    )
+  const paidByMonth = months.map((m, i) => paidAt(i === months.length - 1 ? now : new Date(`${months[i + 1]}T00:00:00+01:00`)))
+  const starter = starterRes.count ?? 0
+  const pro = proRes.count ?? 0
+  const paidNow = paidReportsSold({ starter, pro }, (p) => planFor(planIdFor(p)).monthlyReports)
+
+  // ── Money ─────────────────────────────────────────────────────────────
+  const sum = (rows: { estimated_cost_usd: number | string | null }[] | null) => (rows ?? []).reduce((s, r) => s + Number(r.estimated_cost_usd ?? 0), 0)
+  const aiRangeUsd = sum(aiRangeRes.data)
+  const aiMonthUsd = sum(aiMonthRes.data)
+  const revenue = mrr(subs.filter((s) => s.status === "active"))
+  const cohortThisMonth = cohortCost[monthIdx] ?? 0
+  const costs = cohortThisMonth + usdToNgn(aiMonthUsd + INFRA_USD_MONTHLY)
+  const margin = revenue > 0 ? `${Math.round(((revenue - costs) / revenue) * 100)}%` : "—"
+
+  // ── Traffic ───────────────────────────────────────────────────────────
+  type Totals = { visitors: number; sessions: number; views: number; signups: number }
+  const t = ((trafficNow.data as Totals[] | null)?.[0] ?? { visitors: 0, sessions: 0, views: 0, signups: 0 }) as Totals
+  const p = ((trafficBefore.data as Totals[] | null)?.[0] ?? { visitors: 0, sessions: 0, views: 0, signups: 0 }) as Totals
+  const conv = (x: Totals) => (Number(x.visitors) > 0 ? Number(x.signups) / Number(x.visitors) : 0)
+
+  // ── Live activity ─────────────────────────────────────────────────────
+  const items: Feed[] = []
+  if (feed === "all" || feed === "events") {
+    for (const e of eventsRes.data ?? []) {
+      items.push({ at: e.occurred_at, kind: "event", text: e.name, href: e.profile_id ? `/admin/accounts/${e.profile_id}` : undefined })
+    }
   }
-
-  for (const r of recentSubmissions) {
-    const tester = testerById.get(r.tester_id)
-    const missionTitle = missionById.get(r.mission_id)
-    activity.push({
-      kind: "submission",
-      timestamp: r.created_at,
-      text: (
-        <>
-          <span className="text-ink">{tester?.fullName || tester?.email || "A tester"}</span>{" "}
-          submitted a test report{missionTitle ? <> on <span className="text-ink">{missionTitle}</span></> : null}
-        </>
-      ),
-    })
+  if (feed === "all" || feed === "reports") {
+    const title = new Map(missions.map((m) => [m.id, m.title]))
+    for (const r of reports.slice(0, 20)) items.push({ at: r.created_at, kind: "report", text: `Report filed${title.get(r.mission_id) ? ` on ${title.get(r.mission_id)}` : ""}`, href: `/admin/missions/${r.mission_id}` })
   }
-
-  for (const p of (recentFlaggedRes.data ?? []) as FlaggedLite[]) {
-    activity.push({
-      kind: "flag",
-      timestamp: p.flagged_at,
-      text: (
-        <>
-          Flagged <span className="text-ink">{p.name}</span>
-          {p.flag_reason ? <span className="text-ink-muted"> — {p.flag_reason}</span> : null}
-        </>
-      ),
-    })
+  if (feed === "all" || feed === "signups") {
+    const { data } = await admin.rpc("admin_account_list", { p_limit: 20, p_offset: 0 })
+    for (const u of (data ?? []) as { id: string; full_name: string | null; email: string | null; created_at: string }[]) {
+      items.push({ at: u.created_at, kind: "signup", text: `${u.full_name || u.email || "Someone"} signed up`, href: `/admin/accounts/${u.id}` })
+    }
   }
+  const activity = items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20)
 
-  activity.sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
-  const recentActivity = activity.slice(0, 10)
+  const q = (over: Record<string, string>) => {
+    const params = new URLSearchParams({ range: range.key, feed, ...over })
+    if (params.get("range") === "30") params.delete("range")
+    if (params.get("feed") === "all") params.delete("feed")
+    const s = params.toString()
+    return s ? `/admin?${s}` : "/admin"
+  }
+  const chip = (active: boolean) =>
+    cn("h-12 lg:h-10 px-4 flex items-center rounded-[8px] border font-mono text-[14px] whitespace-nowrap", active ? "border-accent-ink text-accent-ink" : "border-line text-ink-muted hover:text-ink")
+  const labels = months.map(shortMonth)
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 md:py-10">
+    <div className="max-w-[1200px] mx-auto px-4 expanded:px-6 py-8">
+      <PageHeader eyebrow="Overview" title="Overview" lede="The alarms, then whether Twnhall is working. Times are Lagos time.">
+        <nav aria-label="Date range" className="flex gap-2 overflow-x-auto">
+          {RANGES.map(([k, label]) => (
+            <Link key={k} href={q({ range: k })} aria-current={range.key === k ? "page" : undefined} className={chip(range.key === k)}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </PageHeader>
 
-      {/* ── Header row: welcome (left) + live clock (right) ─── */}
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-10">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3 mb-3">
-            <ShieldCheck className="w-5 h-5 text-accent-ink" />
-            <p className="font-mono text-[12px] font-medium text-accent-ink uppercase tracking-[1px]">
-              Admin Console
-            </p>
+      <h2 className="sr-only">Alarms</h2>
+      <div className="grid grid-cols-3 gap-4 mb-8">
+        <Stat label="Critical" value={bySeverity("critical")} alarm={bySeverity("critical") > 0} href="/admin/alerts" />
+        <Stat label="Warning" value={bySeverity("warning")} alarm={bySeverity("warning") > 0} href="/admin/alerts" />
+        <Stat label="Info" value={bySeverity("info")} href="/admin/alerts" />
+      </div>
+
+      <h2 className="font-syne font-bold text-[20px] leading-[28px] text-ink mb-4">Is it working · {range.label.toLowerCase()}</h2>
+      <div className="grid grid-cols-1 medium:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <Stat
+          label="Time to fill"
+          value={formatDuration(median(fillMs))}
+          decision={`p95 ${formatDuration(percentile(fillMs, 0.95))}. If the median is in weeks, stop selling until supply catches up.`}
+        >
+          <Sparkline values={fillByMonth.map((v) => (v === null ? null : Math.round(v / 3_600_000)))} labels={labels} />
+        </Stat>
+        <Stat label="Reports vs capacity" value={`${delivered} / ${capacity}`} decision="Low: supply nobody is buying. Near full: stop selling before builders wait.">
+          <Sparkline values={reportsByMonth} labels={labels} />
+        </Stat>
+        <Stat label="Cohort cost · this month" value={formatNgn(cohortThisMonth)} decision="The largest variable cost, paid from the bank. Compare to MRR.">
+          <Sparkline values={cohortCost} labels={labels} />
+        </Stat>
+        <Stat label="Cohort-served share" value={share[monthIdx] === null ? "—" : `${share[monthIdx]}%`} decision="Of this month's reports, paid for. Trending to zero means the cohort can wind down.">
+          <Sparkline values={share} labels={labels} />
+        </Stat>
+        <Stat
+          label="Paid reports vs break-even"
+          value={`${paidNow} / ${BREAK_EVEN_REPORTS}`}
+          decision={`${starter} Starter · ${pro} Pro. Break-even is ${BREAK_EVEN_REPORTS} paid reports a month.`}
+        >
+          <Sparkline values={paidByMonth} labels={labels} />
+        </Stat>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+        <Panel title="Traffic" action={<Link href="/admin/traffic" className="font-mono text-[14px] text-accent-ink underline underline-offset-4">Traffic</Link>}>
+          <div className="grid grid-cols-3 gap-4 p-4">
+            <Stat label="Visitors" value={Number(t.visitors)} decision={`${change(Number(t.visitors), Number(p.visitors))} vs before`} />
+            <Stat label="Signups" value={Number(t.signups)} decision={`${change(Number(t.signups), Number(p.signups))} vs before`} />
+            <Stat label="Visitor → signup" value={ratio(Number(t.signups), Number(t.visitors))} decision={`was ${(conv(p) * 100).toFixed(0)}%`} />
           </div>
-          <h1 className="font-syne font-bold text-[28px] leading-[34px] sm:text-[34px] sm:leading-[40px] md:text-[40px] md:leading-[44px] tracking-[-0.5px] text-ink mb-2 break-words">
-            Welcome, {displayName}.
-          </h1>
-          <p className="font-mono text-[14px] text-ink-muted max-w-xl">
-            Manage the Twnhall community from here.
-          </p>
-        </div>
-        <LiveClock />
-      </div>
-
-      {/* ── KPI strip ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
-        <KpiTile icon={Users}         label="Users"        value={usersCount} />
-        <KpiTile icon={FolderOpen}    label="Projects"     value={projectsCount} />
-        <KpiTile icon={Target}        label="Test Cases"     value={missionsCount} />
-        <KpiTile icon={MessageSquare} label="Submissions"  value={submissionsCount} />
-        <KpiTile icon={Sparkles}      label="AI Reports"   value={aiReportsCount}   accent="#A78BFA" />
-        <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
-        <KpiTile icon={AlertTriangle} label="Uncredited reports" value={missingCredits ?? "—"} accent={missingCredits ? "var(--color-danger-ink)" : "var(--color-ink-muted)"} />
-      </div>
-
-      {/* ── Nav cards ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        <NavCard href="/admin/accounts"    icon={Users}         title="Accounts"    desc="Every account, its plan, cohort and standing. Change a plan from here." />
-        <NavCard href="/admin/projects"    icon={FolderOpen}    title="Projects"    desc="Review every submitted project, flag inappropriate content, or remove it." />
-        <NavCard href="/admin/missions"    icon={Target}        title="Test Cases"    desc="Every test case across the platform with status, owner, and test report counts." />
-        <NavCard href="/admin/submissions" icon={MessageSquare} title="Submissions" desc="Every test result by a tester with comments, AI summaries, and screenshots." />
-        <NavCard href="/admin/ai-reports"  icon={Sparkles}      title="AI Reports"  desc="Monitor AI-generated summaries and sentiment, with coverage and failure tracking." />
-        <NavCard href="/admin/email"       icon={Mail}          title="Email"       desc="Send a broadcast to a single user or everyone on Twnhall." />
-      </div>
-
-      {/* ── Recent activity ──────────────────────────────────── */}
-      <div className="bg-surface-raised border border-line rounded-[12px] overflow-hidden" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}>
-        <div className="px-5 py-4 border-b border-line flex items-center gap-2">
-          <Activity className="w-4 h-4 text-accent-ink" />
-          <h2 className="font-syne font-bold text-[16px] text-ink">Recent Activity</h2>
-        </div>
-        {recentActivity.length === 0 ? (
-          <div className="px-5 py-12 text-center font-mono text-[13px] text-ink-muted">
-            Nothing here yet.
+        </Panel>
+        <Panel title="Money · this month">
+          <div className="grid grid-cols-2 expanded:grid-cols-4 gap-4 p-4">
+            <Stat label="MRR" value={formatNgn(revenue)} />
+            <Stat label="AI spend" value={`$${aiMonthUsd.toFixed(2)}`} decision={`${range.label}: $${aiRangeUsd.toFixed(2)}`} />
+            <Stat label="Cohort cost" value={formatNgn(cohortThisMonth)} />
+            <Stat label="Gross margin" value={margin} decision={`After cohort, AI and $${INFRA_USD_MONTHLY} infra at ₦${FX.ngnPerUsd.toLocaleString("en-NG")} = $1 (${FX.checked}).`} />
           </div>
+        </Panel>
+      </div>
+
+      <Panel
+        title="Live activity"
+        action={
+          <nav aria-label="Activity filter" className="flex gap-2 overflow-x-auto">
+            {FEEDS.map(([k, label]) => (
+              <Link key={k} href={q({ feed: k })} aria-current={feed === k ? "page" : undefined} className={chip(feed === k)}>
+                {label}
+              </Link>
+            ))}
+          </nav>
+        }
+      >
+        {activity.length === 0 ? (
+          <Empty>Nothing yet.</Empty>
         ) : (
-          <ul className="divide-y divide-line/60">
-            {recentActivity.map((item, i) => (
-              <li key={`${item.kind}-${i}`} className="px-5 py-3 flex items-center gap-3">
-                <ActivityIcon kind={item.kind} />
-                <p className="font-mono text-[13px] text-ink-muted flex-1 leading-5 min-w-0">
-                  {item.text}
-                </p>
-                <span className="font-mono text-[12px] text-ink-muted/70 whitespace-nowrap tabular-nums">
-                  {relativeTime(item.timestamp)}
-                </span>
+          <ul>
+            {activity.map((a, i) => (
+              <li key={i} className="flex gap-4 border-t border-line first:border-t-0 px-4 py-3 font-mono text-[14px]">
+                <span className="w-[120px] shrink-0 text-ink-muted tabular-nums">{formatDateTime(a.at)}</span>
+                <span className="w-[72px] shrink-0 text-ink-muted">{a.kind}</span>
+                {a.href ? <Link href={a.href} className="min-w-0 truncate text-ink underline-offset-4 hover:underline">{a.text}</Link> : <span className="min-w-0 truncate">{a.text}</span>}
               </li>
             ))}
           </ul>
         )}
-      </div>
-    </div>
-  )
-}
-
-function KpiTile({
-  icon: Icon,
-  label,
-  value,
-  accent,
-}: {
-  icon: React.ElementType
-  label: string
-  value: number | string
-  accent?: string
-}) {
-  return (
-    <div className="bg-surface-raised border border-line rounded-[10px] p-3" style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.3)" }}>
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <Icon className="w-3 h-3" style={{ color: accent ?? "var(--color-accent-ink)" }} />
-        <p className="font-mono text-[10px] uppercase tracking-[1px] text-ink-muted">{label}</p>
-      </div>
-      <p className="font-syne font-bold text-[22px] leading-none text-ink tabular-nums">{value}</p>
-    </div>
-  )
-}
-
-function NavCard({
-  href, icon: Icon, title, desc,
-}: {
-  href: string
-  icon: React.ElementType
-  title: string
-  desc: string
-}) {
-  return (
-    <Link
-      href={href}
-      className="group bg-surface-raised border border-line rounded-[12px] p-6 hover:border-accent-ink/40 transition-colors duration-150 flex flex-col"
-      style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.4)" }}
-    >
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="w-10 h-10 rounded-[8px] bg-surface border border-line flex items-center justify-center">
-          <Icon className="w-5 h-5 text-accent-ink" />
-        </div>
-        <ArrowRight className="w-4 h-4 text-ink-muted group-hover:text-accent-ink transition-colors duration-150" />
-      </div>
-      <h3 className="font-syne font-bold text-[18px] text-ink mb-1">{title}</h3>
-      <p className="font-mono text-[13px] text-ink-muted leading-5">{desc}</p>
-    </Link>
-  )
-}
-
-function ActivityIcon({ kind }: { kind: ActivityKind }) {
-  if (kind === "signup") {
-    return (
-      <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(122,184,255,0.10)", border: "1px solid rgba(122,184,255,0.3)" }}>
-        <UserPlus className="w-3.5 h-3.5" style={{ color: "#7AB8FF" }} />
-      </div>
-    )
-  }
-  if (kind === "submission") {
-    return (
-      <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(232,255,71,0.08)", border: "1px solid rgba(232,255,71,0.3)" }}>
-        <MessageSquare className="w-3.5 h-3.5" style={{ color: "var(--color-accent-ink)" }} />
-      </div>
-    )
-  }
-  return (
-    <div className="w-7 h-7 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: "rgba(255,79,79,0.10)", border: "1px solid rgba(255,79,79,0.3)" }}>
-      <AlertTriangle className="w-3.5 h-3.5" style={{ color: "var(--color-danger-ink)" }} />
+      </Panel>
     </div>
   )
 }

@@ -41,12 +41,15 @@ export function Stat({
   decision,
   alarm,
   href,
+  children,
 }: {
   label: string
   value: React.ReactNode
   decision?: string
   alarm?: boolean
   href?: string
+  /** A trend or a second line, under the decision. */
+  children?: React.ReactNode
 }) {
   const body = (
     <>
@@ -56,6 +59,7 @@ export function Stat({
         {alarm && <span className="sr-only"> — needs attention</span>}
       </p>
       {decision && <p className="font-mono text-[12px] leading-4 text-ink-muted mt-2">{decision}</p>}
+      {children}
     </>
   )
   const box = cn("block bg-surface-raised border rounded-[12px] p-4", alarm ? "border-danger-ink" : "border-line")
