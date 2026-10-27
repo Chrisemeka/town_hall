@@ -220,3 +220,32 @@ export async function sendAdminBroadcast(
   if (sent > 0) await recordEvent({ name: "email.sent", props: { template: "admin-broadcast", count: sent } })
   return { sent }
 }
+
+/**
+ * A plain notice to one person — a plan change, a plan ending, an admin
+ * alert — through the broadcast template, which is already a subject, a body
+ * and an optional button. Same non-fatal contract as the others; `template`
+ * names it in email.sent / email.failed.
+ */
+export async function sendNotice(
+  props: AdminBroadcastProps & { to: string; template: string },
+): Promise<void> {
+  const { to, template, ...rest } = props
+  const resend = getResend()
+  if (!resend) return logged(template, "RESEND_API_KEY is not set")
+
+  try {
+    const html = await render(AdminBroadcast(rest))
+    const text = await render(AdminBroadcast(rest), { plainText: true })
+    const { error } = await resend.emails.send({ from: FROM_NOTIFICATIONS, to, subject: rest.subject, html, text })
+    if (error) {
+      console.error("[mail.sendNotice] Resend error:", template, error)
+      await logged(template, error)
+    } else {
+      await logged(template)
+    }
+  } catch (err) {
+    console.error("[mail.sendNotice] unexpected error:", template, err)
+    await logged(template, err)
+  }
+}
