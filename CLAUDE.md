@@ -65,7 +65,13 @@ supabase/migrations/  SQL migrations
 
 ## Data Model
 
-Ten live tables. Concepts match the UI except "feedback" — the table is `test_results`.
+Ten live tables. **The UI says "test case" and "test report"; the code says `mission` and
+`test_results`.** Copy changed in `chore/copy-test-case-report` because early testers found
+"mission" and "feedback" confusing — every visible string uses the new words, while routes
+(`/mission/[id]`, `/dashboard/feedback`), tables, columns and identifiers keep the old ones. The
+ordered list of steps inside a test case is "test steps" in copy. Phone bottom-bar labels are
+"Tests" and "Reports" (the 9-character cap in `appNav.test.ts`). The homepage hero "Not feedback.
+A test report." keeps the old word on purpose.
 
 ```
 profiles ──┬── accounts        one identity, two roles (builder + tester)
@@ -350,7 +356,7 @@ exists — listing a free feature as Pro is its own kind of false.
   `step_action`/`step_expected` snapshots, never `missions.test_steps`.
 - **Layered for two readers, never two variants.** The builder, and whoever
   they forward it to. The front — opening (what happened, to whom, when;
-  "mission" said once, "test" after), findings, legend — is plain English;
+  "test case" said once, "test" after), findings, legend — is plain English;
   the step-by-step detail after it stays complete and precise. Each finding
   leads with a sentence (`findingSentence()`, templated from counts and
   category, never paraphrasing the step), with the "4 of 5 testers: Unclear"
