@@ -8,7 +8,8 @@ import "server-only"
 // up with one of them seeing the balance the other left.
 
 import { createAdminClient } from "@/lib/supabase/admin"
-import { recordEventLater } from "@/lib/events"
+import { recordEvent, recordEventLater } from "@/lib/events"
+import { after } from "next/server"
 import { SIGNUP_GRANT, planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { balance, held, release, reserve, type Balance, type LedgerRow, type Slots } from "@/lib/allowance"
@@ -21,16 +22,30 @@ const ATTEMPTS = 3
 /** The tag to search logs for. A missed credit is a user who was cheated. */
 const ALERT = "[allowance] missed credit"
 
-/** The log line, and the same fact as an event the alerts can count. */
+/**
+ * The log line, the same fact as an event, and the critical alert evaluated
+ * at once rather than at the next cron (SPEC-admin-revamp Phase 2). Imported
+ * lazily: the alert runner reads half the schema and none of it belongs on
+ * the publish path.
+ */
 function missedCredit(kind: "grant" | "report", id: string, detail: unknown) {
   console.error(ALERT, kind, id, detail)
-  recordEventLater({
-    name: "allowance.missed_credit",
-    profileId: kind === "grant" ? id : null,
-    subjectType: kind === "report" ? "test_result" : "profile",
-    subjectId: id,
-    props: { kind, detail: String(detail instanceof Error ? detail.message : detail).slice(0, 300) },
-  })
+  const work = async () => {
+    await recordEvent({
+      name: "allowance.missed_credit",
+      profileId: kind === "grant" ? id : null,
+      subjectType: kind === "report" ? "test_result" : "profile",
+      subjectId: id,
+      props: { kind, detail: String(detail instanceof Error ? detail.message : detail).slice(0, 300) },
+    })
+    const { runAlerts } = await import("@/lib/alerts/run")
+    await runAlerts(["uncredited_reports"])
+  }
+  try {
+    after(work)
+  } catch {
+    void work().catch(() => {})
+  }
 }
 
 const publishEvent = (
