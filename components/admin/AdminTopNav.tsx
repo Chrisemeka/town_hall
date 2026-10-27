@@ -13,6 +13,8 @@ import { signOutAction } from "@/actions/auth"
 
 const NAV_LINKS = [
   { name: "Overview", href: "/admin" },
+  { name: "Traffic", href: "/admin/traffic" },
+  { name: "Activity", href: "/admin/activity" },
   { name: "Accounts", href: "/admin/accounts" },
   { name: "Projects", href: "/admin/projects" },
   { name: "Test Cases", href: "/admin/missions" },
