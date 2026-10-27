@@ -1,6 +1,6 @@
 # Twnhall — Admin Metrics: What to Measure and Why
 
-**Status:** Proposed, not yet built
+**Status:** Built — see docs/specs/SPEC-admin-revamp.md
 **Date:** 6 October 2026 · **Revised:** 27 October 2026 — prices and break-even moved to the three-tier model (Starter ₦15,000 · ~$11, Pro ₦30,000 · ~$22) in `lib/plans.ts` and compensation doc §7. Build plan: `docs/specs/SPEC-admin-revamp.md`.
 **Purpose:** Defines the metrics the admin dashboard should carry, and why each one earns its place. This is the input to the admin revamp — build from this, not from a list of available columns.
 

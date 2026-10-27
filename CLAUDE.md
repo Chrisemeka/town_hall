@@ -60,6 +60,8 @@ lib/
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
   alerts/rules.ts     What fires each alert rule, and open/bump/resolve (pure)
   alerts/run.ts       runAlerts() — measures, writes alerts, emails admins
+  metrics.ts          Overview arithmetic — fill time, capacity, break-even (pure)
+  costs.ts            Infra, FX and cash on hand, written by hand with a date
   track.ts            Page-view shaping for /api/track — path, device, referrer (pure)
   initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
@@ -118,7 +120,8 @@ swallows its own failures, so metering can never cost a submission or its
 doing that is tier enforcement, separate work. Cost is computed from the dated
 rate map in `lib/aiUsage.ts` when the row is written and never recomputed — a
 price change must not rewrite what past analyses cost. Not backfilled: data
-starts 2026-09-29. `/admin/ai-reports` is the one reader.
+starts 2026-09-29. Only the admin console reads it — `/admin/ai-reports`, the
+Overview and Money pages, and the AI alert rules — and none of them blocks anything.
 
 **`missions.task_description` is notes, not the brief.** The brief is `test_steps`. Since
 `20260907_01` the column is optional with a `''` default and the form calls it "Notes for Testers"
@@ -250,8 +253,9 @@ it is the invitation model, deferred by decision.
 - **The month is Africa/Lagos** (`monthOf()`), and a monthly release returns to
   the month it was reserved in, expiring with it.
 - **Missed credits are visible, not silent.** `reportLanded` and `grantSignup`
-  never throw and log `[allowance] missed credit`; `/admin` shows "Uncredited
-  reports", which is healthy at zero.
+  never throw and log `[allowance] missed credit`, record
+  `allowance.missed_credit` and run the critical "Uncredited reports" alert at
+  once — healthy at zero.
 
 **The paid tester cohort is paid outside the product, against a sheet it
 computes.** `accounts.cohort_member_at` / `cohort_left_at` are the current
@@ -305,6 +309,22 @@ days by `roll_up_page_views()`.
   from their browser (`AuditLogForm`, a localStorage key beside the draft).
   Raw and imperfect — read the median, never the mean. A malformed value is
   dropped to null, never a refused report.
+
+**The admin console is nine pages**, in `components/admin/AdminTopNav.tsx`:
+Overview · Traffic · Activity · Accounts · Content · AI · Money · Email ·
+Alerts (`docs/specs/SPEC-admin-revamp.md`). `/admin/users`, `/projects`,
+`/missions` and `/submissions` redirect to Accounts and Content's tabs;
+`/admin/missions/[id]` and `/admin/payouts` stay where they are.
+
+- **Counting happens in SQL**, in the `admin_*` functions (`20261027_02`–`_06`),
+  and lists are server-paginated. A new admin page does not load a table to
+  count it in JS — that was every list page until this revamp.
+- **Every page calls `requireAdmin()` itself**, not only the layout.
+- **Every tile states the decision it informs** (`Stat`'s `decision` line,
+  Admin Metrics §11), and windows, not lifetime totals. Prices, FX, infra and
+  break-even come from `lib/plans.ts`, `lib/costs.ts` and `lib/metrics.ts`,
+  never retyped on a page. `CASH_ON_HAND` is null until someone sets it, and
+  the runway says so rather than guessing.
 
 **Alerts are alarms that read zero when healthy.** Each rule's firing test
 is a pure function in `lib/alerts/rules.ts`; its measurement and the alert
