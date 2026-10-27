@@ -136,7 +136,7 @@ export async function payoutSheet(month: string): Promise<{ rows: PayoutRow[]; t
   }
 }
 
-/** The latest plan and cohort changes, newest first — /admin/users shows them. */
+/** The latest plan and cohort changes, newest first — /admin/accounts shows them. */
 export async function recentAccountChanges(limit = 20) {
   const { data } = await createAdminClient()
     .from("admin_account_changes")
