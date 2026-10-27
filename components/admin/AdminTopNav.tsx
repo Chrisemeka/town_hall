@@ -11,16 +11,14 @@ import { signOutAction } from "@/actions/auth"
 // The admin shell: a header with the alert bell on every page, a left sidebar
 // from lg up (nine destinations no longer fit a top bar), and a sheet below.
 
-const NAV_LINKS = [
+const NAV_LINKS: { name: string; href: string; also?: string[] }[] = [
   { name: "Overview", href: "/admin" },
   { name: "Traffic", href: "/admin/traffic" },
   { name: "Activity", href: "/admin/activity" },
   { name: "Accounts", href: "/admin/accounts" },
-  { name: "Projects", href: "/admin/projects" },
-  { name: "Test Cases", href: "/admin/missions" },
-  { name: "Submissions", href: "/admin/submissions" },
+  { name: "Content", href: "/admin/content", also: ["/admin/missions"] },
   { name: "AI", href: "/admin/ai-reports" },
-  { name: "Payouts", href: "/admin/payouts" },
+  { name: "Money", href: "/admin/money", also: ["/admin/payouts"] },
   { name: "Email", href: "/admin/email" },
   { name: "Alerts", href: "/admin/alerts" },
 ]
@@ -31,8 +29,9 @@ export function AdminTopNav({ openCount, critical, latest }: { openCount: number
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/")
+  const under = (href: string) => pathname === href || pathname.startsWith(href + "/")
+  const isActive = (link: (typeof NAV_LINKS)[number]) =>
+    link.href === "/admin" ? pathname === "/admin" : under(link.href) || !!link.also?.some(under)
 
   const links = (onClick?: () => void) =>
     NAV_LINKS.map((link) => (
@@ -40,10 +39,10 @@ export function AdminTopNav({ openCount, critical, latest }: { openCount: number
         key={link.href}
         href={link.href}
         onClick={onClick}
-        aria-current={isActive(link.href) ? "page" : undefined}
+        aria-current={isActive(link) ? "page" : undefined}
         className={cn(
           "h-12 lg:h-10 px-3 rounded-[8px] font-mono text-[14px] flex items-center justify-between transition-colors duration-150",
-          isActive(link.href) ? "text-accent-ink bg-voltage/[0.06]" : "text-ink-muted hover:text-ink hover:bg-ink/[0.06]",
+          isActive(link) ? "text-accent-ink bg-voltage/[0.06]" : "text-ink-muted hover:text-ink hover:bg-ink/[0.06]",
         )}
       >
         {link.name}
