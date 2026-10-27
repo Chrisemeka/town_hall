@@ -72,7 +72,10 @@ function Badge({ className, variant = "default", children, ...props }: BadgeProp
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-line",
+        // ponytail: fixed h-6, so the label must never wrap — a long title
+        // beside it squeezed "NEEDS TESTERS" onto two lines, out of the border.
+        // The title next to it gives way instead (min-w-0 / truncate there).
+        "inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-[4px] px-2 h-6 font-mono text-[12px] font-medium uppercase tracking-[0.5px] border border-line",
         className,
       )}
       style={{ color: tone }}
