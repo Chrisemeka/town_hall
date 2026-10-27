@@ -56,6 +56,8 @@ lib/
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
+  billing.ts          applySubscription() — the one plan writer; applyProviderEvent()
+  subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
   track.ts            Page-view shaping for /api/track — path, device, referrer (pure)
   initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
@@ -84,7 +86,8 @@ missions ───────────┘  └── test_result_entries   o
 
 ai_usage_events   one row per AI analysis — a cost record, linked loosely
 report_ledger     the report allowance, append-only — per profile
-admin_account_changes   every plan and cohort change an admin makes
+admin_account_changes   every plan and cohort change — changed_by null for the system
+subscriptions     builder billing — why plan_id holds what it holds
 rate_limits       fixed-window abuse counters — service role only, garbage
 page_views        first-party page views, 90 days raw — service role only
 traffic_daily     page_views rolled up by Lagos day and path, after 90 days
@@ -183,11 +186,31 @@ cost the same per report by decision (§7.3): no "best value", no featured tier.
 (primary — the first market is Nigeria) and the dollar figure, both by hand,
 with the rate and the date it was checked in a comment. Nothing converts one
 into the other at render; `/pricing` and `/settings` print them through
-`priceLine()` or as written. The
-only writer is `setUserPlan` in `actions/admin/users.ts`, which is the whole
-manual upgrade path because there is no checkout yet. Phase 1 of
-`docs/specs/SPEC-admin-revamp.md` replaces it with `apply_subscription`, the one
-writer an admin and a future checkout will share (see **Payments**).
+`priceLine()` or as written.
+
+**`accounts.plan_id` has one writer: `apply_subscription`** (`20261027_02`),
+through `applySubscription()` in `lib/billing.ts`. It writes the
+`subscriptions` row, `plan_id` and the `admin_account_changes` line in one
+transaction. The admin's plan dialog (`components/admin/PlanDialog.tsx` →
+`actions/admin/subscriptions.ts`) calls it today; `applyProviderEvent()` is
+the not-yet-wired entry a Paystack/Flutterwave webhook will call. Never write
+`plan_id` anywhere else — `set_account_field` lost its `plan_id` branch.
+
+- **`subscriptions` is the why behind `plan_id`.** One `active` and one
+  `scheduled` row per account at most (partial unique indexes). A downgrade at
+  period end is a `scheduled` row (`plan_id` may be `community` there and only
+  there); the daily cron (`app/api/cron/daily`, `CRON_SECRET`) applies it,
+  lapses an `active` row past `period_end` to Community, and emails builder
+  and admins three days ahead, once (`reminder_sent_at`).
+- **MRR is `amount_ngn` — what was paid**, spread over the months the period
+  covers (`mrr()` in `lib/subscriptions.ts`), never list price. Comped is 0.
+- **Mid-month changes:** an upgrade gives the new plan's full month at once;
+  a downgrade drops the remaining monthly pool to the new plan's. Reserved
+  slots stay reserved either way — the allowance reads `plan_id` at publish
+  and nothing else changed. `allowanceEffect()` is the sentence the dialog
+  shows before anything is written.
+- **A reason is required** on every start and downgrade; `notify` (default
+  on) sends `sendNotice()` with copy from `planNotice()`.
 
 **The report allowance is a ledger, spent at publish, never at submission.**
 `submitTestResult` is a one-shot post — nothing represents a report in
@@ -231,7 +254,7 @@ computes.** `accounts.cohort_member_at` / `cohort_left_at` are the current
 state; the membership *history* is `admin_account_changes`, and the payout
 sheet reads the history, so removing someone never changes a month already
 paid. Only `set_account_field` writes either — the change and its log row in
-one transaction — through `setUserPlan` / `setCohortMember`.
+one transaction — through `setCohortMember`.
 
 - **The cohort serves only paid-for slots:** a paid plan's monthly allowance and the
   signup grant, never earned credit (`cohortEligible()`; compensation doc §8,
@@ -669,6 +692,9 @@ There is no ORM. Nothing exposes `$transaction` or similar. Anything requiring a
   per-tester rule, not the allowance: it never refuses a first report.
 - **`publish_mission`, `close_mission`, `report_landed`, `reports_without_credit`**
   — the allowance (`20260930_01`). Compare-and-append, same grants as above.
+- **`apply_subscription`** — the one plan writer (`20261027_02`).
+  **`admin_account_list`** — `/admin/accounts`, filtered and counted in SQL,
+  reading `auth.users` for sign-up, last sign-in and bans.
 - `commit_mission_credits`, `request_withdrawal` — payment RPCs, reverted long before payments
   were removed from the product entirely. Named here only because the pattern they used is the one
   to follow; nothing in Twnhall pays money out (builder plan billing is the one inbound exception — see **Payments**).
