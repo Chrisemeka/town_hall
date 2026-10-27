@@ -12,3 +12,9 @@ export const INFRA_USD_MONTHLY = 76
 export const FX = { ngnPerUsd: 1350, checked: "22 Oct 2026" } as const
 
 export const usdToNgn = (usd: number) => usd * FX.ngnPerUsd
+
+/**
+ * Cash in the bank, ₦, for runway. Null until someone writes the figure in
+ * with the date — the page says so rather than inventing a runway.
+ */
+export const CASH_ON_HAND: { ngn: number; checked: string } | null = null
