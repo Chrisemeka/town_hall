@@ -19,7 +19,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🎯",
         title: "Filter and search",
-        content: <>Filter by recency or search by name to find a project. Click any card below to see its missions and pick one up.</>,
+        content: <>Filter by recency or search by name to find a project. Click any card below to see its test cases and pick one up.</>,
         selector: "#tour-explore-filters",
         side: "bottom",
         showControls: true,
@@ -34,7 +34,7 @@ export const TOURS: Tour[] = [
       {
         icon: "📁",
         title: "Your projects live here",
-        content: <>Every project you&apos;ve submitted shows up on this page. Open one to see its missions and the feedback you&apos;ve received.</>,
+        content: <>Every project you&apos;ve submitted shows up on this page. Open one to see its test cases and the test reports you&apos;ve received.</>,
         selector: "#tour-my-projects-header",
         side: "bottom",
         showControls: true,
@@ -59,7 +59,7 @@ export const TOURS: Tour[] = [
       {
         icon: "✏️",
         title: "Tell us about your project",
-        content: <>Add a name, public URL, and a short description. Testers see this on the Explore feed — the clearer it is, the better the feedback.</>,
+        content: <>Add a name, public URL, and a short description. Testers see this on the Explore feed — the clearer it is, the better the test reports.</>,
         selector: "#tour-new-project-header",
         side: "bottom",
         showControls: true,
@@ -68,8 +68,8 @@ export const TOURS: Tour[] = [
       },
       {
         icon: "⚠️",
-        title: "Don't forget the missions",
-        content: <>A project stays in <span className="font-medium">DRAFT</span> until you add at least one mission to it. Without a mission, your project will <span className="font-medium">not appear on Explore</span> — so head to <span className="font-medium">My Projects</span> right after submitting to add one.</>,
+        title: "Don't forget the test cases",
+        content: <>A project stays in <span className="font-medium">DRAFT</span> until you add at least one test case to it. Without a test case, your project will <span className="font-medium">not appear on Explore</span> — so head to <span className="font-medium">My Projects</span> right after submitting to add one.</>,
         selector: "#tour-new-project-next",
         side: "top",
         showControls: true,
@@ -93,8 +93,8 @@ export const TOURS: Tour[] = [
       },
       {
         icon: "🚀",
-        title: "Pick a mission",
-        content: <>Choose a mission and hit <span className="font-medium">Start</span> to read the brief and submit your feedback.</>,
+        title: "Pick a test case",
+        content: <>Choose a test case and hit <span className="font-medium">Start</span> to read the brief and submit your test report.</>,
         selector: "#tour-project-missions",
         side: "bottom",
         showControls: true,
@@ -108,8 +108,8 @@ export const TOURS: Tour[] = [
     steps: [
       {
         icon: "🗺️",
-        title: "Every open mission",
-        content: <>Every open mission in one place. Tap one to read the brief and leave feedback.</>,
+        title: "Every open test case",
+        content: <>Every open test case in one place. Tap one to read the brief and leave a test report.</>,
         selector: "#tour-browse-missions-header",
         side: "bottom",
         showControls: true,
@@ -126,7 +126,7 @@ export const TOURS: Tour[] = [
         // Was anchored on the task description, which a mission need not have
         // since 20260907_01 — and "the brief" is the test case now anyway.
         title: "Work through the test case",
-        content: <>Each step says what to do and what should happen. Answer them in order — that is what makes feedback the builder can act on.</>,
+        content: <>Each step says what to do and what should happen. Answer them in order — that is what makes test reports the builder can act on.</>,
         selector: "#tour-mission-testcase",
         side: "bottom",
         showControls: true,
@@ -145,8 +145,8 @@ export const TOURS: Tour[] = [
       },
       {
         icon: "📸",
-        title: "Capture + submit feedback",
-        content: <>A screenshot is required for every submission — proof you actually visited. Pair it with specific, actionable written feedback.</>,
+        title: "Capture + submit your test report",
+        content: <>A screenshot is required for every submission — proof you actually visited. Pair it with specific, actionable written notes.</>,
         selector: "#tour-mission-submit-form",
         side: "top",
         showControls: true,
@@ -160,8 +160,8 @@ export const TOURS: Tour[] = [
     steps: [
       {
         icon: "🎯",
-        title: "All missions across your projects",
-        content: <>Every mission you&apos;ve added to your own projects lives here, in one place. Use this view to manage what testers are working on across everything you&apos;ve shipped.</>,
+        title: "All test cases across your projects",
+        content: <>Every test case you&apos;ve added to your own projects lives here, in one place. Use this view to manage what testers are working on across everything you&apos;ve shipped.</>,
         selector: "#tour-my-missions-header",
         side: "bottom",
         showControls: true,
@@ -176,7 +176,7 @@ export const TOURS: Tour[] = [
       {
         icon: "🧪",
         title: "This is your Tester Home",
-        content: <>Everything you need as a tester lives here — missions open for testing, and every submission you&apos;ve filed with where the builder took it. Work sits at <span className="font-medium">Pending Review</span> until they approve and rate it.</>,
+        content: <>Everything you need as a tester lives here — test cases open for testing, and every submission you&apos;ve filed with where the builder took it. Work sits at <span className="font-medium">Pending Review</span> until they approve and rate it.</>,
         selector: "#tour-tester-header",
         side: "bottom",
         showControls: true,
@@ -190,8 +190,8 @@ export const TOURS: Tour[] = [
     steps: [
       {
         icon: "💬",
-        title: "All your incoming feedback",
-        content: <>Every piece of feedback testers have left on your projects, gathered into one place. Read, learn, and ship better.</>,
+        title: "All your incoming test reports",
+        content: <>Every test report testers have left on your projects, gathered into one place. Read, learn, and ship better.</>,
         selector: "#tour-feedback-header",
         side: "bottom",
         showControls: true,

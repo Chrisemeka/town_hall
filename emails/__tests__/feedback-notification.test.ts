@@ -16,10 +16,10 @@ const props: FeedbackNotificationProps = {
 const plain = (html: string) => html.replace(/<!--[\s\S]*?-->/g, "")
 
 describe("feedback notification", () => {
-  it("previews as new feedback on the project, with no one named", async () => {
+  it("previews as a new test report on the project, with no one named", async () => {
     const html = plain(await render(FeedbackNotification(props)))
-    expect(html).toContain("New feedback on Acme")
-    expect(html).toContain("A tester just submitted feedback on your project")
+    expect(html).toContain("New test report on Acme")
+    expect(html).toContain("A tester just submitted a test report on your project")
   })
 
   it("never renders a tester name, even one passed by mistake", async () => {

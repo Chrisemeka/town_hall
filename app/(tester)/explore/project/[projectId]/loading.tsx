@@ -7,7 +7,7 @@ import { Bar, BreadcrumbSkeleton, LoadingAnnounce } from "@/components/ui/Skelet
 export default function Loading() {
   return (
     <div className="max-w-[800px] mx-auto px-6 md:px-8 py-10">
-      <LoadingAnnounce label="Loading the project's missions…" />
+      <LoadingAnnounce label="Loading the project's test cases…" />
 
       <div aria-hidden="true">
         <BreadcrumbSkeleton compactBack={false} />

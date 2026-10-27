@@ -252,7 +252,7 @@ describe("the whole project, as a workbook", () => {
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
     expect(res.headers.get("Content-Disposition")).toMatch(
-      /attachment; filename="recipe-book-feedback-\d{4}-\d{2}-\d{2}\.xlsx"/,
+      /attachment; filename="recipe-book-test-reports-\d{4}-\d{2}-\d{2}\.xlsx"/,
     )
     // A zip: "PK".
     const bytes = new Uint8Array(await res.arrayBuffer())
@@ -290,7 +290,7 @@ describe("tester numbers", () => {
       ],
     })
     const [header, ...rows] = (await body(await GET(req(ONE_MISSION)))).split("\r\n")
-    expect(col(header)).toBe("Tester # (per mission)")
+    expect(col(header)).toBe("Tester # (per test case)")
     expect(rows.map(col).sort()).toEqual(["1", "2"])
   })
 

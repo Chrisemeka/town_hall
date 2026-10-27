@@ -372,7 +372,7 @@ describe("submitTestResult — one report per tester per mission", () => {
 
     const result = await submitTestResult(formData())
 
-    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this test case." })
     expect(uploadToStorage).not.toHaveBeenCalled()
     expect(rpc).toHaveLength(0)
   })
@@ -382,7 +382,7 @@ describe("submitTestResult — one report per tester per mission", () => {
 
     const result = await submitTestResult(formData())
 
-    expect(result).toEqual({ success: false, error: "You've already submitted a report for this mission." })
+    expect(result).toEqual({ success: false, error: "You've already submitted a report for this test case." })
   })
 })
 

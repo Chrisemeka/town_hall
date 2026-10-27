@@ -24,14 +24,14 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
   // balance: "3 available" read as a per-mission number, and a builder whose
   // second mission stayed a draft took it for a one-mission limit.
   const reports = (n: number) => `${n} ${n === 1 ? "report" : "reports"}`
-  const slots = `${activeMissions} of ${activeLimit} active missions in use.`
+  const slots = `${activeMissions} of ${activeLimit} active test cases in use.`
 
   let body: React.ReactNode
   if (total === 0) {
     body = (
       <>
-        You have no reports available — each live mission holds one per tester it is open to.
-        Publishing will keep this as a draft. {earn} to earn one, close a live mission to get its
+        You have no reports available — each live test case holds one per tester it is open to.
+        Publishing will keep this as a draft. {earn} to earn one, close a live test case to get its
         unused reports back, or{" "}
         <a href={mailto("Twnhall Starter or Pro")} className={LINK_INLINE}>
           get in touch about Starter or Pro
@@ -42,7 +42,7 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
   } else if (activeMissions >= activeLimit) {
     body = (
       <>
-        You have {activeMissions} active missions, the most your plan allows. Close one to
+        You have {activeMissions} active test cases, the most your plan allows. Close one to
         publish another.
       </>
     )
@@ -51,7 +51,7 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
     body = (
       <>
         You have {reports(total)} available. Publishing reserves {total === 1 ? "it" : `all ${total}`}{" "}
-        — one per tester — so this mission opens to {total} {total === 1 ? "tester" : "testers"} and
+        — one per tester — so this test case opens to {total} {total === 1 ? "tester" : "testers"} and
         your next one waits until you earn more. {earn} to earn one. {slots}
       </>
     )
@@ -59,7 +59,7 @@ export function AllowanceNotice({ view }: { view: AllowanceView }) {
     body = (
       <>
         You have {reports(total)} available. Publishing reserves {testersPerMission}, one per
-        tester, leaving {reports(total - testersPerMission)} for your next mission. {slots}
+        tester, leaving {reports(total - testersPerMission)} for your next test case. {slots}
       </>
     )
   }
@@ -86,7 +86,7 @@ export function CappedNotice({ testers, max }: { testers: number; max: number })
   if (testers >= max) return null
   return (
     <p className="font-mono text-[14px] lg:text-[13px] text-ink leading-5 mt-4 max-w-3xl">
-      This mission is open to {testers} {testers === 1 ? "tester" : "testers"} — the reports you
+      This test case is open to {testers} {testers === 1 ? "tester" : "testers"} — the reports you
       had available.{" "}
       <Link href="/choose-account" className={LINK_INLINE}>
         Write a report for someone else

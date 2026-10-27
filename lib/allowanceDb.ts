@@ -145,7 +145,7 @@ export async function closeMission(missionId: string, profileId: string): Promis
     if (data === "ok") return
     if (data === "not_found") throw new Error("Not authorized")
   }
-  throw new Error("Could not close this mission right now. Please try again.")
+  throw new Error("Could not close this test case right now. Please try again.")
 }
 
 /**

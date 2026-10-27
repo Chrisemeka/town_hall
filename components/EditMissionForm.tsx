@@ -111,7 +111,7 @@ export default function EditMissionForm({
     <div className="bg-surface-raised border border-line rounded-[16px] p-10">
 
       <h2 className="font-syne font-bold text-[36px] leading-[44px] tracking-[-0.5px] text-ink mb-1">
-        Edit Mission
+        Edit Test Case
       </h2>
       <p className="font-mono text-[14px] text-ink-muted mb-8">
         For:{" "}
@@ -132,7 +132,7 @@ export default function EditMissionForm({
 
         <div className="flex flex-col gap-2">
           <label htmlFor="title" className="font-mono text-[12px] text-ink-muted uppercase tracking-[0.5px]">
-            Mission Title
+            Test Case Title
           </label>
           <input
             id="title"
@@ -182,8 +182,8 @@ export default function EditMissionForm({
             </Button>
           </div>
           <p className="font-mono text-[12px] text-ink-muted leading-5">
-            Publishing puts this mission — and your project — on the Explore feed where testers
-            pick it up. Drafts stay private, and a project with no published mission stays hidden.
+            Publishing puts this test case — and your project — on the Explore feed where testers
+            pick it up. Drafts stay private, and a project with no published test case stays hidden.
           </p>
           {!isActive && allowance}
         </div>

@@ -7,7 +7,7 @@ import { Reveal } from "@/components/public/Reveal"
 export const metadata: Metadata = {
   title: "Guides — Twnhall",
   description:
-    "How to run a test that gets you useful feedback, and how to write a report someone can act on.",
+    "How to run a test that gets you useful test reports, and how to write a report someone can act on.",
 }
 
 const GUIDES = [
@@ -21,7 +21,7 @@ const GUIDES = [
     href: "/guides/tester",
     title: "For testers",
     blurb:
-      "Work through a mission, mark each step honestly, and write up what you found so it gets fixed.",
+      "Work through a test case, mark each step honestly, and write up what you found so it gets fixed.",
   },
 ]
 
@@ -30,7 +30,7 @@ export default function GuidesIndexPage() {
     <div className="flex-1 w-full max-w-[720px] mx-auto px-4 medium:px-6 pt-16 pb-10 medium:pt-20 medium:pb-16 lg:py-16">
       <PageHeader
         title="Two sides of the same loop."
-        lede="Most people here are both — you test other people's products to earn feedback on your own. Read whichever half you are about to do."
+        lede="Most people here are both — you test other people's products to earn test reports on your own. Read whichever half you are about to do."
       />
 
       <div className="grid gap-4 medium:grid-cols-2 medium:gap-6">

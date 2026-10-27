@@ -7,7 +7,7 @@ import AddMissionForm from "@/components/AddMissionForm";
 import { AllowanceNotice } from "@/components/missions/AllowanceNotice";
 import { reportBalance } from "@/lib/allowanceDb";
 
-export const metadata = { title: "New Mission — Twnhall" };
+export const metadata = { title: "New Test Case — Twnhall" };
 
 export default async function NewMissionPage({
   params,
@@ -53,7 +53,7 @@ export default async function NewMissionPage({
           {project.name}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-ink-muted shrink-0" aria-hidden="true" />
-        <span className="text-ink">New Mission</span>
+        <span className="text-ink">New Test Case</span>
       </div>
 
       <AddMissionForm

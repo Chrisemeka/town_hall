@@ -21,7 +21,7 @@ type ResultLite = Pick<
 >
 type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
 
-export const metadata = { title: "Mission — Admin · Twnhall" }
+export const metadata = { title: "Test Case — Admin · Twnhall" }
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
@@ -114,14 +114,14 @@ export default async function AdminMissionDetailPage({
       <div className="flex items-center gap-3 mb-2">
         <ShieldCheck className="w-4 h-4 text-accent-ink" />
         <p className="font-mono text-[11px] font-medium text-accent-ink uppercase tracking-[1px]">
-          Admin · Mission
+          Admin · Test Case
         </p>
       </div>
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-6">
         <Link href="/admin/missions" className="hover:text-ink transition-colors duration-150">
-          Missions
+          Test Cases
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
         <span className="text-ink truncate max-w-[480px]">{mission.title}</span>
@@ -184,7 +184,7 @@ export default async function AdminMissionDetailPage({
 
       {/* Test case */}
       <div className="mb-8">
-        <p className="font-mono text-[11px] uppercase tracking-[1px] text-accent-ink mb-3">Test case</p>
+        <p className="font-mono text-[11px] uppercase tracking-[1px] text-accent-ink mb-3">Test steps</p>
         <MissionChips
           category={mission.category}
           deviceTarget={mission.device_target}
@@ -246,7 +246,7 @@ export default async function AdminMissionDetailPage({
         <SubmissionsList
           submissions={submissions}
           showContext={false}
-          emptyMessage="No test results for this mission yet."
+          emptyMessage="No test results for this test case yet."
         />
       </div>
     </div>

@@ -204,7 +204,7 @@ export default async function AdminUsersPage() {
         User Management
       </h1>
       <p className="font-mono text-[14px] text-ink-muted mb-8">
-        Every account, with signups, projects submitted, and missions completed. Suspend or ban users who violate policies.
+        Every account, with signups, projects submitted, and test cases completed. Suspend or ban users who violate policies.
       </p>
 
       {/* KPIs */}
@@ -214,7 +214,7 @@ export default async function AdminUsersPage() {
         <KpiCard icon={PauseCircle}   label="Suspended"       value={suspendedCount} accent={suspendedCount > 0 ? "#FF8F47" : "#7C7C8A"} />
         <KpiCard icon={Ban}           label="Banned"          value={bannedCount}    accent={bannedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
         <KpiCard icon={FolderOpen}    label="Total Projects"  value={totalProjects} />
-        <KpiCard icon={MessageSquare} label="Missions Done"   value={totalMissionsCompleted} />
+        <KpiCard icon={MessageSquare} label="Test Cases Done"   value={totalMissionsCompleted} />
       </div>
 
       {/* Charts */}
@@ -238,7 +238,7 @@ export default async function AdminUsersPage() {
                 <th className="px-5 py-3 font-medium">Role / Status</th>
                 <th className="px-5 py-3 font-medium">Joined</th>
                 <th className="px-5 py-3 font-medium text-right">Projects</th>
-                <th className="px-5 py-3 font-medium text-right">Missions</th>
+                <th className="px-5 py-3 font-medium text-right">Test Cases</th>
                 <th className="px-5 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>

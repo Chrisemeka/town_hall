@@ -47,7 +47,7 @@ export async function sendFeedbackNotification(
     const { error } = await resend.emails.send({
       from: FROM_NOTIFICATIONS,
       to,
-      subject: `You have new feedback on ${rest.projectName}`,
+      subject: `You have a new test report on ${rest.projectName}`,
       html,
       text,
     })
@@ -89,7 +89,7 @@ export async function sendWelcomeEmail(
       to,
       subject:
         rest.role === "tester"
-          ? "You're set up — here's how to pick up your first mission"
+          ? "You're set up — here's how to pick up your first test case"
           : "You're set up on Twnhall",
       html,
       text,

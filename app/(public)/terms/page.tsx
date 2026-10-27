@@ -22,7 +22,7 @@ export default function TermsPage() {
 
         <Reveal step={2}>
         <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-10 medium:mb-12">
-          Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for feedback on their own. By using Twnhall, you agree to abide by the following terms and conditions.
+          Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for test reports on their own. By using Twnhall, you agree to abide by the following terms and conditions.
         </p>
         </Reveal>
 
@@ -34,7 +34,7 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "accounts")}>
             <p>
-              Twnhall has two account types: a <span className="text-ink">Builder</span> account, which submits projects and missions and reviews the feedback that comes back, and a <span className="text-ink">Tester</span> account, which picks up missions and submits feedback.
+              Twnhall has two account types: a <span className="text-ink">Builder</span> account, which submits projects and test cases and reviews the test reports that come back, and a <span className="text-ink">Tester</span> account, which picks up test cases and submits test reports.
             </p>
             <p>
               One sign-in can hold both a Builder and a Tester account. You choose your first account type after you sign up and can add the other later; each has its own dashboard, history, and profile, which you complete before using it, and you switch between them while signed in.
@@ -49,10 +49,10 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "missions")}>
             <p>
-              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Missions carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per mission, and publishing a mission spends reports from your balance. Starter and Pro add a monthly allowance and are arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
+              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Test cases carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per test case, and publishing a test case spends reports from your balance. Starter and Pro add a monthly allowance and are arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
             </p>
             <p>
-              A submission moves from Pending Review to Approved, with a rating and an optional note from the Builder. A submission is not sent back for changes. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the mission brief is a violation of these terms.
+              A submission moves from Pending Review to Approved, with a rating and an optional note from the Builder. A submission is not sent back for changes. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the test case brief is a violation of these terms.
             </p>
           </Section>
 
@@ -70,10 +70,10 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "content")}>
             <p>
-              You keep ownership of what you submit — your project details, missions, reports, and screenshots.
+              You keep ownership of what you submit — your project details, test cases, reports, and screenshots.
             </p>
             <p>
-              By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your report and screenshots to the Builder whose mission you submitted against, and processing submissions through automated analysis as described in our{" "}
+              By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your report and screenshots to the Builder whose test case you submitted against, and processing submissions through automated analysis as described in our{" "}
               <Link href="/privacy" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Privacy Policy</Link>.
             </p>
             <p>
@@ -95,7 +95,7 @@ export default function TermsPage() {
           <Section {...docSection("terms", "conduct")}>
             <p>Users are prohibited from engaging in activities that violate our Community Guidelines, including but not limited to harassment, hate speech, and illegal content sharing.</p>
             <p>
-              Submitting low-effort reports, submitting a report for a mission you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
+              Submitting low-effort reports, submitting a report for a test case you did not actually attempt, or using automated tools in place of genuine human testing defeats the purpose of the platform and is grounds for termination.
             </p>
           </Section>
 
@@ -103,21 +103,21 @@ export default function TermsPage() {
             <p>Twnhall is not liable for any damages or losses incurred while using the app.</p>
             <p>Users acknowledge that they use Twnhall at their own risk.</p>
             <p>
-              Twnhall provides the platform on which Builders and Testers work together. We do not guarantee the quality of any feedback, the availability of missions, or that any given Builder will approve a given submission.
+              Twnhall provides the platform on which Builders and Testers work together. We do not guarantee the quality of any test reports, the availability of test cases, or that any given Builder will approve a given submission.
             </p>
           </Section>
 
           <Section {...docSection("terms", "termination")}>
             <p>Twnhall reserves the right to suspend or terminate accounts that violate our terms and conditions.</p>
             <p>
-              You may delete your account at any time from Settings. Where you hold both a Builder and a Tester account, deletion removes both, along with the projects, missions, submissions, and reputation attached to them.
+              You may delete your account at any time from Settings. Where you hold both a Builder and a Tester account, deletion removes both, along with the projects, test cases, submissions, and reputation attached to them.
             </p>
           </Section>
 
           <Section {...docSection("terms", "updates")}>
             <p>We may update our terms and conditions from time to time. Users will be notified of any changes.</p>
             <p>
-              Changes that materially affect how missions, submissions, or reviews work will be communicated before they take effect.
+              Changes that materially affect how test cases, submissions, or reviews work will be communicated before they take effect.
             </p>
           </Section>
 

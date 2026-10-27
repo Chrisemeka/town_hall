@@ -60,7 +60,7 @@ export default function ApprovalNotification({
             </Text>
 
             <Section style={card}>
-              <Text style={cardLabel}>Mission</Text>
+              <Text style={cardLabel}>Test Case</Text>
               <Text style={cardValue}>{missionTitle}</Text>
 
               <Text style={cardLabel}>Rating</Text>

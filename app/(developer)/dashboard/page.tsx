@@ -66,7 +66,7 @@ export default async function MyProjectsPage() {
             My Projects
           </h1>
           <p className="font-mono text-[14px] text-ink-muted mt-1">
-            Manage your submissions and review incoming feedback.
+            Manage your submissions and review incoming test reports.
           </p>
         </div>
       </div>
@@ -107,9 +107,9 @@ export default async function MyProjectsPage() {
                 {/* Footer row */}
                 <div className="mt-auto pt-4 border-t border-line flex items-center justify-between">
                   <span className="font-mono text-[12px] text-ink-muted">
-                    {project.missionCount} Mission{project.missionCount !== 1 ? "s" : ""}
+                    {project.missionCount} Test Case{project.missionCount !== 1 ? "s" : ""}
                     {" · "}
-                    {project.feedbackCount} Feedback{project.feedbackCount !== 1 ? "s" : ""}
+                    {project.feedbackCount} Test Report{project.feedbackCount !== 1 ? "s" : ""}
                   </span>
                   <span className="font-mono text-[13px] font-medium text-ink-muted group-hover:text-ink transition-colors duration-150 flex items-center gap-1">
                     Open <ArrowRight className="w-3.5 h-3.5" />

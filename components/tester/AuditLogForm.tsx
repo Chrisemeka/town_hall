@@ -250,9 +250,9 @@ export default function AuditLogForm({
         <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-mint/10">
           <CheckCircle className="w-6 h-6 text-success-ink" />
         </div>
-        <h3 className="font-syne font-bold text-[24px] text-ink mb-2">Feedback Submitted</h3>
+        <h3 className="font-syne font-bold text-[24px] text-ink mb-2">Test Report Submitted</h3>
         <p className="font-mono text-[14px] text-ink-muted">
-          Thanks for testing — your feedback has been logged.
+          Thanks for testing — your test report has been logged.
         </p>
       </div>
     )
@@ -476,7 +476,7 @@ export default function AuditLogForm({
         <p
           className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mt-8 mb-3"
         >
-          {hasSteps ? "Anything else?" : "Your Feedback"}
+          {hasSteps ? "Anything else?" : "Your Test Report"}
         </p>
 
         <textarea
@@ -514,7 +514,7 @@ export default function AuditLogForm({
             aria-describedby={isReady ? undefined : "submit-hint"}
             className="h-12 w-full justify-center medium:w-auto medium:self-start px-6 bg-voltage text-obsidian rounded-[8px] font-mono font-medium text-[14px] hover:bg-voltage-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-150"
           >
-            {isSubmitting ? "Submitting…" : "Submit Feedback"}
+            {isSubmitting ? "Submitting…" : "Submit Test Report"}
           </button>
           {!isReady && (
             <p id="submit-hint" className="font-mono text-[14px] lg:text-[12px] text-ink-muted">

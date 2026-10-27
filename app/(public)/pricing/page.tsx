@@ -66,8 +66,8 @@ const ROWS: { label: string; values: string[]; emphasis?: boolean }[] = [
     label: "Earn extra reports by testing",
     values: TIERS.map((t) => (t.id === "community" ? "+1 per report you complete" : "Same")),
   },
-  { label: "Testers per mission", values: TIERS.map((t) => `Up to ${t.testersPerMission}`) },
-  { label: "Active missions at once", values: TIERS.map((t) => String(t.activeMissions)) },
+  { label: "Testers per test case", values: TIERS.map((t) => `Up to ${t.testersPerMission}`) },
+  { label: "Active test cases at once", values: TIERS.map((t) => String(t.activeMissions)) },
   { label: "AI insights", values: TIERS.map((t) => (t.id === "community" ? "3 / month" : "Unlimited")) },
   { label: "CSV export", values: TIERS.map(() => "Included") },
 ]
@@ -87,24 +87,24 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     a: "A real person tests your product and sends you a structured report — what they did, what broke, with screenshots. Every tier gets the same report: the full audit log, step by step.",
   },
   {
-    q: "What do testers per mission and active missions mean?",
-    a: "Testers per mission is how many people you can put on any one test. Active missions is how many tests you can have open at the same time.",
+    q: "What do testers per test case and active test cases mean?",
+    a: "Testers per test case is how many people you can put on any one test. Active test cases is how many tests you can have open at the same time.",
   },
   {
     q: "How do I earn extra reports?",
-    a: "Test someone else's product. Every report you write as a tester adds one to your own balance, on every plan. That is the whole idea: feedback you earn, or feedback you buy.",
+    a: "Test someone else's product. Every report you write as a tester adds one to your own balance, on every plan. That is the whole idea: test reports you earn, or test reports you buy.",
   },
   {
     q: "What happens if I run low on reports?",
-    a: "Your mission still opens, with as many testers as your balance covers, and we tell you so beside the publish button. Only an empty balance keeps a mission in draft. Testers are never turned away mid-report.",
+    a: "Your test case still opens, with as many testers as your balance covers, and we tell you so beside the publish button. Only an empty balance keeps a test case in draft. Testers are never turned away mid-report.",
   },
   {
     q: "What is the difference between Starter and Pro?",
-    a: `Size, nothing else. Starter's ${STARTER.monthlyReports} reports a month are one full round — five testers on one mission. Pro's ${PRO.monthlyReports} are two: test, fix, then test the fix. A report costs the same on either, so pick the one that matches how often you ship.`,
+    a: `Size, nothing else. Starter's ${STARTER.monthlyReports} reports a month are one full round — five testers on one test case. Pro's ${PRO.monthlyReports} are two: test, fix, then test the fix. A report costs the same on either, so pick the one that matches how often you ship.`,
   },
   {
     q: "Do unused monthly reports roll over?",
-    a: `No. Starter's ${STARTER.monthlyReports} and Pro's ${PRO.monthlyReports} arrive each calendar month and expire with it. Reports from a mission you close early go back to the month they came from. Reports you earn by testing do not expire.`,
+    a: `No. Starter's ${STARTER.monthlyReports} and Pro's ${PRO.monthlyReports} arrive each calendar month and expire with it. Reports from a test case you close early go back to the month they came from. Reports you earn by testing do not expire.`,
   },
   {
     q: "How do I pay for Starter or Pro?",
@@ -135,7 +135,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
           Nielsen Norman Group&apos;s
         </a>
         . So the cap is a method, not a ration: testing a different flow,
-        create another mission. The honest caveat — this holds for qualitative
+        create another test case. The honest caveat — this holds for qualitative
         usability testing, which is what Twnhall does, not for quantitative
         work like A/B or load testing.
       </>
@@ -189,7 +189,7 @@ export default function PricingPage() {
       <div className="flex flex-col items-center gap-4 text-center mb-10 medium:mb-16">
         <Reveal>
           <h1 className={H1}>
-            Feedback you earn, or feedback you buy.
+            Test reports you earn, or test reports you buy.
           </h1>
         </Reveal>
         <Reveal step={1}>

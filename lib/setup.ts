@@ -186,14 +186,14 @@ const NEXT_STEPS: Record<AccountType, readonly NextStep[]> = {
         "Ordered steps — an action to take and what should happen when they take it. Start from a template if one fits.",
     },
     {
-      title: "Publish the mission",
+      title: "Publish the test case",
       detail:
         "Testers pick it up and work through your steps. Reports come back marked pass, fail or blocked.",
     },
   ],
   tester: [
     {
-      title: "Browse open missions",
+      title: "Browse open test cases",
       detail:
         "Explore lists what builders need tested right now. Pick one that suits the device you have to hand.",
     },

@@ -196,7 +196,7 @@ export async function completeVerification(role: AccountType): Promise<Verificat
         headline: completionHeadlineFor(role),
         nextSteps: nextStepsFor(role),
         ctaUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}${homeFor(role)}`,
-        ctaLabel: role === "tester" ? "Find a mission" : "Go to your dashboard",
+        ctaLabel: role === "tester" ? "Find a test case" : "Go to your dashboard",
       }),
     )
   } else if (justOpened) {

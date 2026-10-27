@@ -4,7 +4,7 @@ import { SignUpForm } from "@/components/public/auth/SignUpForm"
 
 export const metadata: Metadata = {
   title: "Create an account — Twnhall",
-  description: "Join Twnhall and start getting real feedback on what you build.",
+  description: "Join Twnhall and start getting real test reports on what you build.",
 }
 
 // One page for everyone. task2k splits company and tester signup; Twnhall does

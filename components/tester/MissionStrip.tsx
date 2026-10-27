@@ -40,9 +40,9 @@ export function MissionStrip({ missions }: { missions: StripMission[] }) {
     return (
       <div className="flex flex-col items-center justify-center py-12 border border-dashed border-line rounded-[12px] text-center px-6">
         <Compass className="w-10 h-10 text-ink-muted mb-3 opacity-40" />
-        <p className="font-syne font-bold text-[18px] text-ink mb-1">No open missions right now.</p>
+        <p className="font-syne font-bold text-[18px] text-ink mb-1">No open test cases right now.</p>
         <p className="font-mono text-[13px] text-ink-muted">
-          New missions land here as builders publish them.
+          New test cases land here as builders publish them.
         </p>
       </div>
     )

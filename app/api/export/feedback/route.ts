@@ -32,14 +32,14 @@ import { download, loadFeedback, slug, today, type FeedbackRow } from "@/lib/exp
 
 const HEADERS = [
   "Project",
-  "Mission",
+  "Test Case",
   "Test category",
   "Device target",
   "Submitted at",
   // A number, never a name: builders do not learn who tested (CLAUDE.md,
   // Tester anonymity). Per mission — the header says so, because "1" on two
   // missions is two different people.
-  "Tester # (per mission)",
+  "Tester # (per test case)",
   "Submission status",
   "Rating",
   // Not in the original column list, and the export loses its legacy content
@@ -168,6 +168,6 @@ export async function GET(request: Request) {
   return download(
     toXlsx(groups.map((g, i) => ({ name: names[i], headers: HEADERS, rows: rowsFor(g) }))),
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    `${slug(projectName)}-feedback-${today()}.xlsx`,
+    `${slug(projectName)}-test-reports-${today()}.xlsx`,
   )
 }

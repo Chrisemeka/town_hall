@@ -133,7 +133,7 @@ export default async function AdminHomePage() {
       text: (
         <>
           <span className="text-ink">{tester?.fullName || tester?.email || "A tester"}</span>{" "}
-          submitted feedback{missionTitle ? <> on <span className="text-ink">{missionTitle}</span></> : null}
+          submitted a test report{missionTitle ? <> on <span className="text-ink">{missionTitle}</span></> : null}
         </>
       ),
     })
@@ -181,7 +181,7 @@ export default async function AdminHomePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
         <KpiTile icon={Users}         label="Users"        value={usersCount} />
         <KpiTile icon={FolderOpen}    label="Projects"     value={projectsCount} />
-        <KpiTile icon={Target}        label="Missions"     value={missionsCount} />
+        <KpiTile icon={Target}        label="Test Cases"     value={missionsCount} />
         <KpiTile icon={MessageSquare} label="Submissions"  value={submissionsCount} />
         <KpiTile icon={Sparkles}      label="AI Reports"   value={aiReportsCount}   accent="#A78BFA" />
         <KpiTile icon={Flag}          label="Flagged"      value={flaggedCount}     accent={flaggedCount > 0 ? "var(--color-danger-ink)" : "#7C7C8A"} />
@@ -190,9 +190,9 @@ export default async function AdminHomePage() {
 
       {/* ── Nav cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
-        <NavCard href="/admin/users"       icon={Users}         title="Users"       desc="Browse every account, signup dates, projects submitted, and missions completed." />
+        <NavCard href="/admin/users"       icon={Users}         title="Users"       desc="Browse every account, signup dates, projects submitted, and test cases completed." />
         <NavCard href="/admin/projects"    icon={FolderOpen}    title="Projects"    desc="Review every submitted project, flag inappropriate content, or remove it." />
-        <NavCard href="/admin/missions"    icon={Target}        title="Missions"    desc="Every mission across the platform with status, owner, and feedback counts." />
+        <NavCard href="/admin/missions"    icon={Target}        title="Test Cases"    desc="Every test case across the platform with status, owner, and test report counts." />
         <NavCard href="/admin/submissions" icon={MessageSquare} title="Submissions" desc="Every test result by a tester with comments, AI summaries, and screenshots." />
         <NavCard href="/admin/ai-reports"  icon={Sparkles}      title="AI Reports"  desc="Monitor AI-generated summaries and sentiment, with coverage and failure tracking." />
         <NavCard href="/admin/email"       icon={Mail}          title="Email"       desc="Send a broadcast to a single user or everyone on Twnhall." />

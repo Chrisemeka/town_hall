@@ -131,10 +131,10 @@ describe("the cover", () => {
 describe("the cap", () => {
   it("fits at the caps and refuses past them, naming the way out", () => {
     expect(reportCapMessage(REPORT_CAP, SCREENSHOT_CAP, false)).toBeNull()
-    expect(reportCapMessage(REPORT_CAP + 1, 0, false)).toMatch(/choose a single mission/)
+    expect(reportCapMessage(REPORT_CAP + 1, 0, false)).toMatch(/choose a single test case/)
     expect(reportCapMessage(REPORT_CAP + 1, 0, true)).toMatch(/CSV export/)
     expect(reportCapMessage(1, SCREENSHOT_CAP + 1, true)).toMatch(/turn off screenshots/)
-    expect(reportCapMessage(1, SCREENSHOT_CAP + 1, false)).toMatch(/single mission, or turn off screenshots/)
+    expect(reportCapMessage(1, SCREENSHOT_CAP + 1, false)).toMatch(/single test case, or turn off screenshots/)
   })
 })
 
@@ -186,7 +186,7 @@ describe("the opening", () => {
     expect(r.opening[0]).toBe(
       "Five people were asked to try Recipe Book on a phone or a computer and answer a set of questions about it, between 2 Oct 2026 and 11 Oct 2026.",
     )
-    expect(text.match(/mission/gi)).toHaveLength(1)
+    expect(text.match(/test case/gi)).toHaveLength(1)
     expect(text).toContain("Tester 1")
   })
 
@@ -195,7 +195,7 @@ describe("the opening", () => {
     const r = buildReport(rows, false)
     expect(r.opening[0]).toMatch(/^In two separate tests, people were asked to try Recipe Book/)
     expect(r.opening[0]).toContain("6 reports in all")
-    expect(r.opening.join(" ").match(/mission/gi)).toHaveLength(1)
+    expect(r.opening.join(" ").match(/test case/gi)).toHaveLength(1)
   })
 
   it("says one person, in the singular", () => {

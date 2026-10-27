@@ -197,8 +197,8 @@ export default function CreateProjectForm() {
           <div className="flex flex-col gap-4">
             {[
               { num: "01", text: "Your project is created as a DRAFT — it won't appear on the Explore feed yet." },
-              { num: "02", text: "Add at least one mission to publish your project and tell testers what to check." },
-              { num: "03", text: "Once live, developers pick up your missions and submit feedback with screenshots." },
+              { num: "02", text: "Add at least one test case to publish your project and tell testers what to check." },
+              { num: "03", text: "Once live, developers pick up your test cases and submit test reports with screenshots." },
             ].map((step) => (
               <div key={step.num} className="flex items-start gap-4">
                 <span className="font-mono text-[12px] font-medium text-accent-ink shrink-0 w-6">

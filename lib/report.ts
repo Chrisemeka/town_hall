@@ -5,7 +5,7 @@
 // does no arithmetic of its own, so everything worth testing is here.
 //
 // Two rules carry the document:
-//   - Agreement is the headline. With five testers on a mission, how many
+//   - Agreement is the headline. With five testers on a test case, how many
 //     independently hit the same step IS the finding, so the summary lists
 //     steps by how many testers reported a problem, most first.
 //   - Detail is organised by step, not by tester — every answer to step 2 sits
@@ -259,13 +259,13 @@ export function screenshotNote(images: Map<string, ScreenshotResult> | null): st
 export function reportCapMessage(reports: number, screenshots: number, oneMission: boolean): string | null {
   if (reports > REPORT_CAP) {
     return oneMission
-      ? "This mission has more reports than one PDF holds — use the CSV export instead."
-      : "That's too much for one PDF — choose a single mission."
+      ? "This test case has more reports than one PDF holds — use the CSV export instead."
+      : "That's too much for one PDF — choose a single test case."
   }
   if (screenshots > SCREENSHOT_CAP) {
     return oneMission
       ? "That's too many screenshots for one PDF — turn off screenshots and try again."
-      : "That's too much for one PDF — choose a single mission, or turn off screenshots."
+      : "That's too much for one PDF — choose a single test case, or turn off screenshots."
   }
   return null
 }
@@ -383,7 +383,7 @@ export function buildReport(rows: FeedbackRow[], oneMission: boolean, now = new 
   const project = rows[0].missions?.projects?.name ?? "Project"
   // "Mission" is said here once; the document says "test" everywhere else.
   const named =
-    "On Twnhall, the service that ran this, a test like this is called a mission, and each person is a tester — called Tester 1, Tester 2 and so on, without their names."
+    "On Twnhall, the service that ran this, a test like this is called a test case, and each person is a tester — called Tester 1, Tester 2 and so on, without their names."
   const DEVICE: Record<string, string> = { mobile: " on a phone", desktop: " on a computer", both: " on a phone or a computer" }
   const device = (oneMission && DEVICE[rows[0].missions?.device_target ?? ""]) || ""
   const opening = oneMission

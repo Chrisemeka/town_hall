@@ -12,7 +12,7 @@ import { Bar, BreadcrumbSkeleton, LoadingAnnounce, StepCardSkeleton } from "@/co
 export default function Loading() {
   return (
     <div className="max-w-[800px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-10 expanded:py-10">
-      <LoadingAnnounce label="Loading the mission…" />
+      <LoadingAnnounce label="Loading the test case…" />
 
       <div aria-hidden="true">
         <BreadcrumbSkeleton />

@@ -73,8 +73,8 @@ const subscribeShort = (onChange: () => void) => {
 
 const LOOP = [
   { n: "01", title: "Test someone's project", body: "Work through their test case and file the report." },
-  { n: "02", title: "Earn a report", body: "One report written is one report credited, for each mission you test." },
-  { n: "03", title: "Spend it on yours", body: "Publish a mission and a tester works through your steps." },
+  { n: "02", title: "Earn a report", body: "One report written is one report credited, for each test case you test." },
+  { n: "03", title: "Spend it on yours", body: "Publish a test case and a tester works through your steps." },
 ];
 
 export default function LandingPage() {

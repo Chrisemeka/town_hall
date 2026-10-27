@@ -157,9 +157,9 @@ function TestCaseList({ compactLimit = TEMPLATE.steps.length }: { compactLimit?:
 // `short` is the compact tab label. It never reaches a screen reader on its
 // own: each tab is named "{role} {step}".
 const SCENES = [
-  { role: "Builder", step: "writes the test case", short: "Write", path: "My projects / New mission", icon: LayoutDashboard, ms: 9000 },
+  { role: "Builder", step: "writes the test case", short: "Write", path: "My projects / New test case", icon: LayoutDashboard, ms: 9000 },
   { role: "Tester", step: "works through it", short: "Test", path: "Explore / Authentication Flow", icon: Compass, ms: 10000 },
-  { role: "Builder", step: "reads the report", short: "Read", path: "Feedback / Authentication Flow", icon: MessageSquareText, ms: 9000 },
+  { role: "Builder", step: "reads the report", short: "Read", path: "Test Reports / Authentication Flow", icon: MessageSquareText, ms: 9000 },
 ] as const
 
 const STARTS = SCENES.map((_, i) => SCENES.slice(0, i).reduce((sum, s) => sum + s.ms, 0))
@@ -214,7 +214,7 @@ function WriteScene({ at }: { at: number }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <span className={LABEL}>Mission</span>
+        <span className={LABEL}>Test Case</span>
         <p className="h-10 flex items-center bg-surface border border-ink-muted rounded-[8px] px-3 font-mono text-[14px] text-ink">
           {title.shown}
           <Caret on={title.typing || at < 300} />
@@ -252,7 +252,7 @@ function WriteScene({ at }: { at: number }) {
         </ol>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <MockButton pressed={at >= publish}>Publish mission</MockButton>
+        <MockButton pressed={at >= publish}>Publish test case</MockButton>
         {at >= publish + 400 && <Toast>Published · 3 testers needed</Toast>}
       </div>
     </div>
@@ -571,15 +571,15 @@ const APP_NAV = {
     heading: "My Work",
     links: [
       { name: "My Projects", icon: LayoutDashboard },
-      { name: "My Missions", icon: Target },
-      { name: "Feedback Received", icon: MessageSquare },
+      { name: "My Test Cases", icon: Target },
+      { name: "Test Reports", icon: MessageSquare },
     ],
   },
   tester: {
     heading: "Tester",
     links: [
       { name: "Tester Home", icon: LayoutGrid },
-      { name: "Available Missions", icon: Compass },
+      { name: "Available Test Cases", icon: Compass },
       { name: "Explore Projects", icon: Telescope },
     ],
   },
@@ -677,9 +677,9 @@ function TemplateMock() {
   return (
     <Browser
       url="twnhall.com/dashboard/acme/mission/new"
-      caption="Builder · New mission"
+      caption="Builder · New test case"
       account="builder"
-      active="My Missions"
+      active="My Test Cases"
       label={`The template picker: ${TEST_TEMPLATES.length} templates including Authentication Flow, Password Reset and Checkout, with Authentication Flow's steps loaded.`}
     >
       <div className="p-4 medium:p-5 flex flex-col gap-3">
@@ -726,7 +726,7 @@ function Field({ label, value }: { label: string; value: string | null }) {
 function TestMock() {
   const entry = ENTRIES[2]
   return (
-    <Browser url="twnhall.com/mission/auth-flow" caption="Tester · Mission step" account="tester" active="Available Missions" label="A tester marking step 3 as failed, with the issue and steps to reproduce filled in.">
+    <Browser url="twnhall.com/mission/auth-flow" caption="Tester · Test case step" account="tester" active="Available Test Cases" label="A tester marking step 3 as failed, with the issue and steps to reproduce filled in.">
       <div className="p-4 medium:p-5 flex flex-col gap-4">
         <p className={LABEL}>Step 3 of {ENTRIES.length}</p>
         <div className="flex flex-col gap-1">
@@ -761,7 +761,7 @@ function TestMock() {
 
 function ReviewMock() {
   return (
-    <Browser url="twnhall.com/dashboard/feedback" caption="Builder · Feedback received" account="builder" active="Feedback Received" label="The builder's review: the pass rate, screenshots, approval, and a rating.">
+    <Browser url="twnhall.com/dashboard/feedback" caption="Builder · Test reports" account="builder" active="Test Reports" label="The builder's review: the pass rate, screenshots, approval, and a rating.">
       <div className="p-4 medium:p-5 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <p className="font-mono text-[13px] font-medium text-ink">Tester 01</p>
@@ -827,7 +827,7 @@ const INSIGHT_FROM = 600
 function SummaryMock({ at = SUMMARY_MS }: { at?: number }) {
   const done = at >= SUMMARY_MS - 100
   return (
-    <Browser url="twnhall.com/dashboard/acme/mission/auth-flow" caption="Builder · Mission summary" account="builder" active="My Missions" label="The AI summary: what failed first, what went untested, what worked, and an overall read of the session.">
+    <Browser url="twnhall.com/dashboard/acme/mission/auth-flow" caption="Builder · Test case summary" account="builder" active="My Test Cases" label="The AI summary: what failed first, what went untested, what worked, and an overall read of the session.">
       <div className="p-4 medium:p-5 flex flex-col gap-5">
         <div className="flex items-center justify-between gap-4 flex-wrap min-h-6">
           <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">AI generated</p>

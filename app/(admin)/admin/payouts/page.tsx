@@ -128,8 +128,8 @@ export default async function PayoutsPage({
         </table>
       </div>
       <p className="font-mono text-[12px] text-ink-muted mt-3 max-w-3xl">
-        Unpaid counts a cohort tester&apos;s reports on missions the cohort may not serve — slots
-        from earned credit, or beyond the mission&apos;s paid slots. They earned a report instead.
+        Unpaid counts a cohort tester&apos;s reports on test cases the cohort may not serve — slots
+        from earned credit, or beyond the test case&apos;s paid slots. They earned a report instead.
       </p>
     </div>
   )

@@ -173,7 +173,7 @@ function SubmissionDialog({ submission, onClose }: { submission: FeedSubmission 
 
           <div className="p-4 medium:p-6 border-t border-line">
             <Link href={`/mission/${s.missionId}`} className="inline-flex items-center min-h-12 lg:min-h-0 font-mono text-[14px] lg:text-[13px] text-accent-ink hover:underline">
-              Open the mission →
+              Open the test case →
             </Link>
           </div>
         </div>
@@ -233,7 +233,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
           </p>
           <p className="font-mono text-[13px] text-ink-muted">
             {submissions.length === 0
-              ? "Pick up a mission above and your work will show up here."
+              ? "Pick up a test case above and your work will show up here."
               : "Try a different filter."}
           </p>
         </div>

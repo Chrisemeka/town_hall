@@ -192,7 +192,7 @@ const missionFields = {
   title: z
     .string()
     .trim()
-    .min(1, "Mission title is required.")
+    .min(1, "Test case title is required.")
     .max(MISSION_TITLE_MAX, `Title must be ${MISSION_TITLE_MAX} characters or fewer.`),
   // Optional since the test case became the brief. Empty passes; short does
   // not, and the message names both ways out rather than only the one that
@@ -236,7 +236,7 @@ export const createMissionSchema = z.object({
 export type CreateMissionInput = z.infer<typeof createMissionSchema>
 
 export const updateMissionSchema = z.object({
-  missionId: z.string().uuid("Invalid mission id."),
+  missionId: z.string().uuid("Invalid test case id."),
   projectId: z.string().uuid("Invalid project id."),
   ...missionFields,
 })
@@ -369,7 +369,7 @@ export const auditLogJsonSchema = z
   .pipe(auditLogSchema)
 
 export const submissionSchema = z.object({
-  missionId: z.string().uuid("Invalid mission id."),
+  missionId: z.string().uuid("Invalid test case id."),
   // Optional since the audit log carries the substance. The entries are where
   // the minimum lives now — COMMENT_MIN applied when this was the only field.
   comment: z.string().trim().max(2000).optional().or(z.literal("")),

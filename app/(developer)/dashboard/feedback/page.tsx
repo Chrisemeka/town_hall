@@ -15,7 +15,7 @@ import { MessageSquare } from "lucide-react";
 import { FeedbackListPaged, type FeedbackEntry } from "@/components/FeedbackListPaged";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "Feedback Received — Twnhall" };
+export const metadata = { title: "Test Reports — Twnhall" };
 
 export default async function FeedbackReceivedPage() {
   const { userId } = await requireAccount("builder");
@@ -112,19 +112,19 @@ export default async function FeedbackReceivedPage() {
 
       <div id="tour-feedback-header" className="mb-6 medium:mb-8">
         <h1 className="font-syne font-bold text-[28px] leading-9 medium:text-[32px] medium:leading-10 expanded:text-[36px] expanded:leading-[44px] tracking-[-0.5px] text-ink">
-          Feedback Received
+          Test Reports
         </h1>
         <p className="font-mono text-[14px] text-ink-muted mt-1">
-          All feedback from your active missions.
+          All test reports from your active test cases.
         </p>
       </div>
 
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 medium:py-16 border border-dashed border-line rounded-[12px] text-center px-6">
           <MessageSquare className="w-12 h-12 text-ink-muted mb-4 opacity-40" />
-          <h3 className="font-syne font-bold text-[24px] text-ink mb-2">No feedback yet.</h3>
+          <h3 className="font-syne font-bold text-[24px] text-ink mb-2">No test reports yet.</h3>
           <p className="font-mono text-[14px] text-ink-muted mb-6 max-w-[340px]">
-            Share your project in the community to start receiving feedback.
+            Share your project in the community to start receiving test reports.
           </p>
           <Button variant="ghost" asChild>
             <Link href="/explore">Explore Community</Link>

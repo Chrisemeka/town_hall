@@ -91,7 +91,7 @@ export function AccountPanel({
             <div>
               <p className="font-mono text-[14px] text-ink">Delete Account</p>
               <p className="font-mono text-[13px] text-ink-muted mt-0.5">
-                Permanently removes your account, projects, missions, and all feedback.
+                Permanently removes your account, projects, test cases, and all test reports.
               </p>
             </div>
             {deleteStep === "idle" && (

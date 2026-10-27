@@ -10,15 +10,15 @@ const ROLES = [
     type: "builder" as const,
     icon: Hammer,
     label: "I'm a Builder",
-    blurb: "Submit products for real people to test, write missions, and review the feedback that comes back.",
-    bullets: ["Submit projects", "Write missions", "Review + rate submissions"],
+    blurb: "Submit products for real people to test, write test cases, and review the test reports that come back.",
+    bullets: ["Submit projects", "Write test cases", "Review + rate submissions"],
   },
   {
     type: "tester" as const,
     icon: FlaskConical,
     label: "I'm a Tester",
-    blurb: "Pick up missions, work through the builder's test case step by step, and file feedback they have to answer.",
-    bullets: ["Browse open missions", "File a step-by-step audit log", "See what the builder did with it"],
+    blurb: "Pick up test cases, work through the builder's steps one by one, and file a test report they have to answer.",
+    bullets: ["Browse open test cases", "File a step-by-step audit log", "See what the builder did with it"],
   },
 ]
 

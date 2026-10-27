@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { name: "Dashboard",   href: "/admin" },
   { name: "Users",       href: "/admin/users" },
   { name: "Projects",    href: "/admin/projects" },
-  { name: "Missions",    href: "/admin/missions" },
+  { name: "Test Cases",    href: "/admin/missions" },
   { name: "Submissions", href: "/admin/submissions" },
   { name: "AI Reports",  href: "/admin/ai-reports" },
   { name: "Payouts",     href: "/admin/payouts" },

@@ -109,7 +109,7 @@ export function SubmissionsList({
                           {s.mission.title}
                         </Link>
                       ) : (
-                        <span className="text-danger-ink">mission missing</span>
+                        <span className="text-danger-ink">test case missing</span>
                       )}
                     </>
                   )}

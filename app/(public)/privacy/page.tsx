@@ -30,8 +30,8 @@ export default function PrivacyPolicyPage() {
           <Section {...docSection("privacy", "collect")}>
             <p>Your activity and the information you provide, including app features you use and how you interact with them, as well as app and device information.</p>
             <p><span className="text-ink font-medium">Personal Information:</span> When you sign up on Twnhall, we collect your email address and a password, or, if you sign in with Google, your name, email address, and profile picture from that sign-in. Before you can use an account type, you complete a short profile for it: your full name, country, phone number, and timezone, plus your skills for a Tester account. You may also add a short bio in Settings.</p>
-            <p><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — when each was created, and when its profile was completed. If you hold both, they are stored as two account records tied to the same sign-in. We also record your plan (Community, Starter or Pro) and your balance of tester reports: the reports you have been granted, earned by testing, and spent on missions.</p>
-            <p><span className="text-ink font-medium">Content You Submit:</span> Projects and missions you create as a Builder, including their test steps, and the reports you submit as a Tester: a status for each step (pass, fail, or blocked), the issue and steps to reproduce for any step that did not pass, any closing comment, and screenshots. Screenshots are stored in our file storage and are visible to the Builder whose mission you submitted against.</p>
+            <p><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — when each was created, and when its profile was completed. If you hold both, they are stored as two account records tied to the same sign-in. We also record your plan (Community, Starter or Pro) and your balance of tester reports: the reports you have been granted, earned by testing, and spent on test cases.</p>
+            <p><span className="text-ink font-medium">Content You Submit:</span> Projects and test cases you create as a Builder, including their test steps, and the reports you submit as a Tester: a status for each step (pass, fail, or blocked), the issue and steps to reproduce for any step that did not pass, any closing comment, and screenshots. Screenshots are stored in our file storage and are visible to the Builder whose test case you submitted against.</p>
             <p><span className="text-ink font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it when approving it, and the optional note the Builder writes with that approval.</p>
             <p><span className="text-ink font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p><span className="text-ink font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
 
           <Section {...docSection("privacy", "automated-analysis")}>
             <p>
-              When you submit a report as a Tester, its contents — each step&apos;s status, the issues and steps to reproduce you wrote, any closing comment, and the screenshots you attach — are sent to <span className="text-ink">Google&apos;s Gemini API</span>, together with the mission&apos;s steps, to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission. We keep a record of each analysis (its size and estimated cost) to run the service; it is not used to limit or charge you.
+              When you submit a report as a Tester, its contents — each step&apos;s status, the issues and steps to reproduce you wrote, any closing comment, and the screenshots you attach — are sent to <span className="text-ink">Google&apos;s Gemini API</span>, together with the test case&apos;s steps, to generate a short summary and a sentiment label for the Builder. This happens automatically on every submission. We keep a record of each analysis (its size and estimated cost) to run the service; it is not used to limit or charge you.
             </p>
             <p>
               Do not include passwords, personal data about other people, or anything you would not want processed by a third party in your report or screenshots.
@@ -51,13 +51,13 @@ export default function PrivacyPolicyPage() {
 
           <Section {...docSection("privacy", "visibility")}>
             <p>
-              <span className="text-ink font-medium">Builders see:</span> the report, screenshots, and generated summary on submissions made against their own missions. We do not show Builders your name, email address, or profile picture: on each mission, testers appear as &ldquo;Tester 1&rdquo;, &ldquo;Tester 2&rdquo; and so on, including in the exports Builders can download. Anything you show in a screenshot or write in a report, such as your own email address, is visible to the Builder, so leave it out if you do not want it seen.
+              <span className="text-ink font-medium">Builders see:</span> the report, screenshots, and generated summary on submissions made against their own test cases. We do not show Builders your name, email address, or profile picture: on each test case, testers appear as &ldquo;Tester 1&rdquo;, &ldquo;Tester 2&rdquo; and so on, including in the exports Builders can download. Anything you show in a screenshot or write in a report, such as your own email address, is visible to the Builder, so leave it out if you do not want it seen.
             </p>
             <p>
               <span className="text-ink font-medium">Testers see:</span> their own submissions and the status, rating, and any note a Builder left on them, and their own totals and average rating in Settings. Testers cannot see other testers&apos; submissions.
             </p>
             <p>
-              Project and mission details a Builder publishes are visible to testers browsing the platform.</p>
+              Project and test case details a Builder publishes are visible to testers browsing the platform.</p>
             <p>
               <span className="text-ink font-medium">Twnhall&apos;s administrators see:</span> account details, including names and email addresses, to provide support, moderate the platform, and pay members of our tester cohort.
             </p>
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
           <Section {...docSection("privacy", "deletion")}>
             <p>You have the right to delete or request we assist in deleting the Personal Data that we have collected about you.</p>
             <p>Our Service may give you the ability to delete certain information about you from within the Service. You can update, amend, or delete your details anytime by logging into your Account and going to the account section for managing your personal data.</p>
-            <p>Deleting your account removes every account type you hold. If you hold both a Builder and a Tester account, both are deleted together, along with the projects, missions, submissions, screenshots, ratings, and reputation attached to them.</p>
+            <p>Deleting your account removes every account type you hold. If you hold both a Builder and a Tester account, both are deleted together, along with the projects, test cases, submissions, screenshots, ratings, and reputation attached to them.</p>
             <p>Additionally, you can contact us if you wish to access, correct, or delete any personal information that you have shared with us.</p>
             <p>Please keep in mind that we may need to keep certain information if there is a legal requirement or lawful basis to do so.</p>
           </Section>

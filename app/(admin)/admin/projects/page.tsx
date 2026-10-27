@@ -139,8 +139,8 @@ export default async function AdminProjectsPage() {
                 <th className="px-5 py-3 font-medium">Project</th>
                 <th className="px-5 py-3 font-medium">Owner</th>
                 <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium text-right">Missions</th>
-                <th className="px-5 py-3 font-medium text-right">Feedback</th>
+                <th className="px-5 py-3 font-medium text-right">Test Cases</th>
+                <th className="px-5 py-3 font-medium text-right">Test Reports</th>
                 <th className="px-5 py-3 font-medium">Submitted</th>
                 <th className="px-5 py-3 font-medium text-right">Actions</th>
               </tr>
