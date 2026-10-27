@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdmin } from "@/lib/auth"
 import {
   ChevronRight, ShieldCheck, CheckCircle2, PauseCircle, Flag, ExternalLink, User,
 } from "lucide-react"
@@ -33,7 +33,8 @@ export default async function AdminMissionDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const admin = createAdminClient()
+  // The layout checks too; a page re-checks so a layout change cannot open it.
+  const { admin } = await requireAdmin()
 
   const { data: mission } = await admin
     .from("missions")
@@ -120,7 +121,7 @@ export default async function AdminMissionDetailPage({
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 font-mono text-[13px] text-ink-muted mb-6">
-        <Link href="/admin/missions" className="hover:text-ink transition-colors duration-150">
+        <Link href="/admin/content?tab=cases" className="hover:text-ink transition-colors duration-150">
           Test Cases
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-line shrink-0" />
@@ -200,7 +201,7 @@ export default async function AdminMissionDetailPage({
           <div className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <Link
-                href="/admin/projects"
+                href="/admin/content?tab=projects"
                 className="font-syne font-bold text-[18px] text-ink hover:text-accent-ink transition-colors duration-150"
               >
                 {project.name}
