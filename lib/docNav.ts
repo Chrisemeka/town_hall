@@ -72,6 +72,7 @@ export const DOCS = [
       { id: "automated-analysis", title: "Automated Analysis of Submissions" },
       { id: "visibility", title: "What Other Users Can See" },
       { id: "providers", title: "Service Providers We Use" },
+      { id: "analytics", title: "Analytics and Cookies" },
       { id: "use", title: "How We Use Your Information" },
       { id: "sharing", title: "Information Sharing and Disclosure" },
       { id: "security", title: "Data Security" },

@@ -72,6 +72,13 @@ export default function PrivacyPolicyPage() {
             <p><span className="text-ink font-medium">Resend:</span> transactional and notification email.</p>
           </Section>
 
+          <Section {...docSection("privacy", "analytics")}>
+            <p>We count visits to Twnhall ourselves, in our own database. No third-party analytics, advertising or tracking script runs on the site.</p>
+            <p>When a page loads, we record the page (with any ids removed), the site that linked you to us, any campaign tags in the link, your country as reported by our host, and whether you are on a phone, tablet or computer. We do not store your IP address. If you are signed in, the visit is linked to your account.</p>
+            <p>Two cookies make this work: <span className="text-ink font-medium">th_vid</span>, a random identifier that lets us count returning visitors, kept for one year, and <span className="text-ink font-medium">th_sid</span>, which groups the pages of one visit and expires after 30 minutes without activity. Neither is shared with anyone.</p>
+            <p>We also record some actions inside the app — signing in and out, exports, emails sent, and errors — to run and improve the service. Visit records are kept for 90 days and then reduced to daily totals per page; action records are kept for 13 months.</p>
+          </Section>
+
           <Section {...docSection("privacy", "use")}>
             <p>We use your personal information to create and manage your Twnhall account, communicate with you by email, or other equivalent forms of electronic communication, such as push notifications about updates or informative communications related to the functionalities, products or contracted services, including security updates when necessary or reasonable for their implementation, and to personalize your experience on the app.</p>
             <p>We use usage information to improve our app, analyze trends, and enhance user experience.</p>
