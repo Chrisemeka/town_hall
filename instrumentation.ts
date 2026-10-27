@@ -18,4 +18,7 @@ export const onRequestError: Instrumentation.onRequestError = async (error, requ
       message: String(err.message ?? err).slice(0, 500),
     },
   })
+  // A burst is critical and does not wait for the cron.
+  const { runAlerts } = await import("@/lib/alerts/run")
+  await runAlerts(["server_errors"])
 }

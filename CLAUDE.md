@@ -58,6 +58,8 @@ lib/
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
   billing.ts          applySubscription() — the one plan writer; applyProviderEvent()
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
+  alerts/rules.ts     What fires each alert rule, and open/bump/resolve (pure)
+  alerts/run.ts       runAlerts() — measures, writes alerts, emails admins
   track.ts            Page-view shaping for /api/track — path, device, referrer (pure)
   initials.ts         Avatar initials — every email/password user has no photo
   types/db.ts         Hand-written row types — the client has no Database generic
@@ -88,6 +90,8 @@ ai_usage_events   one row per AI analysis — a cost record, linked loosely
 report_ledger     the report allowance, append-only — per profile
 admin_account_changes   every plan and cohort change — changed_by null for the system
 subscriptions     builder billing — why plan_id holds what it holds
+alert_rules       the alarms and their thresholds — editable on /admin/alerts
+alerts            one live alert per rule; open → acknowledged → resolved
 rate_limits       fixed-window abuse counters — service role only, garbage
 page_views        first-party page views, 90 days raw — service role only
 traffic_daily     page_views rolled up by Lagos day and path, after 90 days
@@ -301,6 +305,25 @@ days by `roll_up_page_views()`.
   from their browser (`AuditLogForm`, a localStorage key beside the draft).
   Raw and imperfect — read the median, never the mean. A malformed value is
   dropped to null, never a refused report.
+
+**Alerts are alarms that read zero when healthy.** Each rule's firing test
+is a pure function in `lib/alerts/rules.ts`; its measurement and the alert
+cycle are `lib/alerts/run.ts`. One live alert per rule (partial unique index):
+a rule still firing bumps it, a rule that stops firing resolves it by itself.
+Every admin is emailed when an alert opens and again only after the rule's
+cooldown while it is still **open** — acknowledging stops the emails, not
+the alert.
+
+- **When rules run:** `/api/cron/alerts` (every rule; meant for every 10
+  minutes, which Vercel Hobby cannot schedule — the migration has the
+  `pg_cron` + `pg_net` snippet), the daily cron, and, for the two critical
+  rules that must not wait, straight after the fact: `onRequestError` runs
+  `server_errors`, a missed credit runs `uncredited_reports`.
+- **A new rule** is a key in `ALERT_RULE_KEYS`, a `FIRES` entry, a
+  `MEASURES` entry, a `RULE_LINKS` entry and a seeded row — the test checks
+  the seed against the keys.
+- Thresholds are first guesses, and the two budgets are placeholders until
+  someone sets them on the Rules tab.
 
 **A rate limit is not an allowance.** The allowance is a business quota
 spent at publish (`lib/allowance.ts`); a rate limit is a short-window abuse

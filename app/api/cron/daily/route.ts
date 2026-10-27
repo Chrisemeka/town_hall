@@ -6,6 +6,7 @@ import { sendNotice } from "@/lib/mail"
 import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { lagosDate } from "@/lib/subscriptions"
+import { runAlerts } from "@/lib/alerts/run"
 
 // The daily job (vercel.json, 06:00 UTC — 07:00 Lagos). app/api has no
 // middleware, so the bearer check below is the only gate: Vercel Cron sends
@@ -17,7 +18,9 @@ import { lagosDate } from "@/lib/subscriptions"
 // 2. active subscriptions past period_end lapse to Community ('end', expired);
 // 3. builders and admins hear 3 days before a period ends, once a period;
 // 4. retention: page_views rolled up after 90 days, app_events kept 13
-//    months, rate_limits a day.
+//    months, rate_limits a day;
+// 5. every alert rule, for deployments where /api/cron/alerts is not
+//    scheduled more often.
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const site = () => process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
@@ -146,6 +149,8 @@ export async function GET(request: Request) {
     if (error) throw new Error(error.message)
     return count ?? 0
   })
+
+  await step("alerts_evaluated", () => runAlerts())
 
   return Response.json(report)
 }
