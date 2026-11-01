@@ -47,8 +47,11 @@ export default function AuditLogForm({
   appUrl,
   steps,
   category,
+  startToken = null,
 }: {
   missionId: string
+  /** From the page: proof the form was shown while the test case was live (lib/reportStart.ts). */
+  startToken?: string | null
   appUrl: string | null
   /** The mission's test category; decides what each step owes. Null on older missions. */
   category: string | null
@@ -275,6 +278,7 @@ export default function AuditLogForm({
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
       fd.append("entries", JSON.stringify(hasSteps ? entries : []))
+      if (startToken) fd.append("startToken", startToken)
       try {
         const startedAt = window.localStorage.getItem(startedKey(missionId))
         if (startedAt) fd.append("startedAt", startedAt)

@@ -74,7 +74,7 @@ const sent = () => vi.mocked(sendTesterDigests).mock.calls.flatMap(([m]) => m as
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret")
+  vi.stubEnv("SIGNING_SECRET", "test-secret")
   // Respects `since`, as the real query's gt filter does.
   vi.mocked(newMissionsFor).mockImplementation(async (_u, since) => [mission("m1")].filter((m) => m.firstPublishedAt > since))
 })

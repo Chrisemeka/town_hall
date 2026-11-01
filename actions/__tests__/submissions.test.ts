@@ -11,6 +11,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/auth", () => ({ getActiveAccount: vi.fn() }))
+vi.mock("server-only", () => ({}))
 // The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
 // passes unless a test says otherwise, and never reaches the admin client.
 vi.mock("@/lib/rateLimitDb", () => ({
@@ -44,6 +45,7 @@ import { generateAnalysis } from "@/lib/ai"
 import { reportBalance, reportLanded } from "@/lib/allowanceDb"
 import { checkRateLimit } from "@/lib/rateLimitDb"
 import { uploadToStorage } from "@/lib/supabase/server"
+import { CLOSED_GRACE, startToken } from "@/lib/reportStart"
 
 const TESTER_ID = "11111111-1111-4111-8111-111111111111"
 const OWNER_ID = "22222222-2222-4222-8222-222222222222"
@@ -109,6 +111,8 @@ function mocks(
     rpcError?: { message: string; code?: string }
     meteringFails?: boolean
     alreadySubmitted?: boolean
+    isActive?: boolean | null
+    closedAt?: string | null
   } = {},
 ) {
   usageRows = []
@@ -130,6 +134,8 @@ function mocks(
               project_id: PROJECT_ID,
               test_steps: opts.steps ?? MISSION_STEPS,
               category: opts.category === undefined ? "process_flow" : opts.category,
+              is_active: opts.isActive === undefined ? true : opts.isActive,
+              closed_at: opts.closedAt ?? null,
               projects: { owner_id: opts.ownerId ?? OWNER_ID },
             },
           }),
@@ -708,5 +714,78 @@ describe("submitTestResult and step screenshots", () => {
     const images = vi.mocked(generateAnalysis).mock.calls[0][1]
     expect(images.map((i) => i.step ?? null)).toEqual([null, { number: 1, status: "fail" }])
     expect(usageRows[0].image_count).toBe(2)
+  })
+})
+
+describe("submitTestResult and a closed test case", () => {
+  const HOUR = 60 * 60 * 1000
+  const closedAt = new Date(Date.now() - HOUR).toISOString()
+  const withToken = (token?: string) => {
+    const fd = formData()
+    if (token) fd.set("startToken", token)
+    return fd
+  }
+  const issued = (msBeforeClose: number) => startToken(MISSION_ID, TESTER_ID, Date.parse(closedAt) - msBeforeClose)
+
+  beforeEach(() => vi.stubEnv("SIGNING_SECRET", "test-secret"))
+
+  /** Refused, and before the rate limit and any upload — a refusal costs neither. */
+  async function expectRefused(fd: FormData, rpc: ReturnType<typeof mocks>) {
+    const result = await submitTestResult(fd)
+    expect(result).toEqual({ success: false, error: expect.stringMatching(/closed before you started/) })
+    expect(checkRateLimit).not.toHaveBeenCalled()
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  }
+
+  it("accepts a report on a live test case, as before, with or without a token", async () => {
+    mocks()
+    expect((await submitTestResult(withToken())).success).toBe(true)
+    mocks({ isActive: null })
+    expect((await submitTestResult(withToken())).success).toBe(true)
+  })
+
+  it("accepts work started before the close and sent inside the grace", async () => {
+    const rpc = mocks({ isActive: false, closedAt })
+    expect((await submitTestResult(withToken(issued(10 * 60 * 1000)))).success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  it("refuses a token issued after the close", async () => {
+    const rpc = mocks({ isActive: false, closedAt })
+    await expectRefused(withToken(issued(-1000)), rpc)
+  })
+
+  it("refuses work sent after the grace", async () => {
+    const longAgo = new Date(Date.now() - CLOSED_GRACE - HOUR).toISOString()
+    const rpc = mocks({ isActive: false, closedAt: longAgo })
+    await expectRefused(withToken(startToken(MISSION_ID, TESTER_ID, Date.parse(longAgo) - HOUR)), rpc)
+  })
+
+  it("refuses when the close time is unknown — closed before it was recorded", async () => {
+    const rpc = mocks({ isActive: false, closedAt: null })
+    await expectRefused(withToken(issued(HOUR)), rpc)
+  })
+
+  it("refuses with no token, a tampered one, or one for another tester", async () => {
+    const good = issued(HOUR)
+    const tampered = good.slice(0, -1) + (good.endsWith("a") ? "b" : "a")
+    const otherTester = startToken(MISSION_ID, OWNER_ID, Date.parse(closedAt) - HOUR)
+    for (const fd of [withToken(), withToken(tampered), withToken(otherTester)]) {
+      vi.clearAllMocks()
+      await expectRefused(fd, mocks({ isActive: false, closedAt }))
+    }
+  })
+
+  it("refuses a draft that was never published", async () => {
+    // No token is ever issued for one; is_active false and closed_at null.
+    const rpc = mocks({ isActive: false, closedAt: null })
+    await expectRefused(withToken(), rpc)
+  })
+
+  it("never reads the allowance to decide", async () => {
+    mocks({ isActive: false, closedAt })
+    await submitTestResult(withToken())
+    expect(reportBalance).not.toHaveBeenCalled()
   })
 })

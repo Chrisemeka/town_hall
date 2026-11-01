@@ -44,7 +44,7 @@ function db() {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(requireAccount).mockResolvedValue({ userId: TESTER })
-  vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret")
+  vi.stubEnv("SIGNING_SECRET", "test-secret")
 })
 
 describe("setDigestEmail", () => {
