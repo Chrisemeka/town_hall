@@ -166,6 +166,30 @@ components/admin/
 
 - No WebSockets / Supabase Realtime triggers
 - No in-app notification bell
-- No unsubscribe system (not needed for beta)
+- One unsubscribe system, for the tester digest only (below). Every other
+  email is transactional and has none.
 - No other mail providers (Resend only)
 - Sent emails are not persisted to the database
+
+## The tester digest and unsubscribing
+
+`emails/tester-digest.tsx` is the daily list of new test cases, sent by the
+daily cron's `tester_digest` step (07:00 Lagos) through `runTesterDigest()` in
+`lib/digest.ts` and `sendTesterDigests()` in `lib/mail.ts`. Each tester's window
+is claimed before sending (`accounts.digest_through`, compare-and-set), so a
+re-run sends nothing; a failed send is logged and not retried.
+
+Every digest carries its own unsubscribe:
+
+- **The token** (`lib/unsubscribe.ts`): HMAC-SHA256 over `tester-digest:` plus
+  the tester account id, keyed by `UNSUBSCRIBE_SECRET`. It never expires and is
+  scoped to this email by its prefix.
+- **The footer link** opens `/unsubscribe?a=…&t=…`, a page that asks and posts.
+  A GET never unsubscribes — mail scanners open every link.
+- **The headers** `List-Unsubscribe: <…/api/unsubscribe?a=…&t=…>` and
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click` give Gmail and Yahoo
+  their own Unsubscribe button (RFC 8058). `POST /api/unsubscribe` opts out
+  with no sign-in.
+- **Settings → Account** has the same switch for a tester.
+
+The email names no builder and says nothing about pay.

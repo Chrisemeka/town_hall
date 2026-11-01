@@ -51,6 +51,12 @@ export type AccountRow = {
   /** Paid tester cohort: joined, and left. Current state; history is admin_account_changes. */
   cohort_member_at?: string | null
   cohort_left_at?: string | null
+  /** Tester accounts only (20261101_02): last opened Available Test Cases. */
+  missions_seen_at?: string
+  /** Tester accounts only: end of the last daily digest window. */
+  digest_through?: string
+  /** Tester accounts only: null while the daily digest is on. */
+  digest_opted_out_at?: string | null
 }
 
 /** report_ledger — append-only. Arithmetic in lib/allowance.ts. */
@@ -104,6 +110,8 @@ export type MissionRow = {
   device_target: string
   /** Which template this was built from, if any. Provenance only. */
   template_id: string | null
+  /** When it first went live (20261101_02). Written once, by publish_mission. */
+  first_published_at?: string | null
   load_test_at: string | null
   testers_needed: number | null
 }

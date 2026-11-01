@@ -43,6 +43,9 @@ export const RATE_LIMITS = {
   // Page-view beacons. A limited beacon is dropped silently: this caps a
   // flood of fake views, it never blocks a page.
   "track:ip": { limit: 120, windowSeconds: 10 * MIN, fallback: 40, mode: "degrade" },
+  // The digest's unsubscribe page and one-click endpoint: public and signed
+  // out. Degrade, never closed — nobody is ever locked out of opting out.
+  "unsubscribe:ip": { limit: 30, windowSeconds: 10 * MIN, fallback: 10, mode: "degrade" },
 
   // Tier 2 — authenticated, cost-bearing. Keyed on the profile id.
   "submit:account": { limit: 10, windowSeconds: HOUR, fallback: 0, mode: "closed" },

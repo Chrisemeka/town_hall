@@ -7,6 +7,7 @@ import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { lagosDate } from "@/lib/subscriptions"
 import { runAlerts } from "@/lib/alerts/run"
+import { runTesterDigest } from "@/lib/digest"
 
 // The daily job (vercel.json, 06:00 UTC — 07:00 Lagos). app/api has no
 // middleware, so the bearer check below is the only gate: Vercel Cron sends
@@ -17,12 +18,21 @@ import { runAlerts } from "@/lib/alerts/run"
 // 1. scheduled changes that are due become real (apply_subscription 'apply');
 // 2. active subscriptions past period_end lapse to Community ('end', expired);
 // 3. builders and admins hear 3 days before a period ends, once a period;
-// 4. retention: page_views rolled up after 90 days, app_events kept 13
+// 4. testers get the day's new test cases, once per window (lib/digest.ts);
+// 5. retention: page_views rolled up after 90 days, app_events kept 13
 //    months, rate_limits a day;
-// 5. every alert rule, for deployments where /api/cron/alerts is not
+// 6. every alert rule, for deployments where /api/cron/alerts is not
 //    scheduled more often.
 
+// The digest is the long step: about five round trips per tester, one tester
+// at a time (~250 ms each), plus one Resend call per 50. 16 verified testers
+// today is ~4 s; 60 s leaves room for ~200 beside the other steps. The
+// ceiling and the way past it are noted in lib/digest.ts.
+export const maxDuration = 60
+
 const DAY_MS = 24 * 60 * 60 * 1000
+// ponytail: the existing NEXT_PUBLIC_APP_URL pattern; the digest's links come
+// from here too. Move to siteLink() once fix/email-link-origin merges.
 const site = () => process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
 
 export async function GET(request: Request) {
@@ -126,6 +136,8 @@ export async function GET(request: Request) {
     }
     return n
   })
+
+  await step("tester_digest", () => runTesterDigest(now, site()))
 
   await step("page_views_rolled", async () => {
     const { data, error } = await admin.rpc("roll_up_page_views", { p_keep_days: 90 })

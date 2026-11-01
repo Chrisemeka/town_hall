@@ -79,6 +79,12 @@ export default function TesterGuidePage() {
             Your job is to do each step and say whether it did that. You are not
             being asked to review the product, guess at causes, or be kind.
           </p>
+          <p className={P}>
+            New test cases show as a number beside Available Test Cases, and
+            once a day we email you a list of the ones that went live. Turn the
+            email off with the switch in Settings → Account, or the unsubscribe
+            link in any of them.
+          </p>
         </Section>
 
         <Section {...docSection("tester", "read-first")}>

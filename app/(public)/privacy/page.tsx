@@ -81,6 +81,7 @@ export default function PrivacyPolicyPage() {
 
           <Section {...docSection("privacy", "use")}>
             <p>We use your personal information to create and manage your Twnhall account, communicate with you by email, or other equivalent forms of electronic communication, such as push notifications about updates or informative communications related to the functionalities, products or contracted services, including security updates when necessary or reasonable for their implementation, and to personalize your experience on the app.</p>
+            <p>If you have a Tester account, we email you once a day with the test cases that went live since the last one, when there are any. Turn it off in Settings or with the unsubscribe link in the email.</p>
             <p>We use usage information to improve our app, analyze trends, and enhance user experience.</p>
             <p>We may use device information to troubleshoot technical issues and ensure compatibility with our app.</p>
           </Section>

@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { missionsForTester } from "@/lib/cohortDb";
+import { liveMissionFilter } from "@/lib/newMissions";
+import { MarkMissionsSeen } from "@/components/tester/MarkMissionsSeen";
 import { BrowseMissions, type BrowseMission } from "@/components/BrowseMissions";
 import { one } from "@/lib/utils/project";
 import type { Embedded, MissionRow, ProjectRow } from "@/lib/types/db";
@@ -24,15 +26,15 @@ function handleFromUrl(url: string | null, name: string) {
 export default async function BrowseMissionsPage() {
   const supabase = await createClient();
 
-  const { data: raw } = await supabase
-    .from("missions")
-    .select(`
+  // Rendered now: the counter clears up to this moment, not to when the
+  // tester's browser mounts the page — anything published in between stays new.
+  const renderedAt = new Date().toISOString();
+  const { data: raw } = await liveMissionFilter(
+    supabase.from("missions").select(`
       id, title, created_at, category, device_target,
       projects!inner (id, name, app_url, flagged_at)
-    `)
-    .eq("is_active", true)
-    .is("projects.flagged_at", null)
-    .order("created_at", { ascending: false });
+    `),
+  ).order("created_at", { ascending: false });
 
   // A paid cohort tester sees only missions the cohort may be paid for.
   const { data: { user } } = await supabase.auth.getUser();
@@ -79,6 +81,8 @@ export default async function BrowseMissionsPage() {
           Pick a test case and start testing.
         </p>
       </div>
+
+      <MarkMissionsSeen renderedAt={renderedAt} />
 
       <div id="tour-browse-missions-list">
         <BrowseMissions missions={missions} />

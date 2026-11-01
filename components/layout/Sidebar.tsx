@@ -6,7 +6,8 @@ import { Settings, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { signOutAction } from "@/actions/auth"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
-import { NAV, activeNavHref, navCurrent, navIsActive } from "@/lib/appNav"
+import { NAV, activeNavHref, navCurrent, navIsActive, type NavBadges } from "@/lib/appNav"
+import { NavBadge } from "./NavBadge"
 import type { AccountType } from "@/lib/access"
 
 function NavItem({
@@ -17,9 +18,12 @@ function NavItem({
   current,
   onClick,
   className,
+  badge,
 }: {
   href: string
   name: string
+  /** A count after the label — the shell's, already cleared where it should be. */
+  badge?: number
   icon: React.ElementType
   isActive: boolean
   /** aria-current, so the active state is never colour alone (Design.md §10). */
@@ -41,6 +45,7 @@ function NavItem({
     >
       <Icon className="w-4 h-4 shrink-0" />
       {name}
+      <NavBadge count={badge} />
     </Link>
   )
 }
@@ -102,7 +107,7 @@ export function AccountActions({
 
 /** The persistent rail. Below its breakpoint the bottom bar and the account
  *  sheet carry the same destinations and actions. */
-export function Sidebar({ account = "builder" }: { account?: AccountType }) {
+export function Sidebar({ account = "builder", badges = {} }: { account?: AccountType; badges?: NavBadges }) {
   const pathname = usePathname()
   const current = activeNavHref(pathname, account)
 
@@ -116,7 +121,7 @@ export function Sidebar({ account = "builder" }: { account?: AccountType }) {
           </p>
           <div className="flex flex-col gap-0.5">
             {NAV[account].links.map((link) => (
-              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={link.href === current} current={navCurrent(pathname, link.href)} />
+              <NavItem key={link.href} href={link.href} name={link.name} icon={link.icon} isActive={link.href === current} current={navCurrent(pathname, link.href)} badge={link.badge && badges[link.badge]} />
             ))}
           </div>
         </div>

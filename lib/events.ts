@@ -30,6 +30,9 @@ export const EVENT_NAMES = [
   "email.failed",
   "error.server",
   "plan.changed",
+  // The daily digest switch; props.source is "settings" or "email".
+  "notifications.digest_on",
+  "notifications.digest_off",
 ] as const
 
 export type EventName = (typeof EVENT_NAMES)[number]

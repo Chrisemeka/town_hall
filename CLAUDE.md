@@ -103,9 +103,9 @@ app_events        in-app activity no row records already — service role only
 | Table          | Key columns |
 |----------------|-------------|
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
-| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable; null is Community; read at publish**). Unique on `(user_id, type)`. |
+| `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable; null is Community; read at publish**), `missions_seen_at` / `digest_through` (**tester only, default `now()`**), `digest_opted_out_at` (**tester only, null while the digest is on**). Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
-| `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed` |
+| `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed`, `first_published_at` (**written once, by `publish_mission`**) |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`; `changes_requested` legacy only — builders approve + rate, never send back), `rating`, `review_note`, `reviewed_at` |
 | `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
 | `admin_account_changes` | `id`, `account_id` (**set null**), `profile_id` (denormalised, no FK), `field` (`plan_id`\|`cohort`), `from_value`, `to_value`, `changed_by` (admin), `created_at`. **Service role only**, append-only — and the cohort membership history. |
@@ -312,6 +312,39 @@ one transaction — through `setCohortMember`.
   `/api/admin/payouts` calls `requireAdmin()` itself — `app/api` has no
   middleware. It includes emails, deliberately: it stays with admins, unlike
   the builder export.
+
+**Tester notifications: a counter and a daily digest** (`20261101_02`,
+`docs/specs/SPEC-tester-notifications.md`). Nothing fired on publish before
+this; testers found new test cases only by opening Available Test Cases.
+
+- **`missions.first_published_at` has one writer, `publish_mission`**, as
+  `coalesce(first_published_at, now())`: a test case is new once, and closing
+  and reopening it does not put it back in anyone's counter or inbox.
+- **`newMissionsFor()` in `lib/newMissions.ts` is the one definition of "new
+  for this tester"**: live (`liveMissionFilter`, shared with the page), first
+  published after a time, minus their own projects and what they have tested,
+  through `missionsForTester()`. It reads `projects.owner_id` to exclude and
+  never returns it — the tester is never sent the builder's identity. The
+  counter and the digest both read it; filtering by skills would go there.
+- **The counter** is computed in `DashboardLayout` for an active tester only
+  (`newMissionCount()`, never throws) and keyed onto the nav link by `badge`.
+  A Sky fill, never Voltage. **It clears on mount, never on render**:
+  `MarkMissionsSeen` calls `markMissionsSeen(renderedAt)` — a prefetch renders
+  pages nobody opened — clamped to now and forward only; `AppShell` hides it
+  the moment the pathname arrives, because the layout does not re-render on a
+  soft navigation.
+- **The digest is claim-then-send**, a step in the daily cron at 07:00 Lagos
+  (`lib/digest.ts`). Each tester's `digest_through` is moved compare-and-set
+  before anything is sent, so a re-run sends nothing and a failure is never
+  retried. The window starts at the later of the last digest and the last visit
+  to the page, and ends at the run's start. No new test cases, no email.
+- **A GET never unsubscribes.** `/unsubscribe` asks and posts; `POST
+  /api/unsubscribe` is RFC 8058 one-click for Gmail's button, gated by the
+  token alone. The token (`lib/unsubscribe.ts`) is HMAC over
+  `tester-digest:` + the account id, keyed by `UNSUBSCRIBE_SECRET`, never
+  expires, and is scoped to this email by its prefix. A bad token gets one
+  generic answer — never whether the account exists. Settings → Account has
+  the same switch, tester only; switching it on moves `digest_through` to now.
 
 **Traffic and activity are first-party tables, not a third-party script.**
 `components/Tracker.tsx` (root layout) beacons each route change to
@@ -621,8 +654,9 @@ auth → email confirmed? → profile upsert → terms → choose-account → pe
 Enforced in `middleware.ts` and in `resolveAccountOrRedirect()` in `lib/auth.ts`
 — two layers, as always. **Do not add a column mirroring `email_confirmed_at`**;
 the `accepted_terms_at` pattern does not apply because Supabase already owns
-this state. `isEmailGateExempt()` in `lib/access.ts` lists the only two
-exemptions and says why each one is there. Admins are *not* exempt, unlike the
+this state. `isEmailGateExempt()` in `lib/access.ts` lists the only three
+exemptions — `/confirm-email`, `/reset-password` and the digest's public
+`/unsubscribe` — and says why each one is there. Admins are *not* exempt, unlike the
 terms gate.
 
 **Identity linking is GoTrue's behaviour, not ours, and it is stronger than it

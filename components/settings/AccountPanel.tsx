@@ -5,6 +5,7 @@ import { useState } from "react"
 import { deleteAccountAction } from "@/actions/auth"
 import { AccountControl } from "@/components/settings/AccountControl"
 import { ExportPanel } from "@/components/settings/ExportPanel"
+import { DigestSwitch } from "@/components/settings/DigestSwitch"
 import type { AccountType } from "@/lib/access"
 
 /**
@@ -28,11 +29,14 @@ export function AccountPanel({
   holdsOther,
   projects,
   hasFeedback,
+  digestOn = true,
 }: {
   active: AccountType
   holdsOther: boolean
   projects: ExportProject[]
   hasFeedback: boolean
+  /** The tester account's daily digest switch. Read only when active is tester. */
+  digestOn?: boolean
 }) {
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm">("idle")
   const [deleting, setDeleting] = useState(false)
@@ -71,6 +75,15 @@ export function AccountPanel({
       {active === "builder" && (
         <>
           <ExportPanel projects={projects} hasFeedback={hasFeedback} />
+          <SectionDivider />
+        </>
+      )}
+
+      {/* Tester-only: the digest is about test cases to take, and a builder's
+          account has none. A section, not a tab, so tabsFor() is unchanged. */}
+      {active === "tester" && (
+        <>
+          <DigestSwitch initialOn={digestOn} />
           <SectionDivider />
         </>
       )}

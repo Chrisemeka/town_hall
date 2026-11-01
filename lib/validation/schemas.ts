@@ -391,6 +391,22 @@ export type SubmissionInput = z.infer<typeof submissionSchema>
  */
 export const startedAtSchema = z.iso.datetime({ offset: true }).nullable().catch(null)
 
+/* ──────────────────────────────────────────────────────────────
+ * Tester notifications
+ * ──────────────────────────────────────────────────────────── */
+
+/** When Available Test Cases was rendered — what markMissionsSeen clears up to. */
+export const renderedAtSchema = z.iso.datetime({ offset: true })
+
+/** The Settings switch for the daily digest. */
+export const digestEmailSchema = z.boolean()
+
+/** An unsubscribe link's two parameters; the token is checked by lib/unsubscribe.ts. */
+export const unsubscribeSchema = z.object({
+  a: z.string().uuid(),
+  t: z.string().regex(/^[0-9a-f]{64}$/),
+})
+
 /** File validation is separate so the screenshot can be supplied as a Blob. */
 export const screenshotSchema = z
   .instanceof(File, { message: "A screenshot is required." })

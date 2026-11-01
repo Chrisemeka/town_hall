@@ -26,6 +26,9 @@ export const CONFIRM_EMAIL_PATH = "/confirm-email"
 /** Where a password-recovery link lands. Exempt from the email gate — see below. */
 export const RESET_PASSWORD_PATH = "/reset-password"
 
+/** The digest's unsubscribe page. Public, and exempt from the email gate — see below. */
+export const UNSUBSCRIBE_PATH = "/unsubscribe"
+
 
 /** Where an account that has not cleared the verification gate has to go. */
 export function verifyPathFor(account: AccountType): string {
@@ -84,7 +87,13 @@ export function isVerifyPath(pathname: string): boolean {
 export function isEmailGateExempt(pathname: string): boolean {
   return (
     underPrefix(pathname, CONFIRM_EMAIL_PATH) ||
-    underPrefix(pathname, RESET_PASSWORD_PATH)
+    underPrefix(pathname, RESET_PASSWORD_PATH) ||
+    // An unsubscribe link must work for whoever opens it, in any state of the
+    // setup chain — including someone signed in on this browser who has not
+    // confirmed their own address. It is outside every protected prefix, so
+    // the terms and verification gates never reach it; this is the one gate
+    // that runs on public pages.
+    underPrefix(pathname, UNSUBSCRIBE_PATH)
   )
 }
 

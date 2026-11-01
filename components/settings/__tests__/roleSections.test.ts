@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 // The panels import server actions; rendering them needs none of it.
 vi.mock("@/actions/auth", () => ({ deleteAccountAction: vi.fn() }))
 vi.mock("@/actions/accounts", () => ({ switchAccount: vi.fn() }))
+vi.mock("@/actions/notifications", () => ({ setDigestEmail: vi.fn() }))
 
 import { AccountPanel } from "@/components/settings/AccountPanel"
 import { GiveAndTake } from "@/components/settings/GiveAndTake"
@@ -36,6 +37,23 @@ describe("Account tab export section", () => {
     const html = account("builder", false)
     expect(html).toContain("Export your data")
     expect(html).toContain("Nothing to export yet")
+  })
+})
+
+describe("Account tab notifications", () => {
+  it("shows the daily digest switch to a tester, reflecting its state", () => {
+    const on = account("tester")
+    expect(on).toContain("Email me a daily list of new test cases")
+    expect(on).toContain('role="switch"')
+    expect(on).toContain('aria-checked="true"')
+    const off = renderToStaticMarkup(
+      createElement(AccountPanel, { active: "tester", holdsOther: false, projects: [], hasFeedback: false, digestOn: false }),
+    )
+    expect(off).toContain('aria-checked="false"')
+  })
+
+  it("is absent on a builder", () => {
+    expect(account("builder")).not.toContain("daily list of new test cases")
   })
 })
 
