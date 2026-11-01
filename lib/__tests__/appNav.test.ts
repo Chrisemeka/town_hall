@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { badgeText } from "@/components/layout/NavBadge"
 import { NAV, activeNavHref, navCurrent, navIsActive } from "@/lib/appNav"
 import type { AccountType } from "@/lib/access"
 
@@ -72,5 +73,20 @@ describe("navCurrent", () => {
     expect(navCurrent("/dashboard", "/dashboard")).toBe("page")
     expect(navCurrent("/dashboard/new", "/dashboard")).toBe("true")
     expect(navCurrent("/mission/m1", "/explore/missions")).toBe("true")
+  })
+})
+
+describe("the new-test-case badge", () => {
+  it("sits only on the tester's Available Test Cases link", () => {
+    const keyed = Object.values(NAV).flatMap(({ links }) => links.filter((l) => l.badge))
+    expect(keyed.map((l) => [l.href, l.badge])).toEqual([["/explore/missions", "newMissions"]])
+  })
+
+  it("reads 1 to 9, then 9+, and nothing at zero", () => {
+    expect(badgeText(0)).toBeNull()
+    expect(badgeText(undefined)).toBeNull()
+    expect(badgeText(1)).toBe("1")
+    expect(badgeText(9)).toBe("9")
+    expect(badgeText(10)).toBe("9+")
   })
 })

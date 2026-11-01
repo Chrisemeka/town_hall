@@ -10,7 +10,13 @@ export type NavLink = {
   short: string
   href: string
   icon: React.ElementType
+  /** A count the shell shows beside this link — keyed, so the nav stays the one list. */
+  badge?: NavBadgeKey
 }
+
+/** The counts AppShell can be handed. Only the tester's new test cases, for now. */
+export type NavBadgeKey = "newMissions"
+export type NavBadges = Partial<Record<NavBadgeKey, number>>
 
 // Each account type gets its own nav. There is no combined view — a Builder
 // account has no business reaching the tester surfaces and vice versa, and
@@ -29,7 +35,7 @@ export const NAV: Record<AccountType, { heading: string; links: NavLink[] }> = {
     heading: "Tester",
     links: [
       { name: "Tester Home",        short: "Home",     href: "/tester",           icon: LayoutGrid },
-      { name: "Available Test Cases", short: "Tests",    href: "/explore/missions", icon: Compass },
+      { name: "Available Test Cases", short: "Tests",    href: "/explore/missions", icon: Compass, badge: "newMissions" },
       { name: "Explore Projects",   short: "Explore",  href: "/explore",          icon: Telescope },
     ],
   },

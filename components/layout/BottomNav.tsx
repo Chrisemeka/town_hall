@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { NAV, activeNavHref, navCurrent } from "@/lib/appNav"
+import { NAV, activeNavHref, navCurrent, type NavBadges } from "@/lib/appNav"
+import { NavBadge } from "./NavBadge"
 import type { AccountType } from "@/lib/access"
 
 /**
@@ -20,7 +21,7 @@ import type { AccountType } from "@/lib/access"
  * It also steps aside for the audit log's progress bar (ReportProgressBar),
  * which takes its place while it shows.
  */
-export function BottomNav({ account }: { account: AccountType }) {
+export function BottomNav({ account, badges = {} }: { account: AccountType; badges?: NavBadges }) {
   const pathname = usePathname()
   const current = activeNavHref(pathname, account)
 
@@ -30,7 +31,7 @@ export function BottomNav({ account }: { account: AccountType }) {
       className="expanded:hidden group-has-[[data-report-bar]]/shell:hidden group-has-[:is(input:not([type=checkbox]):not([type=radio]),textarea):focus]/shell:hidden fixed inset-x-0 bottom-0 z-40 bg-surface border-t border-line pb-[env(safe-area-inset-bottom)]"
     >
       <ul className="grid grid-cols-3">
-        {NAV[account].links.map(({ href, short, icon: Icon }) => {
+        {NAV[account].links.map(({ href, short, icon: Icon, badge }) => {
           const active = href === current
           return (
             <li key={href}>
@@ -40,11 +41,13 @@ export function BottomNav({ account }: { account: AccountType }) {
                 className="group h-16 flex flex-col items-center justify-center gap-1 active:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-ink"
               >
                 <span
-                  className={`w-14 h-7 rounded-full inline-flex items-center justify-center transition-colors duration-150 ${
+                  className={`relative w-14 h-7 rounded-full inline-flex items-center justify-center transition-colors duration-150 ${
                     active ? "bg-accent-ink/[0.12] text-accent-ink" : "text-ink-muted group-hover:text-ink"
                   }`}
                 >
                   <Icon size={20} aria-hidden="true" />
+                  {/* On the icon's corner, off the label; the 48px target is the cell. */}
+                  <NavBadge count={badge && badges[badge]} corner />
                 </span>
                 <span className={`font-mono text-[12px] leading-4 ${active ? "text-ink font-medium" : "text-ink-muted"}`}>
                   {short}

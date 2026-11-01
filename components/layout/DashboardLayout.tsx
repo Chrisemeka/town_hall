@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getActiveAccount } from "@/lib/auth"
 import type { AccountType } from "@/lib/access"
+import { newMissionCount } from "@/lib/newMissions"
 import { AppShell } from "./AppShell"
 
 export async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
   let displayName: string | null = null
   let seenTours: string[] = []
   let account: AccountType = "builder"
+  let newMissions = 0
 
   if (user) {
     const admin = createAdminClient()
@@ -40,6 +42,9 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
     // is accessFor() in middleware plus requireAccount() on the page.
     const resolved = await getActiveAccount()
     account = resolved?.active ?? "builder"
+    // Only an active tester pays for the count; builders cost nothing. Never
+    // throws — a broken count costs the badge, not the page.
+    if (account === "tester") newMissions = await newMissionCount(user.id)
   }
 
   return (
@@ -48,6 +53,7 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
       displayName={displayName}
       seenTours={seenTours}
       account={account}
+      newMissions={newMissions}
     >
       {children}
     </AppShell>
