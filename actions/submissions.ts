@@ -13,6 +13,7 @@ import { reportLanded } from "@/lib/allowanceDb"
 import { checkRateLimit } from "@/lib/rateLimitDb"
 import { tooManyMessage } from "@/lib/rateLimit"
 import { needsScreenshot, takesScreenshots } from "@/lib/vocabulary"
+import { graceAllows, verifyStartToken } from "@/lib/reportStart"
 import {
   auditLogSchemaFor,
   storedTestStepsSchema,
@@ -39,6 +40,7 @@ export type SubmissionResult =
   | { success: false; error: string; fieldErrors?: SubmissionFieldErrors }
 
 const ALREADY_SUBMITTED = "You've already submitted a report for this test case."
+const CLOSED = "This test case closed before you started — it isn't taking reports any more."
 
 export async function submitTestResult(formData: FormData): Promise<SubmissionResult> {
   try {
@@ -90,6 +92,8 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
         project_id,
         test_steps,
         category,
+        is_active,
+        closed_at,
         projects (
           owner_id
         )
@@ -101,6 +105,8 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       project_id: string
       test_steps: unknown
       category: string | null
+      is_active: boolean | null
+      closed_at: string | null
       projects: { owner_id: string } | { owner_id: string }[] | null
     } | null
 
@@ -119,6 +125,18 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       .eq("tester_id", user.id)
       .limit(1)
     if (existing?.length) return { success: false, error: ALREADY_SUBMITTED }
+
+    // A closed test case refuses new reports — its state, not the builder's
+    // balance: nothing here reads the allowance or the ledger. Filled, paused,
+    // or a draft never published. The exception is work already started: a
+    // start token from the page, issued while it was live, before the close,
+    // arriving inside the grace (lib/reportStart.ts). Before the rate limit and
+    // any upload, so a refused report costs neither. Null is_active is a
+    // legacy live row.
+    if (mission?.is_active === false) {
+      const issuedAt = verifyStartToken(formData.get("startToken"), missionId, user.id)
+      if (!graceAllows(issuedAt, mission.closed_at)) return { success: false, error: CLOSED }
+    }
 
     // The entries carry their own step text, because that snapshot is what the
     // audit log records. That makes it worth checking against the live mission
