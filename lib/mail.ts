@@ -13,6 +13,7 @@ import Welcome, { type WelcomeProps } from "@/emails/welcome"
 import ApprovalNotification, {
   type ApprovalNotificationProps,
 } from "@/emails/approval-notification"
+import TesterDigest, { type TesterDigestProps } from "@/emails/tester-digest"
 
 // Until a custom Twnhall domain is verified in Resend, fall back to the
 // shared sandbox sender. Override per-env with MAIL_FROM_* if needed.
@@ -248,4 +249,57 @@ export async function sendNotice(
     console.error("[mail.sendNotice] unexpected error:", template, err)
     await logged(template, err)
   }
+}
+
+/** One tester's digest, already claimed (lib/digest.ts). */
+export type DigestMessage = {
+  to: string
+  subject: string
+  props: TesterDigestProps
+  /** List-Unsubscribe and List-Unsubscribe-Post — per email, the token differs. */
+  headers: Record<string, string>
+}
+
+/**
+ * The daily digest, in batches — each email its own content and its own
+ * unsubscribe headers (resend.batch.send carries per-email `headers`: the
+ * batch type is the send type minus attachments and scheduling). Never throws
+ * and never retries: the windows are already claimed, and a failed batch is
+ * logged as email.failed. Returns how many were sent.
+ */
+export async function sendTesterDigests(messages: DigestMessage[]): Promise<number> {
+  const resend = getResend()
+  if (!resend) {
+    await logged("tester-digest", "RESEND_API_KEY is not set")
+    return 0
+  }
+
+  let sent = 0
+  for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+    const batch = messages.slice(i, i + BATCH_SIZE)
+    try {
+      const payload = await Promise.all(
+        batch.map(async (m) => ({
+          from: FROM_NOTIFICATIONS,
+          to: [m.to],
+          subject: m.subject,
+          html: await render(TesterDigest(m.props)),
+          text: await render(TesterDigest(m.props), { plainText: true }),
+          headers: m.headers,
+        })),
+      )
+      const { error } = await resend.batch.send(payload)
+      if (error) {
+        console.error("[mail.sendTesterDigests] batch error:", error)
+        await logged("tester-digest", error)
+        continue
+      }
+      sent += batch.length
+      await recordEvent({ name: "email.sent", props: { template: "tester-digest", count: batch.length } })
+    } catch (err) {
+      console.error("[mail.sendTesterDigests] batch threw:", err)
+      await logged("tester-digest", err)
+    }
+  }
+  return sent
 }
