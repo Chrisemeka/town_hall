@@ -6,6 +6,7 @@ vi.mock("@/lib/billing", () => ({ applySubscription: vi.fn(async () => "ok") }))
 vi.mock("@/lib/events", () => ({ recordEvent: vi.fn() }))
 vi.mock("@/lib/mail", () => ({ sendNotice: vi.fn() }))
 vi.mock("@/lib/alerts/run", () => ({ runAlerts: vi.fn(async () => 14) }))
+vi.mock("@/lib/digest", () => ({ runTesterDigest: vi.fn(async () => 2) }))
 
 import { GET } from "@/app/api/cron/daily/route"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -56,7 +57,9 @@ describe("GET /api/cron/daily", () => {
     const res = await GET(req("Bearer s3cret"))
     const body = await res.json()
     expect(vi.mocked(applySubscription).mock.calls.map(([a]) => a.action)).toEqual(["apply", "end"])
-    expect(body).toMatchObject({ applied: 1, expired: 1, reminded: 1, page_views_rolled: "failed", alerts_evaluated: 14 })
+    expect(body).toMatchObject({ applied: 1, expired: 1, reminded: 1, tester_digest: 2, page_views_rolled: "failed", alerts_evaluated: 14 })
+    // The digest runs before retention and alerts.
+    expect(Object.keys(body).indexOf("tester_digest")).toBeLessThan(Object.keys(body).indexOf("page_views_rolled"))
     expect(body.events_deleted).toBe(0)
     expect(vi.mocked(sendNotice).mock.calls.map(([n]) => n.template)).toEqual(["plan-ending", "plan-ending-admin"])
   })
