@@ -112,6 +112,8 @@ export type MissionRow = {
   template_id: string | null
   /** When it first went live (20261101_02). Written once, by publish_mission. */
   first_published_at?: string | null
+  /** When it stopped taking reports — filled or paused (20261101_03). Null while live, and on rows closed before. */
+  closed_at?: string | null
   load_test_at: string | null
   testers_needed: number | null
 }
