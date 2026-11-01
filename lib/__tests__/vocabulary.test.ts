@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest"
 import { readFileSync } from "node:fs"
-import { COUNTRIES, countryName, normalizeSkills } from "@/lib/vocabulary"
+import {
+  COUNTRIES,
+  countryName,
+  ENTRY_STATUSES,
+  entryStatusCopy,
+  needsScreenshot,
+  normalizeSkills,
+  takesScreenshots,
+} from "@/lib/vocabulary"
 
 describe("countryName", () => {
   // These render inside a <select> on /verify/[role], which means they are
@@ -87,5 +95,31 @@ describe("normalizeSkills", () => {
   it("is idempotent", () => {
     const once = normalizeSkills(["frontend", "  Rust ", "FRONTEND"])
     expect(normalizeSkills(once)).toEqual(once)
+  })
+})
+
+describe("takesScreenshots / needsScreenshot", () => {
+  it("offers a screenshot only on a step that did not pass", () => {
+    expect(takesScreenshots("pass")).toBe(false)
+    expect(takesScreenshots("")).toBe(false)
+    expect(takesScreenshots("fail")).toBe(true)
+    expect(takesScreenshots("blocked")).toBe(true)
+  })
+
+  it("requires one on a failure, never on blocked", () => {
+    expect(ENTRY_STATUSES.filter(needsScreenshot)).toEqual(["fail"])
+  })
+
+  // The design copy is display only: Unclear and Couldn't tell are stored as
+  // fail and blocked, so they resolve through the same rule.
+  it("reads the design labels through their stored statuses", () => {
+    const byLabel = Object.fromEntries(
+      ENTRY_STATUSES.map((s) => [entryStatusCopy(s, "ui_design").label, s]),
+    )
+    expect(takesScreenshots(byLabel["Clear"])).toBe(false)
+    expect(takesScreenshots(byLabel["Unclear"])).toBe(true)
+    expect(needsScreenshot(byLabel["Unclear"])).toBe(true)
+    expect(takesScreenshots(byLabel["Couldn't tell"])).toBe(true)
+    expect(needsScreenshot(byLabel["Couldn't tell"])).toBe(false)
   })
 })
