@@ -9,7 +9,7 @@ import { unsubscribeLinks, unsubscribeToken, verifyUnsubscribe } from "@/lib/uns
 const A = "11111111-1111-4111-8111-111111111111"
 const B = "22222222-2222-4222-8222-222222222222"
 
-beforeEach(() => vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret-long-and-random"))
+beforeEach(() => vi.stubEnv("SIGNING_SECRET", "test-secret-long-and-random"))
 afterEach(() => vi.unstubAllEnvs())
 
 describe("unsubscribe tokens", () => {
@@ -30,7 +30,7 @@ describe("unsubscribe tokens", () => {
   })
 
   it("compares in constant time", () => {
-    expect(readFileSync("lib/unsubscribe.ts", "utf8")).toContain("timingSafeEqual(")
+    expect(readFileSync("lib/signing.ts", "utf8")).toContain("timingSafeEqual(")
   })
 
   it("fails for a token signed for another purpose", () => {
@@ -40,9 +40,9 @@ describe("unsubscribe tokens", () => {
 
   it("fails closed when the secret is missing, and refuses to mint one", () => {
     const t = unsubscribeToken(A)
-    vi.stubEnv("UNSUBSCRIBE_SECRET", "")
+    vi.stubEnv("SIGNING_SECRET", "")
     expect(verifyUnsubscribe(A, t)).toBe(false)
-    expect(() => unsubscribeToken(A)).toThrow(/UNSUBSCRIBE_SECRET/)
+    expect(() => unsubscribeToken(A)).toThrow(/SIGNING_SECRET/)
   })
 
   it("builds absolute page and one-click links carrying a token that verifies", () => {

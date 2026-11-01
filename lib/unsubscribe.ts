@@ -1,40 +1,30 @@
 import "server-only"
 
-import { createHmac, timingSafeEqual } from "node:crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { recordEvent } from "@/lib/events"
+import { sign, verifySigned } from "@/lib/signing"
 import { unsubscribeSchema } from "@/lib/validation/schemas"
 
 // The daily digest's unsubscribe token: HMAC-SHA256 over a purpose prefix and
-// the tester account id, keyed by UNSUBSCRIBE_SECRET (server-only, never
-// NEXT_PUBLIC_). It never expires — an unsubscribe link in any old email must
-// still work — and the prefix scopes it to this one email, so it cannot be
-// replayed against anything else.
+// the tester account id, keyed by SIGNING_SECRET (lib/signing.ts). It never
+// expires — an unsubscribe link in any old email must still work — and the
+// prefix scopes it to this one email, so it cannot be replayed against
+// anything else.
 
 const PURPOSE = "tester-digest:"
 
-function sign(accountId: string): string {
-  const secret = process.env.UNSUBSCRIBE_SECRET
-  // Loud, not a fallback key: a digest sent without a working unsubscribe is
-  // worse than no digest. The cron step that calls this catches and reports it.
-  if (!secret) throw new Error("UNSUBSCRIBE_SECRET is not set")
-  return createHmac("sha256", secret).update(PURPOSE + accountId).digest("hex")
-}
-
+/**
+ * Throws when SIGNING_SECRET is missing — loud, not a fallback key: a digest
+ * sent without a working unsubscribe is worse than no digest. The cron step
+ * that calls this catches and reports it.
+ */
 export function unsubscribeToken(accountId: string): string {
-  return sign(accountId)
+  return sign(PURPOSE, accountId)
 }
 
 /** Constant-time. False for anything malformed, and when the secret is missing. */
 export function verifyUnsubscribe(accountId: string, token: string): boolean {
-  if (!/^[0-9a-f]{64}$/.test(token)) return false
-  let expected: string
-  try {
-    expected = sign(accountId)
-  } catch {
-    return false
-  }
-  return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(token, "hex"))
+  return verifySigned(PURPOSE, accountId, token)
 }
 
 /**

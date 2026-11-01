@@ -18,7 +18,7 @@ let writes = 0
 
 beforeEach(() => {
   vi.clearAllMocks()
-  vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret")
+  vi.stubEnv("SIGNING_SECRET", "test-secret")
   writes = 0
   const q = { eq: () => q, is: () => q, select: async () => ({ data: [{ user_id: "u" }], error: null }) }
   vi.mocked(createAdminClient).mockReturnValue({

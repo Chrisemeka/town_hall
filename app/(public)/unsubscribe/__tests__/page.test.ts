@@ -18,7 +18,7 @@ const ACC = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
 const open = async (a: string, t: string) =>
   renderToStaticMarkup(await UnsubscribePage({ searchParams: Promise.resolve({ a, t }) }))
 
-beforeEach(() => vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret"))
+beforeEach(() => vi.stubEnv("SIGNING_SECRET", "test-secret"))
 
 describe("/unsubscribe", () => {
   it("asks first: a GET renders the button and changes nothing", async () => {
