@@ -56,7 +56,7 @@ export async function removeProject(projectId: string) {
   if (missionIds.length > 0) {
     const { data: results, error: fetchErr } = await admin
       .from("test_results")
-      .select("screenshot_url, screenshot_urls")
+      .select("screenshot_url, screenshot_urls, test_result_entries(step_index, screenshot_urls)")
       .in("mission_id", missionIds)
     if (fetchErr) throw new Error(fetchErr.message)
 

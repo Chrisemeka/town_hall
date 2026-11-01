@@ -1,5 +1,6 @@
 import { entryStatusLabel } from "@/lib/vocabulary"
 import type { TestResultEntryRow } from "@/lib/types/db"
+import { entryScreenshots } from "@/lib/utils/screenshots"
 
 /** Just the fields any surface needs to render one entry. */
 export type SubmissionEntry = Pick<
@@ -13,6 +14,7 @@ export type SubmissionEntry = Pick<
   | "steps_to_reproduce"
   | "actual_result"
   | "expected_result"
+  | "screenshot_urls"
 >
 
 /**
@@ -30,9 +32,15 @@ export type SubmissionEntry = Pick<
 export function SubmissionBody({
   entries,
   comment,
+  onOpenShot,
 }: {
   entries?: SubmissionEntry[] | null
   comment: string | null
+  /**
+   * Opens a step's screenshots in the caller's lightbox, scoped to that step.
+   * Absent, each thumbnail links to its full-size image instead.
+   */
+  onOpenShot?: (urls: string[], index: number, step: number) => void
 }) {
   const log = entries ?? []
 
@@ -84,6 +92,11 @@ export function SubmissionBody({
               {entry.steps_to_reproduce && (
                 <Row label="Reproduce" value={entry.steps_to_reproduce} />
               )}
+              <StepShots
+                urls={entryScreenshots(entry)}
+                step={entry.step_index + 1}
+                onOpen={onOpenShot}
+              />
             </li>
           ))}
       </ol>
@@ -156,6 +169,46 @@ export function StatusPill({ status, count }: { status: string; count?: number }
 function testerDisagreed(entry: SubmissionEntry): boolean {
   const norm = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase()
   return !!entry.expected_result && norm(entry.expected_result) !== norm(entry.step_expected)
+}
+
+/**
+ * A step's own screenshots, under what the tester wrote about it. 56px
+ * thumbnails that wrap inside the card — each a button or link, over the 48px
+ * touch rule.
+ */
+function StepShots({
+  urls,
+  step,
+  onOpen,
+}: {
+  urls: string[]
+  step: number
+  onOpen?: (urls: string[], index: number, step: number) => void
+}) {
+  if (urls.length === 0) return null
+  const thumb = "block w-14 h-14 rounded-[8px] overflow-hidden border border-line hover:border-ink-muted transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink"
+  return (
+    <ul className="flex flex-wrap gap-2 mt-2 list-none p-0">
+      {urls.map((url, i) => {
+        const label = `Open step ${step} screenshot ${i + 1} of ${urls.length}`
+        // eslint-disable-next-line @next/next/no-img-element -- see MissionResultRow's note
+        const img = <img src={url} alt="" className="w-full h-full object-cover" />
+        return (
+          <li key={url}>
+            {onOpen ? (
+              <button type="button" onClick={() => onOpen(urls, i, step)} aria-label={label} className={thumb}>
+                {img}
+              </button>
+            ) : (
+              <a href={url} target="_blank" rel="noopener noreferrer" aria-label={label} className={thumb}>
+                {img}
+              </a>
+            )}
+          </li>
+        )
+      })}
+    </ul>
+  )
 }
 
 function Row({ label, value }: { label: string; value: string }) {

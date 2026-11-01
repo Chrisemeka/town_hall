@@ -200,6 +200,23 @@ describe("one mission, as CSV", () => {
     expect(rows[2]).toContain("Recipe Book")
   })
 
+  it("counts a step row's own screenshots, never another step's", async () => {
+    const stepShots = {
+      ...MINE,
+      screenshot_urls: [],
+      test_result_entries: [
+        { ...MINE.test_result_entries[0], screenshot_urls: ["s1.png", "s2.png"] },
+        { ...MINE.test_result_entries[1], screenshot_urls: [] },
+      ],
+    }
+    fakeAdmin({ submissions: [stepShots] })
+    const rows = (await body(await GET(req(ONE_MISSION)))).split("\r\n")
+    const last = (row: string) => row.split(",").at(-1)
+
+    expect(last(rows[1])).toBe("0") // step 1, passed
+    expect(last(rows[2])).toBe("2") // step 2, its own two
+  })
+
   it("gives a legacy comment-only submission one row, with empty step columns", async () => {
     // Twenty-four submissions predate the audit log. An entries loop that
     // skipped them would drop all twenty-four silently.

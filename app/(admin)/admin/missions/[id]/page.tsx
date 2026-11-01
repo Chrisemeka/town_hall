@@ -9,7 +9,7 @@ import {
   normalizeSentiment,
   type SubmissionRow,
 } from "@/components/admin/SubmissionsList"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { allScreenshots } from "@/lib/utils/screenshots"
 import type { ProfileRow, TestResultRow } from "@/lib/types/db"
 import { MissionChips, TestCaseView } from "@/components/missions/TestCaseView"
 
@@ -18,7 +18,7 @@ type ResultLite = Pick<
   TestResultRow,
   | "id" | "mission_id" | "tester_id" | "screenshot_url" | "screenshot_urls"
   | "tester_comment" | "ai_summary" | "ai_sentiment" | "created_at"
->
+> & { test_result_entries: { step_index: number; screenshot_urls: string[] }[] | null }
 type ProfileLite = Pick<ProfileRow, "id" | "full_name" | "email" | "avatar_url">
 
 export const metadata = { title: "Test Case — Admin · Twnhall" }
@@ -60,7 +60,7 @@ export default async function AdminMissionDetailPage({
 
   const { data: testResults } = await admin
     .from("test_results")
-    .select("id, mission_id, tester_id, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, created_at")
+    .select("id, mission_id, tester_id, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, created_at, test_result_entries(step_index, screenshot_urls)")
     .eq("mission_id", mission.id)
     .order("created_at", { ascending: false })
 
@@ -90,7 +90,7 @@ export default async function AdminMissionDetailPage({
     testerComment: r.tester_comment ?? "",
     aiSummary: r.ai_summary ?? null,
     aiSentiment: normalizeSentiment(r.ai_sentiment),
-    screenshotUrls: screenshotList(r),
+    screenshotUrls: allScreenshots(r, r.test_result_entries),
     mission: { id: mission.id, title: mission.title },
     project: project ? { id: project.id, name: project.name } : null,
     tester: testerById.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null },

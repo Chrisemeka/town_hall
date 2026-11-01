@@ -14,7 +14,8 @@ export type FeedSubmission = {
   projectName: string
   status: SubmissionStatus
   createdAt: string
-  screenshots: string[]
+  /** Report-level first, then each step's; `step` is 1-based, null for a report-level one. */
+  screenshots: { url: string; step: number | null }[]
   reviewNote: string | null
   /** 1–5, set when the builder approves. */
   rating: number | null
@@ -160,10 +161,18 @@ function SubmissionDialog({ submission, onClose }: { submission: FeedSubmission 
                   Your screenshots · {s.screenshots.length}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {s.screenshots.map((url, i) => (
-                    <a key={url} href={url} target="_blank" rel="noopener noreferrer" aria-label={`Open screenshot ${i + 1}`}>
+                  {s.screenshots.map(({ url, step }, i) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={step ? `Open your step ${step} screenshot` : `Open screenshot ${i + 1}`}
+                      className="flex flex-col items-center gap-1"
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={url} alt="" className="w-16 h-16 rounded-[8px] object-cover border border-line hover:border-ink-muted transition-colors duration-150" />
+                      {step && <span className="font-mono text-[12px] text-ink-muted">Step {step}</span>}
                     </a>
                   ))}
                 </div>
@@ -287,7 +296,7 @@ export function SubmissionsFeed({ submissions }: { submissions: FeedSubmission[]
 
                 {s.screenshots.length > 0 && (
                   <div className="flex gap-2 shrink-0">
-                    {s.screenshots.slice(0, PREVIEW_LIMIT).map((url) => (
+                    {s.screenshots.slice(0, PREVIEW_LIMIT).map(({ url }) => (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         key={url}

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { allScreenshots } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { testerLabel } from "@/lib/testerNumbers"
 import { LoadMore } from "@/components/ui/LoadMore"
@@ -102,7 +102,7 @@ export function FeedbackListPaged({ items }: { items: FeedbackEntry[] }) {
                     </p>
                   )}
 
-                  <ScreenshotStrip urls={screenshotList(item)} />
+                  <ScreenshotStrip urls={allScreenshots(item, item.entries)} />
 
                   <span className="mt-2 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
                     Read full test report

@@ -23,7 +23,7 @@
 
 import type { FeedbackEntry, FeedbackRow } from "@/lib/exportDb"
 import { testerLabel, testerNumbers } from "@/lib/testerNumbers"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { entryScreenshots, screenshotList } from "@/lib/utils/screenshots"
 import type { ScreenshotFailure, ScreenshotResult } from "@/lib/reportImages"
 import { STATUS_LABEL, toStatus } from "@/lib/review"
 import {
@@ -51,6 +51,8 @@ export type ReportAnswer = {
   reproduce: string
   /** This report's own wording, when it differs from the step heading. */
   askedAs: { action: string; expected: string } | null
+  /** This answer's own screenshots — rendered under it in the by-step detail. */
+  screenshots: string[]
 }
 
 export type ReportStep = {
@@ -74,6 +76,7 @@ export type ReportTester = {
   /** Filed before step-by-step reports: the comment is all there is. */
   legacy: boolean
   aiSummary: string
+  /** Report-level only; a step's own screenshots sit under its answer. */
   screenshots: string[]
 }
 
@@ -311,6 +314,7 @@ function missionSection(rows: FeedbackRow[]): ReportMission {
           actual: text(entry.actual_result),
           issue: text(entry.issue_summary),
           reproduce: text(entry.steps_to_reproduce),
+          screenshots: entryScreenshots(entry),
           askedAs:
             same(entry.step_action, latest.step_action) && same(entry.step_expected, latest.step_expected)
               ? null

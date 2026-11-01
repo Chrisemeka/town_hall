@@ -9,7 +9,7 @@ export async function deleteSubmission(submissionId: string) {
 
   const { data: submission, error: fetchErr } = await admin
     .from("test_results")
-    .select("id, screenshot_url, screenshot_urls, mission_id")
+    .select("id, screenshot_url, screenshot_urls, mission_id, test_result_entries(step_index, screenshot_urls)")
     .eq("id", submissionId)
     .maybeSingle()
 

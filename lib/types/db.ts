@@ -146,6 +146,8 @@ export type TestResultEntryRow = {
   steps_to_reproduce: string | null
   actual_result: string
   expected_result: string
+  /** Since 20261101_01; '{}' on every entry filed before and on a pass. */
+  screenshot_urls: string[]
   created_at: string
 }
 

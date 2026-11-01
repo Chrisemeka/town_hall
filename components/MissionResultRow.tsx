@@ -85,9 +85,28 @@ export default function MissionResultRow({
   // A swipe that ends on the scrim must not also count as a tap that closes.
   const swiped = useRef(false)
 
+  // Report-level: legacy reports, no-step missions and a step report's final
+  // result. A step's own screenshots render under that step instead.
   const shots = screenshotList(result)
   const current = shots[active] ?? shots[0] ?? null
-  const step = (delta: number) => setActive((i) => (i + delta + shots.length) % shots.length)
+  // The one lightbox, over the report's screenshots or one step's. Its index
+  // stays in step with the carousel while it shows the report's.
+  const [view, setView] = useState<{ urls: string[]; i: number; step: number | null }>({ urls: shots, i: 0, step: null })
+  const viewing = view.urls[view.i] ?? null
+  const step = (delta: number) => {
+    const i = (view.i + delta + view.urls.length) % view.urls.length
+    setView({ ...view, i })
+    if (view.step === null) setActive(i)
+  }
+  const open = (urls: string[], i: number, stepNumber: number | null) => {
+    setView({ urls, i, step: stepNumber })
+    lightbox.current?.showModal()
+  }
+  const where = (i: number, n: number) =>
+    view.step === null ? `Screenshot ${i + 1} of ${n}` : `Step ${view.step} screenshot ${i + 1} of ${n}`
+  // A step report whose screenshots are all on its steps has nothing for the
+  // carousel, and no screenshot there is the normal state, not a gap.
+  const showCarousel = shots.length > 0 || !entries?.length
 
   const date = formatDate(result.created_at)
   const displayUrl = appUrl ? appUrl.replace(/^https?:\/\//, "") : null
@@ -99,9 +118,10 @@ export default function MissionResultRow({
       {/* Side by side from 1024px. Stacked below it with the audit log first:
           the log is the report, the screenshots are its evidence, and a tall
           screenshot first can put a screen of image before the first word. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 medium:gap-6">
+      <div className={`grid grid-cols-1 gap-4 medium:gap-6 ${showCarousel ? "lg:grid-cols-2" : ""}`}>
 
         {/* TEST SCREENSHOTS */}
+        {showCarousel && (
         <div className="order-2 lg:order-1 flex flex-col gap-3">
           <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
             TEST SCREENSHOTS
@@ -118,7 +138,7 @@ export default function MissionResultRow({
               // whole: a 1600px-tall phone screenshot was 1,500px of page.
               <button
                 type="button"
-                onClick={() => lightbox.current?.showModal()}
+                onClick={() => open(shots, active, null)}
                 aria-label={`Open screenshot ${active + 1} of ${shots.length} full size`}
                 className="block w-full cursor-pointer bg-surface lg:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-ink"
               >
@@ -172,14 +192,19 @@ export default function MissionResultRow({
             </p>
           )}
         </div>
+        )}
 
         {/* WRITTEN FEEDBACK */}
         <div className="order-1 lg:order-2 flex flex-col gap-3">
-          <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
-            {entries?.length ? "AUDIT LOG" : "WRITTEN COMMENT"}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-mono text-[12px] lg:text-[11px] text-accent-ink uppercase tracking-[0.8px]">
+              {entries?.length ? "AUDIT LOG" : "WRITTEN COMMENT"}
+            </p>
+            {/* Sits on the screenshot when there is one; here when there isn't. */}
+            {!showCarousel && result.ai_sentiment && <Badge variant={sentimentVariant}>{result.ai_sentiment}</Badge>}
+          </div>
           <div className="bg-surface-raised border border-line rounded-[12px] p-4 medium:p-6 flex-1 flex flex-col justify-between">
-            <SubmissionBody entries={entries} comment={result.tester_comment} />
+            <SubmissionBody entries={entries} comment={result.tester_comment} onOpenShot={open} />
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-line">
               <span className="font-mono text-[12px] text-ink-muted">{testerLabel(testerNumber)}</span>
               <span className="font-mono text-[12px] text-ink-muted">{date}</span>
@@ -252,102 +277,102 @@ export default function MissionResultRow({
           back on the screenshot button. The scrim is literal Obsidian on
           purpose: dark in both themes; one that follows the theme stops
           being a scrim. */}
-      {current && (
-        <dialog
-          ref={lightbox}
-          aria-label={`Screenshot ${active + 1} of ${shots.length}`}
-          // A click on the scrim lands on the dialog itself, which fills the
-          // screen; anything inside is a click on its content.
-          onClick={(e) => {
-            if (swiped.current) {
-              swiped.current = false
-              return
-            }
-            if (e.target === e.currentTarget) lightbox.current?.close()
-          }}
-          onKeyDown={(e) => {
-            if (shots.length < 2) return
-            if (e.key === "ArrowLeft") step(-1)
-            if (e.key === "ArrowRight") step(1)
-          }}
-          onPointerDown={(e) => {
-            swipeFrom.current = { x: e.clientX, y: e.clientY }
-          }}
-          onPointerUp={(e) => {
-            const from = swipeFrom.current
-            swipeFrom.current = null
-            if (!from || shots.length < 2) return
-            const s = swipeStep(e.clientX - from.x, e.clientY - from.y)
-            swiped.current = s !== 0
-            if (s) step(s)
-          }}
-          className="m-0 w-full h-full max-w-none max-h-none bg-transparent p-4 backdrop:bg-obsidian/90 open:flex flex-col items-center justify-center" // ponytail: literal scrim, dark in both themes
+      <dialog
+        ref={lightbox}
+        aria-label={where(view.i, view.urls.length)}
+        // A click on the scrim lands on the dialog itself, which fills the
+        // screen; anything inside is a click on its content.
+        onClick={(e) => {
+          if (swiped.current) {
+            swiped.current = false
+            return
+          }
+          if (e.target === e.currentTarget) lightbox.current?.close()
+        }}
+        onKeyDown={(e) => {
+          if (view.urls.length < 2) return
+          if (e.key === "ArrowLeft") step(-1)
+          if (e.key === "ArrowRight") step(1)
+        }}
+        onPointerDown={(e) => {
+          swipeFrom.current = { x: e.clientX, y: e.clientY }
+        }}
+        onPointerUp={(e) => {
+          const from = swipeFrom.current
+          swipeFrom.current = null
+          if (!from || view.urls.length < 2) return
+          const s = swipeStep(e.clientX - from.x, e.clientY - from.y)
+          swiped.current = s !== 0
+          if (s) step(s)
+        }}
+        className="m-0 w-full h-full max-w-none max-h-none bg-transparent p-4 backdrop:bg-obsidian/90 open:flex flex-col items-center justify-center" // ponytail: literal scrim, dark in both themes
+      >
+        <button
+          type="button"
+          aria-label="Close"
+          className="absolute top-4 right-4 medium:top-8 medium:right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
+          onClick={() => lightbox.current?.close()}
         >
-          <button
-            type="button"
-            aria-label="Close"
-            className="absolute top-4 right-4 medium:top-8 medium:right-8 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-            onClick={() => lightbox.current?.close()}
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
+          <X size={20} aria-hidden="true" />
+        </button>
 
-          {/* From 600px the arrows sit at the sides; below it they move into
-              the bar under the image, where they cover nothing. */}
-          {shots.length > 1 && (
-            <>
+        {/* From 600px the arrows sit at the sides; below it they move into
+            the bar under the image, where they cover nothing. */}
+        {view.urls.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous screenshot"
+              className="hidden medium:flex absolute left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+              onClick={() => step(-1)}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next screenshot"
+              className="hidden medium:flex absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+              onClick={() => step(1)}
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </button>
+          </>
+        )}
+
+        <div className="bg-surface border border-line shadow-2xl rounded-2xl p-2 max-w-5xl">
+          {viewing && (
+            // eslint-disable-next-line @next/next/no-img-element -- see note above
+            <img
+              src={viewing}
+              alt={`${where(view.i, view.urls.length)}, full size`}
+              className="w-full max-h-[calc(85dvh-64px)] medium:max-h-[85dvh] object-contain rounded-xl"
+            />
+          )}
+          {view.urls.length > 1 && (
+            <div className="flex items-center justify-between medium:justify-center gap-2 pt-2 medium:py-2">
               <button
                 type="button"
                 aria-label="Previous screenshot"
-                className="hidden medium:flex absolute left-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+                className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
                 onClick={() => step(-1)}
               >
                 <ChevronLeft size={20} aria-hidden="true" />
               </button>
+              <p className="font-mono text-[12px] text-ink-muted text-center">
+                {view.i + 1} of {view.urls.length}
+              </p>
               <button
                 type="button"
                 aria-label="Next screenshot"
-                className="hidden medium:flex absolute right-8 top-1/2 -translate-y-1/2 w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink items-center justify-center transition-colors cursor-pointer"
+                className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
                 onClick={() => step(1)}
               >
                 <ChevronRight size={20} aria-hidden="true" />
               </button>
-            </>
+            </div>
           )}
-
-          <div className="bg-surface border border-line shadow-2xl rounded-2xl p-2 max-w-5xl">
-            {/* eslint-disable-next-line @next/next/no-img-element -- see note above */}
-            <img
-              src={current}
-              alt={`Test screenshot ${active + 1} of ${shots.length}, full size`}
-              className="w-full max-h-[calc(85dvh-64px)] medium:max-h-[85dvh] object-contain rounded-xl"
-            />
-            {shots.length > 1 && (
-              <div className="flex items-center justify-between medium:justify-center gap-2 pt-2 medium:py-2">
-                <button
-                  type="button"
-                  aria-label="Previous screenshot"
-                  className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-                  onClick={() => step(-1)}
-                >
-                  <ChevronLeft size={20} aria-hidden="true" />
-                </button>
-                <p className="font-mono text-[12px] text-ink-muted text-center">
-                  {active + 1} of {shots.length}
-                </p>
-                <button
-                  type="button"
-                  aria-label="Next screenshot"
-                  className="medium:hidden w-12 h-12 bg-line hover:bg-line/80 rounded-full text-ink flex items-center justify-center transition-colors cursor-pointer"
-                  onClick={() => step(1)}
-                >
-                  <ChevronRight size={20} aria-hidden="true" />
-                </button>
-              </div>
-            )}
-          </div>
-        </dialog>
-      )}
+        </div>
+      </dialog>
     </div>
   )
 }
