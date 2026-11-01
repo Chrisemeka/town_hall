@@ -53,6 +53,10 @@ describe("TesterView", () => {
     expect(html.trimEnd().endsWith("</fieldset>")).toBe(true)
   })
 
+  it("has no file input — no status can be picked, so no step offers a screenshot", () => {
+    expect(render(mission())).not.toContain('type="file"')
+  })
+
   it("never touches localStorage, and never mounts AuditLogForm", () => {
     const setItem = vi.fn(() => {
       throw new Error("preview wrote localStorage")

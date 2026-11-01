@@ -4,14 +4,17 @@ import {
   ENTRY_STATUSES,
   entryStatusCopy,
   isDesignCategory,
+  needsScreenshot,
   statusQuestionFor,
+  takesScreenshots,
   type EntryStatus,
 } from "@/lib/vocabulary"
+import { StepScreenshots, type Shot } from "@/components/tester/StepScreenshots"
 import { InfoTip } from "@/components/ui/InfoTip"
 import { SEGMENT, SEGMENTS } from "@/components/ui/segmented"
 import { textareaClass } from "@/components/ui/Field"
 import { cn } from "@/lib/utils"
-import { DESCRIPTION_MIN, ENTRY_TEXT_MAX, ENTRY_TEXT_MIN } from "@/lib/validation/schemas"
+import { DESCRIPTION_MIN, ENTRY_TEXT_MAX, ENTRY_TEXT_MIN, MAX_STEP_SCREENSHOTS } from "@/lib/validation/schemas"
 import type { TestStep } from "@/lib/validation/schemas"
 
 /**
@@ -51,6 +54,7 @@ export type EntryField =
   | "actual_result"
   | "issue_summary"
   | "steps_to_reproduce"
+  | "screenshots"
 
 /** Which field on which entry is the first thing still missing. */
 export type Incomplete = { index: number; field: EntryField }
@@ -71,9 +75,10 @@ export const entryFieldName = (index: number, field: EntryField) =>
 export function firstIncompleteEntry(
   entries: DraftEntry[],
   category?: string | null,
+  shotCount?: ShotCount,
 ): Incomplete | null {
   for (const [index, e] of entries.entries()) {
-    const field = entryIncomplete(e, category)
+    const field = entryIncomplete(e, category, shotCount)
     if (field) return { index, field }
   }
   return null
@@ -84,7 +89,19 @@ export function firstIncompleteEntry(
  * answered. The loop body of firstIncompleteEntry, so the progress bar's
  * count and the submit check are one rule and cannot disagree.
  */
-export function entryIncomplete(e: DraftEntry, category?: string | null): EntryField | null {
+/**
+ * How many screenshots a step holds. Omitted, the screenshot rule is not
+ * judged: auditEntrySchema has no files to judge, and lib/validation's
+ * cross-test pairs the two text rules alone. The form always passes it, and
+ * mirrors submitTestResult's needsScreenshot() refusal through it.
+ */
+export type ShotCount = (stepId: string) => number
+
+export function entryIncomplete(
+  e: DraftEntry,
+  category?: string | null,
+  shotCount?: ShotCount,
+): EntryField | null {
   // ENTRY_TEXT_MIN rather than "not blank", because auditEntrySchema is the
   // authority and that is what it asks for. Checking only for non-empty let a
   // two-character answer through the form and into a server rejection the
@@ -106,17 +123,28 @@ export function entryIncomplete(e: DraftEntry, category?: string | null): EntryF
     if (!given(e.issue_summary)) return "issue_summary"
     if (!given(e.steps_to_reproduce)) return "steps_to_reproduce"
   }
+  if (shotCount && needsScreenshot(e.status) && shotCount(e.step_id) === 0) return "screenshots"
   return null
 }
 
 /** How many steps are answered, by the same rule Submit applies. */
-export function answeredCount(entries: DraftEntry[], category?: string | null): number {
-  return entries.filter((e) => entryIncomplete(e, category) === null).length
+export function answeredCount(entries: DraftEntry[], category?: string | null, shotCount?: ShotCount): number {
+  return entries.filter((e) => entryIncomplete(e, category, shotCount) === null).length
 }
 
 /** Whether every step has been answered well enough to submit. */
-export function draftIsComplete(entries: DraftEntry[], category?: string | null): boolean {
-  return firstIncompleteEntry(entries, category) === null
+export function draftIsComplete(entries: DraftEntry[], category?: string | null, shotCount?: ShotCount): boolean {
+  return firstIncompleteEntry(entries, category, shotCount) === null
+}
+
+/** What AuditLogForm hands the steps so a non-passing one can take screenshots. */
+export type StepShots = {
+  for: (stepId: string) => Shot[]
+  onChange: (stepId: string, shots: Shot[]) => void
+  /** What the report has left under MAX_SCREENSHOTS. */
+  room: number
+  /** Server errors by step index. */
+  errors: Record<number, string[]>
 }
 
 /** The heading over the steps — here so the builder's preview shares it. */
@@ -138,6 +166,7 @@ export function AuditLogSteps({
   category,
   onChange,
   errorIndex,
+  shots,
 }: {
   entries: DraftEntry[]
   /** The mission's test category. Null on older missions, which read as functional. */
@@ -145,6 +174,11 @@ export function AuditLogSteps({
   onChange: (next: DraftEntry[]) => void
   /** The step the submit attempt stopped on, marked so it is findable by eye. */
   errorIndex?: number
+  /**
+   * Absent in MissionPreview: its frame is inert, no status can be picked, so
+   * no step ever reaches the control there.
+   */
+  shots?: StepShots
 }) {
   function edit(index: number, patch: Partial<DraftEntry>) {
     onChange(entries.map((e, i) => (i === index ? { ...e, ...patch } : e)))
@@ -297,6 +331,25 @@ export function AuditLogSteps({
               />
             </>
           )}
+
+          {/* Only while the step did not pass. Switching to Pass hides the
+              files and keeps them — an accidental tap never deletes work —
+              and AuditLogForm sends only the steps this still holds for. */}
+          {shots && takesScreenshots(entry.status) && (() => {
+            const own = shots.for(entry.step_id)
+            const required = needsScreenshot(entry.status)
+            return (
+              <StepScreenshots
+                id={entryFieldName(index, "screenshots")}
+                label={required ? "Screenshot — required" : "Screenshot — optional"}
+                helper={`Up to ${MAX_STEP_SCREENSHOTS}. Show what went wrong while it's on screen. We don't share your name with builders, but screenshots go to them as they are — crop out anything with your name, email or photo.`}
+                shots={own}
+                onChange={(next) => shots.onChange(entry.step_id, next)}
+                room={Math.min(MAX_STEP_SCREENSHOTS - own.length, shots.room)}
+                errors={shots.errors[index]}
+              />
+            )
+          })()}
         </div>
       ))}
     </div>

@@ -62,3 +62,29 @@ describe("progressLabel", () => {
     expect(progressLabel(6, 6, 2)).toBe("Ready to submit")
   })
 })
+
+describe("the screenshot a failed step owes", () => {
+  const shots = (n: number) => () => n
+
+  it("holds a fail until it has a screenshot, never a blocked step or a pass", () => {
+    expect(firstIncompleteEntry([failDone], null, shots(0))).toEqual({ index: 0, field: "screenshots" })
+    expect(firstIncompleteEntry([failDone], null, shots(1))).toBeNull()
+    const blockedDone = entry({ status: "blocked", issue_summary: "Sign-up is broken", steps_to_reproduce: "Open it" })
+    expect(firstIncompleteEntry([blockedDone], null, shots(0))).toBeNull()
+    expect(firstIncompleteEntry([pass], null, shots(0))).toBeNull()
+  })
+
+  it("asks for the text first, in rendered order", () => {
+    expect(firstIncompleteEntry([failNoIssue], null, shots(0))?.field).toBe("issue_summary")
+  })
+
+  it("holds an Unclear design step the same way", () => {
+    const unclear = entry({ ...failDone, actual_result: "x".repeat(DESCRIPTION_MIN) })
+    expect(firstIncompleteEntry([unclear], "ui_design", shots(0))?.field).toBe("screenshots")
+  })
+
+  it("counts the bar by the same rule", () => {
+    expect(answeredCount([failDone], null, shots(0))).toBe(0)
+    expect(answeredCount([failDone], null, shots(1))).toBe(1)
+  })
+})
