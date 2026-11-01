@@ -84,6 +84,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # Shared secrets for the submission webhook and the cron endpoints.
 WEBHOOK_SECRET=
 CRON_SECRET=
+
+# Signs the tester digest's unsubscribe links. Long and random, server-only;
+# set in Vercel Production and Preview, then redeploy. See .env.example.
+UNSUBSCRIBE_SECRET=
 ```
 
 ### Supabase Auth email — a setup step that is not in this repo
