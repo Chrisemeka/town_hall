@@ -61,7 +61,7 @@ export default async function SettingsPage({
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, { data: account }, mine, owned, ownProjects] =
+  const [{ data: profile }, { data: account }, mine, owned, ownProjects, { data: testerAccount }] =
     await Promise.all([
     admin
       .from("profiles")
@@ -101,6 +101,13 @@ export default async function SettingsPage({
       .select("id, name, missions(id, title, created_at, test_results(count))")
       .eq("owner_id", user.id)
       .order("name"),
+    // The digest switch is per tester account, like everything role-scoped.
+    admin
+      .from("accounts")
+      .select("digest_opted_out_at")
+      .eq("user_id", user.id)
+      .eq("type", "tester")
+      .maybeSingle(),
   ]);
 
   const givenRows = (mine.data ?? []) as { status: string; rating: number | null }[];
@@ -150,6 +157,7 @@ export default async function SettingsPage({
           />
         }
         plan={<PlanSection planId={planIdFor(account?.plan_id as string | null)} />}
+        digestOn={!testerAccount?.digest_opted_out_at}
       />
 
     </div>

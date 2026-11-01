@@ -2,10 +2,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/auth", () => ({ requireAccount: vi.fn() }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
+vi.mock("@/lib/events", () => ({ recordEvent: vi.fn(async () => {}) }))
+vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }))
+vi.mock("@/lib/rateLimitDb", () => ({
+  checkRateLimit: vi.fn(async () => ({ ok: true })),
+  clientIp: vi.fn(() => "203.0.113.7"),
+}))
+vi.mock("server-only", () => ({}))
 
-import { markMissionsSeen } from "@/actions/notifications"
+import { markMissionsSeen, setDigestEmail, unsubscribeFromEmail } from "@/actions/notifications"
 import { requireAccount } from "@/lib/auth"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { recordEvent } from "@/lib/events"
+import { checkRateLimit } from "@/lib/rateLimitDb"
+import { unsubscribeToken } from "@/lib/unsubscribe"
 
 const TESTER = "11111111-1111-4111-8111-111111111111"
 
@@ -34,6 +44,73 @@ function db() {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(requireAccount).mockResolvedValue({ userId: TESTER })
+  vi.stubEnv("UNSUBSCRIBE_SECRET", "test-secret")
+})
+
+describe("setDigestEmail", () => {
+  it("is a tester's switch only", async () => {
+    const writes = db()
+    vi.mocked(requireAccount).mockRejectedValue(new Error("NEXT_REDIRECT"))
+    await expect(setDigestEmail(false)).rejects.toThrow("NEXT_REDIRECT")
+    expect(requireAccount).toHaveBeenCalledWith("tester")
+    expect(writes).toHaveLength(0)
+  })
+
+  it("goes off, then on — and on moves the window to now, so no backlog", async () => {
+    const writes = db()
+    expect(await setDigestEmail(false)).toEqual({ ok: true })
+    expect(writes[0].row.digest_opted_out_at).toEqual(expect.any(String))
+    expect(writes[0].filters).toEqual([["eq", "user_id", TESTER], ["eq", "type", "tester"]])
+
+    const before = Date.now()
+    expect(await setDigestEmail(true)).toEqual({ ok: true })
+    expect(writes[1].row.digest_opted_out_at).toBeNull()
+    expect(Date.parse(writes[1].row.digest_through as string)).toBeGreaterThanOrEqual(before - 1000)
+    expect(vi.mocked(recordEvent).mock.calls.map(([e]) => [e.name, e.props])).toEqual([
+      ["notifications.digest_off", { source: "settings" }],
+      ["notifications.digest_on", { source: "settings" }],
+    ])
+  })
+})
+
+describe("unsubscribeFromEmail (the /unsubscribe button)", () => {
+  const ACC = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+  const form = (a: string, t: string) => {
+    const fd = new FormData()
+    fd.set("a", a)
+    fd.set("t", t)
+    return fd
+  }
+
+  it("opts the account out with a good token, signed out", async () => {
+    const writes = db()
+    expect(await unsubscribeFromEmail({ status: "idle" }, form(ACC, unsubscribeToken(ACC)))).toEqual({ status: "done" })
+    expect(requireAccount).not.toHaveBeenCalled()
+    expect(writes[0].filters).toEqual([
+      ["eq", "id", ACC],
+      ["eq", "type", "tester"],
+      ["is", "digest_opted_out_at", null],
+    ])
+    expect(recordEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "notifications.digest_off", props: { source: "email" } }),
+    )
+  })
+
+  it("answers a tampered token with one generic state, and writes nothing", async () => {
+    const writes = db()
+    const good = unsubscribeToken(ACC)
+    const bad = (good[0] === "a" ? "b" : "a") + good.slice(1)
+    expect(await unsubscribeFromEmail({ status: "idle" }, form(ACC, bad))).toEqual({ status: "invalid" })
+    expect(writes).toHaveLength(0)
+  })
+
+  it("is rate limited before anything is checked", async () => {
+    const writes = db()
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({ ok: false, retryAfter: 30 })
+    const state = await unsubscribeFromEmail({ status: "idle" }, form(ACC, unsubscribeToken(ACC)))
+    expect(state.status).toBe("limited")
+    expect(writes).toHaveLength(0)
+  })
 })
 
 describe("markMissionsSeen", () => {

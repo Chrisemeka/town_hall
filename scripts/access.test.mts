@@ -7,6 +7,7 @@ import {
   CHOOSE_ACCOUNT_PATH,
   CONFIRM_EMAIL_PATH,
   RESET_PASSWORD_PATH,
+  UNSUBSCRIBE_PATH,
   accessFor,
   isEmailGateExempt,
   homeFor,
@@ -226,6 +227,17 @@ assert.equal(isEmailGateExempt("/confirm-emailx"), false)
 assert.equal(isEmailGateExempt("/reset-passwordx"), false)
 assert.equal(isEmailGateExempt("/confirm-email/anything"), true)
 
+// The digest's unsubscribe page works for whoever opens the link, in any state
+// of the setup chain: not behind the email gate, not role-scoped, and allowed
+// for nobody, a builder and a tester alike. It sits outside middleware's
+// protected prefixes, so the terms gate never runs there either.
+assert.equal(isEmailGateExempt(UNSUBSCRIBE_PATH), true, "an unconfirmed signed-in user can still unsubscribe")
+assert.equal(isEmailGateExempt("/unsubscribex"), false)
+assert.equal(isRoleScoped(UNSUBSCRIBE_PATH), false)
+for (const who of [null, "builder", "tester"] as const) {
+  assert.equal(accessFor(UNSUBSCRIBE_PATH, who).allow, true, `/unsubscribe for ${who}`)
+}
+
 /* ── verification gate: the composition terminates ───────────────────── */
 
 // Loops don't come from any single rule, they come from the rules pointing at
@@ -268,6 +280,11 @@ function settlesAt(
 }
 
 const GATED = ["/dashboard", "/dashboard/abc-123", "/explore", "/tester", "/mission/abc-123"]
+
+// Signed out, unconfirmed, unverified: /unsubscribe stays put.
+for (const [account, verified, confirmed] of [[null, false, false], ["tester", false, false], ["tester", false, true]] as const) {
+  assert.equal(settlesAt(UNSUBSCRIBE_PATH, account, verified, confirmed), UNSUBSCRIBE_PATH)
+}
 
 // Unverified: everything role-scoped funnels to that role's verify page...
 for (const path of [...GATED, "/verify/builder", "/verify/tester"]) {

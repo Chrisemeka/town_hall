@@ -33,6 +33,7 @@ export function SettingsClient({
   hasFeedback,
   activity,
   plan,
+  digestOn,
 }: {
   initialTab: SettingsTabId
   initialEmail: string
@@ -51,6 +52,8 @@ export function SettingsClient({
   hasFeedback: boolean
   activity: React.ReactNode
   plan: React.ReactNode
+  /** The tester account's digest switch; ignored for a builder. */
+  digestOn: boolean
 }) {
   const [profileDirty, setProfileDirty] = useState(false)
 
@@ -77,6 +80,7 @@ export function SettingsClient({
             holdsOther={types.length > 1}
             projects={projects}
             hasFeedback={hasFeedback}
+            digestOn={digestOn}
           />
         ),
         activity,
