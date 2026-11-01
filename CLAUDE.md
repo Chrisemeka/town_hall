@@ -105,7 +105,7 @@ app_events        in-app activity no row records already — service role only
 | `profiles`     | `id` (= `auth.users.id`), `full_name`, `avatar_url`, `email`, `role`, `moderation_status`, `ban_reason`, `banned_at`, `banned_by`, `accepted_terms_at`, `seen_tours` |
 | `accounts`     | `id`, `user_id` → `profiles.id`, `type` (`builder` \| `tester`), `created_at`, `plan_id` (**nullable; null is Community; read at publish**), `missions_seen_at` / `digest_through` (**tester only, default `now()`**), `digest_opted_out_at` (**tester only, null while the digest is on**). Unique on `(user_id, type)`. |
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
-| `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed`, `first_published_at` (**written once, by `publish_mission`**) |
+| `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed`, `first_published_at` (**written once, by `publish_mission`**), `closed_at` (**set by `report_landed` and `close_mission`, cleared by `publish_mission`; null on rows closed before `20261101_03`**) |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`; `changes_requested` legacy only — builders approve + rate, never send back), `rating`, `review_note`, `reviewed_at` |
 | `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
 | `admin_account_changes` | `id`, `account_id` (**set null**), `profile_id` (denormalised, no FK), `field` (`plan_id`\|`cohort`), `from_value`, `to_value`, `changed_by` (admin), `created_at`. **Service role only**, append-only — and the cohort membership history. |
@@ -250,10 +250,39 @@ the not-yet-wired entry a Paystack/Flutterwave webhook will call. Never write
 `submitTestResult` is a one-shot post — nothing represents a report in
 progress — so refusing a submission for want of balance would destroy work a
 tester has already done. Instead publishing a mission reserves its slots
-(`missions.testers_needed`) and closing it returns what went unused. **A
-submission is never refused by the allowance, at any balance, and nothing on
-the tester's path reads it.** Do not add a draft or claim state to change that;
-it is the invitation model, deferred by decision.
+(`missions.testers_needed`) and closing it returns what went unused. **The
+allowance never refuses a submission, at any balance, and nothing on the
+tester's path reads it** — a submission *can* be refused, by the test case's
+state (below), never by the builder's balance. Do not add a draft or claim
+state to change that; it is the invitation model, deferred by decision.
+
+**A closed test case refuses new reports. The allowance never refuses; the
+test case's state does** (`20261101_03`, `docs/specs/SPEC-closed-test-cases.md`).
+`/mission/[id]` shows a panel instead of the form when `is_active` is false —
+filled, paused, or a draft never published — after the owner and
+already-tested panels. `submitTestResult` refuses such a report after the
+ownership and repeat checks, before the rate limit and any upload, and reads
+no ledger to decide.
+
+- **Work already started still lands.** The page issues a **start token**
+  (`lib/reportStart.ts`, purpose `report-start:`) only when it renders the form
+  for a live test case. A closed test case takes the report only with a good
+  token for that mission and tester, issued before `missions.closed_at`,
+  arriving within `CLOSED_GRACE` (24 hours). `closed_at` null — closed before
+  it was recorded — is no grace. A builder's pause is the same rule as a fill.
+- **The overflow is bounded and stated:** one extra report per tester who was
+  mid-test at the close. For a cohort tester it falls outside the payable
+  slots, an ordinary report that earns +1.
+- **Known limit:** a tester who reloads after the close gets the panel, not
+  their form — the page can't know they had started without a server-side
+  start record, which is the claim state still deferred. Their draft stays in
+  localStorage.
+- Legacy test cases that hold no slots never self-close, by decision (17 of
+  25 live on 1 Nov 2026). Closing them is a data change, not code.
+- **`SIGNING_SECRET`** signs both the start token and the digest's unsubscribe
+  token (`lib/signing.ts`), each scoped by its purpose prefix. Server-only. It
+  replaced `UNSUBSCRIBE_SECRET` before any digest was sent. Changing it breaks
+  every unsubscribe link already sent.
 
 - **The arithmetic is `lib/allowance.ts`, pure and import-free, and nowhere
   else.** Three pools: monthly (from the plan, derived — never stored, never
@@ -341,7 +370,7 @@ this; testers found new test cases only by opening Available Test Cases.
 - **A GET never unsubscribes.** `/unsubscribe` asks and posts; `POST
   /api/unsubscribe` is RFC 8058 one-click for Gmail's button, gated by the
   token alone. The token (`lib/unsubscribe.ts`) is HMAC over
-  `tester-digest:` + the account id, keyed by `UNSUBSCRIBE_SECRET`, never
+  `tester-digest:` + the account id, keyed by `SIGNING_SECRET`, never
   expires, and is scoped to this email by its prefix. A bad token gets one
   generic answer — never whether the account exists. Settings → Account has
   the same switch, tester only; switching it on moves `digest_through` to now.

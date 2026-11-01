@@ -182,7 +182,7 @@ re-run sends nothing; a failed send is logged and not retried.
 Every digest carries its own unsubscribe:
 
 - **The token** (`lib/unsubscribe.ts`): HMAC-SHA256 over `tester-digest:` plus
-  the tester account id, keyed by `UNSUBSCRIBE_SECRET`. It never expires and is
+  the tester account id, keyed by `SIGNING_SECRET` (`lib/signing.ts`). It never expires and is
   scoped to this email by its prefix.
 - **The footer link** opens `/unsubscribe?a=…&t=…`, a page that asks and posts.
   A GET never unsubscribes — mail scanners open every link.

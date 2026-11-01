@@ -85,6 +85,11 @@ export default function TesterGuidePage() {
             email off with the switch in Settings → Account, or the unsubscribe
             link in any of them.
           </p>
+          <p className={P}>
+            A test case closes once it has all the reports it needs. If you had
+            already started one when it closed, your report still goes through
+            for a day.
+          </p>
         </Section>
 
         <Section {...docSection("tester", "read-first")}>
