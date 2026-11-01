@@ -5,26 +5,34 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { generateAnalysis, parseSentiment, townhallModel } from "@/lib/ai"
 import { recordAiUsage } from "@/lib/aiUsage"
 import { revalidatePath } from "next/cache"
+import type { z } from "zod"
 import { after } from "next/server"
 import { getOwnerId } from "@/lib/utils/project";
 import { getActiveAccount } from "@/lib/auth"
 import { reportLanded } from "@/lib/allowanceDb"
 import { checkRateLimit } from "@/lib/rateLimitDb"
 import { tooManyMessage } from "@/lib/rateLimit"
+import { needsScreenshot, takesScreenshots } from "@/lib/vocabulary"
 import {
   auditLogSchemaFor,
   storedTestStepsSchema,
   submissionSchema,
+  screenshotSchema,
   screenshotsSchema,
   startedAtSchema,
+  MAX_SCREENSHOTS,
+  MAX_STEP_SCREENSHOTS,
+  SCREENSHOT_REQUIRED,
   toFieldErrors,
   type SubmissionInput,
   type FieldErrors,
 } from "@/lib/validation/schemas"
 
+// `entries.<i>.screenshots` is a step's own upload control — the name the
+// form gives it, so useFocusFirstError lands on it.
 export type SubmissionFieldErrors = FieldErrors<
   SubmissionInput & { screenshots: File[] }
->
+> & { [step: `entries.${number}.screenshots`]: string[] }
 
 export type SubmissionResult =
   | { success: true }
@@ -63,14 +71,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       if (!parsed.success) {
         Object.assign(fieldErrors, toFieldErrors<SubmissionInput>(parsed.error))
       }
-      if (!filesParsed.success) {
-        // screenshotsSchema validates each file in place, so issues land at the
-        // array root (count limits) or at an index (a bad file) — flatten both,
-        // naming the offending image so the tester knows which one to fix.
-        fieldErrors.screenshots = filesParsed.error.issues.map((i) =>
-          typeof i.path[0] === "number" ? `Screenshot ${i.path[0] + 1} — ${i.message}` : i.message,
-        )
-      }
+      if (!filesParsed.success) fieldErrors.screenshots = fileIssues(filesParsed.error)
       return {
         success: false,
         error: "Please fix the highlighted fields.",
@@ -157,6 +158,51 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       }
     }
 
+    // Step screenshots, judged before any upload so a refused report costs no
+    // storage. Files arrive under screenshots.<step_id>; the server builds
+    // every URL from them, and auditEntrySchema has no screenshot_urls key, so
+    // a URL in the client's entries JSON is stripped and never reaches the RPC.
+    const stepFiles = new Map<string, File[]>()
+    for (const key of new Set(formData.keys())) {
+      if (!key.startsWith("screenshots.")) continue
+      if (!stepIds.has(key.slice("screenshots.".length))) {
+        return { success: false, error: "This test case changed while you were testing. Reload and try again." }
+      }
+    }
+    for (const [index, e] of entries.entries()) {
+      const name = `entries.${index}.screenshots` as const
+      const refuse = (message: string): SubmissionResult => ({
+        success: false,
+        error: `Step ${index + 1}: ${message}`,
+        fieldErrors: { [name]: [message] },
+      })
+      const parsedFiles = screenshotSchema.array().safeParse(formData.getAll(`screenshots.${e.step_id}`))
+      if (!parsedFiles.success) return refuse(fileIssues(parsedFiles.error)[0])
+      const files = parsedFiles.data
+      // The form never sends this; if it happens, the two sides have drifted.
+      if (files.length && !takesScreenshots(e.status)) {
+        return refuse("This step passed. Screenshots go on a step that didn't.")
+      }
+      if (files.length > MAX_STEP_SCREENSHOTS) {
+        return refuse(`You can attach up to ${MAX_STEP_SCREENSHOTS} screenshots to a step.`)
+      }
+      if (!files.length && needsScreenshot(e.status)) {
+        return refuse("Attach a screenshot of what went wrong.")
+      }
+      if (files.length) stepFiles.set(e.step_id, files)
+    }
+    // Every report carries at least one screenshot, on a step or on the report:
+    // the proof of a visit. A step report with none attaches its final screen.
+    const shotCount = files.length + [...stepFiles.values()].reduce((n, f) => n + f.length, 0)
+    if (shotCount === 0) {
+      const message = entries.length ? "Attach a screenshot of the final result." : SCREENSHOT_REQUIRED
+      return { success: false, error: message, fieldErrors: { screenshots: [message] } }
+    }
+    if (shotCount > MAX_SCREENSHOTS) {
+      const message = `You can attach up to ${MAX_SCREENSHOTS} screenshots to a report.`
+      return { success: false, error: message, fieldErrors: { screenshots: [message] } }
+    }
+
     // The abuse guard, not the allowance: nothing here reads the ledger. Fails
     // closed — each submission fires a Gemini call and, from a cohort tester,
     // a payable report. Checked last among the refusals and before the upload,
@@ -168,13 +214,18 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     const rate = await checkRateLimit(["submit:account", user.id])
     if (!rate.ok) return { success: false, error: tooManyMessage(rate.retryAfter) }
 
-    // Upload in parallel, preserving the tester's ordering in the result array.
-    const publicUrls = await Promise.all(
-      files.map(async (file) => {
-        const uploadData = await uploadToStorage(supabase, file, user.id)
-        return getPublicUrl(supabase, uploadData.path)
-      }),
-    )
+    // Upload in parallel, preserving the tester's ordering in each array.
+    const upload = (list: File[]) =>
+      Promise.all(
+        list.map(async (file) => {
+          const uploadData = await uploadToStorage(supabase, file, user.id)
+          return getPublicUrl(supabase, uploadData.path)
+        }),
+      )
+    const [publicUrls, stepUrls] = await Promise.all([
+      upload(files),
+      Promise.all(entries.map((e) => upload(stepFiles.get(e.step_id) ?? []))),
+    ])
 
     // One row plus N entries, atomically. A plpgsql body is one transaction, so
     // a failure partway through the entries rolls the parent back with it —
@@ -191,7 +242,7 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
       p_tester_id: user.id,
       p_screenshot_urls: publicUrls,
       p_tester_comment: comment ?? "",
-      p_entries: entries,
+      p_entries: entries.map((e, i) => ({ ...e, screenshot_urls: stepUrls[i] })),
       p_started_at: startedAtSchema.parse(formData.get("startedAt")),
     })
 
@@ -209,10 +260,18 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     await reportLanded(resultId)
     // Read the screenshot bytes now (while the in-memory Files are in scope) so
     // the analysis can inline them instead of refetching the public URLs.
+    // Each step's images carry the step they show, so the model reads them
+    // against it; report-level ones carry none.
     const images = await Promise.all(
-      files.map(async (file) => ({
+      [
+        ...files.map((file) => ({ file, step: null })),
+        ...entries.flatMap((e, i) =>
+          (stepFiles.get(e.step_id) ?? []).map((file) => ({ file, step: { number: i + 1, status: e.status } })),
+        ),
+      ].map(async ({ file, step }) => ({
         data: new Uint8Array(await file.arrayBuffer()),
         mediaType: file.type,
+        step,
       })),
     )
     // Who and what each analysis was for, for the cost record. Denormalised on
@@ -262,4 +321,15 @@ export async function submitTestResult(formData: FormData): Promise<SubmissionRe
     const message = err instanceof Error ? err.message : "An unexpected error occurred. Please try again."
     return { success: false, error: message }
   }
+}
+
+/**
+ * screenshotSchema validates each file in place, so issues land at the array
+ * root (count limits) or at an index (a bad file) — flatten both, naming the
+ * offending image so the tester knows which one to fix.
+ */
+function fileIssues(error: z.ZodError): string[] {
+  return error.issues.map((i) =>
+    typeof i.path[0] === "number" ? `Screenshot ${i.path[0] + 1} — ${i.message}` : i.message,
+  )
 }

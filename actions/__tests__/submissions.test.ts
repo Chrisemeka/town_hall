@@ -43,6 +43,7 @@ import { getActiveAccount } from "@/lib/auth"
 import { generateAnalysis } from "@/lib/ai"
 import { reportBalance, reportLanded } from "@/lib/allowanceDb"
 import { checkRateLimit } from "@/lib/rateLimitDb"
+import { uploadToStorage } from "@/lib/supabase/server"
 
 const TESTER_ID = "11111111-1111-4111-8111-111111111111"
 const OWNER_ID = "22222222-2222-4222-8222-222222222222"
@@ -73,7 +74,9 @@ function png(name = "shot.png") {
   return new File([new Uint8Array([1, 2, 3])], name, { type: "image/png" })
 }
 
-function formData(over: { entries?: unknown; comment?: string; files?: File[] } = {}) {
+function formData(
+  over: { entries?: unknown; comment?: string; files?: File[]; steps?: Record<string, File[]> } = {},
+) {
   const fd = new FormData()
   fd.set("missionId", MISSION_ID)
   fd.set("comment", over.comment ?? "")
@@ -84,6 +87,9 @@ function formData(over: { entries?: unknown; comment?: string; files?: File[] } 
       : JSON.stringify(over.entries ?? [entry(STEP_A), entry(STEP_B)]),
   )
   for (const f of over.files ?? [png()]) fd.append("screenshots", f)
+  for (const [stepId, files] of Object.entries(over.steps ?? {})) {
+    for (const f of files) fd.append(`screenshots.${stepId}`, f)
+  }
   return fd
 }
 
@@ -545,5 +551,162 @@ describe("the submission rate limit", () => {
     mocks({ alreadySubmitted: true })
     await submitTestResult(formData())
     expect(checkRateLimit).not.toHaveBeenCalled()
+  })
+})
+
+describe("submitTestResult and step screenshots", () => {
+  const failed = (stepId: string, over: Record<string, unknown> = {}) =>
+    entry(stepId, { status: "fail", issue_summary: "It broke", steps_to_reproduce: "1. Open it", ...over })
+  const blocked = (stepId: string) => ({ ...failed(stepId), status: "blocked" })
+  const sentEntries = (rpc: ReturnType<typeof mocks>) =>
+    rpc[0].args.p_entries as { step_id: string; screenshot_urls: string[] }[]
+
+  it("uploads a failed step's files and hands that entry exactly those URLs", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(
+      formData({ entries: [failed(STEP_A), entry(STEP_B)], files: [], steps: { [STEP_A]: [png("a1.png"), png("a2.png")] } }),
+    )
+
+    expect(result.success).toBe(true)
+    expect(sentEntries(rpc)[0].screenshot_urls).toEqual(["https://cdn.example/p/a1.png", "https://cdn.example/p/a2.png"])
+    expect(sentEntries(rpc)[1].screenshot_urls).toEqual([])
+    expect(rpc[0].args.p_screenshot_urls).toEqual([])
+  })
+
+  it("submits a step report whose only screenshot is on a step — no report-level minimum", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(
+      formData({ entries: [blocked(STEP_A), entry(STEP_B)], files: [], steps: { [STEP_A]: [png()] } }),
+    )
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  it("accepts a blocked step with no screenshot", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ entries: [blocked(STEP_A), entry(STEP_B)] }))
+
+    expect(result.success).toBe(true)
+    expect(rpc).toHaveLength(1)
+  })
+
+  it("refuses a failed step with no screenshot, on that step, before any upload", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ entries: [entry(STEP_A), failed(STEP_B)] }))
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.fieldErrors?.["entries.1.screenshots"]).toBeDefined()
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses an all-pass report with no screenshot, asking for the final result", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ files: [] }))
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.fieldErrors?.screenshots?.[0]).toMatch(/final result/)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses a file on a passing step, before any upload", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ steps: { [STEP_A]: [png()] } }))
+
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.fieldErrors?.["entries.0.screenshots"]?.[0]).toMatch(/passed/)
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses more than the per-step cap, before any upload", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(
+      formData({ entries: [failed(STEP_A), entry(STEP_B)], files: [], steps: { [STEP_A]: [png(), png(), png(), png()] } }),
+    )
+
+    expect(result.success).toBe(false)
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses more than the report total across steps, before any upload", async () => {
+    const rpc = mocks()
+    const three = () => [png(), png(), png()]
+
+    const result = await submitTestResult(
+      formData({
+        entries: [failed(STEP_A), failed(STEP_B)],
+        files: [png(), png(), png(), png(), png()],
+        steps: { [STEP_A]: three(), [STEP_B]: three() },
+      }),
+    )
+
+    expect(result.success).toBe(false)
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("refuses a screenshots key naming no step on the mission, before any upload", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(
+      formData({ steps: { "77777777-7777-4777-8777-777777777777": [png()] } }),
+    )
+
+    expect(result.success).toBe(false)
+    expect(uploadToStorage).not.toHaveBeenCalled()
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("never passes a client-sent screenshot_urls through to the RPC", async () => {
+    const rpc = mocks()
+    const forged = "https://evil.example/forged.png"
+
+    const result = await submitTestResult(
+      formData({ entries: [entry(STEP_A, { screenshot_urls: [forged] }), entry(STEP_B)] }),
+    )
+
+    expect(result.success).toBe(true)
+    expect(JSON.stringify(rpc[0].args.p_entries)).not.toContain(forged)
+    expect(sentEntries(rpc)[0].screenshot_urls).toEqual([])
+  })
+
+  it("still requires one report-level screenshot on a mission with no steps", async () => {
+    const rpc = mocks({ steps: [] })
+
+    const result = await submitTestResult(formData({ entries: [], comment: "The nav is broken.", files: [] }))
+
+    expect(result.success).toBe(false)
+    expect(rpc).toHaveLength(0)
+  })
+
+  it("still saves report-level screenshots on a step mission (a tab opened before the deploy)", async () => {
+    const rpc = mocks()
+
+    const result = await submitTestResult(formData({ files: [png("old.png")] }))
+
+    expect(result.success).toBe(true)
+    expect(rpc[0].args.p_screenshot_urls).toEqual(["https://cdn.example/p/old.png"])
+  })
+
+  it("gives the analysis each step image with its step, and meters the total", async () => {
+    mocks()
+
+    await submitTestResult(
+      formData({ entries: [failed(STEP_A), entry(STEP_B)], files: [png("final.png")], steps: { [STEP_A]: [png()] } }),
+    )
+
+    const images = vi.mocked(generateAnalysis).mock.calls[0][1]
+    expect(images.map((i) => i.step ?? null)).toEqual([null, { number: 1, status: "fail" }])
+    expect(usageRows[0].image_count).toBe(2)
   })
 })
