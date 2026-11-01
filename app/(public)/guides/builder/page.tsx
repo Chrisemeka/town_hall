@@ -239,8 +239,9 @@ export default function BuilderGuidePage() {
             early in a flow can invalidate the rest of the report.
           </p>
           <p className={NOTE}>
-            Screenshots are attached to the report, not to individual steps.
-            Every report has at least one.
+            Each screenshot is attached to the step it shows, and only failed
+            or blocked steps carry them. A report where nothing failed carries
+            one of the tester&apos;s final screen instead.
           </p>
         </Section>
 

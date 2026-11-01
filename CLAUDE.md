@@ -109,7 +109,7 @@ app_events        in-app activity no row records already — service role only
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`; `changes_requested` legacy only — builders approve + rate, never send back), `rating`, `review_note`, `reviewed_at` |
 | `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
 | `admin_account_changes` | `id`, `account_id` (**set null**), `profile_id` (denormalised, no FK), `field` (`plan_id`\|`cohort`), `from_value`, `to_value`, `changed_by` (admin), `created_at`. **Service role only**, append-only — and the cohort membership history. |
-| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**) |
+| `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**), `screenshot_urls` (**`text[]`, `'{}'` on a pass and on every entry before `20261101_01`**) |
 | `ai_usage_events` | `id`, `test_result_id` → `test_results.id` (**set null**, not cascade), `project_id`, `profile_id` (project owner; both denormalised, no FK), `model`, `input_tokens`, `output_tokens`, `image_count`, `estimated_cost_usd` (numeric, **computed at write time**), `status` (`succeeded`\|`failed`), `error`. **Service role only** — RLS on, no policies. |
 
 **`ai_usage_events` is a cost record, not a quota ledger.** Shadow metering:
@@ -167,6 +167,33 @@ are aggregated independently. Follow it rather than "fixing" it.
 **`test_result_entries.step_action` / `step_expected` are snapshots, not lookups.** They copy the
 builder's wording at submission time. A builder editing the mission afterwards must not rewrite what
 a tester appears to have been asked. `step_id` correlates; the snapshot is the record.
+
+**Screenshots belong to the step that went wrong** (`20261101_01`,
+`docs/specs/SPEC-step-screenshots.md`). They are stored on the entry,
+`test_result_entries.screenshot_urls`, and shown under that step on every
+reader. Two predicates in `lib/vocabulary.ts` decide them, imported by both
+`AuditLogSteps` (to render the control) and `submitTestResult` (to refuse):
+`takesScreenshots(status)` — only `fail` and `blocked` offer the control, so
+Unclear and Couldn't tell do and Pass and Clear don't — and
+`needsScreenshot(status)` — a `fail` owes at least one; blocked is optional.
+Up to `MAX_STEP_SCREENSHOTS` (3) per step, `MAX_SCREENSHOTS` (10) per report.
+
+- **The server builds every URL.** Files arrive as `screenshots.<step_id>`;
+  `auditEntrySchema` has no `screenshot_urls` key, so one sent in the entries
+  JSON is stripped. Every refusal (a file on a pass, a failed step with none,
+  either cap, an unknown step key) runs before the first upload.
+- **Every report still carries at least one screenshot** — the proof of a
+  visit, by decision (spec §6, decision 2). A step report whose steps hold
+  none — every all-pass report, and a pass-and-blocked one with nothing
+  attached — sends one "final result" screenshot to the report-level
+  `test_results.screenshot_urls`. That column also keeps every report filed
+  before this and a no-step mission's uploader, unchanged. Reports already
+  filed are never moved onto steps.
+- **Files never enter `DraftEntry`** (JSON in localStorage); they live in
+  `AuditLogForm` state. Switching a step to Pass hides its files and keeps
+  them, and only steps where `takesScreenshots` holds send theirs.
+- **Migration before code.** The pre-`20261101_01` function ignores the new
+  key, so the new code against it drops step screenshots silently.
 
 **`test_results.tester_comment` is legacy and optional.** It was the whole submission before the
 audit log; it is now the free-text "anything else?" at the end. Twenty-four submissions predate the
@@ -430,8 +457,8 @@ never sent the builder's `owner_id`.
   stops telling the builder who tested; it cannot stop them finding out.
   Screenshots carry profile photos, logged-in headers and email fields,
   unfiltered. Testers write their own email into steps. With a pool this small,
-  style and timing correlate. The one defence is the line beside the screenshot
-  control in `AuditLogForm`.
+  style and timing correlate. The one defence is the line under every screenshot
+  control — `StepScreenshots`, and the no-step uploader in `AuditLogForm`.
 - **Copy says "we don't share your name with builders", never "anonymous".**
   The first is true; the second is a guarantee screenshots break.
 
@@ -480,9 +507,12 @@ exists — listing a free feature as Pro is its own kind of false.
   `compressImage()` produces for most uploads — is converted to JPEG with
   `sharp`. Accepting a new format without saying how it embeds is a type
   error; `reportImages.test.ts` round-trips a real file of every accepted type.
-- **Every screenshot read goes through `screenshotList()`**, the PDF and the
-  CSV included — the legacy `screenshot_url` column is selected beside the
-  array. No inline `screenshot_urls ?? []`.
+- **Every screenshot read goes through `lib/utils/screenshots.ts`**, the PDF
+  and the CSV included: `screenshotList()` for the report-level list (the
+  legacy `screenshot_url` column is selected beside the array),
+  `entryScreenshots()` for one step's, `allScreenshots()` /
+  `labelledScreenshots()` for both together — counts, caps, cleanup. No
+  inline `screenshot_urls ?? []`.
 - **A screenshot left out says why.** `fetchScreenshots` answers
   `foreign` (the SSRF guard — never fetched), `unavailable` (non-2xx),
   `network` (timeout, throw) or `format`. The route logs each, once, with
