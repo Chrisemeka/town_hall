@@ -73,6 +73,7 @@ const ENTRIES: SubmissionEntry[] = TEMPLATE.steps.map((step, i) => ({
   step_expected: step.expected_result,
   actual_result: "",
   expected_result: "",
+  screenshot_urls: [],
   ...ANSWERS[i],
 }))
 

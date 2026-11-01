@@ -53,9 +53,11 @@ function renderEntries(entries: AnalysisInput["entries"]): string {
  * Sentiment weighs the pass/fail distribution rather than tone alone — a
  * politely-worded log where four of five steps failed is not neutral.
  */
-export const ANALYSIS_PROMPT = (input: AnalysisInput, imageCount: number) => {
+export const ANALYSIS_PROMPT = (input: AnalysisInput, imageCount: number, stepShots = false) => {
   const shots =
-    imageCount > 1
+    stepShots
+      ? `There ${imageCount === 1 ? "is one screenshot" : `are ${imageCount} screenshots`}. Each screenshot is attached to the step it shows, labelled just before it.`
+      : imageCount > 1
       ? `There are ${imageCount} screenshots, in the order the tester captured them — read them as one journey.`
       : imageCount === 1
         ? "There is one screenshot."
@@ -84,10 +86,15 @@ line, judging the tester's overall experience. Weigh how much actually worked,
 not only how politely it was written.`
 }
 
-export const generateAnalysis = async (
-  input: AnalysisInput,
-  images: { data: Uint8Array; mediaType: string }[],
-) => {
+/** One screenshot; `step` is the step it is attached to, null for a report-level one. */
+export type AnalysisImage = {
+  data: Uint8Array
+  mediaType: string
+  step?: { number: number; status: string } | null
+}
+
+export const generateAnalysis = async (input: AnalysisInput, images: AnalysisImage[]) => {
+  const stepShots = images.some((i) => i.step)
   // usage's fields are typed optional per provider (AI SDK 6 names:
   // inputTokens/outputTokens) — recordAiUsage stores null for an absent one.
   const { text, usage } = await generateText({
@@ -96,14 +103,21 @@ export const generateAnalysis = async (
       {
         role: "user",
         content: [
-          { type: "text", text: ANALYSIS_PROMPT(input, images.length) },
+          { type: "text", text: ANALYSIS_PROMPT(input, images.length, stepShots) },
           // Inline the screenshot bytes so the model doesn't have to fetch the
-          // images back out of Supabase Storage over the network.
-          ...images.map((image) => ({
-            type: "image" as const,
-            image: image.data,
-            mediaType: image.mediaType,
-          })),
+          // images back out of Supabase Storage over the network. A step's
+          // images follow a line naming that step.
+          ...images.flatMap((image) => [
+            ...(stepShots
+              ? [{
+                  type: "text" as const,
+                  text: image.step
+                    ? `Screenshot for step ${image.step.number} (${image.step.status.toUpperCase()}):`
+                    : "Screenshot not tied to a step:",
+                }]
+              : []),
+            { type: "image" as const, image: image.data, mediaType: image.mediaType },
+          ]),
         ],
       },
     ],

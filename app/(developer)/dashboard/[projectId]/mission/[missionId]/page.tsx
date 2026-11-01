@@ -80,7 +80,7 @@ export default async function DeveloperMissionDetailPage({
     ? await admin
         .from("test_result_entries")
         .select(
-          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result",
+          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls",
         )
         .in("test_result_id", resultIds)
         .order("step_index", { ascending: true })

@@ -67,8 +67,8 @@ export default function FeedbackNotification({
             </Section>
 
             <Text style={paragraph}>
-              Open the submission in Twnhall to see screenshots, the tester&apos;s
-              comments, and the AI summary.
+              Open the submission in Twnhall to see the full report, the
+              tester&apos;s comments, and the AI summary.
             </Text>
           </Section>
 

@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAccount } from "@/lib/auth"
 import { missionsForTester } from "@/lib/cohortDb"
 import { isNewMission } from "@/lib/utils/mission"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { labelledScreenshots } from "@/lib/utils/screenshots"
 import { one } from "@/lib/utils/project"
 import { toStatus } from "@/lib/review"
 import { MissionStrip, type StripMission } from "@/components/tester/MissionStrip"
@@ -26,6 +26,7 @@ type SubmissionRow = {
   screenshot_url: string | null
   screenshot_urls: string[] | null
   mission_id: string
+  test_result_entries: { step_index: number; screenshot_urls: string[] }[] | null
   missions: Embed<{
     title: string
     projects: Embed<{ name: string }>
@@ -61,6 +62,7 @@ export default async function TesterHomePage() {
       .from("test_results")
       .select(`
         id, created_at, status, review_note, rating, reviewed_at, screenshot_url, screenshot_urls, mission_id,
+        test_result_entries ( step_index, screenshot_urls ),
         missions ( title, projects ( name ) )
       `)
       .eq("tester_id", userId)
@@ -92,7 +94,7 @@ export default async function TesterHomePage() {
       projectName: project?.name ?? "Unknown project",
       status: toStatus(r.status),
       createdAt: r.created_at,
-      screenshots: screenshotList(r),
+      screenshots: labelledScreenshots(r, r.test_result_entries),
       reviewNote: r.review_note ?? null,
       rating: r.rating ?? null,
       reviewedAt: r.reviewed_at ?? null,

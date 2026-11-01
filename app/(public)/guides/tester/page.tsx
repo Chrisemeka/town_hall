@@ -23,6 +23,7 @@ import {
   ENTRY_TEXT_MAX,
   MAX_SCREENSHOTS,
   MAX_SCREENSHOT_BYTES,
+  MAX_STEP_SCREENSHOTS,
 } from "@/lib/validation/schemas"
 
 export const metadata: Metadata = {
@@ -190,10 +191,19 @@ export default function TesterGuidePage() {
 
         <Section {...docSection("tester", "screenshots")}>
           <p className={P}>
-            At least one screenshot is required on every report, and you can
-            attach up to {MAX_SCREENSHOTS}. PNG, JPG or WEBP, under{" "}
-            {MAX_SCREENSHOT_MB}&nbsp;MB each — the form compresses them before
-            upload, so a full-resolution phone screenshot is fine.
+            Attach screenshots to a step that failed or got blocked: up to{" "}
+            {MAX_STEP_SCREENSHOTS} per step, {MAX_SCREENSHOTS} per report. A
+            failed step needs at least one; on a blocked step it is up to you.
+            Passing steps take none.
+          </p>
+          <p className={P}>
+            Every report carries at least one screenshot. If nothing failed,
+            attach one of where you ended up — the last screen of the test.
+          </p>
+          <p className={P}>
+            PNG, JPG or WEBP, under {MAX_SCREENSHOT_MB}&nbsp;MB each — the form
+            compresses them before upload, so a full-resolution phone
+            screenshot is fine.
           </p>
           <h3 className={H3}>Shoot the problem, not the homepage</h3>
           <ul className={`${UL} ${P}`}>
@@ -252,7 +262,7 @@ export default function TesterGuidePage() {
           </ul>
           <p className={P}>
             A report that finds nothing wrong is a real result. Pass every step,
-            attach your screenshot, and say so in the comment.
+            attach a screenshot of the final result, and say so in the comment.
           </p>
         </Section>
       </div>

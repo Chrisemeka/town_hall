@@ -252,6 +252,8 @@ export const ALLOWED_SCREENSHOT_TYPES = Object.keys(SCREENSHOT_FORMATS) as (keyo
 const SCREENSHOT_TYPE_NAMES = Object.values(SCREENSHOT_FORMATS).map((f) => f.toUpperCase())
 export const MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 export const MAX_SCREENSHOTS = 10
+/** Per step — "before, the error, after". MAX_SCREENSHOTS stays the report total. */
+export const MAX_STEP_SCREENSHOTS = 3
 
 export const ENTRY_TEXT_MIN = 4
 export const ENTRY_TEXT_MAX = 500
@@ -402,11 +404,17 @@ export const screenshotSchema = z
     message: "Screenshot must be 5 MB or smaller.",
   })
 
-/** A submission carries 1..MAX_SCREENSHOTS images, each validated individually. */
+/**
+ * The report-level screenshots, each validated individually. No minimum here:
+ * since step screenshots, "at least one" counts the report's and the steps'
+ * together, so submitTestResult checks it once it has both (SCREENSHOT_REQUIRED).
+ */
 export const screenshotsSchema = z
   .array(screenshotSchema)
-  .min(1, "At least one screenshot is required.")
   .max(MAX_SCREENSHOTS, `You can attach up to ${MAX_SCREENSHOTS} screenshots.`)
+
+/** Every report carries at least one screenshot, on a step or on the report. */
+export const SCREENSHOT_REQUIRED = "At least one screenshot is required."
 
 /* ──────────────────────────────────────────────────────────────
  * Submission review (builder side)

@@ -7,7 +7,7 @@ import { download, loadFeedback, slug, today } from "@/lib/exportDb"
 import { checkRateLimit, tooManyResponse } from "@/lib/rateLimitDb"
 import { buildReport, reportCapMessage, screenshotsMissing } from "@/lib/report"
 import { fetchScreenshots, isMiss } from "@/lib/reportImages"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { allScreenshots } from "@/lib/utils/screenshots"
 import { ReportDocument } from "@/components/report/ReportDocument"
 
 /*
@@ -57,7 +57,8 @@ export async function GET(request: Request) {
   // The same answer for "not yours" and "no reports yet" — the CSV's words.
   if (rows.length === 0) return new Response("Nothing to export there yet.", { status: 404 })
 
-  const urls = withScreenshots ? rows.flatMap(screenshotList) : []
+  // Report-level and every step's, for the cap and the fetch alike.
+  const urls = withScreenshots ? rows.flatMap((r) => allScreenshots(r, r.test_result_entries)) : []
   const tooMuch = reportCapMessage(rows.length, urls.length, !!mission)
   if (tooMuch) return new Response(tooMuch, { status: 413 })
 
@@ -67,7 +68,7 @@ export async function GET(request: Request) {
     // Once per image left out, with its reason and report. Never the URL: it
     // is the storage path of a builder's private screenshot.
     for (const r of images ? rows : []) {
-      for (const url of screenshotList(r)) {
+      for (const url of allScreenshots(r, r.test_result_entries)) {
         const img = images?.get(url)
         if (isMiss(img)) {
           console.warn("[export/report] screenshot left out", { reason: img?.failed, detail: img?.detail, report: r.id })

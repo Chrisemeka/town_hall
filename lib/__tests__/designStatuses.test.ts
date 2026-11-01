@@ -59,3 +59,16 @@ describe("the AI prompt is not relabelled", () => {
     expect(prompt).not.toMatch(/Clear —|UNCLEAR|Couldn't tell/)
   })
 })
+
+describe("ANALYSIS_PROMPT with step screenshots", () => {
+  const input = { comment: "", entries: [{ step_action: "a", step_expected: "b", status: "fail" }] }
+
+  it("says each screenshot belongs to its step when any does", () => {
+    expect(ANALYSIS_PROMPT(input, 2, true)).toMatch(/attached to the step it shows/)
+    expect(ANALYSIS_PROMPT(input, 2, true)).not.toMatch(/one journey/)
+  })
+
+  it("keeps the journey line for report-level screenshots alone", () => {
+    expect(ANALYSIS_PROMPT(input, 2)).toMatch(/one journey/)
+  })
+})

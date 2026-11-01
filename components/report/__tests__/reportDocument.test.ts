@@ -96,6 +96,14 @@ describe("screenshots", () => {
     expect(pdf.toString("latin1")).toContain("/Subtype /Image")
   }, 30_000)
 
+  it("a step screenshot renders in the by-step detail, before the per-person section", async () => {
+    const rows = [report("a", "2026-10-02T09:00:00Z", [entry(0, "fail", { screenshot_urls: [URL_A] })])]
+    const text = await textOf(await render(rows, true, new Map([[URL_A, { failed: "format" as const }]])))
+    const caption = text.indexOf("Screenshot format not supported in PDF.")
+    expect(caption).toBeGreaterThan(-1)
+    expect(caption).toBeLessThan(text.lastIndexOf("Each person"))
+  }, 30_000)
+
   it("a broken image is a caption naming its cause, never a broken box", async () => {
     const pdf = await render(withShot, true, new Map([[URL_A, { failed: "format" as const }]]))
     expect(pdf.toString("latin1")).not.toContain("/Subtype /Image")

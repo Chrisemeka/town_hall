@@ -4,7 +4,7 @@ import { PageHeader, Panel, Tag, Empty, formatDate } from "@/components/admin/ui
 import { ProjectRowActions } from "@/components/admin/ProjectRowActions"
 import { SubmissionsList, normalizeSentiment, type SubmissionRow } from "@/components/admin/SubmissionsList"
 import type { SubmissionEntry } from "@/components/submissions/SubmissionBody"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { allScreenshots } from "@/lib/utils/screenshots"
 import { cn } from "@/lib/utils"
 
 export const metadata = { title: "Content — Admin · Twnhall" }
@@ -167,7 +167,7 @@ export default async function AdminContentPage({ searchParams }: { searchParams:
       ids.length
         ? admin
             .from("test_result_entries")
-            .select("id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result")
+            .select("id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls")
             .in("test_result_id", ids)
             .order("step_index", { ascending: true })
         : Promise.resolve({ data: [] }),
@@ -181,7 +181,7 @@ export default async function AdminContentPage({ searchParams }: { searchParams:
       testerComment: r.tester_comment ?? "",
       aiSummary: r.ai_summary ?? null,
       aiSentiment: normalizeSentiment(r.ai_sentiment),
-      screenshotUrls: screenshotList(r),
+      screenshotUrls: allScreenshots(r, byResult.get(r.id)),
       mission: r.missions ? { id: r.missions.id, title: r.missions.title } : null,
       project: r.missions?.projects ? { id: r.missions.projects.id, name: r.missions.projects.name } : null,
       tester: tester.get(r.tester_id) ?? { fullName: "", email: "", avatarUrl: null },

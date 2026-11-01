@@ -112,6 +112,17 @@ describe("the cap", () => {
     expect(screenshotFetches()).toEqual([])
   })
 
+  it("counts step screenshots toward the cap too", async () => {
+    const half = (k: string) => Array.from({ length: SCREENSHOT_CAP / 2 + 1 }, (_, i) => `https://x.supabase.co/s/${k}${i}.png`)
+    fakeAdmin([
+      report("r1", "2026-10-02T09:00:00Z", [entry(0, "fail", { screenshot_urls: half("step") })], { screenshot_urls: half("report") }),
+    ])
+
+    const res = await GET(req("?project=p1&mission=m-design"))
+    expect(res.status).toBe(413)
+    expect(screenshotFetches()).toEqual([])
+  }, 30_000)
+
   it("counts screenshots only when they are on", async () => {
     const shots = Array.from({ length: SCREENSHOT_CAP + 1 }, (_, i) => `https://x.supabase.co/s/${i}.png`)
     fakeAdmin([report("r1", "2026-10-02T09:00:00Z", [entry(0, "pass")], { screenshot_urls: shots })])

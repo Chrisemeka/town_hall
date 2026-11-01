@@ -146,7 +146,7 @@ export const TOURS: Tour[] = [
       {
         icon: "📸",
         title: "Capture + submit your test report",
-        content: <>A screenshot is required for every submission — proof you actually visited. Pair it with specific, actionable written notes.</>,
+        content: <>Got stuck or found a bug? Attach a screenshot to that step. If nothing failed, attach one of where you ended up.</>,
         selector: "#tour-mission-submit-form",
         side: "top",
         showControls: true,

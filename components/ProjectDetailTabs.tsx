@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge"
 import { MissionChips } from "@/components/missions/TestCaseView"
 import { Button } from "@/components/ui/Button"
 import { ScreenshotStrip } from "@/components/ScreenshotStrip"
-import { screenshotList } from "@/lib/utils/screenshots"
+import { allScreenshots } from "@/lib/utils/screenshots"
 import { PassRate, type SubmissionEntry } from "@/components/submissions/SubmissionBody"
 import { testerLabel } from "@/lib/testerNumbers"
 import { nextTabIndex } from "@/lib/settingsTabs"
@@ -291,7 +291,7 @@ export function ProjectDetailTabs({ projectId, missions, results }: Props) {
                         </p>
                       )}
 
-                      <ScreenshotStrip urls={screenshotList(result)} />
+                      <ScreenshotStrip urls={allScreenshots(result, result.entries)} />
 
                       <span className="mt-3 inline-flex items-center gap-1 font-mono text-[12px] text-ink-muted group-hover:text-accent-ink transition-colors duration-150">
                         Read full test report

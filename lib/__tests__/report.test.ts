@@ -157,6 +157,16 @@ describe("screenshots", () => {
     expect(screenshotNote(new Map([["a", { failed: "network" }]]))).toMatch(/^1 of 1 screenshot couldn't/)
   })
 
+  it("puts a step screenshot on that tester's answer, and keeps report-level ones per person", () => {
+    const r = report("r1", "2026-09-02T10:00:00Z", [entry(0, "fail", { screenshot_urls: ["step.png"] }), entry(1, "pass")], {
+      screenshot_urls: ["final.png"],
+    })
+    const m = buildReport([r], true).missions[0]
+    expect(m.steps[0].answers[0].screenshots).toEqual(["step.png"])
+    expect(m.steps[1].answers[0].screenshots).toEqual([])
+    expect(m.testers[0].screenshots).toEqual(["final.png"])
+  })
+
   it("reads the legacy column through screenshotList", () => {
     const old = report("r1", "2026-09-02T10:00:00Z", [entry(0, "pass")], { screenshot_url: "legacy.png" })
     expect(buildReport([old], true).missions[0].testers[0].screenshots).toEqual(["legacy.png"])

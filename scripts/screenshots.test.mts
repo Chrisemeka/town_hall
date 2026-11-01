@@ -5,10 +5,17 @@ import assert from "node:assert/strict"
 import {
   MAX_SCREENSHOT_BYTES,
   MAX_SCREENSHOTS,
+  MAX_STEP_SCREENSHOTS,
   screenshotSchema,
   screenshotsSchema,
 } from "../lib/validation/schemas.ts"
-import { screenshotList, storagePathsFor } from "../lib/utils/screenshots.ts"
+import {
+  allScreenshots,
+  entryScreenshots,
+  labelledScreenshots,
+  screenshotList,
+  storagePathsFor,
+} from "../lib/utils/screenshots.ts"
 
 function fakeFile(bytes: number, type: string, name = "shot.png"): File {
   return new File([new Uint8Array(bytes)], name, { type })
@@ -41,7 +48,9 @@ assert.match(tooBig.error!.issues[0].message, /5 MB/)
 
 const oneShot = () => fakeFile(10, "image/png")
 
-assert.equal(screenshotsSchema.safeParse([]).success, false, "zero screenshots is rejected")
+// No minimum on the report-level list any more: "at least one" counts step
+// screenshots too, so submitTestResult checks it with both in hand.
+assert.equal(screenshotsSchema.safeParse([]).success, true, "zero report-level screenshots parses")
 assert.equal(screenshotsSchema.safeParse([oneShot()]).success, true)
 assert.equal(
   screenshotsSchema.safeParse(Array.from({ length: MAX_SCREENSHOTS }, oneShot)).success,
@@ -90,6 +99,41 @@ assert.deepEqual(
   ]),
   ["u1/1-a.png", "u2/2-b.png"],
   "every image is collected for deletion, foreign URLs are skipped",
+)
+
+/* ── step screenshots ────────────────────────────────────────────────── */
+
+assert.equal(MAX_STEP_SCREENSHOTS, 3)
+assert.ok(MAX_STEP_SCREENSHOTS < MAX_SCREENSHOTS, "the report total still bounds the steps")
+
+assert.deepEqual(entryScreenshots({ screenshot_urls: ["s"] }), ["s"])
+assert.deepEqual(entryScreenshots({}), [], "an entry filed before step screenshots has none")
+
+const report = { screenshot_urls: ["r1"] }
+const stepEntries = [
+  { step_index: 2, screenshot_urls: ["c1", "c2"] },
+  { step_index: 0, screenshot_urls: ["a1"] },
+  { step_index: 1, screenshot_urls: [] },
+]
+assert.deepEqual(
+  allScreenshots(report, stepEntries),
+  ["r1", "a1", "c1", "c2"],
+  "report-level first, then each step's in step order",
+)
+assert.deepEqual(labelledScreenshots(report, stepEntries).map((s) => s.step), [null, 1, 3, 3])
+assert.deepEqual(allScreenshots({ screenshot_url: "legacy" }), ["legacy"], "a legacy row reads as before")
+
+assert.deepEqual(
+  storagePathsFor([
+    {
+      screenshot_urls: ["https://x.co/storage/v1/object/public/screenshots/u1/final.png"],
+      test_result_entries: [
+        { step_index: 0, screenshot_urls: ["https://x.co/storage/v1/object/public/screenshots/u1/step.png"] },
+      ],
+    },
+  ]),
+  ["u1/final.png", "u1/step.png"],
+  "cleanup takes the steps' screenshots too",
 )
 
 console.log("screenshot validation checks passed")

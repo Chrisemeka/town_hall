@@ -1,4 +1,5 @@
 import path from "node:path"
+import { Fragment } from "react"
 import { Document, Font, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import {
   screenshotCaption,
@@ -215,8 +216,28 @@ function MissionMeta({ mission, people }: { mission: ReportMission; people: bool
   )
 }
 
-/** One step and every answer to it. */
-function StepDetail({ step }: { step: ReportStep }) {
+/**
+ * Screenshots, or a caption saying why one was left out. Siblings of the text
+ * they belong to rather than inside its wrap={false} View: an image cannot
+ * split, and a View taller than a page loops forever.
+ */
+function Shots({ urls, images }: { urls: string[]; images: Map<string, ScreenshotResult> | null }) {
+  if (!images) return null
+  return urls.map((url, i) => {
+    const img = images.get(url) ?? { failed: "network" as const }
+    return "failed" in img ? (
+      <Text key={i} style={[s.muted, s.field]}>
+        {screenshotCaption(img.failed)}
+      </Text>
+    ) : (
+      // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf's Image has no alt
+      <Image key={i} style={s.shot} src={img} />
+    )
+  })
+}
+
+/** One step and every answer to it, each with its own screenshots beneath. */
+function StepDetail({ step, images }: { step: ReportStep; images: Map<string, ScreenshotResult> | null }) {
   return (
     <View>
       {/* Never left alone at the foot of a page. */}
@@ -229,19 +250,22 @@ function StepDetail({ step }: { step: ReportStep }) {
         // One answer stays on one page where it fits. The "Step N · Tester M"
         // line means an answer that lands on a new page still says where it
         // belongs, without any page-position logic.
-        <View key={a.tester} style={s.answer} wrap={false}>
-          <Text style={{ fontFamily: "DM Mono", fontSize: 10 }}>
-            Step {step.number} · {a.tester} · <Text style={{ color: statusColour(a.status) }}>{a.label}</Text>
-          </Text>
-          {a.askedAs && (
-            <Text style={[s.muted, s.field]}>
-              Asked as: {a.askedAs.action} (expected: {a.askedAs.expected})
+        <Fragment key={a.tester}>
+          <View style={s.answer} wrap={false}>
+            <Text style={{ fontFamily: "DM Mono", fontSize: 10 }}>
+              Step {step.number} · {a.tester} · <Text style={{ color: statusColour(a.status) }}>{a.label}</Text>
             </Text>
-          )}
-          <Field label="What they saw" value={a.actual} />
-          <Field label="Issue" value={a.issue} />
-          <Field label="Steps to reproduce" value={a.reproduce} />
-        </View>
+            {a.askedAs && (
+              <Text style={[s.muted, s.field]}>
+                Asked as: {a.askedAs.action} (expected: {a.askedAs.expected})
+              </Text>
+            )}
+            <Field label="What they saw" value={a.actual} />
+            <Field label="Issue" value={a.issue} />
+            <Field label="Steps to reproduce" value={a.reproduce} />
+          </View>
+          <Shots urls={a.screenshots} images={images} />
+        </Fragment>
       ))}
     </View>
   )
@@ -275,18 +299,7 @@ function Testers({
               <Text style={s.field}>{t.aiSummary}</Text>
             </View>
           )}
-          {images &&
-            t.screenshots.map((url, i) => {
-              const img = images.get(url) ?? { failed: "network" as const }
-              return "failed" in img ? (
-                <Text key={i} style={[s.muted, s.field]}>
-                  {screenshotCaption(img.failed)}
-                </Text>
-              ) : (
-                // eslint-disable-next-line jsx-a11y/alt-text -- react-pdf's Image has no alt
-                <Image key={i} style={s.shot} src={img} />
-              )
-            })}
+          <Shots urls={t.screenshots} images={images} />
         </View>
       ))}
     </View>
@@ -394,7 +407,7 @@ export function ReportDocument({
             </Text>
           )}
           {m.steps.map((step) => (
-            <StepDetail key={step.number} step={step} />
+            <StepDetail key={step.number} step={step} images={images} />
           ))}
         </Sheet>,
         // Each tester on fresh pages: a heading left at the foot of the

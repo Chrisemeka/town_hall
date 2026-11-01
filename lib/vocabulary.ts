@@ -119,6 +119,25 @@ export const ENTRY_STATUSES = ["pass", "fail", "blocked"] as const
 
 export type EntryStatus = (typeof ENTRY_STATUSES)[number]
 
+/**
+ * Whether a step offers a screenshot control: only one that did not pass.
+ * Fail / Blocked and the design copy's Unclear / Couldn't tell are the same two
+ * stored statuses, so one rule covers both vocabularies. The form renders the
+ * control from this and submitTestResult refuses a file from it.
+ */
+export function takesScreenshots(status: string): boolean {
+  return status === "fail" || status === "blocked"
+}
+
+/**
+ * Whether a step owes at least one screenshot: a failure (Fail, or Unclear on a
+ * design test) does; a blocked step may have nothing worth capturing ("the link
+ * 404'd"), so its screenshot is optional. Same two callers as above.
+ */
+export function needsScreenshot(status: string): boolean {
+  return status === "fail"
+}
+
 const ENTRY_STATUS_LABELS: Record<EntryStatus, string> = {
   pass: "Pass",
   fail: "Fail",

@@ -18,6 +18,7 @@ import {
   ENTRY_TEXT_MAX,
   MAX_SCREENSHOTS,
   MAX_SCREENSHOT_BYTES,
+  MAX_STEP_SCREENSHOTS,
   PROJECT_SUMMARY_MAX,
   STEP_ACTION_MAX,
 } from "../lib/validation/schemas.ts"
@@ -71,6 +72,7 @@ for (const [name, source] of [
   ["ENTRY_TEXT_MAX", tester],
   ["MAX_SCREENSHOTS", tester],
   ["MAX_SCREENSHOT_BYTES", tester],
+  ["MAX_STEP_SCREENSHOTS", tester],
 ] as const) {
   assert.ok(
     source.includes(name),
@@ -85,6 +87,7 @@ for (const [value, source, label] of [
   [STEP_ACTION_MAX, builder, "step action cap"],
   [ENTRY_TEXT_MAX, tester, "entry text cap"],
   [MAX_SCREENSHOTS, tester, "screenshot count"],
+  [MAX_STEP_SCREENSHOTS, tester, "per-step screenshot count"],
 ] as const) {
   const prose = source.replace(/^import[\s\S]*?from ".*"$/gm, "")
   assert.ok(

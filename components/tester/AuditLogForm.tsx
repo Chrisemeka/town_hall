@@ -11,8 +11,11 @@ import {
   MAX_SCREENSHOT_BYTES,
   MAX_SCREENSHOTS,
   screenshotSchema,
+  SCREENSHOT_REQUIRED,
   type TestStep,
 } from "@/lib/validation/schemas"
+import { takesScreenshots } from "@/lib/vocabulary"
+import { StepScreenshots, type Shot } from "@/components/tester/StepScreenshots"
 import {
   AuditLogIntro,
   AuditLogSteps,
@@ -29,9 +32,8 @@ import { prefersReducedMotion } from "@/lib/focus"
 import { textareaClass } from "@/components/ui/Field"
 import { cn } from "@/lib/utils"
 
-// Each picked image is paired with its object URL so previews survive reordering
-// and each entry has a stable key.
-type Shot = { file: File; url: string }
+/** What a step report with no step screenshot is asked for instead. */
+const FINAL_REQUIRED = "Attach a screenshot of the final result."
 
 /** Where a half-finished log lives between visits. */
 const draftKey = (missionId: string) => `twnhall:audit-log:${missionId}`
@@ -60,7 +62,11 @@ export default function AuditLogForm({
   const [entries, setEntries] = useState<DraftEntry[]>(() => draftFor(steps))
   const [unlocked,    setUnlocked]    = useState(false)
   const [feedback,    setFeedback]    = useState("")
+  // Report-level: the no-steps uploader, or the final result on a step report.
   const [shots,       setShots]       = useState<Shot[]>([])
+  // Per step, by step_id. Never in DraftEntry — that is JSON in localStorage.
+  const [stepShots,   setStepShots]   = useState<Record<string, Shot[]>>({})
+  const [stepErrors,  setStepErrors]  = useState<Record<number, string[]>>({})
   const [fileErrors,  setFileErrors]  = useState<string[]>([])
   const [commentError, setCommentError] = useState<string | null>(null)
   const [isDragOver,  setIsDragOver]  = useState(false)
@@ -84,10 +90,30 @@ export default function AuditLogForm({
     return () => io.disconnect()
   }, [unlocked, isSuccess])
 
+  // Only steps that still take screenshots send theirs: one switched back to
+  // Pass keeps its files hidden, and they neither upload nor count.
+  const shotCount = (stepId: string) => stepShots[stepId]?.length ?? 0
+  const stepShotTotal = entries
+    .filter((e) => takesScreenshots(e.status))
+    .reduce((n, e) => n + shotCount(e.step_id), 0)
+  const totalShots = shots.length + stepShotTotal
+
   // Prompt on reload while the tester has work in progress that hasn't been sent.
   useUnsavedChangesWarning(
-    !isSuccess && (feedback.length > 0 || shots.length > 0 || draftStarted(entries)),
+    !isSuccess &&
+      (feedback.length > 0 ||
+        shots.length > 0 ||
+        Object.values(stepShots).some((l) => l.length > 0) ||
+        draftStarted(entries)),
   )
+
+  // Object URLs outlive the step control that made them (a step switched to
+  // Pass unmounts it), so they are let go once, with the form.
+  const allShots = useRef<Shot[]>([])
+  useEffect(() => {
+    allShots.current = [...shots, ...Object.values(stepShots).flat()]
+  }, [shots, stepShots])
+  useEffect(() => () => allShots.current.forEach((s) => URL.revokeObjectURL(s.url)), [])
 
   // Restore a half-finished log. A ten-step audit is a long form and losing it
   // to a closed tab loses the tester — localStorage is enough for that, and a
@@ -167,15 +193,21 @@ export default function AuditLogForm({
   function applyServerErrors(errors: SubmissionFieldErrors) {
     setCommentError(errors.comment?.[0] ?? null)
     setFileErrors(errors.screenshots ?? [])
+    const byStep: Record<number, string[]> = {}
+    for (const [key, messages] of Object.entries(errors)) {
+      const step = /^entries\.(\d+)\.screenshots$/.exec(key)
+      if (step && messages) byStep[Number(step[1])] = messages
+    }
+    setStepErrors(byStep)
     focusFirstError(errors)
   }
 
   /** The bar's text: to the first gap, in the order Submit would name it. */
   function jumpToNext() {
-    const missing = firstIncompleteEntry(entries, category)
+    const missing = firstIncompleteEntry(entries, category, shotCount)
     if (missing) {
       focusFirstError({ [entryFieldName(missing.index, missing.field)]: true })
-    } else if (shots.length === 0) {
+    } else if (totalShots === 0) {
       focusFirstError({ screenshots: true })
     } else {
       submitRef.current?.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" })
@@ -190,12 +222,16 @@ export default function AuditLogForm({
     // missing — which was the state this form was in, with three error messages
     // behind a control that never fired them.
     if (hasSteps) {
-      const missing = firstIncompleteEntry(entries, category)
+      const missing = firstIncompleteEntry(entries, category, shotCount)
       if (missing) {
         setErrorIndex(missing.index)
         // Named, not "answer every step". On a ten-step log that sentence is
         // the whole problem: it is true and it is useless.
-        setSubmitError(`Step ${missing.index + 1} needs an answer.`)
+        setSubmitError(
+          missing.field === "screenshots"
+            ? `Step ${missing.index + 1} needs a screenshot of what went wrong.`
+            : `Step ${missing.index + 1} needs an answer.`,
+        )
         focusFirstError({ [entryFieldName(missing.index, missing.field)]: true })
         return
       }
@@ -206,8 +242,10 @@ export default function AuditLogForm({
     // tester would reach by scrolling. Checking screenshots first, as this once
     // did, sent someone who had answered ten steps to the bottom of the page
     // before mentioning the step they had missed.
-    if (shots.length === 0) {
-      setFileErrors(["At least one screenshot is required."])
+    // Every report carries one somewhere; a step report with none on a step
+    // attaches its final screen, which is what the Final result section asks.
+    if (totalShots === 0) {
+      setFileErrors([hasSteps ? FINAL_REQUIRED : SCREENSHOT_REQUIRED])
       focusFirstError({ screenshots: true })
       return
     }
@@ -221,9 +259,18 @@ export default function AuditLogForm({
     setSubmitError(null)
     setCommentError(null)
     setFileErrors([])
+    setStepErrors({})
     setErrorIndex(undefined)
     try {
       const compressed = await Promise.all(shots.map((s) => compressImage(s.file)))
+      const compressedSteps = await Promise.all(
+        entries
+          .filter((e) => hasSteps && takesScreenshots(e.status))
+          .map(async (e) => ({
+            stepId: e.step_id,
+            files: await Promise.all((stepShots[e.step_id] ?? []).map((s) => compressImage(s.file))),
+          })),
+      )
       const fd = new FormData()
       fd.append("missionId", missionId)
       fd.append("comment", feedback)
@@ -235,6 +282,9 @@ export default function AuditLogForm({
         // Unmeasured, not refused.
       }
       for (const file of compressed) fd.append("screenshots", file)
+      for (const { stepId, files } of compressedSteps) {
+        for (const file of files) fd.append(`screenshots.${stepId}`, file)
+      }
       const result = await submitTestResult(fd)
       if (result.success) {
         setIsSuccess(true)
@@ -273,7 +323,8 @@ export default function AuditLogForm({
   // hint under the button, so an incomplete form says what it is waiting for
   // instead of presenting a control that silently refuses.
   const isReady =
-    shots.length > 0 && (hasSteps ? draftIsComplete(entries, category) : feedback.trim().length > 0)
+    totalShots > 0 && (hasSteps ? draftIsComplete(entries, category, shotCount) : feedback.trim().length > 0)
+  const room = MAX_SCREENSHOTS - totalShots
   const isFull = shots.length >= MAX_SCREENSHOTS
 
   const acceptAttr = ALLOWED_SCREENSHOT_TYPES.join(",")
@@ -318,9 +369,18 @@ export default function AuditLogForm({
       */}
       {!unlocked && (
         <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted leading-5 mb-8">
-          <span className="text-ink">Screenshot as you go.</span>{" "}
-          You&apos;ll need at least one to
-          submit, and the whole journey tells the builder more than the last screen does.
+          {hasSteps ? (
+            <>
+              <span className="text-ink">If something breaks or stops you, screenshot it while it&apos;s on screen.</span>{" "}
+              You&apos;ll attach it to that step. If nothing does, screenshot where you end up.
+            </>
+          ) : (
+            <>
+              <span className="text-ink">Screenshot as you go.</span>{" "}
+              You&apos;ll need at least one to
+              submit, and the whole journey tells the builder more than the last screen does.
+            </>
+          )}
         </p>
       )}
 
@@ -345,11 +405,48 @@ export default function AuditLogForm({
                 category={category}
                 onChange={setEntries}
                 errorIndex={errorIndex}
+                shots={{
+                  for: (stepId) => stepShots[stepId] ?? [],
+                  onChange: (stepId, next) => {
+                    setStepShots((prev) => ({ ...prev, [stepId]: next }))
+                    setStepErrors({})
+                  },
+                  room,
+                  errors: stepErrors,
+                }}
               />
             </div>
+
+            {/* The proof of a visit when no step carries one: a report where
+                nothing failed attaches its final screen. Shown while no step
+                holds a screenshot, and kept once it has files of its own. */}
+            {(stepShotTotal === 0 || shots.length > 0) && (
+              <div className="mb-8">
+                <p className="font-mono text-[12px] lg:text-[11px] font-medium uppercase tracking-[1px] text-accent-ink mb-2">
+                  Final result
+                </p>
+                <p className="font-mono text-[14px] lg:text-[13px] text-ink-muted mb-4 leading-5">
+                  No screenshot on a step? Attach one of where you ended up — the last screen of the test.
+                </p>
+                <StepScreenshots
+                  id="screenshots"
+                  label={stepShotTotal === 0 ? "Screenshot — required" : "Screenshot — optional"}
+                  helper="We don't share your name with builders, but screenshots go to them as they are — crop out anything with your name, email or photo."
+                  shots={shots}
+                  onChange={(next) => {
+                    setShots(next)
+                    setFileErrors([])
+                  }}
+                  room={room}
+                  errors={fileErrors}
+                />
+              </div>
+            )}
           </>
         )}
 
+        {!hasSteps && (
+        <>
         {/* Named for the artefact, not its purpose: a first-time tester read
             "Proof of Visit" and did not know a screenshot was wanted. */}
         <p
@@ -489,6 +586,8 @@ export default function AuditLogForm({
         {fileErrors.map((msg) => (
           <p key={msg} className="font-mono text-[12px] text-danger-ink mt-2">{msg}</p>
         ))}
+        </>
+        )}
 
         {/* YOUR FEEDBACK */}
         <p
@@ -536,8 +635,10 @@ export default function AuditLogForm({
           </button>
           {!isReady && (
             <p id="submit-hint" className="font-mono text-[14px] lg:text-[12px] text-ink-muted">
-              {hasSteps && !draftIsComplete(entries, category)
-                ? "Answer every step and attach a screenshot to submit."
+              {hasSteps
+                ? draftIsComplete(entries, category, shotCount)
+                  ? "Attach a screenshot of the final result to submit."
+                  : "Answer every step to submit."
                 : "Attach at least one screenshot to submit."}
             </p>
           )}
@@ -555,9 +656,9 @@ export default function AuditLogForm({
 
         {hasSteps && !submitInView && (
           <ReportProgressBar
-            answered={answeredCount(entries, category)}
+            answered={answeredCount(entries, category, shotCount)}
             total={entries.length}
-            shots={shots.length}
+            shots={totalShots}
             submitting={isSubmitting}
             onJump={jumpToNext}
             onSubmit={handleSubmit}

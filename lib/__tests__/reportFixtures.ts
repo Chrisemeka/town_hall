@@ -26,6 +26,7 @@ export function entry(i: number, status: string, extra: Partial<FeedbackEntry> =
     actual_result: status === "pass" ? "" : `Tester saw something else on step ${i + 1}.`,
     issue_summary: status === "pass" ? null : `Problem on step ${i + 1}`,
     steps_to_reproduce: status === "pass" ? null : "1. Open it. 2. Look.",
+    screenshot_urls: [],
     ...extra,
   }
 }

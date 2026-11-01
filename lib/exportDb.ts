@@ -23,6 +23,8 @@ export type FeedbackEntry = {
   actual_result: string | null
   issue_summary: string | null
   steps_to_reproduce: string | null
+  /** This step's own screenshots — read through entryScreenshots(). */
+  screenshot_urls: string[] | null
 }
 
 export type FeedbackRow = {
@@ -61,7 +63,7 @@ export async function loadFeedback(
     .select(
       `id, mission_id, created_at, status, rating, tester_comment, ai_summary, ai_sentiment, screenshot_urls, screenshot_url,
        missions!inner(title, created_at, category, device_target, projects!inner(name, owner_id)),
-       test_result_entries(step_id, step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce)`,
+       test_result_entries(step_id, step_index, step_action, step_expected, status, actual_result, issue_summary, steps_to_reproduce, screenshot_urls)`,
     )
     // The ownership filter. Service role sees everything, so this is the only
     // thing keeping one builder's export out of another's.
