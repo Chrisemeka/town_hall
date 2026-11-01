@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import { MissionBrief } from "@/components/missions/MissionBrief";
 import { storedTestStepsSchema } from "@/lib/validation/schemas";
-import { CheckCircle2, ChevronLeft, ChevronRight, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, CircleSlash, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { one } from "@/lib/utils/project";
 import type { Embedded, ProjectRow } from "@/lib/types/db";
@@ -11,6 +11,7 @@ import AuditLogForm from "@/components/tester/AuditLogForm";
 import { isCohortTester, missionsForTester } from "@/lib/cohortDb";
 import { toStatus } from "@/lib/review";
 import { BuilderNote } from "@/components/tester/BuilderNote";
+import { startToken } from "@/lib/reportStart";
 
 export default async function MissionDetailPage({
   params,
@@ -26,7 +27,7 @@ export default async function MissionDetailPage({
   // tester is not told whose project this is (CLAUDE.md, Tester anonymity).
   const { data: mission } = await supabase
     .from("missions")
-    .select("id, title, task_description, category, device_target, test_steps, projects(id, name, app_url, description, flagged_at)")
+    .select("id, title, task_description, category, device_target, test_steps, is_active, testers_needed, projects(id, name, app_url, description, flagged_at)")
     .eq("id", id)
     .single();
 
@@ -77,8 +78,32 @@ export default async function MissionDetailPage({
   // A paid cohort tester can reach any mission by URL — missions are public.
   // Tell them before they start if this one will not be paid; the payout
   // sheet is what actually decides.
+  // Null is_active is a legacy live row, the same as every reader in the app.
+  // A closed test case — filled, paused, or a draft never published — shows a
+  // panel instead of the form. Whether it filled is the one thing the panel
+  // says; never which builder or why. The count goes through service role:
+  // test_results is not readable by a signed-in user.
+  const live = mission.is_active !== false;
+  const { count: received } = !live && !isOwner && !ownReports
+    ? await admin.from("test_results").select("id", { count: "exact", head: true }).eq("mission_id", id)
+    : { count: 0 };
+  const full = !!mission.testers_needed && (received ?? 0) >= mission.testers_needed;
+
+  // Proof this tester was shown the form while the test case was live, so a
+  // report started now still lands if the last slot fills mid-test
+  // (lib/reportStart.ts). Issued only here, for the form on a live test case.
+  // Without the secret there is no token, which costs only the grace.
+  let token: string | null = null;
+  if (live && user && !isOwner && !ownReports) {
+    try {
+      token = startToken(mission.id, user.id);
+    } catch (err) {
+      console.error("[mission] no start token:", err);
+    }
+  }
+
   const unpaidForCohort =
-    !!user && !isOwner && !ownReports && (await isCohortTester(user.id)) &&
+    live && !!user && !isOwner && !ownReports && (await isCohortTester(user.id)) &&
     !(await missionsForTester(user.id, [id])).has(id);
 
   return (
@@ -156,6 +181,20 @@ export default async function MissionDetailPage({
             Find another test case
           </Link>
         </div>
+      ) : !live ? (
+        <div className="flex flex-col items-center justify-center py-10 medium:py-12 border border-dashed border-line rounded-[12px] text-center px-6">
+          <CircleSlash className="w-10 h-10 text-ink-muted mb-4" aria-hidden="true" />
+          <h3 className="font-syne font-bold text-[20px] text-ink mb-2">This test case isn&apos;t taking reports</h3>
+          <p className="font-mono text-[14px] text-ink-muted max-w-[400px]">
+            {full ? "It got all the reports it needed." : "The builder isn't taking reports on it right now."}
+          </p>
+          <Link
+            href="/explore/missions"
+            className="mt-6 inline-flex items-center min-h-12 lg:min-h-0 font-mono text-[14px] lg:text-[13px] text-accent-ink hover:underline"
+          >
+            Find another test case
+          </Link>
+        </div>
       ) : (
         <div id="tour-mission-submit-form">
           {unpaidForCohort && (
@@ -169,6 +208,7 @@ export default async function MissionDetailPage({
             appUrl={project?.app_url ?? null}
             steps={steps}
             category={mission.category}
+            startToken={token}
           />
         </div>
       )}
