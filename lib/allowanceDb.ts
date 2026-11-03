@@ -12,7 +12,7 @@ import { recordEvent, recordEventLater } from "@/lib/events"
 import { after } from "next/server"
 import { SIGNUP_GRANT, planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
-import { balance, held, release, reserve, type Balance, type LedgerRow, type Slots } from "@/lib/allowance"
+import { balance, carryOver, held, release, reserve, type Balance, type LedgerRow, type Slots } from "@/lib/allowance"
 
 type Admin = ReturnType<typeof createAdminClient>
 type Row = LedgerRow & { mission_id: string | null }
@@ -160,15 +160,19 @@ export async function publishMission(missionId: string, profileId: string): Prom
 }
 
 /**
- * Takes a mission down and returns its unused slots. Idempotent: a second
- * close computes nothing to return. A mission published before the ledger
- * existed holds nothing and returns nothing.
+ * Takes a mission down and returns its unused slots. Paid slots from a month
+ * that has ended come back as carried credit as well, so a builder never loses
+ * a report they paid for and didn't receive. Idempotent: a second close
+ * computes nothing to return, and so nothing to carry. A mission published
+ * before the ledger existed holds nothing and returns nothing.
  */
 export async function closeMission(missionId: string, profileId: string): Promise<void> {
   const admin = createAdminClient()
   const account = await builderAccount(admin, profileId)
 
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+    // Read once per attempt: the release and the carry must agree on the month.
+    const now = new Date()
     const rows = await ledgerRows(admin, profileId)
     const { count, error: countError } = await admin
       .from("test_results")
@@ -178,6 +182,7 @@ export async function closeMission(missionId: string, profileId: string): Promis
     const received = count ?? 0
 
     const back = release(held(rows.filter((r) => r.mission_id === missionId)), received)
+    const carried = carryOver(back, now)
 
     const { data, error } = await admin.rpc("close_mission", {
       p_mission_id: missionId,
@@ -185,10 +190,26 @@ export async function closeMission(missionId: string, profileId: string): Promis
       p_account_id: account?.id ?? null,
       p_seen_rows: rows.length,
       p_seen_received: received,
-      p_rows: asRows(back, 1),
+      p_rows: [
+        ...asRows(back, 1),
+        ...asRows(carried, 1).map((r) => ({ ...r, kind: "carried" as const })),
+      ],
     })
     if (error) throw new Error(error.message)
-    if (data === "ok") return
+    if (data === "ok") {
+      const slots = carried.reduce((n, s) => n + s.slots, 0)
+      if (slots > 0) {
+        recordEventLater({
+          name: "allowance.carried",
+          profileId,
+          accountType: "builder",
+          subjectType: "mission",
+          subjectId: missionId,
+          props: { slots },
+        })
+      }
+      return
+    }
     if (data === "not_found") throw new Error("Not authorized")
   }
   throw new Error("Could not close this test case right now. Please try again.")

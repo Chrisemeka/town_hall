@@ -170,6 +170,7 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
         <Panel title="Report balance">
           <div className="grid grid-cols-2 gap-4 p-4">
             <Stat label="Monthly" value={pools.monthly} />
+            <Stat label="Carried" value={pools.carried} />
             <Stat label="Grant" value={pools.grant} />
             <Stat label="Earned" value={pools.earned} />
             <Stat label="Total" value={pools.total} />
@@ -269,6 +270,7 @@ function eventText(name: string, props: Record<string, unknown>): string {
     case "allowance.capped": return `Published a test case with fewer testers than asked (${props.slots} of ${props.requested})`
     case "allowance.refused": return props.reason === "active_limit" ? "Could not publish: active test case limit" : "Could not publish: no reports left"
     case "allowance.missed_credit": return "A credit failed to land"
+    case "allowance.carried": return `${props.slots} undelivered paid reports carried over`
     case "export.csv": return `Exported reports (${props.format ?? "csv"})`
     case "export.pdf": return "Downloaded a PDF report"
     case "plan.changed": return `Plan changed to ${planFor(planIdFor(String(props.to ?? ""))).name}`

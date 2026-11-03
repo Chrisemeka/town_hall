@@ -107,7 +107,7 @@ app_events        in-app activity no row records already — service role only
 | `projects`     | `id`, `owner_id` → `profiles.id`, `name`, `description`, `app_url`, `category`, `flagged_at`, `flag_reason`, `flagged_by` |
 | `missions`     | `id`, `project_id`, `title`, `task_description` (**optional, defaults `''`**), `is_active`, `category`, `test_steps` (jsonb), `device_target`, `template_id`, `load_test_at`, `testers_needed`, `first_published_at` (**written once, by `publish_mission`**), `closed_at` (**set by `report_landed` and `close_mission`, cleared by `publish_mission`; null on rows closed before `20261101_03`**) |
 | `test_results` | `id`, `mission_id`, `tester_id`, `screenshot_url`, `screenshot_urls[]`, `tester_comment` (**nullable, legacy**), `ai_summary`, `ai_sentiment`, `status` (`pending`\|`approved`; `changes_requested` legacy only — builders approve + rate, never send back), `rating`, `review_note`, `reviewed_at` |
-| `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`), `bucket` (`monthly`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
+| `report_ledger` | `id`, `profile_id` → `profiles.id` (cascade), `account_id` (**set null**), `mission_id` (**set null**), `kind` (`grant`\|`earned`\|`reserved`\|`released`\|`carried`), `bucket` (`monthly`\|`carried`\|`grant`\|`earned`), `period` (monthly only), `slots` (negative when reserved), `created_at`. **Service role only**, append-only. |
 | `admin_account_changes` | `id`, `account_id` (**set null**), `profile_id` (denormalised, no FK), `field` (`plan_id`\|`cohort`), `from_value`, `to_value`, `changed_by` (admin), `created_at`. **Service role only**, append-only — and the cohort membership history. |
 | `test_result_entries` | `id`, `test_result_id` → `test_results.id` (cascade), `step_id`, `step_index`, `step_action`, `step_expected`, `status` (`pass`\|`fail`\|`blocked`), `issue_summary`, `steps_to_reproduce`, `actual_result` (**`''` on a pass, defaults `''` — except `ui_design`, see below**), `expected_result` (**no longer collected, defaults `''`**), `screenshot_urls` (**`text[]`, `'{}'` on a pass and on every entry before `20261101_01`**) |
 | `ai_usage_events` | `id`, `test_result_id` → `test_results.id` (**set null**, not cascade), `project_id`, `profile_id` (project owner; both denormalised, no FK), `model`, `input_tokens`, `output_tokens`, `image_count`, `estimated_cost_usd` (numeric, **computed at write time**), `status` (`succeeded`\|`failed`), `error`. **Service role only** — RLS on, no policies. |
@@ -307,11 +307,20 @@ no ledger to decide.
   or a reservation (the cohort is paid against them). Grant-once and
   credit-once are unique indexes.
 - **The month is Africa/Lagos** (`monthOf()`), and a monthly release returns to
-  the month it was reserved in, expiring with it.
+  the month it was reserved in — and, if that month has ended, carries (below).
 - **Missed credits are visible, not silent.** `reportLanded` and `grantSignup`
   never throw and log `[allowance] missed credit`, record
   `allowance.missed_credit` and run the critical "Uncredited reports" alert at
   once — healthy at zero.
+- **Paid reports a builder published and didn't receive are never lost.** A
+  close that releases monthly slots from an ended month carries them into
+  the `carried` pool, which never expires (`carryOver()`, `20261103_01`).
+  Monthly reports never published still expire. `close_mission` may write
+  only `released` and `carried`. Spend order is monthly → carried → grant →
+  earned; carried is its own bucket with a null period, never folded back into
+  monthly (`held()` keys on bucket and period, and `balance()` clamps
+  monthly). Deleting a live test case closes it first, so its slots come back
+  too (`docs/specs/SPEC-paid-report-carryover.md`).
 
 **The paid tester cohort is paid outside the product, against a sheet it
 computes.** `accounts.cohort_member_at` / `cohort_left_at` are the current
@@ -320,7 +329,8 @@ sheet reads the history, so removing someone never changes a month already
 paid. Only `set_account_field` writes either — the change and its log row in
 one transaction — through `setCohortMember`.
 
-- **The cohort serves only paid-for slots:** a paid plan's monthly allowance and the
+- **The cohort serves only paid-for slots:** a paid plan's monthly allowance,
+  carried slots (paid for and undelivered, even after the plan lapses) and the
   signup grant, never earned credit (`cohortEligible()`; compensation doc §8,
   "this does not bend"). Per mission, cohort slots = net reserved slots from
   those two pools; the first that many cohort reports, by `created_at`, are

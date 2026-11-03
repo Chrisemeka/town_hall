@@ -9,11 +9,15 @@
 // arrives — a submission is one-shot, nothing represents a report in progress,
 // and refusing one would destroy work the tester has already done.
 
-/** Spend order. A Starter or Pro builder must never spend earned credit while this month's sits unused. */
-export const BUCKETS = ["monthly", "grant", "earned"] as const
+/**
+ * Spend order. A Starter or Pro builder must never spend earned credit while
+ * this month's sits unused. Carried is paid credit that never expires, so it
+ * goes after the pool that does and before the two free ones.
+ */
+export const BUCKETS = ["monthly", "carried", "grant", "earned"] as const
 export type Bucket = (typeof BUCKETS)[number]
 
-export const LEDGER_KINDS = ["grant", "earned", "reserved", "released"] as const
+export const LEDGER_KINDS = ["grant", "earned", "reserved", "released", "carried"] as const
 export type LedgerKind = (typeof LEDGER_KINDS)[number]
 
 /**
@@ -30,7 +34,7 @@ export type LedgerRow = {
   slots: number
 }
 
-export type Balance = { monthly: number; grant: number; earned: number; total: number }
+export type Balance = { monthly: number; carried: number; grant: number; earned: number; total: number }
 
 /** A positive number of slots, from one pool (and, for monthly, one month). */
 export type Slots = { bucket: Bucket; period: string | null; slots: number }
@@ -54,20 +58,24 @@ export function monthOf(at: Date): string {
 export function balance(monthlyReports: number, rows: readonly LedgerRow[], now: Date): Balance {
   const month = monthOf(now)
   let monthlyNet = 0
+  let carried = 0
   let grant = 0
   let earned = 0
   for (const r of rows) {
     if (r.bucket === "monthly") {
       if (r.period === month) monthlyNet += r.slots
-    } else if (r.bucket === "grant") grant += r.slots
+    } else if (r.bucket === "carried") carried += r.slots
+    else if (r.bucket === "grant") grant += r.slots
     else if (r.bucket === "earned") earned += r.slots
   }
   // Clamped: a mid-month downgrade drops the entitlement to 0 while this
   // month's reservations still stand, and that is zero left, not a debt.
+  // Carried is its own pool, clamped on its own, so that clamp never eats it.
   const monthly = Math.max(0, monthlyReports + monthlyNet)
+  carried = Math.max(0, carried)
   grant = Math.max(0, grant)
   earned = Math.max(0, earned)
-  return { monthly, grant, earned, total: monthly + grant + earned }
+  return { monthly, carried, grant, earned, total: monthly + carried + grant + earned }
 }
 
 /**
@@ -109,13 +117,15 @@ export function held(rows: readonly LedgerRow[]): Slots[] {
  *
  * Reverse spend order: the reports that arrived are taken to have used the
  * monthly pool, so what comes back is the credit that does not expire. Newest
- * month first among monthly slots. A monthly release carries its own month,
- * and if that month has ended the slots expire with it.
+ * month first among monthly slots. A monthly release carries its own month;
+ * if that month has ended, carryOver() turns the slots into carried credit
+ * rather than letting them expire.
  */
 export function release(holding: readonly Slots[], received: number): Slots[] {
   const total = holding.reduce((n, s) => n + s.slots, 0)
   let unused = Math.max(0, total - Math.max(0, received))
-  const rank = (s: Slots) => (s.bucket === "earned" ? 0 : s.bucket === "grant" ? 1 : 2)
+  const RANK: Record<Bucket, number> = { earned: 0, grant: 1, carried: 2, monthly: 3 }
+  const rank = (s: Slots) => RANK[s.bucket]
   const ordered = [...holding].sort(
     (a, b) => rank(a) - rank(b) || (b.period ?? "").localeCompare(a.period ?? ""),
   )
@@ -129,11 +139,26 @@ export function release(holding: readonly Slots[], received: number): Slots[] {
 }
 
 /**
+ * What a close owes beyond its release: paid slots whose month has ended come
+ * back as carried credit, which does not expire. It runs on the release's own
+ * output, so a second close, which releases nothing, carries nothing. Two
+ * ended months make one entry.
+ */
+export function carryOver(released: readonly Slots[], now: Date): Slots[] {
+  const month = monthOf(now)
+  const slots = released
+    .filter((s) => s.bucket === "monthly" && s.period !== null && s.period < month)
+    .reduce((n, s) => n + s.slots, 0)
+  return slots > 0 ? [{ bucket: "carried", period: null, slots }] : []
+}
+
+/**
  * Whether a paid cohort tester may serve slots from this pool. The cohort is
- * paid ₦1,000 a report: that is spent where a builder pays (monthly) or as
+ * paid ₦1,000 a report: that is spent where a builder pays (monthly, and
+ * carried — paid for and not yet delivered, even after a plan lapses) or as
  * deliberate acquisition (grant), never on reciprocity (earned), which the
  * builder already supplied. Compensation doc §8: this does not bend.
  */
 export function cohortEligible(bucket: Bucket): boolean {
-  return bucket === "monthly" || bucket === "grant"
+  return bucket === "monthly" || bucket === "carried" || bucket === "grant"
 }
