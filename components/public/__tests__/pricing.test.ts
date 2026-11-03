@@ -37,6 +37,11 @@ describe("/pricing", () => {
     expect(answer).toMatch(/come back as carried reports, which don(&#x27;|')t expire/)
   })
 
+  it("answers cancelling and refunds with a link to the policy", () => {
+    const answer = html.slice(html.indexOf("Can I cancel, or get a refund?"))
+    expect(answer).toContain('href="/refunds"')
+  })
+
   it("calls no tier the best value — both cost the same per report (§7.3)", () => {
     expect(html).not.toMatch(/best value|most popular|recommended/i)
   })
