@@ -46,7 +46,7 @@ lib/
   cohortDb.ts         Cohort membership, feed filter and payout sheet reads
   plans.ts            Tier content and numbers — /pricing and /settings read it
   testTemplates.ts    Curated test-case templates (static, not a table)
-  docNav.ts           The four long documents' sections — headings and nav from one list
+  docNav.ts           The five long documents' sections — headings and nav from one list
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
   exportDb.ts         loadFeedback() — the one owner-scoped read behind both exports
@@ -625,11 +625,11 @@ stay out of the frame. `components/missions/__tests__/missionPreview.test.ts`
 covers it.
 
 **The long documents' sections are data.** `/terms`, `/privacy`,
-`/guides/builder` and `/guides/tester` never write a section title: each
+`/refunds`, `/guides/builder` and `/guides/tester` never write a section title: each
 heading spreads `docSection(slug, id)` from `lib/docNav.ts`, and
 `components/public/DocNav.tsx` renders the sidebar, the phone disclosure
 (native `<details>`, collapsed by default) from the same list. There is no
-switcher across the four documents, by decision. Add or rename a section there, not on the page —
+switcher across the five documents, by decision. Add or rename a section there, not on the page —
 `components/public/__tests__/docNav.test.ts` fails on drift in either
 direction. Ids are written out rather than slugged from titles, because they
 end up in shared links; reword a title freely, but leave its id alone. A jump
@@ -996,8 +996,47 @@ Canonical reference: `Test.md`. Every feature ships with:
   inside an account, so anything resembling a control reads as "change my
   plan" rather than "read about plans". The balance is shown where it is
   spent, beside the publish button, and nowhere here. The call to action is
-  `/contact`.
-- **Payments** — money moves in **one direction only: builders pay for a plan.** Decided 27 Oct 2026, superseding "the product moves no money". Builder billing is in scope: a `subscriptions` record (`docs/specs/SPEC-admin-revamp.md`, Phase 1) that an admin writes today and a checkout (Paystack or Flutterwave) will drive later through the same RPC, so `accounts.plan_id` keeps one writer path. Nothing pays *out* through the product: `missions.payout_cents` and the `paid` submission status were dropped in `20260906_03`, testing stays reciprocal, and the paid cohort is still paid by bank transfer from `/admin/payouts`' CSV, outside the product. Do not reintroduce a payout field, a money balance, a wallet, a tester-facing earnings view or a `paid` state without that being the explicit ask. (`report_ledger` is a balance of *reports*, not money.) Until a checkout ships, no card or bank details are collected anywhere in the app.
+  `/contact`. **One addition:** a paid plan's section links the billing
+  policy (`/refunds`) in a sentence — a link to read, never a control.
+  Community's doesn't.
+- **Payments** — money moves in **one direction only: builders pay
+  `MERCHANT.legalName` for a plan** (decided 27 Oct 2026). Builder billing is
+  a `subscriptions` record an admin writes today, after the builder pays a
+  Paystack payment link; a checkout will drive the same RPC later, so
+  `accounts.plan_id` keeps one writer path. Nothing pays out through the
+  product (the cohort is paid by bank transfer from `/admin/payouts`' CSV).
+  Never reintroduce a payout field, money balance, wallet, tester-facing
+  earnings or `paid` state. (`report_ledger` is a balance of *reports*, not
+  money.) When Paystack is wired in, the Merchant Services Agreement binds the
+  code (`docs/Twnhall_Paystack_MSA_Review.md`):
+  - **No payment aggregation.** No split payments, subaccounts or "pay a
+    tester" flows through Twnhall's Paystack account. MSA Section B makes
+    this a material breach with immediate termination.
+  - **Prices are what the customer pays.** Never enable Paystack's "pass
+    fees to customers", and never add a surcharge (card scheme rule, MSA
+    Section B). Fees come out of margin.
+  - **Card data never touches Twnhall.** Use Paystack's hosted checkout or
+    Popup only: no card fields in the app, and never store a card number or
+    CVV (MSA Section E §3).
+  - **The secret key is server-only.** `PAYSTACK_SECRET_KEY`, never
+    `NEXT_PUBLIC_`. Only the public key may reach the browser (MSA Section C).
+  - **The webhook verifies before it writes.** HMAC-SHA512 of the raw body
+    against `x-paystack-signature`, then idempotency on the reference, then
+    `applyProviderEvent()`, which stays the only entry.
+  - **Recurring billing ships with its off switch.** If Paystack
+    Subscriptions are used, the same PR adds a self-serve cancel that also
+    disables the Paystack subscription, and rewrites `/refunds` §Renewal
+    (MSA Section B: the cardholder must be told how to stop the charges).
+    Paystack's own Dispute Policy cites "a cancelled subscription that was
+    still charged".
+  - **`/privacy` names Paystack before the first Paystack payment**, of any
+    kind (MSA Section E §1). It does, since `feat/billing-policy`.
+  - **`/refunds` is a promise.** Every sentence is one a builder can hold us
+    to in a dispute. A change to how billing works changes the page in the
+    same PR — `refunds.test.ts` pins what it may not say.
+
+  Until a checkout ships, no card or bank details are collected anywhere in
+  the app.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).
