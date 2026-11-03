@@ -43,7 +43,7 @@ Fill these in, then set Status to *Ready*. Claude Code: if any row is blank,
 | O1 | Legal name | Awoniyi Amos and Anyanwu Chukwuemeka (not registered: the people running it) | Exactly as on the CAC certificate. If Twnhall isn't registered yet, see below. |
 | O2 | Registration | none | RC for a company, BN for a registered business name. |
 | O3 | Postal address | 23 Olatunji Idowu Street, off Alidada, Okota, Lagos State, Nigeria | Shown on every public page. A registered office, co-working or virtual-office address is fine. A home address is the owner's call. |
-| O4 | Support email | keep (`twnhallhq@gmail.com`) | A mailbox someone reads daily. A domain address (e.g. `support@twnhall.com`) reads as official to Paystack's compliance review; `twnhallhq@gmail.com` is legal but doesn't. Write "keep" to keep it. |
+| O4 | Support email | `support@twnhall.com` (changed from `twnhallhq@gmail.com` on 4 Nov 2026) | A mailbox someone reads daily. A domain address (e.g. `support@twnhall.com`) reads as official to Paystack's compliance review; `twnhallhq@gmail.com` is legal but doesn't. Write "keep" to keep it. |
 | O5 | Phone | `+2348127984934` | Optional: the MSA says email "and or" phone. E.164, e.g. `+2348012345678`, or "none". |
 | O6 | Statement descriptor | `TWNHALL` | Set in the Paystack dashboard, not in code. Recorded here so the site and the bank statement use the same name. |
 
