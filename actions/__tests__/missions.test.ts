@@ -21,7 +21,7 @@ vi.mock("@/lib/rateLimitDb", () => ({
   clientIp: vi.fn(() => "203.0.113.7"),
 }))
 
-import { createMission, toggleMissionStatus, updateMission } from "@/actions/missions"
+import { createMission, deleteMission, toggleMissionStatus, updateMission } from "@/actions/missions"
 import { closeMission, publishMission } from "@/lib/allowanceDb"
 import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
@@ -459,5 +459,49 @@ describe("the publish rate limit", () => {
   it("never limits closing", async () => {
     await toggleMissionStatus(MISSION_ID, PROJECT_ID, false)
     expect(checkRateLimit).not.toHaveBeenCalled()
+  })
+})
+
+describe("deleteMission — a live test case is closed first (C3)", () => {
+  /** The read of is_active, then the delete; records the order things happen in. */
+  function fakeDelete(isActive: boolean | null, order: string[]) {
+    const chain = {
+      select: () => chain,
+      delete() {
+        order.push("delete")
+        return chain
+      },
+      eq: () => chain,
+      maybeSingle: () => Promise.resolve({ data: { is_active: isActive }, error: null }),
+      then: (resolve: (r: { error: null }) => unknown) => Promise.resolve(resolve({ error: null })),
+    }
+    vi.mocked(createAdminClient).mockReturnValue({ from: () => chain } as unknown as ReturnType<typeof createAdminClient>)
+  }
+
+  it.each([true, null])("closes a live test case (is_active %s) before deleting it", async (isActive) => {
+    const order: string[] = []
+    fakeDelete(isActive, order)
+    vi.mocked(closeMission).mockImplementation(async () => {
+      order.push("close")
+    })
+    await expect(deleteMission(MISSION_ID, PROJECT_ID)).rejects.toThrow(`NEXT_REDIRECT:/dashboard/${PROJECT_ID}`)
+    expect(closeMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+    expect(order).toEqual(["close", "delete"])
+  })
+
+  it("does not close one that is already closed", async () => {
+    const order: string[] = []
+    fakeDelete(false, order)
+    await expect(deleteMission(MISSION_ID, PROJECT_ID)).rejects.toThrow("NEXT_REDIRECT")
+    expect(closeMission).not.toHaveBeenCalled()
+    expect(order).toEqual(["delete"])
+  })
+
+  it("deletes nothing when the close throws", async () => {
+    const order: string[] = []
+    fakeDelete(true, order)
+    vi.mocked(closeMission).mockRejectedValue(new Error("Could not close this test case right now. Please try again."))
+    await expect(deleteMission(MISSION_ID, PROJECT_ID)).rejects.toThrow("Could not close")
+    expect(order).toEqual([])
   })
 })

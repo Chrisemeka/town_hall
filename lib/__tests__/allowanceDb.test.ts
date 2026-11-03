@@ -102,6 +102,8 @@ const reservedFor = (mission: string) =>
   ledger.filter((l) => l.mission_id === mission && l.kind === "reserved")
 const releasedFor = (mission: string) =>
   ledger.filter((l) => l.mission_id === mission && l.kind === "released")
+const carriedFor = (mission: string) =>
+  ledger.filter((l) => l.mission_id === mission && l.kind === "carried")
 const grantRow = (): Ledger => ({ profile_id: BUILDER, mission_id: null, kind: "grant", bucket: "grant", period: null, slots: 3 })
 
 beforeEach(() => {
@@ -214,6 +216,28 @@ describe("closeMission", () => {
   it("refuses someone else's mission", async () => {
     missions[M1].owner = "someone-else"
     await expect(closeMission(M1, BUILDER)).rejects.toThrow("Not authorized")
+  })
+
+  it("carries the paid slots an ended month would lose, once", async () => {
+    // Reserved in a month that has long ended, 3 of 5 received.
+    ledger.push({ profile_id: BUILDER, mission_id: M1, kind: "reserved", bucket: "monthly", period: "2020-01-01", slots: -5 })
+    missions[M1].is_active = true
+    received[M1] = 3
+    await closeMission(M1, BUILDER)
+    expect(releasedFor(M1)).toEqual([expect.objectContaining({ bucket: "monthly", period: "2020-01-01", slots: 2 })])
+    expect(carriedFor(M1)).toEqual([expect.objectContaining({ bucket: "carried", period: null, slots: 2 })])
+
+    await closeMission(M1, BUILDER)
+    expect(carriedFor(M1)).toHaveLength(1)
+  })
+
+  it("carries nothing when the month has not ended", async () => {
+    planId = "starter"
+    await publishMission(M1, BUILDER)
+    received[M1] = 3
+    await closeMission(M1, BUILDER)
+    expect(releasedFor(M1)).toEqual([expect.objectContaining({ bucket: "monthly", slots: 2 })])
+    expect(carriedFor(M1)).toEqual([])
   })
 })
 

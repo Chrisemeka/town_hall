@@ -57,6 +57,9 @@ describe("cohortSlots — the cohort serves monthly and grant, never earned", ()
     expect(cohortSlots([reserved("monthly", 5)])).toBe(5)
     expect(cohortSlots([reserved("grant", 3)])).toBe(3)
   })
+  it("counts carried slots (C1)", () => {
+    expect(cohortSlots([reserved("carried", 2)])).toBe(2)
+  })
   it("counts no earned slots", () => {
     expect(cohortSlots([reserved("earned", 5)])).toBe(0)
   })

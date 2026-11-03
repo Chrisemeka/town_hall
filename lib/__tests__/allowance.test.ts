@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   balance,
+  carryOver,
   cohortEligible,
   held,
   monthOf,
@@ -163,5 +164,101 @@ describe("cohortEligible", () => {
     expect(cohortEligible("monthly")).toBe(true)
     expect(cohortEligible("grant")).toBe(true)
     expect(cohortEligible("earned")).toBe(false)
+  })
+
+  it("lets the cohort serve carried slots: paid for, even after a lapse (C1)", () => {
+    expect(cohortEligible("carried")).toBe(true)
+  })
+})
+
+const carried = (slots: number): LedgerRow => ({ kind: "carried", bucket: "carried", period: null, slots })
+const NOV_2 = new Date("2026-11-02T10:00:00Z")
+
+describe("carryOver", () => {
+  it("turns an ended month's release into one carried entry with a null period", () => {
+    expect(carryOver([{ bucket: "monthly", period: "2026-10-01", slots: 2 }], NOV_2)).toEqual([
+      { bucket: "carried", period: null, slots: 2 },
+    ])
+  })
+
+  it("sums two ended months into one entry", () => {
+    const back: Slots[] = [
+      { bucket: "monthly", period: "2026-10-01", slots: 2 },
+      { bucket: "monthly", period: "2026-09-01", slots: 1 },
+    ]
+    expect(carryOver(back, NOV_2)).toEqual([{ bucket: "carried", period: null, slots: 3 }])
+  })
+
+  it("carries nothing from this month: it returns to this month's pool", () => {
+    expect(carryOver([{ bucket: "monthly", period: "2026-11-01", slots: 2 }], NOV_2)).toEqual([])
+  })
+
+  it("carries nothing from pools that do not expire", () => {
+    const back: Slots[] = [
+      { bucket: "grant", period: null, slots: 1 },
+      { bucket: "earned", period: null, slots: 1 },
+      { bucket: "carried", period: null, slots: 1 },
+    ]
+    expect(carryOver(back, NOV_2)).toEqual([])
+  })
+
+  it("carries nothing from nothing", () => {
+    expect(carryOver([], NOV_2)).toEqual([])
+  })
+
+  it("carries nothing at the month edge: a close read at 23:59:59 on the 31st is still that month", () => {
+    const lastSecond = new Date("2026-10-31T22:59:59Z") // 23:59:59 Lagos
+    expect(carryOver([{ bucket: "monthly", period: "2026-10-01", slots: 2 }], lastSecond)).toEqual([])
+  })
+})
+
+describe("the carried pool", () => {
+  it("is counted, and is not eaten by the monthly clamp after a downgrade", () => {
+    // Pro to Starter with 10 reserved this month and 2 carried.
+    const rows = [reserved("monthly", 10, "2026-11-01"), carried(2)]
+    expect(balance(5, rows, NOV)).toEqual({ monthly: 0, carried: 2, grant: 0, earned: 0, total: 2 })
+  })
+
+  it("is spent after monthly and before grant and earned, with a null period", () => {
+    const b = { monthly: 1, carried: 2, grant: 1, earned: 1, total: 5 }
+    expect(reserve(b, 5, NOV)).toEqual([
+      { bucket: "monthly", period: "2026-11-01", slots: 1 },
+      { bucket: "carried", period: null, slots: 2 },
+      { bucket: "grant", period: null, slots: 1 },
+      { bucket: "earned", period: null, slots: 1 },
+    ])
+  })
+
+  it("comes back after earned and grant, before monthly, and releases once", () => {
+    const rows = [
+      reserved("monthly", 1, "2026-11-01"),
+      reserved("carried", 1),
+      reserved("grant", 1),
+      reserved("earned", 1),
+    ]
+    const back = release(held(rows), 0)
+    expect(back.map((s) => s.bucket)).toEqual(["earned", "grant", "carried", "monthly"])
+    const after = [...rows, ...back.map((s) => released(s.bucket, s.slots, s.period))]
+    expect(release(held(after), 0)).toEqual([])
+  })
+
+  it("holds the worked example: 5 in October, 3 received, closed on 2 November", () => {
+    const rows: LedgerRow[] = [reserved("monthly", 5, "2026-10-01")]
+    const back = release(held(rows), 3)
+    const carry = carryOver(back, NOV_2)
+    expect(back).toEqual([{ bucket: "monthly", period: "2026-10-01", slots: 2 }])
+    expect(carry).toEqual([{ bucket: "carried", period: null, slots: 2 }])
+
+    const after = [
+      ...rows,
+      ...back.map((s) => released(s.bucket, s.slots, s.period)),
+      ...carry.map((s) => carried(s.slots)),
+    ]
+    // Starter in November: a fresh 5, plus the 2 paid for and not delivered.
+    expect(balance(5, after, NOV_2)).toMatchObject({ monthly: 5, carried: 2, total: 7 })
+    // A second close releases nothing, so carries nothing.
+    const again = release(held(after), 3)
+    expect(again).toEqual([])
+    expect(carryOver(again, NOV_2)).toEqual([])
   })
 })

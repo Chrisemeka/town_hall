@@ -32,6 +32,11 @@ describe("/pricing", () => {
     expect(src).not.toMatch(/₦\s?\d|\$\d/)
   })
 
+  it("says undelivered reports come back as carried reports", () => {
+    const answer = html.slice(html.indexOf("Do unused monthly reports roll over?"))
+    expect(answer).toMatch(/come back as carried reports, which don(&#x27;|')t expire/)
+  })
+
   it("calls no tier the best value — both cost the same per report (§7.3)", () => {
     expect(html).not.toMatch(/best value|most popular|recommended/i)
   })
