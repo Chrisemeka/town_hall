@@ -6,7 +6,7 @@ vi.mock("@/lib/auth", () => ({ adminRecipients: vi.fn(async () => [{ id: "a", em
 vi.mock("@/lib/mail", () => ({ sendNotice: vi.fn() }))
 vi.mock("@/lib/cohortDb", () => ({ payoutSheet: vi.fn() }))
 
-import { runAlerts } from "@/lib/alerts/run"
+import { paidSlotsWaiting, runAlerts } from "@/lib/alerts/run"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendNotice } from "@/lib/mail"
 
@@ -72,5 +72,53 @@ describe("runAlerts", () => {
       throw new Error("down")
     })
     await expect(runAlerts()).resolves.toBe(0)
+  })
+})
+
+describe("paidSlotsWaiting", () => {
+  const now = new Date("2026-11-10T12:00:00Z")
+  const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString()
+  const reserved = (mission: string, bucket: string, slots: number, at: string) => ({
+    mission_id: mission,
+    kind: "reserved",
+    bucket,
+    period: bucket === "monthly" ? "2026-11-01" : null,
+    slots: -slots,
+    created_at: at,
+  })
+
+  it("fires on a paid slot waiting 4 days, not on one waiting 2", () => {
+    const rows = [reserved("old", "monthly", 5, daysAgo(4)), reserved("new", "monthly", 5, daysAgo(2))]
+    const missions = [{ id: "old", received: 1 }, { id: "new", received: 1 }]
+    expect(paidSlotsWaiting(missions, rows, now, 3)).toEqual(["old"])
+  })
+
+  it("counts carried slots as paid", () => {
+    expect(paidSlotsWaiting([{ id: "m", received: 0 }], [reserved("m", "carried", 2, daysAgo(4))], now, 3)).toEqual(["m"])
+  })
+
+  it("ignores a test case funded only by the free grant", () => {
+    expect(paidSlotsWaiting([{ id: "m", received: 0 }], [reserved("m", "grant", 3, daysAgo(10))], now, 3)).toEqual([])
+  })
+
+  it("ignores a full one", () => {
+    expect(paidSlotsWaiting([{ id: "m", received: 5 }], [reserved("m", "monthly", 5, daysAgo(10))], now, 3)).toEqual([])
+  })
+
+  it("ignores a closed one: its slots were released", () => {
+    const rows = [
+      reserved("m", "monthly", 5, daysAgo(10)),
+      { mission_id: "m", kind: "released", bucket: "monthly", period: "2026-11-01", slots: 4, created_at: daysAgo(9) },
+    ]
+    expect(paidSlotsWaiting([{ id: "m", received: 1 }], rows, now, 3)).toEqual([])
+  })
+
+  it("measures a reopened test case from its latest reservation", () => {
+    const rows = [
+      reserved("m", "monthly", 5, daysAgo(30)),
+      { mission_id: "m", kind: "released", bucket: "monthly", period: "2026-11-01", slots: 5, created_at: daysAgo(29) },
+      reserved("m", "monthly", 5, daysAgo(1)),
+    ]
+    expect(paidSlotsWaiting([{ id: "m", received: 0 }], rows, now, 3)).toEqual([])
   })
 })
