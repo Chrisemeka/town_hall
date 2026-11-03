@@ -198,6 +198,13 @@ decision (D1). It isn't a spec decision.
 
 ## §5 — Decisions
 
+**D1 — Decided 3 Nov 2026: by email, from the inbox.** Paystack's dispute
+emails go to the inbox the Paystack account is registered to, and that inbox
+is how disputes are noticed. The answer itself, with the billing record
+attached, is submitted in Paystack's dashboard (MSA Section B: "resolve
+chargeback Disputes via Paystack's portal"), inside 16 hours. Still to name:
+the address and who checks it, with a backup.
+
 **D1 — Who answers Paystack disputes, and from which inbox?** It's an owner
 decision, and the PR records the answer in its description. Recommend: the
 inbox the Paystack account is registered to forwards to a phone someone
