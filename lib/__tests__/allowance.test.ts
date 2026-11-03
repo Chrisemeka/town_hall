@@ -59,12 +59,13 @@ describe("balance", () => {
   })
 
   it("gives Pro its monthly entitlement with no rows at all", () => {
-    expect(balance(10, [], OCT)).toEqual({ monthly: 10, grant: 0, earned: 0, total: 10 })
+    expect(balance(10, [], OCT)).toEqual({ monthly: 10, carried: 0, grant: 0, earned: 0, total: 10 })
   })
 
   it("gives Community only what the ledger holds", () => {
     expect(balance(0, [grant(), earned(), earned()], OCT)).toEqual({
       monthly: 0,
+      carried: 0,
       grant: 3,
       earned: 2,
       total: 5,
@@ -74,12 +75,12 @@ describe("balance", () => {
   it("resets the monthly pool when the month turns, and leaves the rest", () => {
     const rows = [grant(), reserved("monthly", 10, "2026-10-01"), reserved("grant", 1)]
     expect(balance(10, rows, OCT).monthly).toBe(0)
-    expect(balance(10, rows, NOV)).toEqual({ monthly: 10, grant: 2, earned: 0, total: 12 })
+    expect(balance(10, rows, NOV)).toEqual({ monthly: 10, carried: 0, grant: 2, earned: 0, total: 12 })
   })
 
   it("clamps the monthly pool at zero after a mid-month downgrade", () => {
     const rows = [reserved("monthly", 5, "2026-10-01"), earned()]
-    expect(balance(0, rows, OCT)).toEqual({ monthly: 0, grant: 0, earned: 1, total: 1 })
+    expect(balance(0, rows, OCT)).toEqual({ monthly: 0, carried: 0, grant: 0, earned: 1, total: 1 })
   })
 })
 
@@ -90,7 +91,7 @@ describe("reserve — spend order", () => {
   })
 
   it("splits a reservation that spans pools, one entry per pool", () => {
-    const b = { monthly: 2, grant: 3, earned: 4, total: 9 }
+    const b = { monthly: 2, carried: 0, grant: 3, earned: 4, total: 9 }
     expect(reserve(b, 5, OCT)).toEqual([
       { bucket: "monthly", period: "2026-10-01", slots: 2 },
       { bucket: "grant", period: null, slots: 3 },
@@ -98,7 +99,7 @@ describe("reserve — spend order", () => {
   })
 
   it("spends grant before earned", () => {
-    const b = { monthly: 0, grant: 1, earned: 4, total: 5 }
+    const b = { monthly: 0, carried: 0, grant: 1, earned: 4, total: 5 }
     expect(reserve(b, 3, OCT)).toEqual([
       { bucket: "grant", period: null, slots: 1 },
       { bucket: "earned", period: null, slots: 2 },
