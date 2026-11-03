@@ -2,7 +2,10 @@
 // page and the pricing CTA all point at it and a stale address in one of them
 // silently drops the Pro conversation.
 
-export const CONTACT_EMAIL = "twnhallhq@gmail.com"
+import { MERCHANT } from "@/lib/merchant"
+
+// The address itself lives in lib/merchant.ts, the one place it is written.
+export const CONTACT_EMAIL = MERCHANT.supportEmail
 
 export const X_URL = "https://x.com/UseTwnhall"
 

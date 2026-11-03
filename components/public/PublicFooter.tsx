@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { X_URL } from "@/lib/contact";
+import { MERCHANT, legalLine } from "@/lib/merchant";
 
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
@@ -117,10 +118,12 @@ export function PublicFooter() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-line">
+        {/* Who a customer is paying: Paystack's MSA wants it on every page. */}
+        <div className="mt-12 pt-6 border-t border-line flex flex-col gap-1">
           <span className="text-[12px] text-ink-muted">
-            &copy; {new Date().getFullYear()} Twnhall. All rights reserved.
+            &copy; {new Date().getFullYear()} {MERCHANT.legalName}. All rights reserved.
           </span>
+          <span className="text-[12px] text-ink-muted">{legalLine()}</span>
         </div>
       </div>
     </footer>

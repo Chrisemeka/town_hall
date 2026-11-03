@@ -4,6 +4,7 @@ import { DocLayout } from "@/components/public/DocNav";
 import { ANCHOR } from "@/components/public/prose";
 import { docSection } from "@/lib/docNav";
 import { Reveal } from "@/components/public/Reveal";
+import { MERCHANT, addressLine, phoneDisplay } from "@/lib/merchant";
 
 export const metadata: Metadata = { title: "Terms of Service — Twnhall" };
 
@@ -22,7 +23,7 @@ export default function TermsPage() {
 
         <Reveal step={2}>
         <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px] mb-10 medium:mb-12">
-          Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for test reports on their own. By using Twnhall, you agree to abide by the following terms and conditions.
+          Welcome to <span className="text-ink">Twnhall</span>, where builders put their products in front of real people and testers do real testing work in exchange for test reports on their own. By using Twnhall, you agree to abide by the following terms and conditions. These terms are an agreement between you and Twnhall&apos;s operator, {MERCHANT.legalName} (&ldquo;Twnhall&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;).
         </p>
         </Reveal>
 
@@ -128,10 +129,20 @@ export default function TermsPage() {
           <Section {...docSection("terms", "contact")}>
             <p>
               For inquiries, support, or complaints, please contact us at{" "}
-              <a href="mailto:twnhallhq@gmail.com" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
-                twnhallhq@gmail.com
+              <a href={`mailto:${MERCHANT.supportEmail}`} className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                {MERCHANT.supportEmail}
               </a>
+              {MERCHANT.phone && (
+                <>
+                  {" "}or call{" "}
+                  <a href={`tel:${MERCHANT.phone}`} className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                    {phoneDisplay(MERCHANT.phone)}
+                  </a>
+                </>
+              )}
+              .
             </p>
+            <p>Our postal address is {addressLine()}.</p>
           </Section>
 
           <Reveal className="pt-6 border-t border-line">

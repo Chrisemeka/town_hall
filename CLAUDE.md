@@ -55,6 +55,7 @@ lib/
   theme.ts            readTheme() — the public theme cookie, resolved in one place
   setup.ts            The setup chain's stages, resume and completion content
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
+  merchant.ts         MERCHANT — who Twnhall is, legally: name, address, contact
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
   billing.ts          applySubscription() — the one plan writer; applyProviderEvent()
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
@@ -221,6 +222,16 @@ cost the same per report by decision (§7.3): no "best value", no featured tier.
 with the rate and the date it was checked in a comment. Nothing converts one
 into the other at render; `/pricing` and `/settings` print them through
 `priceLine()` or as written.
+
+**Who Twnhall is, legally, is one constant: `lib/merchant.ts`.** Paystack's
+MSA requires the official name, a contact and the address on the site for
+every transaction. The footer, `/contact`, `/terms` and `/privacy` read it,
+and so does `/refunds` (PR 3). Never write the legal name, address or
+support email anywhere else; `merchant.test.ts` fails on a second copy.
+`CONTACT_EMAIL` in `lib/contact.ts` is read from it. Twnhall is not
+registered yet, so `legalName` is the two people running it and
+`registration` is null; registering changes those two fields and nothing
+else (`docs/specs/SPEC-merchant-identity.md`).
 
 **`accounts.plan_id` has one writer: `apply_subscription`** (`20261027_02`),
 through `applySubscription()` in `lib/billing.ts`. It writes the
