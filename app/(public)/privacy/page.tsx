@@ -3,6 +3,7 @@ import { DocLayout } from "@/components/public/DocNav";
 import { ANCHOR } from "@/components/public/prose";
 import { docSection } from "@/lib/docNav";
 import { Reveal } from "@/components/public/Reveal";
+import { MERCHANT, addressLine, phoneDisplay } from "@/lib/merchant";
 
 export const metadata: Metadata = { title: "Privacy Policy — Twnhall" };
 
@@ -23,7 +24,7 @@ export default function PrivacyPolicyPage() {
 
           <Reveal step={2}>
           <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px]">
-            At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services.
+            At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services. Twnhall&apos;s operator, {MERCHANT.legalName}, is responsible for your personal data. Under the Nigeria Data Protection Act 2023, that makes us its data controller.
           </p>
           </Reveal>
 
@@ -113,10 +114,20 @@ export default function PrivacyPolicyPage() {
           <Section {...docSection("privacy", "contact")}>
             <p>
               If you have any questions or concerns about our Privacy Policy or our handling of your personal information, please contact us at{" "}
-              <a href="mailto:twnhallhq@gmail.com" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
-                twnhallhq@gmail.com
+              <a href={`mailto:${MERCHANT.supportEmail}`} className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                {MERCHANT.supportEmail}
               </a>
+              {MERCHANT.phone && (
+                <>
+                  {" "}or call{" "}
+                  <a href={`tel:${MERCHANT.phone}`} className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                    {phoneDisplay(MERCHANT.phone)}
+                  </a>
+                </>
+              )}
+              .
             </p>
+            <p>Our postal address is {addressLine()}.</p>
           </Section>
 
         </div>
