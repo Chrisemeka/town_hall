@@ -104,7 +104,7 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "Do unused monthly reports roll over?",
-    a: `No. Starter's ${STARTER.monthlyReports} and Pro's ${PRO.monthlyReports} arrive each calendar month and expire with it. Reports from a test case you close early go back to the month they came from. Reports you earn by testing do not expire.`,
+    a: `Monthly reports you don't use expire at the end of the month. Reports you did use — published on a test case — that testers didn't deliver are never lost: close the test case and they come back. If their month has already ended, they come back as carried reports, which don't expire. Reports you earn by testing don't expire either.`,
   },
   {
     q: "How do I pay for Starter or Pro?",
