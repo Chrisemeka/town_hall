@@ -1,6 +1,7 @@
 export default function sitemap() {
-  // Legal pages were last revised alongside the onboarding flow update.
-  const legalLastModified = new Date('2026-05-25')
+  // Terms, privacy and the billing policy, last revised together for the
+  // Paystack MSA (docs/specs/SPEC-billing-policy.md).
+  const legalLastModified = new Date('2026-11-03')
   // The public marketing pages all landed together in the Stage 1 revamp.
   const publicLastModified = new Date('2026-09-22')
 
@@ -58,6 +59,12 @@ export default function sitemap() {
     },
     {
       url: 'https://twnhall.com/terms',
+      lastModified: legalLastModified,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: 'https://twnhall.com/refunds',
       lastModified: legalLastModified,
       changeFrequency: 'yearly',
       priority: 0.3,

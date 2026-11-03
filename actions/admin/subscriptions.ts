@@ -73,9 +73,10 @@ function done(
   return { ok: true }
 }
 
+const site = () => process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
+
 function notify(to: string | null, name: string, notice: { subject: string; body: string }) {
   if (!to) return
-  const site = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
   after(() =>
     sendNotice({
       to,
@@ -84,7 +85,7 @@ function notify(to: string | null, name: string, notice: { subject: string; body
       subject: notice.subject,
       messageBody: notice.body,
       ctaLabel: "See your plan",
-      ctaUrl: `${site}/settings`,
+      ctaUrl: `${site()}/settings`,
     }),
   )
 }
@@ -120,7 +121,7 @@ export async function changePlan(input: ChangePlanInput): Promise<PlanActionResu
     reason: p.reason,
     changedBy: adminUserId,
   })
-  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("start", p.planId, { periodEnd }))
+  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("start", p.planId, { periodEnd, site: site() }))
   return done(p.userId, result, { from: now.plan, to: p.planId })
 }
 
@@ -147,7 +148,7 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
       changedBy: adminUserId,
     })
     if (p.notify && result === "ok") {
-      notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "period_end", effectiveOn: now.active.period_end }))
+      notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "period_end", effectiveOn: now.active.period_end, site: site() }))
     }
     // The plan itself changes when the cron applies the scheduled row.
     return done(p.userId, result)
@@ -166,7 +167,7 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
           reason: p.reason,
           changedBy: adminUserId,
         })
-  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "now" }))
+  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "now", site: site() }))
   return done(p.userId, result, { from: now.plan, to: p.planId })
 }
 
@@ -191,6 +192,6 @@ export async function extend(input: ExtendInput): Promise<PlanActionResult> {
     amountNgn: p.amountNgn ?? null,
     paymentReference: p.paymentReference,
   })
-  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("extend", now.plan, { periodEnd }))
+  if (p.notify && result === "ok") notify(now.email, now.name, planNotice("extend", now.plan, { periodEnd, site: site() }))
   return done(p.userId, result)
 }

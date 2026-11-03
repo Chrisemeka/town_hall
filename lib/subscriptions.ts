@@ -117,12 +117,15 @@ export function mrr(active: readonly Pick<Subscription, "amount_ngn" | "period_s
 export function planNotice(
   kind: "extend" | "start" | "downgrade",
   target: PlanId,
-  opts: { when?: "now" | "period_end"; periodEnd?: string | null; effectiveOn?: string | null },
+  opts: { when?: "now" | "period_end"; periodEnd?: string | null; effectiveOn?: string | null; site: string },
 ): { subject: string; body: string } {
   const to = planFor(target)
   const until = opts.periodEnd ? ` It runs until ${lagosDate(opts.periodEnd)}.` : ""
+  // A confirmation for each paid period is the record a dispute is answered
+  // with, so it points at the policy that period was bought under.
+  const policy = `\n\nBilling, cancelling and refunds: ${opts.site}/refunds`
   if (kind === "extend") {
-    return { subject: `Your ${to.name} plan is renewed`, body: `Your ${to.name} plan has been renewed.${until}` }
+    return { subject: `Your ${to.name} plan is renewed`, body: `Your ${to.name} plan has been renewed.${until}${policy}` }
   }
   if (kind === "downgrade" && opts.when === "period_end" && opts.effectiveOn) {
     return {
@@ -132,6 +135,6 @@ export function planNotice(
   }
   return {
     subject: `You're now on ${to.name}`,
-    body: `Your account is now on ${to.name}: ${to.monthlyReports} reports a month and ${to.activeMissions} active test cases at once.${until}\n\nTest cases already live keep the testers they have.`,
+    body: `Your account is now on ${to.name}: ${to.monthlyReports} reports a month and ${to.activeMissions} active test cases at once.${until}\n\nTest cases already live keep the testers they have.${kind === "start" ? policy : ""}`,
   }
 }

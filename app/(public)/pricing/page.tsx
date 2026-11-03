@@ -115,6 +115,21 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
         <Link href="/contact" className={LINK_INLINE}>
           Get in touch
         </Link>
+        , and once we&apos;ve agreed your plan we send you a Paystack payment
+        link. Prices include any tax we&apos;re required to charge, and no card
+        fee is added.
+      </>
+    ),
+  },
+  {
+    q: "Can I cancel, or get a refund?",
+    a: (
+      <>
+        Your plan doesn&apos;t renew by itself, so there&apos;s nothing to
+        cancel unless you want to stop early. Refunds are in our{" "}
+        <Link href="/refunds" className={LINK_INLINE}>
+          Billing and Refund Policy
+        </Link>
         .
       </>
     ),
@@ -217,7 +232,10 @@ export default function PricingPage() {
         </div>
         <Reveal step={3}>
           <p className={`${META} mt-6 text-center`}>
-            There is no checkout. Starter and Pro start as a conversation.
+            There is no checkout. Starter and Pro start as a conversation.{" "}
+            <Link href="/refunds" className={LINK_INLINE}>
+              Billing and refunds
+            </Link>
           </p>
         </Reveal>
       </section>

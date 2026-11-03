@@ -17,7 +17,8 @@ import { SettingsSection } from "@/components/settings/SettingsSection"
  * the balance is shown where it is spent, beside the publish button
  * (components/missions/AllowanceNotice.tsx), and a meter here reads as a
  * control. CLAUDE.md's Do Not Touch entry on the pricing
- * page's honesty applies here word for word.
+ * page's honesty applies here word for word. Its one addition: a paid plan
+ * links the billing policy — a link to read, not a control.
  */
 export function PlanSection({ planId }: { planId: PlanId }) {
   const current = planFor(planId)
@@ -78,6 +79,19 @@ export function PlanSection({ planId }: { planId: PlanId }) {
       </div>
 
       <div className="mt-6 pt-6 border-t border-line">
+        {planId !== "community" && (
+          <p className="font-sans text-[14px] leading-6 text-ink mb-4">
+            Your plan doesn&apos;t renew by itself. Cancelling, refunds, and
+            reports testers didn&apos;t deliver:{" "}
+            <Link
+              href="/refunds"
+              className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+            >
+              Billing and refunds
+            </Link>
+            .
+          </p>
+        )}
         <p className="font-sans text-[14px] leading-6 text-ink">
           {planId !== "community"
             ? "Need to change something about your plan? Tell us and we'll sort it."

@@ -1,7 +1,7 @@
 import { prefersReducedMotion } from "./focus.ts"
 
 /**
- * The four long documents and their sections — the one source for both the
+ * The five long documents and their sections — the one source for both the
  * headings on each page and the navigation beside them.
  *
  * A page never writes a section title: it spreads `docSection(slug, id)` onto
@@ -52,6 +52,7 @@ export const DOCS = [
       { id: "agreement", title: "User Agreement" },
       { id: "accounts", title: "Accounts and Account Types" },
       { id: "missions", title: "Test Cases and Review" },
+      { id: "paid-plans", title: "Paid Plans" },
       { id: "ratings", title: "Ratings and Reputation" },
       { id: "content", title: "Your Content" },
       { id: "privacy", title: "Privacy Policy" },
@@ -72,13 +73,35 @@ export const DOCS = [
       { id: "automated-analysis", title: "Automated Analysis of Submissions" },
       { id: "visibility", title: "What Other Users Can See" },
       { id: "providers", title: "Service Providers We Use" },
+      { id: "transfers", title: "Where Your Data Is Processed" },
       { id: "analytics", title: "Analytics and Cookies" },
       { id: "use", title: "How We Use Your Information" },
+      { id: "legal-basis", title: "Why We're Allowed to Use Your Information" },
       { id: "sharing", title: "Information Sharing and Disclosure" },
       { id: "security", title: "Data Security" },
+      { id: "rights", title: "Your Rights" },
       { id: "deletion", title: "Delete Your Personal Data" },
       { id: "changes", title: "Changes to This Privacy Policy" },
       { id: "contact", title: "Contact Us" },
+    ],
+  },
+  {
+    // The email links point at #refunds, so these ids never move.
+    slug: "refunds",
+    href: "/refunds",
+    numbered: true,
+    sections: [
+      { id: "who", title: "Who You're Paying" },
+      { id: "what", title: "What You're Buying" },
+      { id: "paying", title: "Prices and Payment" },
+      { id: "renewal", title: "Billing Periods and Renewal" },
+      { id: "delivery", title: "How Reports Are Delivered" },
+      { id: "undelivered", title: "Reports You Paid For but Didn't Receive" },
+      { id: "cancel", title: "Cancelling" },
+      { id: "refunds", title: "Refunds" },
+      { id: "disputes", title: "If Something's Wrong with a Charge" },
+      { id: "changes", title: "Changes to Prices and This Policy" },
+      { id: "contact", title: "Contact" },
     ],
   },
 ] as const

@@ -103,6 +103,7 @@ const PUBLIC_PAGES = [
   "/contact",
   "/terms",
   "/privacy",
+  "/refunds",
 ]
 
 for (const path of PUBLIC_PAGES) {

@@ -49,7 +49,7 @@ describe("doc nav data matches the pages", () => {
   })
 
   it("numbers sections by position and leaves the privacy policy unnumbered", () => {
-    expect(docSection("terms", "contact")).toEqual({ id: "contact", number: "12", title: "Contact Information" })
+    expect(docSection("terms", "contact")).toEqual({ id: "contact", number: "13", title: "Contact Information" })
     expect(docSection("privacy", "contact")).toEqual({ id: "contact", title: "Contact Us" })
   })
 })

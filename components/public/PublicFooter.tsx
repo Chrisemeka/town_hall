@@ -38,6 +38,7 @@ const COLUMNS: { heading: string; links: { href: string; label: string }[] }[] =
       { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy policy" },
       { href: "/terms", label: "Terms of service" },
+      { href: "/refunds", label: "Billing and refunds" },
       { href: "/login", label: "Sign in" },
     ],
   },
