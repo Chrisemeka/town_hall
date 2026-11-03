@@ -14,7 +14,7 @@ const ITEM =
   FOCUS
 
 /**
- * Navigation for the four long documents: the current document's sections,
+ * Navigation for the five long documents: the current document's sections,
  * unnumbered (the headings on the page keep their numbers),
  * from lib/docNav.ts — the same data the page's headings are rendered from.
  * No switcher across documents, by decision; the guides link each other at
