@@ -50,6 +50,8 @@ lib/
   testerNumbers.ts    "Tester N" per mission — the only way a builder tells testers apart
   xlsx.ts             Minimal .xlsx writer — the per-project export workbook (pure)
   exportDb.ts         loadFeedback() — the one owner-scoped read behind both exports
+  billingRecord.ts    A builder's billing record — paid, published, delivered (pure)
+  billingRecordDb.ts  loadBillingInput() — its reads, one profile, no tester_id
   report.ts           The PDF report's content — agreement, grouping, caps (pure)
   reportImages.ts     Screenshot fetches for the PDF — own bucket only, never throws
   theme.ts            readTheme() — the public theme cookie, resolved in one place
@@ -989,6 +991,17 @@ Canonical reference: `Test.md`. Every feature ships with:
     cannot be unshared. Both routes read through `loadFeedback()` in
     `lib/exportDb.ts`, which never selects `tester_id`; add a column there,
     not a second query.
+  - **A billing record is evidence that leaves Twnhall: Tester N only.**
+    `GET /api/admin/accounts/[id]/billing-record` is admin-only (it calls
+    `requireAdmin()` itself), but the file goes to Paystack and the card
+    issuer when a builder disputes a charge, so the builder-export rule
+    applies, not the payout CSV's. `lib/billingRecordDb.ts` never selects
+    `tester_id`, a subscription's `reason` or `created_by`, or a plan change's
+    `changed_by` — who changed a plan, and why, is internal. Its partner is
+    the `paid_slots_waiting` alert, which watches paid slots (monthly and
+    carried, never the grant) from a test case's latest reservation, so the
+    likeliest dispute is caught before it is filed
+    (`docs/specs/SPEC-dispute-readiness.md`).
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
   the other tier includes, and that is all: **no usage meter, no "3 of 5
