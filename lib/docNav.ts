@@ -52,6 +52,7 @@ export const DOCS = [
       { id: "agreement", title: "User Agreement" },
       { id: "accounts", title: "Accounts and Account Types" },
       { id: "missions", title: "Test Cases and Review" },
+      { id: "paid-plans", title: "Paid Plans" },
       { id: "ratings", title: "Ratings and Reputation" },
       { id: "content", title: "Your Content" },
       { id: "privacy", title: "Privacy Policy" },

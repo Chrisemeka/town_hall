@@ -18,7 +18,7 @@ export default function TermsPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: October 13, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 3, 2026</p>
         </Reveal>
 
         <Reveal step={2}>
@@ -50,10 +50,25 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "missions")}>
             <p>
-              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Test cases carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per test case, and publishing a test case spends reports from your balance. Starter and Pro add a monthly allowance and are arranged with us directly; there is no checkout. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
+              <span className="text-ink font-medium">Testing on Twnhall is reciprocal.</span> Test cases carry no payment, and the platform does not pay testers. Each report you write earns one tester report for your own projects, once per test case, and publishing a test case spends reports from your balance. Starter and Pro add a monthly allowance; see Paid Plans. Members of Twnhall&apos;s tester cohort are paid by us under a separate arrangement, outside the platform.
             </p>
             <p>
               A submission moves from Pending Review to Approved, with a rating and an optional note from the Builder. A submission is not sent back for changes. Builders are expected to review and rate submissions in good faith and within a reasonable time. Withholding approval from work that meets the test case brief is a violation of these terms.
+            </p>
+          </Section>
+
+          <Section {...docSection("terms", "paid-plans")}>
+            <p>
+              Starter and Pro are paid plans sold by {MERCHANT.legalName} at the prices on our{" "}
+              <Link href="/pricing" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Pricing</Link> page. You must be 18 or older to buy one. A paid plan adds a monthly allowance of tester reports, as Pricing describes. We don&apos;t promise how quickly reports arrive.
+            </p>
+            <p>
+              Our{" "}
+              <Link href="/refunds" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Billing and Refund Policy</Link>
+              {" "}is part of these terms. It covers how you pay, billing periods, delivery, reports you paid for but didn&apos;t receive, cancelling and refunds.
+            </p>
+            <p>
+              Payments are processed by Paystack, and we never store your card details. Prices include any tax we&apos;re required to charge.
             </p>
           </Section>
 
@@ -111,6 +126,10 @@ export default function TermsPage() {
           <Section {...docSection("terms", "termination")}>
             <p>Twnhall reserves the right to suspend or terminate accounts that violate our terms and conditions.</p>
             <p>
+              If we close an account on a paid plan for a reason other than a breach of these terms, we refund the unused part of its period (see our{" "}
+              <Link href="/refunds" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Billing and Refund Policy</Link>).
+            </p>
+            <p>
               You may delete your account at any time from Settings. Where you hold both a Builder and a Tester account, deletion removes both, along with the projects, test cases, submissions, and reputation attached to them.
             </p>
           </Section>
@@ -120,6 +139,7 @@ export default function TermsPage() {
             <p>
               Changes that materially affect how test cases, submissions, or reviews work will be communicated before they take effect.
             </p>
+            <p>We email you before a change to these terms or to our Billing and Refund Policy takes effect.</p>
           </Section>
 
           <Section {...docSection("terms", "jurisdiction")}>
