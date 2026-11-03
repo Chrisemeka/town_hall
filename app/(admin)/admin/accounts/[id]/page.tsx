@@ -269,6 +269,7 @@ function eventText(name: string, props: Record<string, unknown>): string {
     case "allowance.capped": return `Published a test case with fewer testers than asked (${props.slots} of ${props.requested})`
     case "allowance.refused": return props.reason === "active_limit" ? "Could not publish: active test case limit" : "Could not publish: no reports left"
     case "allowance.missed_credit": return "A credit failed to land"
+    case "allowance.carried": return `${props.slots} undelivered paid reports carried over`
     case "export.csv": return `Exported reports (${props.format ?? "csv"})`
     case "export.pdf": return "Downloaded a PDF report"
     case "plan.changed": return `Plan changed to ${planFor(planIdFor(String(props.to ?? ""))).name}`

@@ -22,6 +22,8 @@ export const EVENT_NAMES = [
   "allowance.capped",
   "allowance.refused",
   "allowance.missed_credit",
+  // A close carried paid slots from an ended month; props.slots.
+  "allowance.carried",
   "export.csv",
   "export.pdf",
   "rate_limit.hit",
