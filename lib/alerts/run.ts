@@ -12,7 +12,7 @@ import { after } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { adminRecipients } from "@/lib/auth"
 import { sendNotice } from "@/lib/mail"
-import { monthOf } from "@/lib/allowance"
+import { held, monthOf, type LedgerRow } from "@/lib/allowance"
 import { payoutSheet } from "@/lib/cohortDb"
 import { decide, fires, isRuleKey, type AlertRuleKey, type Measure } from "@/lib/alerts/rules"
 
@@ -37,6 +37,34 @@ async function countEvents(admin: Admin, name: string, from: string): Promise<nu
   const { count, error } = await admin.from("app_events").select("id", { count: "exact", head: true }).eq("name", name).gte("occurred_at", from)
   if (error) throw new Error(error.message)
   return count ?? 0
+}
+
+type MissionLedgerRow = LedgerRow & { mission_id: string | null; created_at: string }
+
+/**
+ * Live test cases a paying builder is still waiting on: more paid slots held
+ * (monthly and carried — never the free grant, which can't be disputed) than
+ * reports received, last published more than `days` ago. Measured from the
+ * latest reservation, so a test case reopened today hasn't been waiting since
+ * last month. Pure; the caller passes only live test cases.
+ */
+export function paidSlotsWaiting(
+  missions: readonly { id: string; received: number }[],
+  rows: readonly MissionLedgerRow[],
+  now: Date,
+  days: number,
+): string[] {
+  const cutoff = now.getTime() - days * DAY
+  return missions
+    .filter((m) => {
+      const own = rows.filter((r) => r.mission_id === m.id)
+      const paid = held(own)
+        .filter((s) => s.bucket === "monthly" || s.bucket === "carried")
+        .reduce((n, s) => n + s.slots, 0)
+      const published = Math.max(...own.filter((r) => r.kind === "reserved").map((r) => Date.parse(r.created_at)))
+      return paid > m.received && published < cutoff
+    })
+    .map((m) => m.id)
 }
 
 /** One measurement per rule. `t` is the rule's threshold, `w` its window in ms. */
@@ -88,6 +116,29 @@ const MEASURES: Record<AlertRuleKey, (admin: Admin, now: Date, t: number, w: num
       return received < (m.testers_needed ?? 0)
     })
     return { value: waiting.length, detail: { mission_ids: waiting.slice(0, 20).map((m) => m.id) } }
+  },
+
+  // ponytail: reads every live test case's ledger rows in one go — fine at
+  // tens of live test cases; move the arithmetic into SQL past a few hundred.
+  async paid_slots_waiting(admin, now, t) {
+    const { data: live, error } = await admin
+      .from("missions")
+      .select("id, test_results(count)")
+      .or("is_active.is.null,is_active.eq.true")
+    if (error) throw new Error(error.message)
+    const missions = (live ?? []).map((m) => ({
+      id: m.id as string,
+      received: (m.test_results as unknown as { count: number }[] | null)?.[0]?.count ?? 0,
+    }))
+    if (!missions.length) return { value: 0, detail: { mission_ids: [] } }
+    const { data: rows, error: ledgerError } = await admin
+      .from("report_ledger")
+      .select("mission_id, kind, bucket, period, slots, created_at")
+      .in("mission_id", missions.map((m) => m.id))
+      .in("kind", ["reserved", "released"])
+    if (ledgerError) throw new Error(ledgerError.message)
+    const waiting = paidSlotsWaiting(missions, (rows ?? []) as MissionLedgerRow[], now, t)
+    return { value: waiting.length, detail: { mission_ids: waiting.slice(0, 20) } }
   },
 
   async ai_failure_rate(admin, now, _t, w) {
