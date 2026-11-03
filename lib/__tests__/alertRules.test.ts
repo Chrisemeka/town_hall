@@ -53,10 +53,20 @@ describe("decide", () => {
 })
 
 describe("the seeded rules", () => {
-  const sql = readFileSync("supabase/migrations/20261027_03_alerts.sql", "utf8")
+  // Every migration that seeds a rule.
+  const sql = ["20261027_03_alerts.sql", "20261103_02_paid_slots_waiting.sql"]
+    .map((f) => readFileSync(`supabase/migrations/${f}`, "utf8"))
+    .join("\n")
   it("seed exactly the keys the code knows, each with a link", () => {
     const seeded = [...sql.matchAll(/^\s+\('([a-z_]+)',/gm)].map((m) => m[1])
     expect(seeded.sort()).toEqual([...ALERT_RULE_KEYS].sort())
     for (const key of ALERT_RULE_KEYS) expect(RULE_LINKS[key]).toMatch(/^\/admin/)
+  })
+})
+
+describe("paid_slots_waiting", () => {
+  it("fires on any match: the age threshold is applied in the measurement", () => {
+    expect(fires("paid_slots_waiting", { value: 0 }, 3)).toBe(false)
+    expect(fires("paid_slots_waiting", { value: 1 }, 3)).toBe(true)
   })
 })
