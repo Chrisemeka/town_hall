@@ -1,6 +1,6 @@
 // Who a customer is paying. Paystack's MSA (Section B, Card payments) requires
 // the site to show the official name, a contact and an address for every
-// transaction. Written by hand, never derived. Checked: 3 Nov 2026.
+// transaction. Written by hand, never derived. Checked: 4 Nov 2026.
 //
 // Twnhall is not registered with CAC yet, so the legal name is the people
 // running it. Registering later changes legalName and registration, nothing
@@ -27,7 +27,7 @@ export const MERCHANT: Merchant = {
   legalName: "Awoniyi Amos and Anyanwu Chukwuemeka",
   registration: null,
   address: ["23 Olatunji Idowu Street", "off Alidada, Okota", "Lagos State", "Nigeria"],
-  supportEmail: "twnhallhq@gmail.com",
+  supportEmail: "support@twnhall.com",
   phone: "+2348127984934",
 }
 
