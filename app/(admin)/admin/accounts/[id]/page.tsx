@@ -170,6 +170,7 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
         <Panel title="Report balance">
           <div className="grid grid-cols-2 gap-4 p-4">
             <Stat label="Monthly" value={pools.monthly} />
+            <Stat label="Carried" value={pools.carried} />
             <Stat label="Grant" value={pools.grant} />
             <Stat label="Earned" value={pools.earned} />
             <Stat label="Total" value={pools.total} />
