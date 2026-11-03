@@ -197,7 +197,20 @@ export async function deleteMission(missionId: string, projectId: string) {
   await requireAccount("builder")
   await requireProjectOwner(projectId, user.id)
 
-  const { error } = await createAdminClient()
+  const admin = createAdminClient()
+  // A live test case is closed first, so its unused slots come back (and carry,
+  // if their month has ended) instead of staying reserved on a deleted row.
+  // Null is_active counts as live. If the close throws, nothing is deleted.
+  const { data: mission, error: readError } = await admin
+    .from("missions")
+    .select("is_active")
+    .eq("id", missionId)
+    .eq("project_id", projectId)
+    .maybeSingle()
+  if (readError) throw new Error(readError.message)
+  if (mission && mission.is_active !== false) await closeMission(missionId, user.id)
+
+  const { error } = await admin
     .from("missions")
     .delete()
     .eq("id", missionId)
