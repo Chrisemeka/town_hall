@@ -36,6 +36,11 @@ export function addressLine(m: Merchant = MERCHANT): string {
   return m.address.join(", ")
 }
 
+/** "+234 812 798 4934" — for reading; a tel: link takes MERCHANT.phone as is. */
+export function phoneDisplay(phone: string): string {
+  return phone.replace(/^\+234(\d{3})(\d{3})(\d{4})$/, "+234 $1 $2 $3")
+}
+
 /** The sentence that says who you are paying. */
 export function legalLine(m: Merchant = MERCHANT): string {
   const where = addressLine(m)

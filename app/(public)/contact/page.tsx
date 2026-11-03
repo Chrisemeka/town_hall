@@ -3,6 +3,7 @@ import { Mail, MessageCircle } from "lucide-react"
 import { META, P, PageHeader } from "@/components/public/prose"
 import { Reveal } from "@/components/public/Reveal"
 import { CONTACT_EMAIL, X_URL, mailto } from "@/lib/contact"
+import { MERCHANT, addressLine, phoneDisplay } from "@/lib/merchant"
 
 export const metadata: Metadata = {
   title: "Contact — Twnhall",
@@ -77,6 +78,20 @@ export default function ContactPage() {
           {/* Never broken mid-address; one tap selects it for copying. */}
           <span className="font-mono text-ink whitespace-nowrap select-all">{CONTACT_EMAIL}</span>.
         </p>
+        <div className="flex flex-col gap-1">
+          <h2 className="font-medium text-[14px] text-ink">Write to us</h2>
+          <p className={P}>{addressLine()}</p>
+        </div>
+        {MERCHANT.phone && (
+          <div className="flex flex-col gap-1">
+            <h2 className="font-medium text-[14px] text-ink">Call us</h2>
+            <p className={P}>
+              <a href={`tel:${MERCHANT.phone}`} className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">
+                {phoneDisplay(MERCHANT.phone)}
+              </a>
+            </p>
+          </div>
+        )}
         <p className={P}>
           We are also on{" "}
           <a
