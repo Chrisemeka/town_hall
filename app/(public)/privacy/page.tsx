@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: October 13, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: November 3, 2026</p>
         </Reveal>
 
         <div className="flex flex-col gap-8 medium:gap-10">
@@ -33,6 +33,7 @@ export default function PrivacyPolicyPage() {
             <p><span className="text-ink font-medium">Personal Information:</span> When you sign up on Twnhall, we collect your email address and a password, or, if you sign in with Google, your name, email address, and profile picture from that sign-in. Before you can use an account type, you complete a short profile for it: your full name, country, phone number, and timezone, plus your skills for a Tester account. You may also add a short bio in Settings.</p>
             <p><span className="text-ink font-medium">Account Information:</span> We record which account types you hold — Builder, Tester, or both — when each was created, and when its profile was completed. If you hold both, they are stored as two account records tied to the same sign-in. We also record your plan (Community, Starter or Pro) and your balance of tester reports: the reports you have been granted, earned by testing, and spent on test cases.</p>
             <p><span className="text-ink font-medium">Content You Submit:</span> Projects and test cases you create as a Builder, including their test steps, and the reports you submit as a Tester: a status for each step (pass, fail, or blocked), the issue and steps to reproduce for any step that did not pass, any closing comment, and screenshots. Screenshots are stored in our file storage and are visible to the Builder whose test case you submitted against.</p>
+            <p><span className="text-ink font-medium">Billing Information:</span> If you buy Starter or Pro, we keep a record of each billing period: the plan, its start and end dates, the amount you paid, the payment reference, and how you paid. When you pay by card, Paystack collects your card details. We never see or store your card number or security code.</p>
             <p><span className="text-ink font-medium">Review Information:</span> The status of each submission, the 1&ndash;5 rating a Builder gives it when approving it, and the optional note the Builder writes with that approval.</p>
             <p><span className="text-ink font-medium">Usage Information:</span> We may collect information about how you interact with the app, including your device&apos;s Internet Protocol address (e.g. IP address), the time and date of your visit, and projects you create.</p>
             <p><span className="text-ink font-medium">Device Information:</span> We may collect information about your device, including the device type, operating system, and unique device identifiers and other diagnostic data.</p>
@@ -71,6 +72,13 @@ export default function PrivacyPolicyPage() {
             <p><span className="text-ink font-medium">Cloudflare:</span> the Turnstile check on the sign-up, sign-in, and password reset forms, which reads signals from your browser to tell people from bots.</p>
             <p><span className="text-ink font-medium">Vercel:</span> hosting the app.</p>
             <p><span className="text-ink font-medium">Resend:</span> transactional and notification email.</p>
+            <p><span className="text-ink font-medium">Paystack:</span> processes payments for Starter and Pro. Paystack receives what it needs to take a payment, including your name, email address and payment details, and handles them under its own privacy policy.</p>
+          </Section>
+
+          {/* Supabase's region is the project's, checked 3 Nov 2026: eu-west-1. */}
+          <Section {...docSection("privacy", "transfers")}>
+            <p>Some of the providers above process data outside Nigeria. We use them under contracts that require them to protect it.</p>
+            <p>Our database, sign-in and screenshot storage (Supabase) are in Ireland, in the European Union. Vercel, Google, Resend and Cloudflare run globally.</p>
           </Section>
 
           <Section {...docSection("privacy", "analytics")}>
@@ -87,6 +95,13 @@ export default function PrivacyPolicyPage() {
             <p>We may use device information to troubleshoot technical issues and ensure compatibility with our app.</p>
           </Section>
 
+          <Section {...docSection("privacy", "legal-basis")}>
+            <p><span className="text-ink font-medium">Contract:</span> running your account and any plan you buy.</p>
+            <p><span className="text-ink font-medium">Legitimate interests:</span> security, preventing abuse, counting visits first-party, and improving the service.</p>
+            <p><span className="text-ink font-medium">Legal obligation:</span> keeping billing records.</p>
+            <p><span className="text-ink font-medium">Consent:</span> where we ask for it. You can withdraw it.</p>
+          </Section>
+
           <Section {...docSection("privacy", "sharing")}>
             <p>We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
             <p>We may share your information with third-party service providers who assist us in providing and improving our app, subject to confidentiality obligations.</p>
@@ -99,12 +114,30 @@ export default function PrivacyPolicyPage() {
             <p>Despite our efforts, please be aware that no method of transmission over the internet or electronic storage is 100% secure.</p>
           </Section>
 
+          <Section {...docSection("privacy", "rights")}>
+            <p>Under the Nigeria Data Protection Act 2023, you can ask us to:</p>
+            <ul className="flex flex-col gap-2 list-disc pl-6">
+              <li>give you a copy of your data;</li>
+              <li>correct it;</li>
+              <li>delete it;</li>
+              <li>stop or limit how we use it;</li>
+              <li>send it to you in a format you can reuse;</li>
+              <li>withdraw any consent you gave.</li>
+            </ul>
+            <p>
+              Email{" "}
+              <a href={`mailto:${MERCHANT.supportEmail}`} className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">{MERCHANT.supportEmail}</a>
+              . If you&apos;re unhappy with our answer, you can complain to the Nigeria Data Protection Commission.
+            </p>
+          </Section>
+
           <Section {...docSection("privacy", "deletion")}>
             <p>You have the right to delete or request we assist in deleting the Personal Data that we have collected about you.</p>
             <p>Our Service may give you the ability to delete certain information about you from within the Service. You can update, amend, or delete your details anytime by logging into your Account and going to the account section for managing your personal data.</p>
             <p>Deleting your account removes every account type you hold. If you hold both a Builder and a Tester account, both are deleted together, along with the projects, test cases, submissions, screenshots, ratings, and reputation attached to them.</p>
             <p>Additionally, you can contact us if you wish to access, correct, or delete any personal information that you have shared with us.</p>
             <p>Please keep in mind that we may need to keep certain information if there is a legal requirement or lawful basis to do so.</p>
+            <p>We keep billing records for six years after the period they cover, even after you delete your account, because tax law requires it. Nothing else about the account is kept.</p>
           </Section>
 
           <Section {...docSection("privacy", "changes")}>
