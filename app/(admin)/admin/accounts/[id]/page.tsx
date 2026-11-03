@@ -182,7 +182,18 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
         <Panel
           className="mb-4"
           title={`Plan · ${planFor(plan).name}`}
-          action={<PlanDialog userId={id} current={plan} activeEnd={active?.period_end ?? null} hasActive={!!active} />}
+          action={
+            <div className="flex items-center gap-2">
+              {/* The evidence a Paystack dispute is answered with. Tester N only. */}
+              <a
+                href={`/api/admin/accounts/${id}/billing-record`}
+                className="h-8 px-3 inline-flex items-center border border-ink-muted rounded-[6px] font-mono text-[13px] text-ink hover:bg-ink/[0.06]"
+              >
+                Download billing record
+              </a>
+              <PlanDialog userId={id} current={plan} activeEnd={active?.period_end ?? null} hasActive={!!active} />
+            </div>
+          }
         >
           {scheduled && (
             <p className="px-4 pt-4 font-mono text-[14px] text-ink">
