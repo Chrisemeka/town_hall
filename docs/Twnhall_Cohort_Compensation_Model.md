@@ -217,6 +217,8 @@ Two implementation rules, both load-bearing:
 
 **Beyond the grant, the free tier draws on reciprocity only.** A Community user must never be served a paid cohort report.
 
+**Carried slots are cohort-eligible** (decided 3 Nov 2026, `SPEC-paid-report-carryover.md` C1): paid reports a builder published and didn't receive come back as carried credit, and the cohort may serve them even after the plan lapses to Community. They were paid for, so the rule above — which protects the *free* entitlement — doesn't apply.
+
 ---
 
 ## 9 — The subsidy needs an end condition
