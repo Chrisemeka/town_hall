@@ -82,6 +82,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
       .from("subscriptions")
       .select("id", { count: "exact", head: true })
       .eq("status", "active")
+      .eq("source", "manual")
       .lte("period_end", weekAhead),
   ])
 

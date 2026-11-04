@@ -7,7 +7,8 @@ import { applySubscription, type ApplyResult } from "@/lib/billing"
 import { recordEventLater } from "@/lib/events"
 import { sendNotice } from "@/lib/mail"
 import { planIdFor, type PlanId } from "@/lib/vocabulary"
-import { changeKind, endOfLagosDay, planNotice } from "@/lib/subscriptions"
+import { runBillingActionsLater } from "@/lib/paystack/actions"
+import { changeKind, disableActionFor, endOfLagosDay, planNotice } from "@/lib/subscriptions"
 import {
   changePlanSchema,
   downgradeSchema,
@@ -36,13 +37,19 @@ async function current(admin: Admin, userId: string) {
   if (!account) return null
   const { data: active } = await admin
     .from("subscriptions")
-    .select("id, period_end")
+    .select("id, period_end, source, provider_subscription_id, provider_email_token")
     .eq("account_id", account.id)
     .eq("status", "active")
     .maybeSingle()
   return {
     plan: planIdFor(account.plan_id),
-    active: active as { id: string; period_end: string | null } | null,
+    active: active as {
+      id: string
+      period_end: string | null
+      source?: string
+      provider_subscription_id?: string | null
+      provider_email_token?: string | null
+    } | null,
     email: (profile?.email as string | null) ?? null,
     name: (profile?.full_name as string | null) ?? "",
   }
@@ -73,6 +80,10 @@ function done(
   revalidatePath("/settings")
   return { ok: true }
 }
+
+/** A plan an admin moves or ends must stop charging at Paystack too. */
+const stopsCharging = (active: { source?: string; provider_subscription_id?: string | null; provider_email_token?: string | null } | null) =>
+  active?.source === "paystack" ? disableActionFor(active) : []
 
 const site = () => process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "http://localhost:3000"
 
@@ -112,6 +123,7 @@ export async function changePlan(input: ChangePlanInput): Promise<PlanActionResu
   const periodEnd = endOfLagosDay(p.periodEnd)
   if (Date.parse(periodEnd) <= Date.now()) return { ok: false, error: "The period has to end after today." }
 
+  const off = stopsCharging(now.active)
   const result = await applySubscription({
     action: "start",
     userId: p.userId,
@@ -121,7 +133,9 @@ export async function changePlan(input: ChangePlanInput): Promise<PlanActionResu
     paymentReference: p.paymentReference,
     reason: p.reason,
     changedBy: adminUserId,
+    actions: off,
   })
+  if (off.length && result === "ok") runBillingActionsLater()
   if (p.notify && result === "ok") notify(now.email, now.name, planNotice("start", p.planId, { periodEnd, site: site() }))
   return done(p.userId, result, { from: now.plan, to: p.planId })
 }
@@ -139,6 +153,7 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
     return { ok: false, error: "That is not a downgrade from the current plan." }
   }
 
+  const off = stopsCharging(now.active)
   if (p.when === "period_end") {
     if (!now.active?.period_end) return { ok: false, error: "No period end to wait for — downgrade now instead." }
     const result = await applySubscription({
@@ -147,7 +162,9 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
       planId: p.planId,
       reason: p.reason,
       changedBy: adminUserId,
+      actions: off,
     })
+    if (off.length && result === "ok") runBillingActionsLater()
     if (p.notify && result === "ok") {
       notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "period_end", effectiveOn: now.active.period_end, site: site() }))
     }
@@ -159,7 +176,7 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
   // Community now ends the active one.
   const result =
     p.planId === "community"
-      ? await applySubscription({ action: "end", userId: p.userId, reason: p.reason, changedBy: adminUserId })
+      ? await applySubscription({ action: "end", userId: p.userId, reason: p.reason, changedBy: adminUserId, actions: off })
       : await applySubscription({
           action: "start",
           userId: p.userId,
@@ -167,7 +184,9 @@ export async function downgrade(input: DowngradeInput): Promise<PlanActionResult
           periodEnd: now.active?.period_end ?? null,
           reason: p.reason,
           changedBy: adminUserId,
+          actions: off,
         })
+  if (off.length && result === "ok") runBillingActionsLater()
   if (p.notify && result === "ok") notify(now.email, now.name, planNotice("downgrade", p.planId, { when: "now", site: site() }))
   return done(p.userId, result, { from: now.plan, to: p.planId })
 }
