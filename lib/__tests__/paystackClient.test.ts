@@ -111,11 +111,26 @@ describe("subscriptions", () => {
     expect(JSON.stringify(res)).not.toContain("AUTH_secret")
   })
 
-  it("lists by customer and plan", async () => {
-    fetchMock.mockResolvedValue(reply(200, { data: [SUB] }))
-    const res = await listSubscriptions({ customer: 7, plan: 9 })
-    expect(fetchMock.mock.calls[0][0]).toBe("https://api.paystack.co/subscription?customer=7&plan=9")
-    expect(res.ok && res.data[0].subscriptionCode).toBe("SUB_1")
+  it("lists by the customer's numeric id, keeping only this plan, newest first", async () => {
+    fetchMock.mockResolvedValueOnce(reply(200, { data: { id: 7 } }))
+    fetchMock.mockResolvedValueOnce(
+      reply(200, {
+        data: [
+          { ...SUB, subscription_code: "SUB_old", createdAt: "2026-01-01T00:00:00Z" },
+          { ...SUB, subscription_code: "SUB_other", plan: { plan_code: "PLN_p" } },
+          { ...SUB, subscription_code: "SUB_new", createdAt: "2026-06-01T00:00:00Z" },
+        ],
+      }),
+    )
+    const res = await listSubscriptions({ customer: "CUS_1", plan: "PLN_s" })
+    expect(fetchMock.mock.calls[0][0]).toBe("https://api.paystack.co/customer/CUS_1")
+    expect(fetchMock.mock.calls[1][0]).toBe("https://api.paystack.co/subscription?customer=7")
+    expect(res.ok && res.data.map((s) => s.subscriptionCode)).toEqual(["SUB_new", "SUB_old"])
+  })
+
+  it("passes a failed customer lookup back rather than answering 'none'", async () => {
+    fetchMock.mockResolvedValue(reply(500, { message: "down" }))
+    expect(await listSubscriptions({ customer: "CUS_1", plan: "PLN_s" })).toMatchObject({ ok: false, permanent: false })
   })
 
   it("disables with the code and the email token", async () => {
