@@ -19,7 +19,7 @@ import { runTesterDigest } from "@/lib/digest"
 // 2. active subscriptions past period_end lapse to Community ('end', expired);
 // 3. builders and admins hear 3 days before a period ends, once a period;
 // 4. testers get the day's new test cases, once per window (lib/digest.ts);
-// 5. retention: page_views rolled up after 90 days, app_events kept 13
+// 5. retention: page_views rolled up after 90 days, app_events and paystack_events kept 13
 //    months, rate_limits a day;
 // 6. every alert rule, for deployments where /api/cron/alerts is not
 //    scheduled more often.
@@ -149,6 +149,14 @@ export async function GET(request: Request) {
     const cutoff = new Date(now)
     cutoff.setUTCMonth(cutoff.getUTCMonth() - 13)
     const { count, error } = await admin.from("app_events").delete({ count: "exact" }).lt("occurred_at", cutoff.toISOString())
+    if (error) throw new Error(error.message)
+    return count ?? 0
+  })
+
+  await step("paystack_events_deleted", async () => {
+    const cutoff = new Date(now)
+    cutoff.setUTCMonth(cutoff.getUTCMonth() - 13)
+    const { count, error } = await admin.from("paystack_events").delete({ count: "exact" }).lt("received_at", cutoff.toISOString())
     if (error) throw new Error(error.message)
     return count ?? 0
   })
