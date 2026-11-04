@@ -32,14 +32,13 @@ export const metadata: Metadata = {
  * /settings renders.
  *
  * The report, tester-per-mission and active-mission numbers are enforced at
- * publish (lib/allowance.ts). There is still no payment, and that binds this
- * page in three ways:
+ * publish (lib/allowance.ts). Three rules bind this page:
  *
  *   1. It describes the shape of the offer, never the state of an account.
  *      No "you're on Community", no usage meter — and no monthly/yearly
  *      toggle, which Cursor has and we cannot honour.
- *   2. The paid calls to action are /contact, worded as a conversation. Never
- *      "Subscribe" or "Upgrade" — a dead checkout is worse than an honest one.
+ *   2. The paid calls to action go to Settings → Plan, where a builder
+ *      subscribes and cancels.
  *   3. Nothing unshipped is listed. A pricing table is a promise.
  *
  * Use the plan's vocabulary exactly: tester report, testers per mission, active
@@ -72,11 +71,11 @@ const ROWS: { label: string; values: string[]; emphasis?: boolean }[] = [
   { label: "CSV export", values: TIERS.map(() => "Included") },
 ]
 
-/** Each card's call to action. Paid tiers open a conversation — see 2. above. */
+/** Each card's call to action. See 2. above. */
 const CTA: Record<PlanId, { href: string; label: string }> = {
   community: { href: "/signup", label: "Start testing" },
-  starter: { href: "/contact", label: "Ask about Starter" },
-  pro: { href: "/contact", label: "Ask about Pro" },
+  starter: { href: "/settings?tab=plan", label: "Get Starter" },
+  pro: { href: "/settings?tab=plan", label: "Get Pro" },
 }
 
 /** Every answer here is something the product does today — see CLAUDE.md,
@@ -108,25 +107,15 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "How do I pay for Starter or Pro?",
-    a: (
-      <>
-        There is no checkout. Both start as a conversation — we are a small
-        cohort and we would rather talk to you first.{" "}
-        <Link href="/contact" className={LINK_INLINE}>
-          Get in touch
-        </Link>
-        , and once we&apos;ve agreed your plan we send you a Paystack payment
-        link. Prices include any tax we&apos;re required to charge, and no card
-        fee is added.
-      </>
-    ),
+    a: "Subscribe from Settings → Plan and pay by card through Paystack. It renews every month until you cancel. Prices include any tax we're required to charge, and no card fee is added.",
   },
   {
     q: "Can I cancel, or get a refund?",
     a: (
       <>
-        Your plan doesn&apos;t renew by itself, so there&apos;s nothing to
-        cancel unless you want to stop early. Refunds are in our{" "}
+        Yes — cancel any time in Settings → Plan. You keep the plan until the
+        end of the month you&apos;ve paid for, and you won&apos;t be charged
+        again. Refunds are in our{" "}
         <Link href="/refunds" className={LINK_INLINE}>
           Billing and Refund Policy
         </Link>
@@ -232,7 +221,6 @@ export default function PricingPage() {
         </div>
         <Reveal step={3}>
           <p className={`${META} mt-6 text-center`}>
-            There is no checkout. Starter and Pro start as a conversation.{" "}
             <Link href="/refunds" className={LINK_INLINE}>
               Billing and refunds
             </Link>

@@ -12,11 +12,9 @@ export const metadata: Metadata = { title: "Billing and Refund Policy — Twnhal
 
 // Every sentence here is a promise a builder can hold us to in a dispute, and
 // Paystack reads it when deciding one (docs/specs/SPEC-billing-policy.md).
-// Describe the product as it is: no checkout, no automatic renewal, no
-// turnaround time. Prices come from lib/plans.ts and are never written here.
-//
-// ponytail: B1 is "a Paystack payment link" (decided 3 Nov 2026). When a
-// checkout ships, §3 and §4 change in the same PR (CLAUDE.md, Payments).
+// Describe the product as it is: a monthly subscription, cancelled in Settings,
+// and no turnaround time. Prices come from lib/plans.ts and are never written
+// here. A change to how billing works changes this page in the same PR.
 
 const PAID = PLAN_IDS.map((id) => PLANS[id]).filter((plan) => plan.price);
 
@@ -39,7 +37,7 @@ export default function RefundsPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 3, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 4, 2026</p>
         </Reveal>
 
         <Reveal step={2}>
@@ -81,7 +79,7 @@ export default function RefundsPage() {
               Prices are in naira. They include any tax we&apos;re required to charge. <span className="text-ink font-medium">We never add a card or processing fee on top.</span>
             </p>
             <p>
-              You pay in advance for each billing period. We agree your plan by email, then send you a Paystack payment link. Your plan starts once the payment arrives, and we email you to confirm it, with the date the period ends.
+              You subscribe in Settings → Plan and pay by card through Paystack. Your card is charged when you subscribe and then on the same date every month (the 28th if you subscribe on the 29th–31st). Your plan starts once the payment arrives, and we email you to confirm it, with the date of your next charge.
             </p>
           </Section>
 
@@ -90,7 +88,10 @@ export default function RefundsPage() {
               A billing period is one month from the day your plan starts, unless we agree another length in writing.
             </p>
             <p>
-              <span className="text-ink font-medium">Your plan doesn&apos;t renew by itself.</span> Three days before a period ends we email you. If you want another period, get in touch and we&apos;ll send the next payment request. If you do nothing, the plan ends on its end date and the account moves to Community. Test cases already live keep the testers they have.
+              <span className="text-ink font-medium">Your plan renews every month until you cancel.</span> Three days before each renewal we email you the amount, the date and the card. If a renewal payment fails, your plan stays for 3 more days so you can pay; after that it ends and nothing more is charged. When a plan ends, the account moves to Community, and test cases already live keep the testers they have.
+            </p>
+            <p>
+              A plan we arranged with you directly doesn&apos;t renew. It ends on its end date, and you can subscribe in Settings → Plan from then.
             </p>
           </Section>
 
@@ -115,10 +116,10 @@ export default function RefundsPage() {
 
           <Section {...docSection("refunds", "cancel")}>
             <p>
-              You don&apos;t need to cancel: a plan that isn&apos;t renewed ends on its own. To stop a plan early, or to move to a smaller one, email <Email /> from your account&apos;s email address. We confirm by email.
+              <span className="text-ink font-medium">Cancel any time in Settings → Plan.</span> You keep your plan until the end of the period you&apos;ve paid for, and you won&apos;t be charged again. We confirm by email.
             </p>
             <p>
-              Your plan runs to the end of the period you&apos;ve paid for, and you won&apos;t be asked to pay again. We don&apos;t refund the rest of a period you cancel part-way through, except as described under Refunds.
+              We don&apos;t refund the rest of a period you cancel part-way through, except as described under Refunds. To stop a plan we arranged with you directly, or to move to a smaller plan, email <Email /> from your account&apos;s email address.
             </p>
           </Section>
 

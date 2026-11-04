@@ -9,7 +9,7 @@ import type { AllowanceView } from "@/lib/allowanceDb"
  *
  * The capped line is the free tier's whole growth mechanism, said at the
  * moment it is relevant — so it points at testing, not at a paid plan. Only an
- * empty balance offers both. There is no checkout; a plan is a conversation.
+ * empty balance offers both. A plan is taken in Settings → Plan.
  */
 export function AllowanceNotice({ view }: { view: AllowanceView }) {
   const { total, testersPerMission, activeMissions, activeLimit } = view
