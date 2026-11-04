@@ -98,19 +98,37 @@ export function formatNgn(n: number): string {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+/** One row of subscription_payments, as MRR reads it. */
+export type PaymentLine = { id: string; amount_ngn: number; period_start: string; period_end: string | null }
+/** One row of subscription_refunds, as MRR reads it. */
+export type RefundLine = { payment_id: string; amount_ngn: number; status: string }
+
+/** The only statuses where the money has actually gone back. Everything else is a promise. */
+export const REFUND_RETURNED: readonly string[] = ["processed", "settled_outside"]
+/** Finished one way or the other; anything else is promised back and hasn't gone. */
+export const REFUND_FINISHED: readonly string[] = [...REFUND_RETURNED, "failed"]
+
 /**
- * What one active subscription brings in a month: what was actually paid,
- * spread over the months it covers. A comped (unpaid) or open-ended one is 0 —
- * MRR is money, not list price.
+ * What one payment brings in a month: its own amount, less what has really
+ * been returned, over its own period. A refund still in flight hasn't left the
+ * account, so it doesn't reduce this. An open-ended period is 0. MRR is money,
+ * not list price.
  */
-export function monthlyAmount(sub: Pick<Subscription, "amount_ngn" | "period_start" | "period_end">): number {
-  if (!sub.amount_ngn || !sub.period_end) return 0
-  const months = Math.max(1, Math.round((Date.parse(sub.period_end) - Date.parse(sub.period_start)) / (30.44 * DAY_MS)))
-  return sub.amount_ngn / months
+export function monthlyAmount(payment: PaymentLine, refunds: readonly RefundLine[]): number {
+  if (!payment.period_end) return 0
+  const returned = refunds
+    .filter((r) => r.payment_id === payment.id && REFUND_RETURNED.includes(r.status))
+    .reduce((sum, r) => sum + r.amount_ngn, 0)
+  const months = Math.max(1, Math.round((Date.parse(payment.period_end) - Date.parse(payment.period_start)) / (30.44 * DAY_MS)))
+  return Math.max(0, payment.amount_ngn - returned) / months
 }
 
-export function mrr(active: readonly Pick<Subscription, "amount_ngn" | "period_start" | "period_end">[]): number {
-  return active.reduce((sum, s) => sum + monthlyAmount(s), 0)
+/** The payments whose period covers `now`. A comped period has no payment and adds nothing. */
+export function mrr(payments: readonly PaymentLine[], refunds: readonly RefundLine[], now: Date): number {
+  const at = now.getTime()
+  return payments
+    .filter((p) => Date.parse(p.period_start) <= at && p.period_end !== null && at < Date.parse(p.period_end))
+    .reduce((sum, p) => sum + monthlyAmount(p, refunds), 0)
 }
 
 /** The email a builder gets when `notify` is on. Never mentions the admin or the reason. */

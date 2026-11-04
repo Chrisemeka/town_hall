@@ -5,6 +5,7 @@ import { PageHeader, Panel, Stat, Tag, Empty, formatDate } from "@/components/ad
 import { planFor } from "@/lib/plans"
 import { planIdFor, PLAN_IDS } from "@/lib/vocabulary"
 import { formatNgn, mrr } from "@/lib/subscriptions"
+import { currentPayments } from "@/lib/subscriptionPaymentsDb"
 
 export const metadata = { title: "Accounts — Admin · Twnhall" }
 
@@ -61,7 +62,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
   const now = Date.now()
   const weekAhead = new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  const [list, community, starter, pro, activeSubs, expiring] = await Promise.all([
+  const [list, community, starter, pro, current, expiring] = await Promise.all([
     admin.rpc("admin_account_list", {
       p_q: q || null,
       p_role: f.role ?? null,
@@ -76,7 +77,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
     admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").is("plan_id", null),
     admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "starter"),
     admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "pro"),
-    admin.from("subscriptions").select("amount_ngn, period_start, period_end").eq("status", "active"),
+    currentPayments(new Date(now)),
     admin
       .from("subscriptions")
       .select("id", { count: "exact", head: true })
@@ -87,7 +88,7 @@ export default async function AdminAccountsPage({ searchParams }: { searchParams
   const rows = (list.data ?? []) as Row[]
   const total = rows[0]?.total ?? 0
   const pages = Math.max(1, Math.ceil(total / PAGE))
-  const monthly = mrr((activeSubs.data ?? []) as { amount_ngn: number | null; period_start: string; period_end: string | null }[])
+  const monthly = mrr(current.payments, current.refunds, new Date(now))
 
   const href = (over: Record<string, string | number | undefined>) => {
     const params = new URLSearchParams()

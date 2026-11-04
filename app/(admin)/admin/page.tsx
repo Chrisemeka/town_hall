@@ -7,6 +7,7 @@ import { monthOf } from "@/lib/allowance"
 import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { formatNgn, mrr, type Subscription } from "@/lib/subscriptions"
+import { currentPayments } from "@/lib/subscriptionPaymentsDb"
 import { FX, INFRA_USD_MONTHLY, usdToNgn } from "@/lib/costs"
 import {
   BREAK_EVEN_REPORTS,
@@ -57,7 +58,7 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
       admin.from("alerts").select("rule_key, alert_rules(severity)").neq("status", "resolved"),
       admin.from("missions").select("id, title, created_at, testers_needed").gte("created_at", iso(sixStart)),
       admin.from("test_results").select("id, mission_id, created_at").gte("created_at", iso(sixStart)).order("created_at", { ascending: false }),
-      admin.from("subscriptions").select("plan_id, status, period_start, period_end, amount_ngn, ended_at"),
+      admin.from("subscriptions").select("plan_id, status, period_start, period_end, ended_at"),
       admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "starter"),
       admin.from("accounts").select("id", { count: "exact", head: true }).eq("type", "builder").eq("plan_id", "pro"),
       admin.from("ai_usage_events").select("estimated_cost_usd").gte("created_at", iso(range.from)),
@@ -92,7 +93,7 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
   const monthIdx = months.indexOf(thisMonth)
 
   // ── Paying builders ───────────────────────────────────────────────────
-  const subs = (subsRes.data ?? []) as Pick<Subscription, "plan_id" | "status" | "period_start" | "period_end" | "amount_ngn" | "ended_at">[]
+  const subs = (subsRes.data ?? []) as Pick<Subscription, "plan_id" | "status" | "period_start" | "period_end" | "ended_at">[]
   const paidAt = (end: Date) =>
     paidReportsSold(
       subs
@@ -109,7 +110,8 @@ export default async function AdminOverviewPage({ searchParams }: { searchParams
   const sum = (rows: { estimated_cost_usd: number | string | null }[] | null) => (rows ?? []).reduce((s, r) => s + Number(r.estimated_cost_usd ?? 0), 0)
   const aiRangeUsd = sum(aiRangeRes.data)
   const aiMonthUsd = sum(aiMonthRes.data)
-  const revenue = mrr(subs.filter((s) => s.status === "active"))
+  const current = await currentPayments(now)
+  const revenue = mrr(current.payments, current.refunds, now)
   const cohortThisMonth = cohortCost[monthIdx] ?? 0
   const costs = cohortThisMonth + usdToNgn(aiMonthUsd + INFRA_USD_MONTHLY)
   const margin = revenue > 0 ? `${Math.round(((revenue - costs) / revenue) * 100)}%` : "—"
