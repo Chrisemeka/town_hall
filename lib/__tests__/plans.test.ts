@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { PLANS, SIGNUP_GRANT, otherPlans, planFor, priceLine } from "@/lib/plans"
+import { formatNgn } from "@/lib/subscriptions"
 
 // /pricing and /settings both read these, so the numbers are asserted once
 // here. The copy lines are held to the numeric fields beside them: a string
@@ -16,6 +17,11 @@ describe("the tiers", () => {
     expect(PLANS.pro.price).toEqual({ naira: "₦30,000", dollars: "~$22" })
     expect(PLANS.starter.price).toEqual({ naira: "₦15,000", dollars: "~$11" })
     expect(PLANS.community.price).toBeNull()
+  })
+
+  it("charges what the page says", () => {
+    expect(PLANS.community.amountNgn).toBeNull()
+    for (const plan of [PLANS.starter, PLANS.pro]) expect(formatNgn(plan.amountNgn!)).toBe(plan.price!.naira)
   })
 
   it("states each number in its copy", () => {
