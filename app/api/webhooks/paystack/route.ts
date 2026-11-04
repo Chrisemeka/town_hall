@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { paystackKey } from "@/lib/paystack/config"
+import { isBillingProblem, runAlertsLater } from "@/lib/alerts/run"
 import { eventFields, handlePaystackEvent, type PaystackOutcome } from "@/lib/paystack/events"
 import { verifyPaystackSignature } from "@/lib/paystack/signature"
 import { checkRateLimit, clientIp, tooManyResponse } from "@/lib/rateLimitDb"
@@ -48,8 +49,11 @@ export async function POST(req: Request) {
     console.error("[webhook/paystack] handler failed:", e instanceof Error ? e.message : "unknown")
   }
 
-  const { error } = await createAdminClient().from("paystack_events").insert({ ...eventFields(event), outcome })
+  const fields = eventFields(event)
+  const { error } = await createAdminClient().from("paystack_events").insert({ ...fields, outcome })
   if (error) console.error("[webhook/paystack] event not recorded:", error.message)
+  // Money that granted nothing can't wait for the cron.
+  if (isBillingProblem({ event: fields.event, outcome })) runAlertsLater(["billing_mismatch"])
 
   // A 500 is a redelivery, and every handler is safe to run twice. An unrecorded
   // event takes the same road: alerts read this table.

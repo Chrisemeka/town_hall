@@ -9,14 +9,19 @@ vi.mock("@/lib/rateLimitDb", () => ({
 }))
 const insert = vi.fn<(row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>>(async () => ({ error: null }))
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({ from: () => ({ insert }) }) }))
-vi.mock("@/lib/paystack/events", async (original) => ({
-  ...(await original<typeof import("@/lib/paystack/events")>()),
+vi.mock("@/lib/alerts/run", () => ({
+  isBillingProblem: (e: { outcome: string }) => e.outcome === "mismatch",
+  runAlertsLater: vi.fn(),
+}))
+vi.mock("@/lib/paystack/events", async () => ({
+  ...(await import("@/lib/paystack/eventFields")),
   handlePaystackEvent: vi.fn(async () => "ignored"),
 }))
 
 import { POST } from "@/app/api/webhooks/paystack/route"
 import { handlePaystackEvent } from "@/lib/paystack/events"
 import { checkRateLimit } from "@/lib/rateLimitDb"
+import { runAlertsLater } from "@/lib/alerts/run"
 
 const SECRET = "sk_test_secret"
 const BODY = JSON.stringify({
@@ -85,6 +90,12 @@ describe("POST /api/webhooks/paystack", () => {
     const res = await call(BODY, sign(BODY))
     expect(res.status).toBe(500)
     expect(insert.mock.calls[0][0]).toMatchObject({ outcome: "error" })
+  })
+
+  it("runs the billing alert at once on money that granted nothing, and acknowledges it", async () => {
+    vi.mocked(handlePaystackEvent).mockResolvedValue("mismatch")
+    expect((await call(BODY, sign(BODY))).status).toBe(200)
+    expect(runAlertsLater).toHaveBeenCalledWith(["billing_mismatch"])
   })
 
   it("answers 500 when the event can't be recorded", async () => {
