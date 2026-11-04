@@ -370,7 +370,9 @@ create the new one, and restate the grants.
 - guarded with `on conflict (reference) do nothing`.
 
 **Renewals already made by `extend` are not recoverable.** Only their latest
-amount survived. Record the count of affected rows in §0 when you run it.
+amount survived. **Count on 4 Nov 2026: 0 affected.** `subscriptions` held 7
+rows and none had `amount_ngn` set, so the backfill writes no rows and nothing
+was lost.
 
 ## §3 — MRR and the billing record read payments
 
