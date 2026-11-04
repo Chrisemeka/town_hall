@@ -8,7 +8,7 @@ import "server-only"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export type ApplyArgs = {
-  action: "start" | "schedule" | "end" | "extend" | "apply"
+  action: "start" | "schedule" | "end" | "extend" | "apply" | "attach"
   userId: string
   planId?: string | null
   periodEnd?: string | null
@@ -22,9 +22,27 @@ export type ApplyArgs = {
   providerSubscriptionId?: string | null
   endStatus?: "cancelled" | "expired"
   subscriptionId?: string | null
+  /** first | renewal | upgrade | resubscribe | manual. Null means manual. */
+  paymentKind?: string | null
+  providerEmailToken?: string | null
+  providerPlanCode?: string | null
+  providerStatus?: string | null
+  cardLast4?: string | null
+  cardBrand?: string | null
+  /** Queued in the same transaction as the payment, and only when the result is "ok". */
+  actions?: BillingAction[]
 }
 
-export type ApplyResult = "ok" | "unchanged" | "no_account" | "no_active" | "not_due"
+/** Work owed to Paystack. The payload never holds an authorization code. */
+export type BillingAction = {
+  kind: "disable_subscription" | "create_subscription"
+  subscription_code?: string | null
+  email_token?: string | null
+  payload?: Record<string, unknown>
+  idempotency_key: string
+}
+
+export type ApplyResult = "ok" | "duplicate" | "unchanged" | "no_account" | "no_active" | "not_due"
 
 export async function applySubscription(a: ApplyArgs): Promise<ApplyResult> {
   const { data, error } = await createAdminClient().rpc("apply_subscription", {
@@ -41,6 +59,13 @@ export async function applySubscription(a: ApplyArgs): Promise<ApplyResult> {
     p_provider_subscription_id: a.providerSubscriptionId ?? null,
     p_end_status: a.endStatus ?? "cancelled",
     p_subscription_id: a.subscriptionId ?? null,
+    p_payment_kind: a.paymentKind ?? null,
+    p_provider_email_token: a.providerEmailToken ?? null,
+    p_provider_plan_code: a.providerPlanCode ?? null,
+    p_provider_status: a.providerStatus ?? null,
+    p_card_last4: a.cardLast4 ?? null,
+    p_card_brand: a.cardBrand ?? null,
+    p_actions: a.actions ?? [],
   })
   if (error) throw new Error(error.message)
   if (data === "bad_action" || typeof data !== "string") throw new Error("Could not apply that plan change.")
