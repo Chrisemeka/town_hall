@@ -71,7 +71,15 @@ prompt's go-live checklist).
   plan's full month at once" rule). Unchanged here; `/refunds` §What You're
   Buying already says "each calendar month".
 
-**Checked against Paystack test mode, 4 Nov 2026:** `verify` returns `plan` as a code and `plan_object`, and `abandoned` for an unpaid page; disabling an unknown subscription is a 404, "Subscription with code not found or already inactive"; `GET /customer/:code` returns the numeric id. **The list's customer filter is the numeric id**, so `listSubscriptions()` resolves it from the code. Whether it narrows a non-empty list is unconfirmed until a test subscription exists; both codes are checked on what comes back, so a wider list can't match the wrong row.
+**Checked against Paystack test mode, 4 Nov 2026:** `verify` returns `plan` as a code and `plan_object`, and `abandoned` for an unpaid page; disabling an unknown subscription is a 404, "Subscription with code not found or already inactive"; `GET /customer/:code` returns the numeric id. **The list's customer filter is the numeric id**, so `listSubscriptions()` resolves it from the code. It narrows a non-empty list: with three subscriptions across two customers, each id returned only its own. Both codes are still checked on what comes back.
+
+**Seen on real test-mode subscriptions, 4–7 Nov 2026:**
+
+- **A renewal's `charge.success` carries no subscription code**, and its metadata holds only `invoice_action`. Matching on customer and plan is what works.
+- **A renewal runs late:** 11 minutes in one case. The new period starts from the old `period_end`, so the billing date doesn't drift.
+- **Cancelling goes `non-renewing`, still listing a next date, then `cancelled` with none** after the period ends. No charge followed. `subscription.disable` arrived about 24 minutes after the period ended.
+- **`invoice.payment_failed` carries a nested `subscription.subscription_code`.** A real failure came from deactivating the card's authorization; the subscription went to `attention` with its next date a cycle later. Whether Paystack retries on that date wasn't seen, because "Pay now" switched it off first.
+- **`subscription.create` beats its charge**, every time so far.
 
 **Decided while building, where this spec's wording would have misfired:**
 
