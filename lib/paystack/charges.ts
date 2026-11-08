@@ -5,8 +5,9 @@ import { recordEvent } from "@/lib/events"
 import { PLANS } from "@/lib/plans"
 import { billingNotice, disableActionFor, provisionalPeriodEnd } from "@/lib/subscriptions"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { fetchSubscription, listSubscriptions, type PaystackSubscription, type PaystackTransaction } from "@/lib/paystack/client"
+import { fetchSubscription, listSubscriptions, verifyTransaction, type PaystackSubscription, type PaystackTransaction } from "@/lib/paystack/client"
 import { planIdForCode } from "@/lib/paystack/config"
+import { planIdFor } from "@/lib/vocabulary"
 import { emailBuilder, later, site } from "@/lib/paystack/notify"
 import { runBillingActions } from "@/lib/paystack/actions"
 import { runRefunds } from "@/lib/paystack/refunds"
@@ -214,53 +215,86 @@ async function settleUpgrade(
   return "settled"
 }
 
+type PaystackRow = ActiveRow & { status: string; provider_plan_code: string | null }
+
+const ROW_COLUMNS = `${ACTIVE_COLUMNS}, status, provider_plan_code`
+
+/**
+ * Which of our subscriptions made this charge, as Paystack has it now. A charge
+ * names no subscription, so each of the customer's codes we hold is fetched and
+ * its own invoices are read for the reference.
+ */
+async function chargingSubscription(reference: string, codes: string[]): Promise<PaystackSubscription | null> {
+  for (const code of codes) {
+    const res = await fetchSubscription(code)
+    if (res.ok && res.data.invoiceReferences.includes(reference)) return res.data
+  }
+  return null
+}
+
+/**
+ * A charge with no checkout: a renewal, a scheduled Starter's first charge
+ * (§4), or a charge from a subscription that should be off (§7). Told apart by
+ * the subscription that made it. When Paystack's invoices don't name it, only
+ * the plain renewal of the one active plan is assumed, as before; nothing is
+ * refunded or applied on a guess.
+ */
 async function settleRenewal(tx: PaystackTransaction, planId: "starter" | "pro"): Promise<SettleOutcome> {
-  const admin = createAdminClient()
-  const base = () => admin.from("subscriptions").select(ACTIVE_COLUMNS).eq("status", "active").eq("source", "paystack").limit(1)
-
-  let row: ActiveRow | null = null
-  if (tx.customerCode) {
-    const { data, error } = await base().eq("provider_customer_id", tx.customerCode).eq("plan_id", planId).maybeSingle()
-    if (error) throw new Error(error.message)
-    row = data as ActiveRow | null
-  }
-  if (!row && tx.subscriptionCode) {
-    const { data, error } = await base().eq("provider_subscription_id", tx.subscriptionCode).maybeSingle()
-    if (error) throw new Error(error.message)
-    row = data as ActiveRow | null
-  }
-  if (!row) return "unmatched"
-  // A charge from a different subscription than the one this plan is on: an old
-  // one that should be off. It renews nothing.
-  if (tx.subscriptionCode && row.provider_subscription_id && tx.subscriptionCode !== row.provider_subscription_id) return "unmatched"
-
-  // A charge on a plan that is cancelled or changing: PR 3 refunds it. Until
-  // then it extends nothing and reaches a person.
-  const { data: scheduled, error } = await admin
+  if (!tx.customerCode || !tx.reference) return "unmatched"
+  const { data, error } = await createAdminClient()
     .from("subscriptions")
-    .select("id")
-    .eq("profile_id", row.profile_id)
-    .eq("status", "scheduled")
-    .limit(1)
-    .maybeSingle()
+    .select(ROW_COLUMNS)
+    .eq("source", "paystack")
+    .eq("provider_customer_id", tx.customerCode)
+    .order("created_at", { ascending: false })
+    .limit(20)
   if (error) throw new Error(error.message)
-  if (scheduled) return "unmatched"
+  const rows = (data ?? []) as PaystackRow[]
+  if (!rows.length) return "unmatched"
 
-  const code = row.provider_subscription_id ?? tx.subscriptionCode
-  const sub = code ? await fetchSubscription(code) : null
-  const fresh = sub?.ok ? sub.data : null
+  const codes = [...new Set(rows.map((r) => r.provider_subscription_id).filter((c): c is string => !!c))]
+  const charging = await chargingSubscription(tx.reference, codes)
+  const code = charging?.subscriptionCode ?? null
+  const owner = code ? (rows.find((r) => r.provider_subscription_id === code) ?? null) : null
+  const active = rows.find((r) => r.status === "active") ?? null
+  // Any change waiting on the plan, however it was scheduled.
+  let scheduled = rows.find((r) => r.status === "scheduled") ?? null
+  if (!scheduled && active) {
+    const { data: waiting, error: waitingError } = await createAdminClient()
+      .from("subscriptions")
+      .select(ROW_COLUMNS)
+      .eq("profile_id", active.profile_id)
+      .eq("status", "scheduled")
+      .maybeSingle()
+    if (waitingError) throw new Error(waitingError.message)
+    scheduled = waiting as PaystackRow | null
+  }
+
+  if (owner && owner === scheduled) return scheduled.plan_id === planId ? applyScheduled(tx, scheduled, charging!) : "unmatched"
+  if (!active) return owner ? unwanted(tx, owner, charging) : "unmatched"
+  if (owner && owner !== active) return unwanted(tx, owner, charging)
+  // Charged after the builder cancelled, or after Pro was switched off for a
+  // downgrade: the plan had stopped renewing.
+  if (scheduled) return owner ? unwanted(tx, active, charging) : "unmatched"
+  if (active.plan_id !== planId) return "unmatched"
+
+  let fresh = charging
+  if (!fresh && active.provider_subscription_id) {
+    const res = await fetchSubscription(active.provider_subscription_id)
+    fresh = res.ok ? res.data : null
+  }
   const periodEnd = periodEndFrom(fresh?.nextPaymentDate ?? null, tx.paidAt)
 
   const result = await applySubscription({
     action: "extend",
-    userId: row.profile_id,
+    userId: active.profile_id,
     source: "paystack",
     periodEnd,
     amountNgn: tx.amountNgn,
     paymentReference: tx.reference,
     paymentKind: "renewal",
     providerCustomerId: tx.customerCode,
-    providerSubscriptionId: code,
+    providerSubscriptionId: active.provider_subscription_id ?? code,
     providerEmailToken: fresh?.emailToken ?? null,
     providerPlanCode: tx.planCode,
     // A payment that landed clears a failed one.
@@ -271,6 +305,66 @@ async function settleRenewal(tx: PaystackTransaction, planId: "starter" | "pro")
   if (result === "duplicate") return "duplicate"
   if (result !== "ok") return "unmatched"
 
-  emailBuilder(row.profile_id, "subscription-renewed", billingNotice("renewed", planId, { periodEnd, periodStart: row.period_end, cardLast4: tx.card.last4 ?? row.card_last4, site: site() }))
+  emailBuilder(active.profile_id, "subscription-renewed", billingNotice("renewed", planId, { periodEnd, periodStart: active.period_end, cardLast4: tx.card.last4 ?? active.card_last4, site: site() }))
   return "settled"
+}
+
+/**
+ * Pro → Starter on the billing date (§4): Starter's first charge applies the
+ * scheduled row, and Pro ends in the same transaction. Its charge applies it,
+ * never the clock. Not due yet throws, so Paystack redelivers.
+ */
+async function applyScheduled(tx: PaystackTransaction, scheduled: PaystackRow, sub: PaystackSubscription): Promise<SettleOutcome> {
+  const planId = planIdFor(scheduled.plan_id)
+  const periodEnd = periodEndFrom(sub.nextPaymentDate, tx.paidAt)
+  const result = await applySubscription({
+    action: "apply",
+    userId: scheduled.profile_id,
+    subscriptionId: scheduled.id,
+    source: "paystack",
+    periodEnd,
+    amountNgn: tx.amountNgn,
+    paymentReference: tx.reference,
+    paymentKind: "first",
+    providerCustomerId: tx.customerCode,
+    providerSubscriptionId: sub.subscriptionCode,
+    providerEmailToken: sub.emailToken,
+    providerPlanCode: tx.planCode,
+    providerStatus: sub.status ?? "active",
+    cardLast4: tx.card.last4,
+    cardBrand: tx.card.brand,
+  })
+  if (result === "duplicate") return "duplicate"
+  if (result === "not_due") throw new Error(`scheduled ${scheduled.id} isn't due yet`)
+  if (result !== "ok") return "unmatched"
+  await recordEvent({ name: "plan.changed", profileId: scheduled.profile_id, accountType: "builder", props: { to: planId, source: "paystack", why: "scheduled" } })
+  emailBuilder(scheduled.profile_id, "subscription-started", billingNotice("started", planId, { periodEnd, cardLast4: tx.card.last4, site: site() }))
+  return "settled"
+}
+
+/** A charge nobody meant: a person looks at it until §7's automatic refund lands. */
+async function unwanted(_tx: PaystackTransaction, _row: PaystackRow, _sub: PaystackSubscription | null): Promise<SettleOutcome> {
+  return "unmatched"
+}
+
+/**
+ * Charges Paystack made on these subscriptions that never reached us: a lost
+ * webhook. Each successful one is verified and settled, exactly as if its
+ * webhook had arrived. The cron asks before it ends a Paystack plan, so a
+ * builder who paid is never lapsed for our missed event. Returns how many settled.
+ */
+export async function recoverLostCharges(codes: (string | null | undefined)[]): Promise<number> {
+  let n = 0
+  for (const code of new Set(codes.filter((c): c is string => !!c))) {
+    const sub = await fetchSubscription(code)
+    if (!sub.ok || !sub.data.invoiceReferences.length) continue
+    const { data: known, error } = await createAdminClient().from("subscription_payments").select("reference").in("reference", sub.data.invoiceReferences)
+    if (error) throw new Error(error.message)
+    const seen = new Set((known ?? []).map((k) => k.reference))
+    for (const reference of sub.data.invoiceReferences.filter((r) => !seen.has(r))) {
+      const tx = await verifyTransaction(reference)
+      if (tx.ok && tx.data.status === "success" && (await settleCharge(tx.data)) === "settled") n++
+    }
+  }
+  return n
 }

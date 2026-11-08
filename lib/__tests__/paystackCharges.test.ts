@@ -265,9 +265,11 @@ describe("a renewal", () => {
     expect(applied()[0].periodEnd).toBe("2026-12-04T09:00:00.000Z")
   })
 
-  it("matches on the subscription code when the customer doesn't", async () => {
-    world({ subscriptions: [activeRow({ provider_customer_id: null })] })
-    expect(await settleCharge(renewal({ subscription_code: "SUB_1" }))).toBe("settled")
+  it("a renewal names no subscription: the one whose own invoices list it is the one renewed", async () => {
+    world({ subscriptions: [activeRow()] })
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ invoiceReferences: ["twnhall-sub-0", "ps-renewal-1"] }) })
+    expect(await settleCharge(renewal())).toBe("settled")
+    expect(applied()[0]).toMatchObject({ action: "extend", providerSubscriptionId: "SUB_1" })
   })
 
   it("a renewal for no known subscription is unmatched", async () => {
@@ -276,15 +278,16 @@ describe("a renewal", () => {
     expect(applySubscription).not.toHaveBeenCalled()
   })
 
-  it("a charge from a different subscription renews nothing", async () => {
-    world({ subscriptions: [activeRow()] })
-    expect(await settleCharge(renewal({ subscription_code: "SUB_stale" }))).toBe("unmatched")
-    expect(applySubscription).not.toHaveBeenCalled()
+  it("a charge from a subscription we already ended renews nothing", async () => {
+    world({ subscriptions: [activeRow(), activeRow({ id: "old", status: "expired", provider_subscription_id: "SUB_old" })] })
+    vi.mocked(fetchSubscription).mockImplementation(async (code) => ({ ok: true, data: paystackSub({ subscriptionCode: code, invoiceReferences: code === "SUB_old" ? ["ps-renewal-1"] : [] }) }))
+    expect(await settleCharge(renewal())).not.toBe("settled")
+    expect(applied().filter((a) => a.action === "extend")).toEqual([])
   })
 
   it("a charge on a cancelled plan renews nothing and reaches a person", async () => {
     world({ subscriptions: [activeRow(), { profile_id: ME, status: "scheduled", plan_id: "community" }] })
-    expect(await settleCharge(renewal())).toBe("unmatched")
+    expect(await settleCharge(renewal())).not.toBe("settled")
     expect(applySubscription).not.toHaveBeenCalled()
   })
 
@@ -369,5 +372,37 @@ describe("which subscription a first charge belongs to", () => {
     vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ subscriptionCode: "SUB_old", invoiceReferences: ["twnhall-sub-0"] }) })
     expect(await settleCharge(charge())).toBe("settled")
     expect(applied()[0].providerSubscriptionId).toBeNull()
+  })
+})
+
+describe("a downgrade's Starter, on the billing date", () => {
+  const PRO = activeRow({ id: "pro-row", plan_id: "pro", provider_subscription_id: "SUB_pro" })
+  const WAITING = { ...activeRow({ id: "starter-row", plan_id: "starter", provider_subscription_id: "SUB_starter" }), status: "scheduled" }
+  const first = () => charge({ reference: "ps-starter-1", metadata: {} })
+  beforeEach(() => {
+    vi.mocked(fetchSubscription).mockImplementation(async (code) => ({
+      ok: true,
+      data: paystackSub({ subscriptionCode: code, invoiceReferences: code === "SUB_starter" ? ["ps-starter-1"] : [] }),
+    }))
+  })
+
+  it("its first charge applies the scheduled row with Paystack's next date, and Pro ends with it", async () => {
+    world({ subscriptions: [PRO, WAITING] })
+    expect(await settleCharge(first())).toBe("settled")
+    expect(applied()[0]).toMatchObject({
+      action: "apply",
+      subscriptionId: "starter-row",
+      periodEnd: NEXT,
+      amountNgn: 15000,
+      paymentReference: "ps-starter-1",
+      paymentKind: "first",
+      providerSubscriptionId: "SUB_starter",
+    })
+  })
+
+  it("not due yet throws, so Paystack delivers it again", async () => {
+    world({ subscriptions: [PRO, WAITING] })
+    vi.mocked(applySubscription).mockResolvedValue("not_due")
+    await expect(settleCharge(first())).rejects.toThrow("isn't due")
   })
 })

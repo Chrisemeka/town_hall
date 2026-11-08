@@ -7,7 +7,9 @@ import { z } from "zod"
 import { requireAccount } from "@/lib/auth"
 import { applySubscription } from "@/lib/billing"
 import { PLANS } from "@/lib/plans"
-import { disableSubscription, fetchSubscription, initializeTransaction, isAlreadyOff, listSubscriptions } from "@/lib/paystack/client"
+import { createSubscriptionFrom, disableSubscription, fetchSubscription, initializeTransaction, isAlreadyOff } from "@/lib/paystack/client"
+import { findSubscription } from "@/lib/paystack/charges"
+import { runBillingActionsLater } from "@/lib/paystack/actions"
 import { paystackConfigured, planCodeFor } from "@/lib/paystack/config"
 import { emailBuilder, site } from "@/lib/paystack/notify"
 import { tooManyMessage } from "@/lib/rateLimit"
@@ -33,7 +35,7 @@ const fail = (error: string): BillingActionResult => ({ ok: false, error })
 function activeRow(admin: Admin, userId: string) {
   return admin
     .from("subscriptions")
-    .select("id, plan_id, source, period_end, provider_status, provider_customer_id, provider_plan_code, provider_subscription_id, provider_email_token")
+    .select("id, plan_id, source, period_end, payment_reference, card_last4, provider_status, provider_customer_id, provider_plan_code, provider_subscription_id, provider_email_token")
     .eq("profile_id", userId)
     .eq("status", "active")
     .maybeSingle()
@@ -149,40 +151,71 @@ export async function startSubscription(planId: "starter" | "pro", kind: "new" |
   redirect(init.data.authorizationUrl)
 }
 
+const NOT_NOW = "We couldn't change your plan just now, so nothing has changed. Try again in a minute."
+
+
+type Scheduled = { id: string; plan_id: string; provider_subscription_id: string | null; provider_email_token: string | null }
+
+function scheduledRow(admin: Admin, userId: string) {
+  return admin
+    .from("subscriptions")
+    .select("id, plan_id, provider_subscription_id, provider_email_token")
+    .eq("profile_id", userId)
+    .eq("status", "scheduled")
+    .maybeSingle()
+}
+
+/** Switches a Paystack subscription off, fetching its email token if we don't hold one. Already off is off. */
+async function switchOff(code: string, token: string | null): Promise<boolean> {
+  if (!token) {
+    const sub = await fetchSubscription(code)
+    if (!sub.ok) return false
+    token = sub.data.emailToken
+    if (!token) return false
+  }
+  const off = await disableSubscription({ code, token })
+  return off.ok || isAlreadyOff(off)
+}
+
 export async function cancelSubscription(): Promise<BillingActionResult> {
   // ponytail: no rate limit. This is the off switch, and a closed limiter must
   // never refuse it; after one success it's "nothing to cancel" anyway.
   const { userId } = await requireAccount("builder")
 
   const admin = createAdminClient()
-  const [{ data: active }, { data: scheduled }] = await Promise.all([
-    activeRow(admin, userId),
-    admin.from("subscriptions").select("id").eq("profile_id", userId).eq("status", "scheduled").eq("plan_id", "community").maybeSingle(),
-  ])
-  if (!active || active.source !== "paystack" || scheduled) return fail("There's nothing to cancel.")
-
+  const [{ data: active }, { data: scheduledData }] = await Promise.all([activeRow(admin, userId), scheduledRow(admin, userId)])
+  const scheduled = scheduledData as Scheduled | null
+  if (!active || active.source !== "paystack" || scheduled?.plan_id === "community") return fail("There's nothing to cancel.")
   const NOT_NOW = "We couldn't cancel just now, so nothing has changed. Try again in a minute."
+
+  // A downgrade waiting: its Starter subscription goes first, so neither can
+  // charge. If it can't be switched off, nothing changes. One not created yet
+  // is stopped from being created.
+  if (scheduled?.provider_subscription_id) {
+    if (!(await switchOff(scheduled.provider_subscription_id, scheduled.provider_email_token))) return fail(NOT_NOW)
+  } else if (scheduled) {
+    await admin
+      .from("billing_actions")
+      .update({ done_at: new Date().toISOString(), last_error: "Cancelled before it was created" })
+      .eq("profile_id", userId)
+      .eq("kind", "create_subscription")
+      .is("done_at", null)
+  }
+
   let code = active.provider_subscription_id as string | null
   let token = active.provider_email_token as string | null
-  // Subscribed moments ago, or subscription.create was missed: ask for the codes.
+  // Subscribed moments ago, or subscription.create was missed: ask Paystack for
+  // the subscription whose own invoices name this plan's payment.
   if (!code && active.provider_customer_id && active.provider_plan_code) {
-    const found = await listSubscriptions({ customer: active.provider_customer_id, plan: active.provider_plan_code })
-    const sub = found.ok ? found.data.find((s) => s.status === "active" && s.subscriptionCode) : null
+    const sub = await findSubscription(active.provider_customer_id, active.provider_plan_code, active.payment_reference)
     code = sub?.subscriptionCode ?? null
     token = sub?.emailToken ?? null
   }
   if (!code) return fail(NOT_NOW)
 
-  if (!token) {
-    const sub = await fetchSubscription(code)
-    if (!sub.ok || !sub.data.emailToken) return fail(NOT_NOW)
-    token = sub.data.emailToken
-  }
-
   // Paystack first. Never schedule the end while Paystack can still charge.
-  // Already off (its hosted page got there first) is what we were asking for.
-  const off = await disableSubscription({ code, token })
-  if (!off.ok && !isAlreadyOff(off)) return fail(NOT_NOW)
+  // Already off (its hosted page, or a downgrade, got there first) is what we were asking for.
+  if (!(await switchOff(code, token))) return fail(NOT_NOW)
 
   // "Cancelled" is this scheduled community row, not provider_status. If this
   // write fails, Paystack has already stopped and its webhook schedules it.
@@ -193,6 +226,69 @@ export async function cancelSubscription(): Promise<BillingActionResult> {
   }
 
   emailBuilder(userId, "subscription-cancelled", billingNotice("cancelled", planIdFor(active.plan_id), { periodEnd: active.period_end, site: site() }))
+  revalidatePath("/settings")
+  return { ok: true }
+}
+
+/**
+ * Pro → Starter from the next billing date (SPEC-paystack-plan-changes §4).
+ * Off before on: Pro is switched off first, so a failure after that leaves a
+ * plan that ends, never two that charge. Starter is created on the same card,
+ * starting on Pro's next billing date; if Paystack refuses now, the creation is
+ * queued and retried, and the downgrade still shows as scheduled.
+ */
+export async function scheduleDowngrade(): Promise<BillingActionResult> {
+  const { userId } = await requireAccount("builder")
+  const rate = await checkRateLimit(["checkout:account", userId])
+  if (!rate.ok) return fail(tooManyMessage(rate.retryAfter))
+
+  const admin = createAdminClient()
+  const [{ data: active }, { data: scheduled }] = await Promise.all([activeRow(admin, userId), scheduledRow(admin, userId)])
+  const code = active?.provider_subscription_id as string | null | undefined
+  if (!active || active.source !== "paystack" || active.plan_id !== "pro" || active.provider_status === "attention" || scheduled || !code) {
+    return fail("Switching to Starter isn't available for this plan.")
+  }
+  if (!paystackConfigured()) return fail(NOT_NOW)
+
+  const pro = await fetchSubscription(code)
+  if (!pro.ok) return fail(NOT_NOW)
+  if (!pro.data.card.reusable) return fail("Your card can't be charged automatically. Cancel Pro, then subscribe to Starter when it ends.")
+  const startDate = pro.data.nextPaymentDate ?? active.period_end
+  if (!startDate) return fail(NOT_NOW)
+
+  if (!(await switchOff(code, active.provider_email_token ?? pro.data.emailToken))) return fail(NOT_NOW)
+
+  const starterCode = planCodeFor("starter")
+  const created = await createSubscriptionFrom({ fromCode: code, planCode: starterCode, startDate })
+  const result = await applySubscription({
+    action: "schedule",
+    userId,
+    planId: "starter",
+    source: "paystack",
+    reason: "Switched to Starter",
+    providerCustomerId: active.provider_customer_id,
+    providerPlanCode: starterCode,
+    ...(created.ok
+      ? { providerSubscriptionId: created.data.subscriptionCode, providerEmailToken: created.data.emailToken }
+      : {
+          // The authorization isn't kept: the retry fetches it from Pro again.
+          actions: [
+            {
+              kind: "create_subscription" as const,
+              subscription_code: code,
+              payload: { plan: "starter", start_date: startDate, customer: active.provider_customer_id },
+              idempotency_key: `create:${code}`,
+            },
+          ],
+        }),
+  })
+  if (result !== "ok") {
+    console.error("[billing] Pro is off but Starter wasn't scheduled:", userId, result)
+    return fail(`Pro won't renew, but we couldn't set up Starter. Your plan ends on ${lagosDate(startDate)}; you can subscribe to Starter then.`)
+  }
+  if (!created.ok) runBillingActionsLater()
+
+  emailBuilder(userId, "subscription-downgrade", billingNotice("downgrade_scheduled", "pro", { periodEnd: startDate, cardLast4: active.card_last4, site: site() }))
   revalidatePath("/settings")
   return { ok: true }
 }

@@ -134,7 +134,7 @@ export function disableActionFor(row: { provider_subscription_id?: string | null
 
 /** Which of Settings → Plan's states an account is in (SPEC-paystack-subscriptions §12). */
 export type PlanBilling = {
-  kind: "none" | "manual" | "renewing" | "cancelled" | "attention"
+  kind: "none" | "manual" | "renewing" | "cancelled" | "attention" | "downgrading"
   periodEnd: string | null
   amountNgn: number | null
   cardLast4: string | null
@@ -154,6 +154,8 @@ export function planBillingFor(
   if (!active) return { ...base, kind: planId === "community" ? "none" : "manual" }
   if (active.source !== "paystack") return { ...base, kind: "manual" }
   if (scheduledPlanId === "community") return { ...base, kind: "cancelled" }
+  // Pro switched off, Starter waiting for the billing date (SPEC-paystack-plan-changes §4).
+  if (scheduledPlanId) return { ...base, kind: "downgrading" }
   return { ...base, kind: active.provider_status === "attention" ? "attention" : "renewing" }
 }
 
@@ -274,6 +276,9 @@ type BillingNoticeKind =
   | "cancelled"
   | "payment_failed"
   | "lapsed"
+  | "downgrade_scheduled"
+  | "switching"
+  | "downgrade_failed"
 
 /** Every email about a Paystack subscription: it names the amount and says where to stop it. Never the admin or a reason. */
 export function billingNotice(
@@ -314,6 +319,18 @@ export function billingNotice(
     payment_failed: [
       `Your ${name} payment didn't go through`,
       `We couldn't charge ${amount} for ${name}. Pay by ${opts.periodEnd ? lagosDate(graceEnd(opts.periodEnd)) : on} or the plan ends. Use Pay now in Settings → Plan.`,
+    ],
+    downgrade_scheduled: [
+      `Your plan changes to Starter on ${on}`,
+      `You keep Pro until ${on}. From ${on}, Starter is ${formatNgn(planFor("starter").amountNgn ?? 0)} a month on ${card}, renewing monthly until you cancel. There's no refund for the rest of this Pro month: you keep Pro until it ends.`,
+    ],
+    switching: [
+      `Your plan changes to Starter on ${on}`,
+      `Your Pro plan ends on ${on}, and Starter starts then: we'll charge ${formatNgn(planFor("starter").amountNgn ?? 0)} to ${card} on ${on}. To stop it, cancel in Settings → Plan before then.`,
+    ],
+    downgrade_failed: [
+      "Starter didn't start",
+      `Starter didn't start because the payment didn't go through. Your account is on Community, and there will be no further charges. Subscribe again from Settings → Plan.`,
     ],
     lapsed: [`Your ${name} plan has ended`, `Your ${name} plan (${amount} a month) has ended because the payment didn't go through. There will be no further charges. Your account is on Community, and you can subscribe again from Settings → Plan.`],
   }

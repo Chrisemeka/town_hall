@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Check } from "lucide-react"
-import { cancelSubscription, startSubscription } from "@/actions/billing"
+import { cancelSubscription, scheduleDowngrade, startSubscription } from "@/actions/billing"
 import { otherPlans, planFor, priceLine, type Plan } from "@/lib/plans"
 import { billingDay, formatNgn, graceEnd, lagosDate, type PlanBilling } from "@/lib/subscriptions"
 import type { PlanId } from "@/lib/vocabulary"
@@ -80,6 +80,20 @@ function UpgradeDialog({ now, estimate, attention }: { now: Date; estimate: { re
   )
 }
 
+/** Pro → Starter at the next billing date (SPEC-paystack-plan-changes §4). */
+function SwitchDialog({ periodEnd, cardLast4, now }: { periodEnd: string | null; cardLast4: string | null; now: Date }) {
+  const on = periodEnd ? lagosDate(periodEnd) : "the end of this month"
+  return (
+    <BillingDialog label="Switch to Starter" title="Switch to Starter?" confirm="Switch to Starter" dismiss="Keep Pro" action={scheduleDowngrade}>
+      <p>
+        You keep Pro until {on}. From {on}, Starter is {planFor("starter").price!.naira} a month
+        {cardLast4 ? ` on the card ending ${cardLast4}` : ""}, renewing on the {periodEnd ? billingDay(new Date(periodEnd)) : billingDay(now)} until you
+        cancel. There&apos;s no refund for the rest of this Pro month: you keep Pro until it ends.
+      </p>
+    </BillingDialog>
+  )
+}
+
 function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | null }) {
   return (
     <BillingDialog
@@ -154,6 +168,19 @@ function CurrentBilling({ plan, billing, now, upgrade }: { plan: Plan; billing: 
         </p>
         <div className="flex flex-col medium:flex-row gap-4">
           {upgradeButton}
+          {plan.id === "pro" && billing.configured && <SwitchDialog periodEnd={billing.periodEnd} cardLast4={billing.cardLast4} now={now} />}
+          <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
+        </div>
+      </div>
+    )
+  }
+  if (billing.kind === "downgrading") {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className={line}>
+          {plan.name}{until ? ` until ${until}` : ""}, then Starter at {planFor("starter").price!.naira} a month.
+        </p>
+        <div>
           <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
         </div>
       </div>

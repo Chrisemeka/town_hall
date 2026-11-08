@@ -8,14 +8,16 @@ vi.mock("@/lib/mail", () => ({ sendNotice: vi.fn() }))
 vi.mock("@/lib/alerts/run", () => ({ runAlerts: vi.fn(async () => 14) }))
 vi.mock("@/lib/digest", () => ({ runTesterDigest: vi.fn(async () => 2) }))
 vi.mock("@/lib/paystack/actions", () => ({ runBillingActions: vi.fn(async () => 1) }))
-vi.mock("@/lib/paystack/client", () => ({ listSubscriptions: vi.fn() }))
+vi.mock("@/lib/paystack/charges", () => ({ findSubscription: vi.fn(), recoverLostCharges: vi.fn(async () => 0) }))
+vi.mock("@/lib/paystack/refunds", () => ({ runRefunds: vi.fn(async () => 0) }))
 vi.mock("@/lib/paystack/config", () => ({ paystackConfigured: vi.fn(() => true) }))
 
 import { GET } from "@/app/api/cron/daily/route"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { applySubscription } from "@/lib/billing"
 import { sendNotice } from "@/lib/mail"
-import { listSubscriptions } from "@/lib/paystack/client"
+import { findSubscription, recoverLostCharges } from "@/lib/paystack/charges"
+import { runRefunds } from "@/lib/paystack/refunds"
 import { paystackConfigured } from "@/lib/paystack/config"
 import { runBillingActions } from "@/lib/paystack/actions"
 
@@ -25,7 +27,7 @@ const req = (auth?: string) => new Request("https://x/api/cron/daily", { headers
 function store(rows: Record<string, unknown[]>, opts: { rpcFails?: boolean } = {}) {
   const chain = (table: string) => {
     const q: Record<string, unknown> = {}
-    for (const m of ["select", "eq", "lte", "lt", "gte", "is", "in", "or", "limit", "update", "delete"]) q[m] = () => q
+    for (const m of ["select", "eq", "neq", "lte", "lt", "gte", "is", "in", "or", "order", "limit", "update", "delete"]) q[m] = () => q
     q.maybeSingle = async () => ({ data: { full_name: "Ada Obi", email: "ada@example.ng" } })
     // The update-then-select that claims a reminder returns the row it marked.
     q.then = (resolve: (v: unknown) => void) => resolve({ data: rows[table] ?? [{ id: "x" }], error: null, count: 0 })
@@ -45,7 +47,10 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs())
 
 /** Only the subscriptions query that asks for this column list answers these rows. */
-function subscriptionWorld(world: { expired?: unknown[]; reminded?: unknown[]; scheduled?: unknown[]; reconcile?: unknown[] }) {
+const ors: string[] = []
+
+function subscriptionWorld(world: { expired?: unknown[]; reminded?: unknown[]; scheduled?: unknown[]; reconcile?: unknown[]; waiting?: unknown }) {
+  ors.length = 0
   vi.mocked(createAdminClient).mockReturnValue({
     rpc: async () => ({ data: 0, error: null }),
     from: (table: string) => {
@@ -53,15 +58,16 @@ function subscriptionWorld(world: { expired?: unknown[]; reminded?: unknown[]; s
       let status = ""
       let updating = false
       const q: Record<string, unknown> = {}
-      for (const m of ["lte", "lt", "gte", "is", "in", "or", "limit", "delete"]) q[m] = () => q
+      for (const m of ["lte", "lt", "gte", "is", "in", "neq", "order", "limit", "delete"]) q[m] = () => q
+      q.or = (expr: string) => (table === "subscriptions" && ors.push(expr), q)
       q.select = (c: string) => ((columns = c ?? ""), q)
       q.update = () => ((updating = true), q)
       q.eq = (col: string, v: string) => ((col === "status" ? (status = v) : 0), q)
-      q.maybeSingle = async () => ({ data: { full_name: "Ada Obi", email: "ada@example.ng" } })
+      q.maybeSingle = async () => ({ data: table === "subscriptions" ? (world.waiting ?? null) : { full_name: "Ada Obi", email: "ada@example.ng" } })
       q.then = (resolve: (v: unknown) => void) => {
         let data: unknown = []
         if (table === "subscriptions" && updating) data = [{ id: "x" }]
-        else if (table === "subscriptions" && status === "scheduled" && columns === "profile_id") data = world.scheduled ?? []
+        else if (table === "subscriptions" && status === "scheduled" && columns === "profile_id, plan_id") data = world.scheduled ?? []
         else if (table === "subscriptions" && columns.includes("provider_customer_id")) data = world.reconcile ?? []
         else if (table === "subscriptions" && columns.includes("card_last4")) data = world.reminded ?? []
         else if (table === "subscriptions" && columns.includes("provider_email_token")) data = world.expired ?? []
@@ -105,6 +111,40 @@ describe("the expired step", () => {
     expect(vi.mocked(sendNotice).mock.calls.some(([n]) => n.template === "subscription-lapsed")).toBe(false)
   })
 
+  it("asks Paystack first: a charge whose webhook was lost renews the plan instead of lapsing it", async () => {
+    subscriptionWorld({ expired: [{ ...row, period_end: daysAgo(4) }] })
+    vi.mocked(recoverLostCharges).mockResolvedValueOnce(1)
+    await GET(req(auth))
+    expect(recoverLostCharges).toHaveBeenCalledWith(["SUB_1", undefined])
+    expect(ends()).toEqual([])
+  })
+
+  it("a downgrade whose Starter never charged ends after the grace, switching both off, and says why", async () => {
+    subscriptionWorld({
+      expired: [{ ...row, plan_id: "pro", provider_subscription_id: "SUB_pro", period_end: daysAgo(4) }],
+      waiting: { plan_id: "starter", provider_subscription_id: "SUB_starter", provider_email_token: "tok2" },
+    })
+    await GET(req(auth))
+    expect(ends()[0].actions).toEqual([
+      { kind: "disable_subscription", subscription_code: "SUB_pro", email_token: "tok", idempotency_key: "disable:SUB_pro" },
+      { kind: "disable_subscription", subscription_code: "SUB_starter", email_token: "tok2", idempotency_key: "disable:SUB_starter" },
+    ])
+    const mail = vi.mocked(sendNotice).mock.calls.find(([n]) => n.template === "subscription-lapsed")
+    expect(mail?.[0].subject).toBe("Starter didn't start")
+  })
+
+  it("never applies a scheduled Paystack plan by the clock; its charge does. A cancellation it does", async () => {
+    subscriptionWorld({})
+    await GET(req(auth))
+    expect(ors).toContain("source.neq.paystack,plan_id.eq.community")
+  })
+
+  it("the refunds step looks up, sends and refreshes", async () => {
+    subscriptionWorld({})
+    await GET(req(auth))
+    expect(runRefunds).toHaveBeenCalledWith({ stale: true })
+  })
+
   it("sweeps work owed to Paystack after the lapse", async () => {
     subscriptionWorld({})
     const body = await (await GET(req(auth))).json()
@@ -125,10 +165,17 @@ describe("the three reminders", () => {
   })
 
   it("a cancelled plan says it ends, and that nothing more is charged", async () => {
-    subscriptionWorld({ reminded: [{ ...row, source: "paystack" }], scheduled: [{ profile_id: "p1" }] })
+    subscriptionWorld({ reminded: [{ ...row, source: "paystack" }], scheduled: [{ profile_id: "p1", plan_id: "community" }] })
     await GET(req(auth))
     expect(reminder().subject).toMatch(/^Your Starter plan ends on /)
     expect(reminder().messageBody).toContain("You won't be charged again.")
+  })
+
+  it("a downgrade says Pro ends and what Starter will charge, and how to stop it", async () => {
+    subscriptionWorld({ reminded: [{ ...row, plan_id: "pro", source: "paystack" }], scheduled: [{ profile_id: "p1", plan_id: "starter" }] })
+    await GET(req(auth))
+    expect(reminder().subject).toMatch(/^Your plan changes to Starter on /)
+    expect(reminder().messageBody).toMatch(/we'll charge ₦15,000 to the card ending 4081 on .*cancel in Settings → Plan before then/)
   })
 
   it("a manual plan invites them to subscribe", async () => {
@@ -162,9 +209,9 @@ describe("the reconcile step", () => {
         { profile_id: "p2", provider_customer_id: "CUS_2", provider_plan_code: "PLN_s" },
       ],
     })
-    vi.mocked(listSubscriptions)
-      .mockResolvedValueOnce({ ok: true, data: [{ subscriptionCode: "SUB_1", emailToken: "tok", status: "active", nextPaymentDate: "2026-12-04T00:00:00Z" }] } as never)
-      .mockResolvedValueOnce({ ok: true, data: [] })
+    vi.mocked(findSubscription)
+      .mockResolvedValueOnce({ subscriptionCode: "SUB_1", emailToken: "tok", status: "active", nextPaymentDate: "2026-12-04T00:00:00Z" } as never)
+      .mockResolvedValueOnce(null)
     const body = await (await GET(req(auth))).json()
     const attaches = vi.mocked(applySubscription).mock.calls.map(([a]) => a).filter((a) => a.action === "attach")
     expect(attaches).toHaveLength(1)
