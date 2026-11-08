@@ -146,9 +146,9 @@ export async function startSubscription(planId: "starter" | "pro", kind: "new" |
 }
 
 export async function cancelSubscription(): Promise<BillingActionResult> {
+  // ponytail: no rate limit. This is the off switch, and a closed limiter must
+  // never refuse it; after one success it's "nothing to cancel" anyway.
   const { userId } = await requireAccount("builder")
-  const rate = await checkRateLimit(["checkout:account", userId])
-  if (!rate.ok) return fail(tooManyMessage(rate.retryAfter))
 
   const admin = createAdminClient()
   const [{ data: active }, { data: scheduled }] = await Promise.all([

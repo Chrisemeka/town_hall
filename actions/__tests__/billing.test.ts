@@ -198,6 +198,13 @@ describe("cancelSubscription", () => {
     expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-cancelled", expect.objectContaining({ subject: "Starter cancelled" }))
   })
 
+  it("is never rate limited: it's the off switch", async () => {
+    world({ subscriptions: [active()] })
+    vi.mocked(checkRateLimit).mockResolvedValue({ ok: false, retryAfter: 120 })
+    expect(await cancelSubscription()).toEqual({ ok: true })
+    expect(checkRateLimit).not.toHaveBeenCalled()
+  })
+
   it("Paystack refusing changes nothing, and says so", async () => {
     world({ subscriptions: [active()] })
     vi.mocked(disableSubscription).mockResolvedValue({ ok: false, message: "down", permanent: false })
