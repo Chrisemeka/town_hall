@@ -91,6 +91,17 @@ prompt's go-live checklist).
 - **An admin moving or ending a Paystack plan queues its disable,** which §8 didn't cover and acceptance criterion 2 requires.
 - **The 3-day reminder for a manual plan keeps "get in touch" until Paystack is configured,** so it never points at a control that isn't there.
 
+**Found in review on 8 Nov 2026, to settle before live keys (PR 3 or the go-live checklist).** None of these can happen while production has no Paystack keys.
+
+- **A lost renewal webhook lapses a paying builder.** After the grace, the cron ends the row as "Payment failed" without asking Paystack. Fix: `fetchSubscription` first, and skip if Paystack shows it renewed.
+- **A renewal from a subscription that should be off extends the plan silently.** The different-code guard needs `tx.subscriptionCode`, and real renewals carry none. Fix: compare the charge's subscription, through `fetchSubscription` or the invoice, with the row's code.
+- **`findSubscription` can attach an older subscription that is still live** when its disable is failing; the alert covers it, but the new code is then lost.
+- **The return page says "started" after a `duplicate_charge`** that the webhook settled first.
+- **Cancelling in `attention` promises "You keep {Plan} until" a date already past.**
+- **A signed-out visitor from /pricing lands on the dashboard after login,** not Settings → Plan: login takes no return target.
+- **Cancel's own write racing its webhook can send two emails,** and Cancel doesn't check `apply_subscription`'s answer.
+- Smaller: reconcile reads 50 rows unordered; the subscription lookup and `site()` are written more than once.
+
 ## §1 — Decisions
 
 **Decided by the owner, 4 Nov 2026 — not reopened:**
@@ -260,7 +271,7 @@ confirmation sheet:
 
 **`cancelSubscription()`:**
 
-1. `requireAccount("builder")`; rate limit `"checkout:account"`.
+1. `requireAccount("builder")`. **No rate limit** (changed in review, 8 Nov 2026): `"checkout:account"` is `closed`, so a limiter outage or five checkout tries would have refused the off switch.
 2. The active `paystack` row. None, or one already cancelled → *"There's
    nothing to cancel"* and no call to Paystack.
 3. Email token missing → `fetchSubscription(code)` for it.
