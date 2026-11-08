@@ -26,7 +26,7 @@ const ROUTES = [
   {
     icon: Mail,
     title: "Hitting your report limit?",
-    body: "Starter and Pro start as a conversation rather than a checkout. Tell us what you are building and how much testing you need, and we will sort it out from there.",
+    body: "Questions about Starter or Pro before you subscribe? Tell us what you are building and how much testing you need, and we will sort it out from there.",
     href: mailto("Twnhall Starter or Pro"),
     label: "Email us about a plan",
   },

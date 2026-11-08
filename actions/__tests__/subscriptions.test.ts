@@ -6,6 +6,7 @@ vi.mock("@/lib/auth", () => ({ requireAdmin: vi.fn() }))
 vi.mock("@/lib/billing", () => ({ applySubscription: vi.fn(async () => "ok") }))
 vi.mock("@/lib/mail", () => ({ sendNotice: vi.fn() }))
 vi.mock("@/lib/events", () => ({ recordEventLater: vi.fn() }))
+vi.mock("@/lib/paystack/actions", () => ({ runBillingActionsLater: vi.fn() }))
 
 import { changePlan, downgrade, extend } from "@/actions/admin/subscriptions"
 import { requireAdmin } from "@/lib/auth"

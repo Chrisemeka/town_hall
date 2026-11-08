@@ -98,6 +98,65 @@ export function formatNgn(n: number): string {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+/** A failed renewal keeps the plan this many days before it lapses. */
+export const GRACE_DAYS = 3
+
+export const graceEnd = (periodEnd: string): string => new Date(Date.parse(periodEnd) + GRACE_DAYS * DAY_MS).toISOString()
+
+/** A month on, clamped to the month's end. Only until Paystack's own next_payment_date is known. */
+export function provisionalPeriodEnd(from: string): string {
+  const d = new Date(from)
+  const day = d.getUTCDate()
+  d.setUTCMonth(d.getUTCMonth() + 1)
+  if (d.getUTCDate() !== day) d.setUTCDate(0)
+  return d.toISOString()
+}
+
+/** "4th": the day of the month a card subscribed on `now` is charged, Lagos time. Paystack bills the 29th–31st on the 28th. */
+export function billingDay(now: Date): string {
+  const parts = new Intl.DateTimeFormat("en-GB", { day: "numeric", timeZone: "Africa/Lagos" }).format(now)
+  const day = Math.min(Number(parts), 28)
+  const tens = day % 100
+  const suffix = tens >= 11 && tens <= 13 ? "th" : (["th", "st", "nd", "rd"][day % 10] ?? "th")
+  return `${day}${suffix}`
+}
+
+/**
+ * What must be switched off at Paystack when this row stops. Queued through
+ * apply_subscription's p_actions, so it happens with the change or not at all.
+ */
+export function disableActionFor(row: { provider_subscription_id?: string | null; provider_email_token?: string | null }) {
+  const code = row.provider_subscription_id
+  return code
+    ? [{ kind: "disable_subscription" as const, subscription_code: code, email_token: row.provider_email_token ?? null, idempotency_key: `disable:${code}` }]
+    : []
+}
+
+/** Which of Settings → Plan's states an account is in (SPEC-paystack-subscriptions §12). */
+export type PlanBilling = {
+  kind: "none" | "manual" | "renewing" | "cancelled" | "attention"
+  periodEnd: string | null
+  amountNgn: number | null
+  cardLast4: string | null
+  /** Subscribing is switched on: the key and both plan codes are set. */
+  configured: boolean
+  testMode: boolean
+}
+
+export function planBillingFor(
+  planId: PlanId,
+  active: { source: string; period_end: string | null; amount_ngn: number | null; provider_status: string | null; card_last4: string | null } | null,
+  scheduledPlanId: string | null,
+  env: { configured: boolean; testMode: boolean },
+): PlanBilling {
+  const base = { periodEnd: active?.period_end ?? null, amountNgn: active?.amount_ngn ?? null, cardLast4: active?.card_last4 ?? null, ...env }
+  // A plan set before subscriptions existed has no row, and is arranged directly too.
+  if (!active) return { ...base, kind: planId === "community" ? "none" : "manual" }
+  if (active.source !== "paystack") return { ...base, kind: "manual" }
+  if (scheduledPlanId === "community") return { ...base, kind: "cancelled" }
+  return { ...base, kind: active.provider_status === "attention" ? "attention" : "renewing" }
+}
+
 /** One row of subscription_payments, as MRR reads it. */
 export type PaymentLine = { id: string; amount_ngn: number; period_start: string; period_end: string | null }
 /** One row of subscription_refunds, as MRR reads it. */
@@ -129,6 +188,58 @@ export function mrr(payments: readonly PaymentLine[], refunds: readonly RefundLi
   return payments
     .filter((p) => Date.parse(p.period_start) <= at && p.period_end !== null && at < Date.parse(p.period_end))
     .reduce((sum, p) => sum + monthlyAmount(p, refunds), 0)
+}
+
+type BillingNoticeKind =
+  | "started"
+  | "renewed"
+  | "renews_soon"
+  | "cancelled_ending"
+  | "manual_ending"
+  | "cancelled"
+  | "payment_failed"
+  | "lapsed"
+
+/** Every email about a Paystack subscription: it names the amount and says where to stop it. Never the admin or a reason. */
+export function billingNotice(
+  kind: BillingNoticeKind,
+  planId: PlanId,
+  opts: { periodEnd?: string | null; periodStart?: string | null; cardLast4?: string | null; site: string },
+): { subject: string; body: string } {
+  const plan = planFor(planId)
+  const name = plan.name
+  const amount = formatNgn(plan.amountNgn ?? 0)
+  const on = opts.periodEnd ? lagosDate(opts.periodEnd) : "the end of your billing period"
+  const card = opts.cardLast4 ? `the card ending ${opts.cardLast4}` : "your card"
+  const manage = `\n\nManage your plan: ${opts.site}/settings?tab=plan\nBilling, cancelling and refunds: ${opts.site}/refunds`
+
+  const copy: Record<BillingNoticeKind, [string, string]> = {
+    started: [
+      `You're on ${name}`,
+      `Your ${name} plan has started: ${plan.monthlyReports} reports a month and ${plan.activeMissions} active test cases at once. We charged ${amount} to ${card}. Your next charge is ${amount} on ${on}, and it renews every month until you cancel. Cancel any time in Settings → Plan.`,
+    ],
+    renewed: [
+      `Payment received for ${name}`,
+      `We charged ${amount} to ${card} for ${name}${opts.periodStart ? `, for ${lagosDate(opts.periodStart)} to ${on}` : ""}. Your next charge is ${amount} on ${on}.`,
+    ],
+    renews_soon: [
+      `Your ${name} plan renews on ${on}`,
+      `We'll charge ${amount} to ${card} on ${on}. To stop it, cancel in Settings → Plan before then.`,
+    ],
+    cancelled_ending: [`Your ${name} plan ends on ${on}`, `Your ${name} plan (${amount} a month) ends on ${on}. You won't be charged again.`],
+    manual_ending: [
+      `Your ${name} plan ends on ${on}`,
+      `Your ${name} plan ends on ${on}. To keep it, subscribe in Settings → Plan for ${amount} a month. It renews monthly until you cancel.`,
+    ],
+    cancelled: [`${name} cancelled`, `You keep ${name} until ${on}, then your account moves to Community. You won't be charged the ${amount} again.`],
+    payment_failed: [
+      `Your ${name} payment didn't go through`,
+      `We couldn't charge ${amount} for ${name}. Pay by ${opts.periodEnd ? lagosDate(graceEnd(opts.periodEnd)) : on} or the plan ends. Use Pay now in Settings → Plan.`,
+    ],
+    lapsed: [`Your ${name} plan has ended`, `Your ${name} plan (${amount} a month) has ended because the payment didn't go through. There will be no further charges. Your account is on Community, and you can subscribe again from Settings → Plan.`],
+  }
+  const [subject, body] = copy[kind]
+  return { subject, body: body + manage }
 }
 
 /** The email a builder gets when `notify` is on. Never mentions the admin or the reason. */

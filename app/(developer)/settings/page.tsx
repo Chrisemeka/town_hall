@@ -7,6 +7,8 @@ import type { ExportProject } from "@/components/settings/ExportPanel";
 import { GiveAndTake } from "@/components/settings/GiveAndTake";
 import { PlanSection } from "@/components/settings/PlanSection";
 import { planIdFor } from "@/lib/vocabulary";
+import { paystackConfigured, paystackTestMode } from "@/lib/paystack/config";
+import { planBillingFor } from "@/lib/subscriptions";
 import { tabFromParam, tabsFor } from "@/lib/settingsTabs";
 import { reciprocityFrom } from "@/lib/reciprocity";
 import { cookies } from "next/headers";
@@ -40,12 +42,14 @@ export default async function SettingsPage({
   // Deep-linkable: /settings?tab=plan opens on Plan, refresh keeps you there,
   // and another surface can point straight at a tab. Anything unrecognised
   // resolves to Profile rather than erroring — see tabFromParam.
-  searchParams: Promise<{ tab?: string | string[] }>;
+  searchParams: Promise<{ tab?: string | string[]; billing?: string | string[] }>;
 }) {
+  const params = await searchParams;
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/explore");
+  // The paid calls to action on /pricing point here.
+  if (!user) redirect(params.tab === "plan" ? "/login" : "/explore");
 
   // The active account, already intersected with the real accounts rows —
   // never the raw th_account cookie, which is unsigned. /settings is shared,
@@ -54,14 +58,14 @@ export default async function SettingsPage({
   const resolved = await getActiveAccount();
   if (!resolved?.active) redirect("/choose-account");
   const { active, types: accountTypes } = resolved;
-  const initialTab = tabFromParam((await searchParams).tab, tabsFor(active));
+  const initialTab = tabFromParam(params.tab, tabsFor(active));
 
   // Service-role read, per the RLS pattern in CLAUDE.md — `profiles` has no
   // policy that would let the anon key see even the caller's own row.
   const theme = readTheme((await cookies()).get(THEME_COOKIE)?.value);
 
   const admin = createAdminClient();
-  const [{ data: profile }, { data: account }, mine, owned, ownProjects, { data: testerAccount }] =
+  const [{ data: profile }, { data: account }, mine, owned, ownProjects, { data: testerAccount }, { data: subscriptions }] =
     await Promise.all([
     admin
       .from("profiles")
@@ -108,6 +112,12 @@ export default async function SettingsPage({
       .eq("user_id", user.id)
       .eq("type", "tester")
       .maybeSingle(),
+    // The subscription behind the plan, for the Plan tab's state and controls.
+    admin
+      .from("subscriptions")
+      .select("status, plan_id, source, period_end, amount_ngn, provider_status, card_last4")
+      .eq("profile_id", user.id)
+      .in("status", ["active", "scheduled"]),
   ]);
 
   const givenRows = (mine.data ?? []) as { status: string; rating: number | null }[];
@@ -117,6 +127,14 @@ export default async function SettingsPage({
     approved: givenRows.filter((r) => r.status === "approved").length,
     ratings: givenRows.map((r) => r.rating),
   });
+
+  const planId = planIdFor(account?.plan_id as string | null);
+  const billing = planBillingFor(
+    planId,
+    subscriptions?.find((s) => s.status === "active") ?? null,
+    subscriptions?.find((s) => s.status === "scheduled")?.plan_id ?? null,
+    { configured: paystackConfigured(), testMode: paystackTestMode() },
+  );
 
   return (
     <div className="max-w-[640px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
@@ -156,7 +174,14 @@ export default async function SettingsPage({
             hasTesterAccount={accountTypes.includes("tester")}
           />
         }
-        plan={<PlanSection planId={planIdFor(account?.plan_id as string | null)} />}
+        plan={
+          <PlanSection
+            planId={planId}
+            billing={billing}
+            now={new Date()}
+            notice={typeof params.billing === "string" ? params.billing : undefined}
+          />
+        }
         digestOn={!testerAccount?.digest_opted_out_at}
       />
 

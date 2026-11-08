@@ -1,34 +1,155 @@
 import Link from "next/link"
 import { Check } from "lucide-react"
-import { otherPlans, planFor, priceLine } from "@/lib/plans"
+import { cancelSubscription, startSubscription } from "@/actions/billing"
+import { otherPlans, planFor, priceLine, type Plan } from "@/lib/plans"
+import { billingDay, formatNgn, graceEnd, lagosDate, type PlanBilling } from "@/lib/subscriptions"
 import type { PlanId } from "@/lib/vocabulary"
+import { BillingDialog } from "@/components/settings/BillingDialog"
 import { SettingsSection } from "@/components/settings/SettingsSection"
 
+const LINK =
+  "text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+
+/** What ?billing= says when Paystack sends someone back. Anything else says nothing. */
+const RETURN_NOTICES: Record<string, string> = {
+  started: "Your plan has started. We've emailed you the details.",
+  pending: "We're confirming your payment. It shows here within a minute.",
+  not_completed: "No payment was taken.",
+  failed: "We couldn't reach Paystack, and no payment was taken. Try again in a minute.",
+  review: "Your payment arrived, but we need to check it before it changes your plan. We'll email you.",
+}
+
+const PolicyLink = () => (
+  <Link href="/refunds" className={LINK}>
+    Billing and Refund Policy
+  </Link>
+)
+
+function SubscribeDialog({ plan, now }: { plan: Plan; now: Date }) {
+  const amount = plan.price!.naira
+  return (
+    <BillingDialog
+      label={`Subscribe — ${priceLine(plan)}`}
+      title={`${plan.name}, ${amount} a month.`}
+      confirm="Continue to payment"
+      dismiss="Not now"
+      action={startSubscription.bind(null, plan.id as "starter" | "pro", "new")}
+    >
+      <p>
+        You pay {amount} today, then {amount} on the {billingDay(now)} of every month until you cancel. Cancel any time in
+        Settings → Plan: you keep {plan.name} until the end of the month you&apos;ve paid for, and you won&apos;t be charged again.
+      </p>
+      <p>
+        Payment is by card, through Paystack. <PolicyLink />
+      </p>
+    </BillingDialog>
+  )
+}
+
+function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | null }) {
+  return (
+    <BillingDialog
+      label="Cancel plan"
+      title={`Cancel ${plan.name}?`}
+      confirm="Cancel plan"
+      dismiss={`Keep ${plan.name}`}
+      confirmVariant="destructive"
+      action={cancelSubscription}
+    >
+      <p>
+        You won&apos;t be charged again. You keep {plan.name}
+        {periodEnd ? ` until ${lagosDate(periodEnd)}` : ""}, then your account moves to Community. Test cases already live keep
+        their testers, and reports you&apos;ve earned stay yours.
+      </p>
+    </BillingDialog>
+  )
+}
+
+/** The account's state and its controls, exactly the ones the state allows (SPEC-paystack-subscriptions §12). */
+function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling }) {
+  const line = "font-mono text-[14px] leading-6 text-ink"
+  const until = billing.periodEnd ? lagosDate(billing.periodEnd) : null
+  const card = billing.cardLast4 ? ` · card ending ${billing.cardLast4}` : ""
+
+  if (billing.kind === "manual") {
+    return <p className={line}>{plan.name} — arranged directly{until ? `, ends on ${until}` : ""}.</p>
+  }
+  if (billing.kind === "cancelled") {
+    return <p className={line}>{plan.name}{until ? ` until ${until}` : ""}. You won&apos;t be charged again.</p>
+  }
+  if (billing.kind === "attention") {
+    return (
+      <div className="flex flex-col gap-4">
+        <p role="alert" className="font-sans text-[14px] leading-6 text-danger-ink">
+          Your {plan.name} payment{until ? ` on ${until}` : ""} didn&apos;t go through.
+          {billing.periodEnd ? ` Pay by ${lagosDate(graceEnd(billing.periodEnd))} to keep ${plan.name}.` : ""}
+        </p>
+        <div className="flex flex-col medium:flex-row gap-4">
+          <BillingDialog
+            label="Pay now"
+            variant="primary"
+            title={`Pay for ${plan.name}`}
+            confirm="Continue to payment"
+            dismiss="Not now"
+            action={startSubscription.bind(null, plan.id as "starter" | "pro", "resubscribe")}
+          >
+            <p>
+              You pay {plan.price!.naira} today, and it renews on the same date every month from now until you cancel. Payment is by
+              card, through Paystack. <PolicyLink />
+            </p>
+          </BillingDialog>
+          <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
+        </div>
+      </div>
+    )
+  }
+  if (billing.kind === "renewing") {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className={line}>
+          {plan.name} — renews{until ? ` on ${until}` : " monthly"} · {formatNgn(billing.amountNgn ?? plan.amountNgn ?? 0)}{card}
+        </p>
+        <div>
+          <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
 /**
- * Which plan this account is on, and what the other two include.
+ * Which plan this account is on, what the other tiers include, and the controls
+ * its subscription state allows. A builder on a recurring charge must be able
+ * to see when and how to stop it (Paystack MSA, Section B), so the renewal date,
+ * amount and card are here.
  *
- * THERE IS NO CHECKOUT, and this section is closer to that danger than
- * /pricing is: it sits inside an account, so a control here reads as "change
- * my plan" rather than "read about plans". Upgrading opens a conversation —
- * the monetisation plan's Phase 2 — so the call to action is /contact and is
- * never a Subscribe or Upgrade button.
- *
- * It also shows no usage. No "3 of 5 reports used", no meter, no renewal date:
- * the balance is shown where it is spent, beside the publish button
- * (components/missions/AllowanceNotice.tsx), and a meter here reads as a
- * control. CLAUDE.md's Do Not Touch entry on the pricing
- * page's honesty applies here word for word. Its one addition: a paid plan
- * links the billing policy — a link to read, not a control.
+ * It still shows no usage. No "3 of 5 reports used" and no meter: the balance is
+ * shown where it is spent, beside the publish button
+ * (components/missions/AllowanceNotice.tsx). No tier is "best value".
  */
-export function PlanSection({ planId }: { planId: PlanId }) {
+export function PlanSection({ planId, billing, now, notice }: { planId: PlanId; billing: PlanBilling; now: Date; notice?: string }) {
   const current = planFor(planId)
   const others = otherPlans(planId)
+  const canSubscribe = billing.kind === "none" && billing.configured
+  const message = notice ? RETURN_NOTICES[notice] : undefined
 
   return (
     <SettingsSection
       title="Plan"
       description="What your account includes, and what the other tiers do."
     >
+      {billing.testMode && (
+        <p className="inline-block mb-4 rounded-[4px] border border-ink-muted px-2 py-1 font-mono text-[12px] text-ink">
+          Test mode — no real money moves
+        </p>
+      )}
+      {message && (
+        <p role="status" className="mb-6 rounded-[8px] border border-line p-4 font-sans text-[14px] leading-6 text-ink">
+          {message}
+        </p>
+      )}
+
       {/* Stacked below 1024: inside the 640px column two cards are ~264px,
           too narrow for a price line and a five-line list. */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -44,6 +165,11 @@ export function PlanSection({ planId }: { planId: PlanId }) {
             </span>
           </div>
           <p className="font-mono text-[14px] text-ink mt-1">{priceLine(current)}</p>
+          {billing.kind !== "none" && (
+            <div className="mt-4">
+              <CurrentBilling plan={current} billing={billing} />
+            </div>
+          )}
           <p className="font-sans text-[14px] leading-6 text-ink mt-3">
             {current.summary}
           </p>
@@ -74,6 +200,11 @@ export function PlanSection({ planId }: { planId: PlanId }) {
                 </li>
               ))}
             </ul>
+            {canSubscribe && other.price && (
+              <div className="mt-5">
+                <SubscribeDialog plan={other} now={now} />
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -81,12 +212,13 @@ export function PlanSection({ planId }: { planId: PlanId }) {
       <div className="mt-6 pt-6 border-t border-line">
         {planId !== "community" && (
           <p className="font-sans text-[14px] leading-6 text-ink mb-4">
-            Your plan doesn&apos;t renew by itself. Cancelling, refunds, and
-            reports testers didn&apos;t deliver:{" "}
-            <Link
-              href="/refunds"
-              className="text-accent-ink underline underline-offset-2 hover:no-underline rounded-[4px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
-            >
+            {billing.kind === "manual"
+              ? "A plan arranged directly doesn't renew. It ends on its end date."
+              : billing.kind === "cancelled"
+                ? "This plan won't renew."
+                : "Your plan renews every month until you cancel."}{" "}
+            Cancelling, refunds, and reports testers didn&apos;t deliver:{" "}
+            <Link href="/refunds" className={LINK}>
               Billing and refunds
             </Link>
             .
@@ -95,7 +227,9 @@ export function PlanSection({ planId }: { planId: PlanId }) {
         <p className="font-sans text-[14px] leading-6 text-ink">
           {planId !== "community"
             ? "Need to change something about your plan? Tell us and we'll sort it."
-            : "Hitting your limit, or want to skip the testing side? Get in touch — there's no checkout, we'd rather talk first."}
+            : canSubscribe
+              ? "Questions about a plan first? Tell us what you're building."
+              : "Hitting your limit, or want to skip the testing side? Get in touch."}
         </p>
         <Link
           href="/contact"

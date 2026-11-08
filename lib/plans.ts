@@ -27,7 +27,7 @@ import { PLAN_IDS, type PlanId } from "@/lib/vocabulary"
 export type Plan = {
   id: PlanId
   name: string
-  /** Per month, as written — there is no checkout. null on Community, which is free. */
+  /** Per month, as written. null on Community, which is free. */
   price: { naira: string; dollars: string } | null
   /** What a Paystack charge must equal. Written by hand beside price.naira, never computed from it. null on Community. */
   amountNgn: number | null

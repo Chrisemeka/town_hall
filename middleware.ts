@@ -82,8 +82,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // Anonymous users hitting a protected route get bounced to the landing page.
+  // Except /pricing's paid calls to action: someone choosing a plan signs in.
   if (!user && isProtected) {
-    return noStore(NextResponse.redirect(new URL('/', request.url)))
+    const toPlan = pathname === '/settings' && request.nextUrl.searchParams.get('tab') === 'plan'
+    return noStore(NextResponse.redirect(new URL(toPlan ? '/login' : '/', request.url)))
   }
 
   // Showing a signed-in user a login form is a bug report waiting to happen, so

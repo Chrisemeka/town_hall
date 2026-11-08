@@ -63,6 +63,9 @@ export default function TermsPage() {
               <Link href="/pricing" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Pricing</Link> page. You must be 18 or older to buy one. A paid plan adds a monthly allowance of tester reports, as Pricing describes. We don&apos;t promise how quickly reports arrive.
             </p>
             <p>
+              Paid plans are subscriptions that renew monthly and charge the card you subscribed with until you cancel. By subscribing you authorise those charges. You can cancel at any time in Settings; cancelling stops future charges and you keep the plan until the end of the period you&apos;ve paid for.
+            </p>
+            <p>
               Our{" "}
               <Link href="/refunds" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Billing and Refund Policy</Link>
               {" "}is part of these terms. It covers how you pay, billing periods, delivery, reports you paid for but didn&apos;t receive, cancelling and refunds.

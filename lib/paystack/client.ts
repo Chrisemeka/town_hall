@@ -112,6 +112,7 @@ export function mapTransaction(raw: unknown): PaystackTransaction {
 
 export type PaystackSubscription = {
   subscriptionCode: string | null
+  createdAt: string | null
   status: string | null
   emailToken: string | null
   nextPaymentDate: string | null
@@ -126,6 +127,7 @@ export function mapSubscription(raw: unknown): PaystackSubscription {
   const customer = rec(s.customer)
   return {
     subscriptionCode: str(s.subscription_code),
+    createdAt: str(s.createdAt) ?? str(s.created_at),
     status: str(s.status),
     emailToken: str(s.email_token),
     nextPaymentDate: str(s.next_payment_date),
@@ -170,11 +172,30 @@ export function fetchSubscription(code: string): Promise<ApiResult<PaystackSubsc
   return call(`/subscription/${encodeURIComponent(code)}`, GET, mapSubscription, "subscription")
 }
 
-export function listSubscriptions(filter: { customer: string | number; plan?: string | number }): Promise<ApiResult<PaystackSubscription[]>> {
-  const query = new URLSearchParams({ customer: String(filter.customer) })
-  if (filter.plan !== undefined) query.set("plan", String(filter.plan))
-  return call(`/subscription?${query}`, GET, (data) => (Array.isArray(data) ? data.map(mapSubscription) : []), "subscriptions")
+/**
+ * One customer's subscriptions on one plan, newest first. Takes the codes we
+ * hold. Paystack's list filters on the customer's numeric id, and an unknown
+ * filter answers 200 with nothing, which would read as "no subscription" here:
+ * so it resolves the id first, and checks both codes on what comes back.
+ */
+export async function listSubscriptions(filter: { customer: string; plan: string }): Promise<ApiResult<PaystackSubscription[]>> {
+  const customer = await call(`/customer/${encodeURIComponent(filter.customer)}`, GET, (data) => num(rec(data).id), "customer")
+  if (!customer.ok) return customer
+  if (customer.data === null) return { ok: true, data: [] }
+  const res = await call(`/subscription?customer=${customer.data}`, GET, (data) => (Array.isArray(data) ? data.map(mapSubscription) : []), "subscriptions")
+  if (!res.ok) return res
+  const time = (s: PaystackSubscription) => (s.createdAt ? Date.parse(s.createdAt) : 0)
+  return {
+    ok: true,
+    data: res.data
+      .filter((s) => s.planCode === filter.plan && (s.customerCode === null || s.customerCode === filter.customer))
+      .sort((a, b) => time(b) - time(a)),
+  }
 }
+
+/** Disabling is idempotent at Paystack: a subscription already off is the goal met. */
+export const isAlreadyOff = (res: { ok: false; message: string; permanent: boolean }): boolean =>
+  res.permanent && /not found|already|inactive/i.test(res.message)
 
 export function disableSubscription(input: { code: string; token: string }): Promise<ApiResult<null>> {
   return call("/subscription/disable", post({ code: input.code, token: input.token }), () => null, "disable")

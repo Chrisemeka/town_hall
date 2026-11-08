@@ -39,6 +39,15 @@ async function countEvents(admin: Admin, name: string, from: string): Promise<nu
   return count ?? 0
 }
 
+/**
+ * A webhook event that means money arrived and granted nothing. Not every
+ * 'unmatched' does: subscription.create routinely beats the charge it belongs to.
+ */
+export function isBillingProblem(e: { event: string; outcome: string }): boolean {
+  if (e.outcome === "unmatched") return e.event !== "subscription.create"
+  return e.outcome === "mismatch" || e.outcome === "duplicate_charge" || e.outcome === "stray"
+}
+
 type MissionLedgerRow = LedgerRow & { mission_id: string | null; created_at: string }
 
 /**
@@ -179,10 +188,30 @@ const MEASURES: Record<AlertRuleKey, (admin: Admin, now: Date, t: number, w: num
       .from("subscriptions")
       .select("profile_id")
       .eq("status", "active")
+      // A manual plan needs a person to renew it. A Paystack one renews itself.
+      .eq("source", "manual")
       .gte("period_end", now.toISOString())
       .lte("period_end", new Date(now.getTime() + t * DAY).toISOString())
     if (error) throw new Error(error.message)
     return { value: data?.length ?? 0, detail: { profile_ids: (data ?? []).map((s) => s.profile_id) } }
+  },
+
+  async billing_mismatch(admin, now, _t, w) {
+    const { data, error } = await admin.from("paystack_events").select("event, outcome, reference").gte("received_at", since(now, w))
+    if (error) throw new Error(error.message)
+    const problems = (data ?? []).filter(isBillingProblem)
+    return { value: problems.length, detail: { references: problems.slice(0, 20).map((e) => e.reference) } }
+  },
+
+  // A subscription that should be off may still charge.
+  async billing_actions_failing(admin, now) {
+    const { data, error } = await admin
+      .from("billing_actions")
+      .select("kind, subscription_code")
+      .is("done_at", null)
+      .or(`attempts.gte.3,created_at.lt.${since(now, DAY)}`)
+    if (error) throw new Error(error.message)
+    return { value: data?.length ?? 0, detail: { subscription_codes: (data ?? []).slice(0, 20).map((a) => a.subscription_code) } }
   },
 
   async flagged_projects(admin) {

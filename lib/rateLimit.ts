@@ -55,6 +55,8 @@ export const RATE_LIMITS = {
   // Half the CSV's: one render is seconds of CPU and up to 40 image fetches.
   // Five still covers download, flip the screenshot toggle, download again.
   "export:pdf:account": { limit: 5, windowSeconds: HOUR, fallback: 0, mode: "closed" },
+  // Starting a checkout or cancelling: both call Paystack.
+  "checkout:account": { limit: 5, windowSeconds: HOUR, fallback: 0, mode: "closed" },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

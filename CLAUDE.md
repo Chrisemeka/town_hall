@@ -59,10 +59,11 @@ lib/
   contact.ts          CONTACT_EMAIL, X_URL — where "get in touch" goes
   merchant.ts         MERCHANT — who Twnhall is, legally: name, address, contact
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
-  billing.ts          applySubscription() — the one plan writer; applyProviderEvent()
+  billing.ts          applySubscription() — the one plan writer
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
   subscriptionPaymentsDb.ts  The payments covering today and refunds in flight — admin reads
-  paystack/           The only way to Paystack: client, config, signature, webhook events
+  paystack/           The only way to Paystack: client, config, signature, webhook events,
+                      settleCharge(), billing actions
   alerts/rules.ts     What fires each alert rule, and open/bump/resolve (pure)
   alerts/run.ts       runAlerts() — measures, writes alerts, emails admins
   metrics.ts          Overview arithmetic — fill time, capacity, break-even (pure)
@@ -107,6 +108,7 @@ rate_limits       fixed-window abuse counters — service role only, garbage
 page_views        first-party page views, 90 days raw — service role only
 traffic_daily     page_views rolled up by Lagos day and path, after 90 days
 app_events        in-app activity no row records already — service role only
+paystack_checkouts  one row per trip to Paystack's page — grants nothing
 ```
 
 | Table          | Key columns |
@@ -245,8 +247,8 @@ else (`docs/specs/SPEC-merchant-identity.md`).
 through `applySubscription()` in `lib/billing.ts`. It writes the
 `subscriptions` row, `plan_id` and the `admin_account_changes` line in one
 transaction. The admin's plan dialog (`components/admin/PlanDialog.tsx` →
-`actions/admin/subscriptions.ts`) calls it today; `applyProviderEvent()` is
-the not-yet-wired entry a Paystack/Flutterwave webhook will call. Never write
+`actions/admin/subscriptions.ts`) calls it for manual plans, and `settleCharge()`
+(`lib/paystack/charges.ts`) calls it for a Paystack charge. Never write
 `plan_id` anywhere else — `set_account_field` lost its `plan_id` branch.
 
 - **`subscriptions` is the why behind `plan_id`.** One `active` and one
@@ -290,6 +292,28 @@ the not-yet-wired entry a Paystack/Flutterwave webhook will call. Never write
 - **Never store an authorization code**, in any table, log, event or payload.
 - **The `payments-wip` git tag is never merged or cherry-picked.** It carries
   credit packs, tester transfers and Stripe. Copy from it by reading.
+
+**Paystack subscriptions** (`docs/specs/SPEC-paystack-subscriptions.md`).
+
+- **`settleCharge()` validates first:** status, currency, plan code and the
+  amount against `lib/plans.ts`. A mismatch grants nothing and fires
+  `billing_mismatch`. The return page never trusts its query string: the
+  checkout must be the caller's, and the charge is verified with Paystack.
+- **A checkout is reused for 30 minutes** (a partial unique index, one open per
+  builder, plan and kind). A second paid checkout that still gets through is
+  `duplicate_charge`: no plan change, and an alert.
+- **Cancel switches Paystack off first.** If Paystack refuses, nothing changes.
+  "Cancelled" is the scheduled `community` row, never `provider_status`, which
+  only mirrors Paystack.
+- **`GRACE_DAYS` (3):** a manual row ends on the day, a Paystack row after the
+  grace, and a cancelled one through `scheduled` with no grace.
+- **A lapse switches the subscription off at Paystack**, through
+  `billing_actions`, or Paystack charges it again a month later. Updating a card
+  doesn't save a failed month, because Paystack doesn't retry within a cycle:
+  "Pay now" is a new subscription, and the old one is disabled with the payment.
+- **`listSubscriptions()` takes codes and resolves the customer's numeric id**:
+  Paystack's list filters on the id and answers an unknown filter with 200 and
+  nothing, which would read as "no subscription".
 
 **The report allowance is a ledger, spent at publish, never at submission.**
 `submitTestResult` is a one-shot post — nothing represents a report in
@@ -998,12 +1022,10 @@ Canonical reference: `Test.md`. Every feature ships with:
 
 ## Do Not Touch
 
-- **The pricing page's honesty.** The tiers are enforced at publish, but there
-  is still no payment, and that binds the page: it describes the shape of the
-  offer, never the state of an account (no "you're on Community", no usage
-  meter), the Pro call to action opens a conversation at `/contact` and is
-  never a Subscribe or Upgrade button, and nothing unshipped is listed. Do not
-  add a control implying a transaction that does not exist.
+- **The pricing page's honesty.** It describes the shape of the offer, never
+  the state of an account (no "you're on Community", no usage meter), the paid
+  calls to action go to Settings → Plan, nothing unshipped is listed, and no
+  tier is "best value".
 - **What leaves in an export.** `app/api/export/feedback` is always scoped to
   one project: `?project=P&mission=M` is one mission as CSV, `?project=P` is
   every mission as an `.xlsx` with a sheet each (`lib/xlsx.ts`, dependency-free
@@ -1036,24 +1058,27 @@ Canonical reference: `Test.md`. Every feature ships with:
     (`docs/specs/SPEC-dispute-readiness.md`).
 - **The plan section's honesty**, which is the pricing page's rule one step
   closer to the danger. `/settings` shows which plan an account is on and what
-  the other tier includes, and that is all: **no usage meter, no "3 of 5
-  reports used", no renewal date, no Subscribe or Upgrade control.** It sits
-  inside an account, so anything resembling a control reads as "change my
-  plan" rather than "read about plans". The balance is shown where it is
-  spent, beside the publish button, and nowhere here. The call to action is
-  `/contact`. **One addition:** a paid plan's section links the billing
-  policy (`/refunds`) in a sentence — a link to read, never a control.
-  Community's doesn't.
+  the other tiers include: **no usage meter, no "3 of 5 reports used".** The
+  balance is shown where it is spent, beside the publish button, and nowhere
+  here. Its controls are exactly the ones the subscription state allows
+  (`SPEC-paystack-subscriptions.md` §12, `planBillingFor()`); the renewal
+  date, amount and card are shown because a builder on a recurring charge must
+  know when and how to stop it (Paystack MSA Section B). A paid plan's section
+  links the billing policy (`/refunds`). With Paystack unconfigured it offers no
+  subscribe control at all.
 - **Payments** — money moves in **one direction only: builders pay
-  `MERCHANT.legalName` for a plan** (decided 27 Oct 2026). Builder billing is
-  a `subscriptions` record an admin writes today, after the builder pays a
-  Paystack payment link; a checkout will drive the same RPC later, so
-  `accounts.plan_id` keeps one writer path. Nothing pays out through the
+  `MERCHANT.legalName` for a plan** (decided 27 Oct 2026). Every paid period
+  starts from the builder's own action at Paystack's checkout, and renewals come
+  only from a subscription they created; a plan arranged directly stays manual
+  until it ends, and nobody is charged without entering a card at the checkout.
+  The off switch is in Settings. `settleCharge()` is the one place a charge
+  becomes a plan, so `accounts.plan_id` keeps one writer path. An admin moving
+  or ending a Paystack plan queues its disable too. Nothing pays out through the
   product (the cohort is paid by bank transfer from `/admin/payouts`' CSV).
   Never reintroduce a payout field, money balance, wallet, tester-facing
   earnings or `paid` state. (`report_ledger` is a balance of *reports*, not
   money, and `subscription_payments` records money in. It is not a balance.)
-  When Paystack is wired in, the Merchant Services Agreement binds the
+  The Merchant Services Agreement binds the
   code (`docs/Twnhall_Paystack_MSA_Review.md`):
   - **No payment aggregation.** No split payments, subaccounts or "pay a
     tester" flows through Twnhall's Paystack account. MSA Section B makes
@@ -1068,7 +1093,7 @@ Canonical reference: `Test.md`. Every feature ships with:
     `NEXT_PUBLIC_`. Only the public key may reach the browser (MSA Section C).
   - **The webhook verifies before it writes.** HMAC-SHA512 of the raw body
     against `x-paystack-signature`, then idempotency on the reference, then
-    `applyProviderEvent()`, which stays the only entry.
+    `settleCharge()`, which stays the only entry.
   - **Recurring billing ships with its off switch.** If Paystack
     Subscriptions are used, the same PR adds a self-serve cancel that also
     disables the Paystack subscription, and rewrites `/refunds` §Renewal
@@ -1081,8 +1106,8 @@ Canonical reference: `Test.md`. Every feature ships with:
     to in a dispute. A change to how billing works changes the page in the
     same PR — `refunds.test.ts` pins what it may not say.
 
-  Until a checkout ships, no card or bank details are collected anywhere in
-  the app.
+  No card or bank details are collected anywhere in the app: Paystack's hosted
+  page takes them.
 - **The `avatars` Storage bucket** — it does not exist in this project. If a Supabase example references it, ignore. `avatar_url` on `profiles` is Google's remote URL populated in `app/api/auth/callback/route.ts`, not something Twnhall stores. Every email/password user has a null one, so **every avatar surface goes through `components/ui/Avatar.tsx`**, which falls back to initials. Do not hand-roll the img-or-fallback branch again — there were three copies of it.
 - **`ARCHITECTURE.md`** — stale on the Gemini model version at minimum. Read only for historical context. This file wins on conflict.
 - **RLS policies** — do not add them to solve auth. Use `requireAccount()` + service-role client + explicit column lists (see Data Mutations above).

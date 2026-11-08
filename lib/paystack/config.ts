@@ -16,6 +16,9 @@ export function planIdForCode(code: string | null): "starter" | "pro" | null {
   return null
 }
 
+/** Shown in Settings, so nobody on a preview mistakes it for the real thing. */
+export const paystackTestMode = (): boolean => paystackKey().startsWith("sk_test_")
+
 export function paystackConfigured(): boolean {
   return Boolean(paystackKey() && planCodeFor("starter") && planCodeFor("pro"))
 }

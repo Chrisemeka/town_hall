@@ -1,5 +1,11 @@
 import { readFileSync } from "node:fs"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+
+vi.mock("@/actions/billing", () => ({
+  startSubscription: () => undefined,
+  cancelSubscription: () => undefined,
+}))
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => undefined }) }))
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import RefundsPage from "@/app/(public)/refunds/page"
@@ -10,14 +16,13 @@ import { PlanSection } from "@/components/settings/PlanSection"
 import sitemap from "@/app/sitemap"
 import { MERCHANT } from "@/lib/merchant"
 import { PLANS, priceLine } from "@/lib/plans"
-import { planNotice } from "@/lib/subscriptions"
-import { PLAN_IDS } from "@/lib/vocabulary"
+import { planNotice, type PlanBilling } from "@/lib/subscriptions"
 
 // The billing policy is a promise a builder can hold us to in a dispute. It
 // says only what is true the day it ships (docs/specs/SPEC-billing-policy.md).
 
-// B1, decided 3 Nov 2026: builders pay through a Paystack payment link, so
-// Paystack is named on the public pages. If that changes, so does this.
+// Decided 4 Nov 2026: builders pay through a Paystack subscription, so Paystack
+// is named on the public pages. If that changes, so does this.
 const PAYS_THROUGH_PAYSTACK = true
 
 /** React escapes apostrophes; the copy is compared as written. */
@@ -46,10 +51,22 @@ describe("/refunds", () => {
     expect(html).toContain('href="/terms"')
   })
 
-  it("offers no transaction that does not exist", () => {
-    expect(html).not.toMatch(/subscribe|upgrade/i)
-    expect(html).toContain("Your plan doesn't renew by itself.")
+  it("says the plan renews and where to stop it (MSA, Section B)", () => {
+    expect(html).toContain("Your plan renews every month until you cancel.")
+    expect(html).toContain("Cancel any time in Settings → Plan.")
+    expect(html).toContain("you won't be charged again")
+    expect(html).not.toContain("doesn't renew by itself")
+    expect(html).not.toMatch(/payment link/i)
     expect(html).toContain("We don't promise a turnaround time.")
+  })
+
+  it("states the grace and the charge date", () => {
+    expect(html).toContain("your plan stays for 3 more days")
+    expect(html).toContain("the 28th if you subscribe on the 29th–31st")
+  })
+
+  it("still promises a refund for a charge after cancelling (B4)", () => {
+    expect(html).toContain("charged after you cancelled")
   })
 
   it("names Paystack only per B1", () => {
@@ -66,6 +83,11 @@ describe("/terms", () => {
 
   it("no longer says there is no checkout", () => {
     expect(html).not.toMatch(/there is no checkout/i)
+  })
+
+  it("authorises the recurring charge and says how to stop it", () => {
+    expect(html).toContain("Paid plans are subscriptions that renew monthly")
+    expect(html).toContain("You can cancel at any time in Settings")
   })
 })
 
@@ -84,6 +106,11 @@ describe("/privacy", () => {
   it("names Paystack only per B1", () => {
     expect(html.includes("Paystack")).toBe(PAYS_THROUGH_PAYSTACK)
   })
+
+  it("names what a subscription keeps, and what it never sees", () => {
+    expect(html).toContain("your card's last four digits and brand")
+    expect(html).toContain("we never see or store your card number or security code")
+  })
 })
 
 describe("links to the policy", () => {
@@ -91,12 +118,14 @@ describe("links to the policy", () => {
     expect(render(createElement(PublicFooter))).toContain('href="/refunds"')
   })
 
-  it("a paid plan's settings link it, Community's don't, and neither offers a control", () => {
-    for (const id of PLAN_IDS) {
-      const html = render(createElement(PlanSection, { planId: id }))
-      expect(html.includes('href="/refunds"')).toBe(id !== "community")
-      expect(html).not.toMatch(/upgrade|subscribe/i)
-    }
+  it("a paid plan's settings link it; Community's only once it can subscribe", () => {
+    const now = new Date()
+    const off = { configured: false, testMode: false }
+    const billing = (kind: PlanBilling["kind"], env = off): PlanBilling => ({ kind, periodEnd: null, amountNgn: null, cardLast4: null, ...env })
+    expect(render(createElement(PlanSection, { planId: "starter", billing: billing("manual"), now }))).toContain('href="/refunds"')
+    expect(render(createElement(PlanSection, { planId: "pro", billing: billing("renewing"), now }))).toContain('href="/refunds"')
+    expect(render(createElement(PlanSection, { planId: "community", billing: billing("none"), now }))).not.toContain('href="/refunds"')
+    expect(render(createElement(PlanSection, { planId: "community", billing: billing("none", { configured: true, testMode: false }), now }))).toContain('href="/refunds"')
   })
 
   it("the sitemap lists it", () => {
