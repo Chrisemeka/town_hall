@@ -61,9 +61,11 @@ lib/
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
   billing.ts          applySubscription() — the one plan writer
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
-  subscriptionPaymentsDb.ts  The payments covering today and refunds in flight — admin reads
+  subscriptionPaymentsDb.ts  The payments covering today, refunds in flight, gross collections — admin reads
+  planBillingDb.ts    Settings → Plan's upgrade estimate and refund lines — the builder's own
+  proration.ts        proration-v1 and lagosDay() — the upgrade sheet's estimate only (pure)
   paystack/           The only way to Paystack: client, config, signature, webhook events,
-                      settleCharge(), billing actions
+                      settleCharge(), billing actions, refunds
   alerts/rules.ts     What fires each alert rule, and open/bump/resolve (pure)
   alerts/run.ts       runAlerts() — measures, writes alerts, emails admins
   metrics.ts          Overview arithmetic — fill time, capacity, break-even (pure)
@@ -313,7 +315,45 @@ transaction. The admin's plan dialog (`components/admin/PlanDialog.tsx` →
   "Pay now" is a new subscription, and the old one is disabled with the payment.
 - **`listSubscriptions()` takes codes and resolves the customer's numeric id**:
   Paystack's list filters on the id and answers an unknown filter with 200 and
-  nothing, which would read as "no subscription".
+  nothing, which would read as "no subscription". `listRefunds()` has the same
+  trap with the transaction id.
+
+**Paystack plan changes and refunds** (`docs/specs/SPEC-paystack-plan-changes.md`).
+
+- **A charge names no subscription.** It's matched to the one whose own
+  `invoices` list its reference (`fetchSubscription().invoiceReferences`):
+  a renewal, a scheduled Starter's first charge, or a stray. Nothing is
+  refunded or applied on a guess; with no match only the plain renewal of the
+  one active plan is assumed.
+- **Off before on.** A downgrade switches Pro off before it creates Starter;
+  an upgrade switches Starter off after Pro is paid, through `billing_actions`;
+  a cancel with a downgrade waiting switches the scheduled Starter off first.
+  A failure part-way leaves a plan that ends, never two that charge.
+- **A refund is created only by `settle_upgrade`, `queue_refund` or
+  `record_unwanted_charge`**, each under the payment's lock and clamped to
+  what's left. The Starter refund exists only inside the transaction that
+  records a verified Pro payment, and only when `apply_subscription` answers
+  `'ok'`.
+- **Proration is `proration-v1`:** Africa/Lagos dates (never the server's
+  zone, never a fixed offset), the period `[start, end)`, the upgrade day
+  counted as used, whole naira rounded down. The database computes it and
+  stores every term; `lib/proration.ts` is only the sheet's estimate.
+- **A refund is sent once and never assumed** (`lib/paystack/refunds.ts`):
+  only by a runner holding its lease, with the stored amount and the
+  idempotency key as the merchant note. An answer we didn't see is
+  `unknown`, looked up at Paystack before anything is resent. Statuses only
+  move forward, a failed one is never retried by itself, and "refunded" is
+  only `processed` or `settled_outside`.
+- **The cron asks Paystack before it lapses a Paystack plan**
+  (`recoverLostCharges()`), and never applies a scheduled Paystack paid plan by
+  the clock: its first charge does.
+- **Update card fetches a fresh Paystack link on every click**
+  (`/settings/billing/card`); one is never stored or emailed.
+- **No authorization code is stored**, even in a retry payload:
+  `createSubscriptionFrom()` reads it inside `lib/paystack/` and sends it.
+- **The Starter Business cap is watched:** `STARTER_BUSINESS_CAP_NGN`,
+  gross collections on `/admin/money` while unregistered, and
+  `paystack_cap_near`.
 
 **The report allowance is a ledger, spent at publish, never at submission.**
 `submitTestResult` is a one-shot post — nothing represents a report in

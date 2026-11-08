@@ -123,6 +123,34 @@ When it merges, the prompt's go-live checklist moves Production to live keys.
 - A manual (payment-link) plan has no change controls (owner decision 3,
   PR 2).
 
+**Decided while building, 8 Nov 2026:**
+
+- **`lagosDay()` lives in `lib/proration.ts`,** beside the rule it serves,
+  not in `lib/subscriptions.ts`.
+- **Renewals are told apart by the charging subscription's own invoices**
+  (§0). A charge on the active plan while a cancellation or downgrade waits is
+  a stray too: the plan had stopped renewing, so it's refunded (B4).
+- **PR 2's review findings fixed here:** the cron asks Paystack for lost
+  charges before it lapses a Paystack plan (`recoverLostCharges()`); the
+  stray guard works without a code on the charge; a first charge, Cancel and
+  the reconcile attach only the subscription whose invoices name the payment,
+  never "the newest live one"; and the return page says a duplicate is being
+  refunded rather than "started". **Still open, not blocking live keys:** Cancel
+  in `attention` names a date already past; a signed-out visitor from /pricing
+  lands on the dashboard after login; Cancel racing its own webhook can send two
+  emails.
+- **A late `subscription.create` for a duplicate charge's own subscription**
+  is switched off when its invoices name a payment recorded as duplicate or
+  stray, because the code may not have been known when the charge was recorded.
+- **Cancelling before a downgrade's Starter was created** marks the queued
+  `create_subscription` done, and the runner checks the scheduled row still
+  exists before creating anything. A creation whose answer was lost is adopted,
+  not made twice.
+- **`subscription.expiring_cards` may email twice on a redelivery.** Paystack
+  sends it monthly; a second copy is the worst case.
+- **`/refunds` says "Last updated: November 8, 2026".** Change it to the merge
+  date if it merges later.
+
 ## §1 — Decisions
 
 | # | Decision | Status |
