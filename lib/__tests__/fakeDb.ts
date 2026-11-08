@@ -47,6 +47,8 @@ export function fakeDb(
       in: (c: string, v: unknown[]) => (checks.push((r) => v.includes(r[c])), q),
       lt: (c: string, v: string) => (checks.push((r) => String(r[c]) < v), q),
       neq: (c: string, v: unknown) => (checks.push((r) => r[c] !== v), q),
+      /** `%` only, as billing uses it. */
+      like: (c: string, v: string) => (checks.push((r) => String(r[c]).startsWith(v.replace(/%$/, ""))), q),
       not: (c: string, op: string, v: unknown) => (checks.push((r) => !(op === "is" ? (r[c] ?? null) === v : r[c] === v)), q),
       order: () => q,
       or: (expr: string) => {

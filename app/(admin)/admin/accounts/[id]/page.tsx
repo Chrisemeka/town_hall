@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth"
 import { Avatar } from "@/components/ui/Avatar"
 import { PageHeader, Panel, Stat, Tag, Empty, formatDate, formatDateTime } from "@/components/admin/ui"
 import { PlanDialog } from "@/components/admin/PlanDialog"
+import { FailedRefundControls, RefundDialog } from "@/components/admin/RefundControls"
 import { CohortControl } from "@/components/admin/CohortControl"
 import { UserRowActions, type ModerationStatus } from "@/components/admin/UserRowActions"
 import { balance, type LedgerRow } from "@/lib/allowance"
@@ -32,7 +33,7 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
   const { id } = await params
   if (!UUID.test(id)) notFound()
 
-  const [authRes, profileRes, accountsRes, subsRes, ledgerRes, changesRes, eventsRes, projectsRes, reportsRes] = await Promise.all([
+  const [authRes, profileRes, accountsRes, subsRes, ledgerRes, changesRes, eventsRes, projectsRes, reportsRes, paymentsRes, refundsRes] = await Promise.all([
     admin.auth.admin.getUserById(id),
     admin
       .from("profiles")
@@ -60,6 +61,17 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
       .eq("tester_id", id)
       .order("created_at", { ascending: false })
       .limit(30),
+    admin
+      .from("subscription_payments")
+      .select("id, kind, source, reference, amount_ngn, period_start, period_end, created_at")
+      .eq("profile_id", id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    admin
+      .from("subscription_refunds")
+      .select("id, payment_id, reason, amount_ngn, status, last_error, note, created_at, finished_at")
+      .eq("profile_id", id)
+      .order("created_at", { ascending: true }),
   ])
 
   const profile = profileRes.data
@@ -233,6 +245,8 @@ export default async function AdminAccountPage({ params }: { params: Promise<{ i
         </Panel>
       )}
 
+      {builder && <PaymentsPanel payments={(paymentsRes.data ?? []) as Payment[]} refunds={(refundsRes.data ?? []) as Refund[]} />}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Panel title="Activity">
           {timeline.length === 0 ? (
@@ -287,4 +301,67 @@ function eventText(name: string, props: Record<string, unknown>): string {
     case "plan.changed": return `Plan changed to ${planFor(planIdFor(String(props.to ?? ""))).name}`
     default: return name
   }
+}
+
+type Payment = { id: string; kind: string; source: string; reference: string; amount_ngn: number; period_start: string; period_end: string | null; created_at: string }
+type Refund = { id: string; payment_id: string; reason: string; amount_ngn: number; status: string; last_error: string | null; note: string | null; created_at: string; finished_at: string | null }
+
+const REFUND_WORDS: Record<string, string> = {
+  queued: "queued",
+  sending: "sending",
+  unknown: "sent, not confirmed: looking it up",
+  pending: "pending at Paystack",
+  processing: "processing",
+  needs_attention: "needs attention in Paystack",
+  processed: "processed",
+  failed: "failed",
+  settled_outside: "paid back outside Paystack",
+}
+const REFUND_TONE: Record<string, "success" | "danger" | "info" | "muted"> = { processed: "success", settled_outside: "success", failed: "danger", needs_attention: "danger" }
+const REASON_WORDS: Record<string, string> = { upgrade: "upgrade", admin: "admin", stray_charge: "charge after the plan ended", duplicate_charge: "paid twice" }
+
+/** Every charge and what was refunded against it (SPEC-paystack-plan-changes §6). Only processed or paid outside reads as refunded. */
+function PaymentsPanel({ payments, refunds }: { payments: Payment[]; refunds: Refund[] }) {
+  return (
+    <Panel className="mb-4" title="Payments">
+      {payments.length === 0 ? (
+        <Empty>No payments recorded.</Empty>
+      ) : (
+        <ul>
+          {payments.map((p) => {
+            const own = refunds.filter((r) => r.payment_id === p.id)
+            const left = p.amount_ngn - own.filter((r) => r.status !== "failed").reduce((n, r) => n + r.amount_ngn, 0)
+            return (
+              <li key={p.id} className="border-t border-line px-4 py-3 font-mono text-[14px] first:border-t-0">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span>
+                    {formatDate(p.created_at)} · {p.kind} · {p.source} · {formatNgn(p.amount_ngn)}
+                    <span className="block text-ink-muted">{p.reference}</span>
+                  </span>
+                  {left > 0 && <RefundDialog paymentId={p.id} leftNgn={left} source={p.source} />}
+                </div>
+                {own.length > 0 && (
+                  <ul className="mt-2 flex flex-col gap-2 border-l border-line pl-4">
+                    {own.map((r) => (
+                      <li key={r.id} className="flex flex-wrap items-center gap-2">
+                        <span>Refund {formatNgn(r.amount_ngn)}</span>
+                        <Tag tone={REFUND_TONE[r.status] ?? "info"}>{REFUND_WORDS[r.status] ?? r.status}</Tag>
+                        <span className="text-ink-muted">
+                          {REASON_WORDS[r.reason] ?? r.reason} · {formatDate(r.created_at)}
+                          {r.finished_at ? ` → ${formatDate(r.finished_at)}` : ""}
+                          {r.note ? ` · ${r.note}` : ""}
+                          {r.last_error && r.status === "failed" ? ` · ${r.last_error}` : ""}
+                        </span>
+                        {r.status === "failed" && <FailedRefundControls refundId={r.id} amountNgn={r.amount_ngn} />}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </Panel>
+  )
 }

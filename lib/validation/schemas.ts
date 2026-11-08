@@ -908,3 +908,25 @@ export const extendSchema = z.object({
   notify: z.boolean(),
 })
 export type ExtendInput = z.input<typeof extendSchema>
+
+// ── Admin refunds (SPEC-paystack-plan-changes §6) ──────────────────────────
+// The reason is internal and never emailed. refundKey is made when the dialog
+// opens, so a double-click or a resubmitted form makes one refund.
+export const refundPaymentSchema = z.object({
+  paymentId: z.string().uuid(),
+  amountNgn: z.number().int().positive().max(10_000_000),
+  reason: z.string().trim().min(3, "Say why, for the record.").max(500),
+  refundKey: z.string().uuid(),
+  transferReference: z.string().trim().max(200).optional(),
+  endPlan: z.boolean(),
+})
+export type RefundPaymentInput = z.input<typeof refundPaymentSchema>
+
+export const retryRefundSchema = z.object({ refundId: z.string().uuid() })
+
+export const paidOutsideSchema = z.object({
+  refundId: z.string().uuid(),
+  transferReference: z.string().trim().min(1, "The bank transfer's reference.").max(200),
+  note: z.string().trim().max(500).optional(),
+})
+export type PaidOutsideInput = z.input<typeof paidOutsideSchema>

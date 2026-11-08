@@ -63,6 +63,12 @@ export async function moveRefund(id: string, to: string, extra: Record<string, u
   return true
 }
 
+/** The email a refund that starts finished earns: one paid back outside Paystack. */
+export async function announceRefund(id: string): Promise<void> {
+  const { data } = await db().select(COLUMNS).eq("id", id).maybeSingle()
+  if (data) await notify(data as Row)
+}
+
 /** One email per stage, claimed before it's sent: a redelivery sends nothing. */
 async function notify(row: Row): Promise<void> {
   const stage = refundStage(row.status)

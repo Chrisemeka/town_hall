@@ -32,6 +32,8 @@ export const EVENT_NAMES = [
   "email.failed",
   "error.server",
   "plan.changed",
+  // An admin queued or recorded a refund; props.by is the admin profile id.
+  "billing.refunded",
   // The daily digest switch; props.source is "settings" or "email".
   "notifications.digest_on",
   "notifications.digest_off",
