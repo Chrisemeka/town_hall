@@ -22,3 +22,12 @@ export const paystackTestMode = (): boolean => paystackKey().startsWith("sk_test
 export function paystackConfigured(): boolean {
   return Boolean(paystackKey() && planCodeFor("starter") && planCodeFor("pro"))
 }
+
+/**
+ * Paystack's collection limit for a Starter Business, an account not yet
+ * registered with CAC (docs/Twnhall_Paystack_MSA_Review.md, "Not CAC-registered").
+ * Past it Paystack stops taking payments and every renewal fails. Checked
+ * against the pre-approval on 4 Nov 2026; re-check Paystack's support article
+ * on Starter Business limits before relying on it.
+ */
+export const STARTER_BUSINESS_CAP_NGN = 8_000_000

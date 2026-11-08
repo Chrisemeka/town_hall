@@ -14,6 +14,7 @@ import { adminRecipients } from "@/lib/auth"
 import { sendNotice } from "@/lib/mail"
 import { held, monthOf, type LedgerRow } from "@/lib/allowance"
 import { payoutSheet } from "@/lib/cohortDb"
+import { grossPaystackCollections } from "@/lib/subscriptionPaymentsDb"
 import { decide, fires, isRuleKey, type AlertRuleKey, type Measure } from "@/lib/alerts/rules"
 
 type Admin = ReturnType<typeof createAdminClient>
@@ -239,6 +240,11 @@ const MEASURES: Record<AlertRuleKey, (admin: Admin, now: Date, t: number, w: num
       )
     if (error) throw new Error(error.message)
     return { value: data?.length ?? 0, detail: { refund_ids: (data ?? []).slice(0, 20).map((r) => r.id) } }
+  },
+
+  // Gross collections against the Starter Business limit (SPEC-paystack-plan-changes §8).
+  async paystack_cap_near() {
+    return { value: await grossPaystackCollections() }
   },
 
   async flagged_projects(admin) {

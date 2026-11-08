@@ -53,3 +53,15 @@ export async function refundsInFlight(): Promise<{ totalNgn: number; count: numb
   const rows = (data ?? []) as { amount_ngn: number }[]
   return { totalNgn: rows.reduce((sum, r) => sum + r.amount_ngn, 0), count: rows.length }
 }
+
+/**
+ * Everything collected through Paystack, gross: refunds aren't taken off,
+ * because whether a refund gives room back under the Starter Business limit
+ * isn't documented. Counting high is the safe way to be wrong.
+ */
+export async function grossPaystackCollections(): Promise<number> {
+  const { data, error } = await createAdminClient().from("subscription_payments").select("amount_ngn").eq("source", "paystack")
+  if (error) throw new Error(error.message)
+  // ponytail: sums every row in JS; a SQL sum once there are thousands of payments.
+  return ((data ?? []) as { amount_ngn: number }[]).reduce((sum, p) => sum + p.amount_ngn, 0)
+}

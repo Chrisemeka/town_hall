@@ -9,7 +9,7 @@ vi.mock("@/lib/cohortDb", () => ({ payoutSheet: vi.fn() }))
 
 import { isBillingProblem } from "@/lib/alerts/run"
 import { RATE_LIMITS } from "@/lib/rateLimit"
-import { fires } from "@/lib/alerts/rules"
+import { fires, RULE_LINKS } from "@/lib/alerts/rules"
 
 describe("billing_mismatch", () => {
   it("fires on money that granted nothing", () => {
@@ -48,5 +48,16 @@ describe("20261104_02", () => {
     expect(sql).toMatch(/\('billing_mismatch',[\s\S]*'critical'/)
     expect(sql).toMatch(/\('billing_actions_failing',[\s\S]*'critical'/)
     expect(sql).toContain("on conflict (key) do nothing")
+  })
+})
+
+describe("the refund and cap rules", () => {
+  it("refund_failed and refund_stuck fire on any; the cap on gross collections over its threshold", () => {
+    expect(fires("refund_failed", { value: 1 }, 0)).toBe(true)
+    expect(fires("refund_failed", { value: 0 }, 0)).toBe(false)
+    expect(fires("refund_stuck", { value: 1 }, 0)).toBe(true)
+    expect(fires("paystack_cap_near", { value: 6_000_001 }, 6_000_000)).toBe(true)
+    expect(fires("paystack_cap_near", { value: 6_000_000 }, 6_000_000)).toBe(false)
+    expect(RULE_LINKS.paystack_cap_near).toBe("/admin/money")
   })
 })
