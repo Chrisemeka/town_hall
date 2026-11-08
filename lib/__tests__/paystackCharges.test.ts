@@ -6,6 +6,7 @@ vi.mock("@/lib/billing", () => ({ applySubscription: vi.fn(async () => "ok") }))
 vi.mock("@/lib/events", () => ({ recordEvent: vi.fn() }))
 vi.mock("@/lib/paystack/notify", () => ({ emailBuilder: vi.fn(), later: vi.fn(), site: () => "https://twnhall.com" }))
 vi.mock("@/lib/paystack/actions", () => ({ runBillingActions: vi.fn() }))
+vi.mock("@/lib/paystack/refunds", () => ({ runRefunds: vi.fn() }))
 vi.mock("@/lib/paystack/client", async (original) => {
   const real = await original<typeof import("@/lib/paystack/client")>()
   return { ...real, fetchSubscription: vi.fn(), listSubscriptions: vi.fn() }
@@ -75,8 +76,11 @@ const activeRow = (over: Record<string, unknown> = {}) => ({
   ...over,
 })
 
-function world(tables: { paystack_checkouts?: Record<string, unknown>[]; subscriptions?: Record<string, unknown>[] }) {
-  const db = fakeDb({ paystack_checkouts: [], subscriptions: [], ...tables })
+function world(
+  tables: { paystack_checkouts?: Record<string, unknown>[]; subscriptions?: Record<string, unknown>[] },
+  rpc: Record<string, (args: Record<string, unknown>) => unknown> = {},
+) {
+  const db = fakeDb({ paystack_checkouts: [], subscriptions: [], ...tables }, { rpc })
   vi.mocked(createAdminClient).mockReturnValue(db as never)
   return db
 }
@@ -214,6 +218,7 @@ describe("a resubscribe", () => {
       subscriptions: [activeRow({ provider_subscription_id: "SUB_old", provider_email_token: "old-tok" })],
     })
     vi.mocked(listSubscriptions).mockResolvedValue({ ok: true, data: [paystackSub({ subscriptionCode: "SUB_new" })] })
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ subscriptionCode: "SUB_new" }) })
     expect(await settleCharge(charge())).toBe("settled")
     expect(applied()[0]).toMatchObject({
       action: "start",
@@ -288,5 +293,81 @@ describe("a renewal", () => {
     vi.mocked(applySubscription).mockResolvedValue("duplicate")
     expect(await settleCharge(renewal())).toBe("duplicate")
     expect(emailBuilder).not.toHaveBeenCalled()
+  })
+})
+
+describe("an upgrade, Starter to Pro", () => {
+  const STARTER = activeRow({ id: "starter-row", plan_id: "starter", payment_reference: "twnhall-sub-0" })
+  const proCharge = (over: Record<string, unknown> = {}) =>
+    charge({ reference: "twnhall-sub-pro", amount: 3_000_000, plan: { plan_code: "PLN_p" }, paid_at: "2026-11-13T23:30:00.000Z", ...over })
+  const upgradeCheckout = () => checkout({ reference: "twnhall-sub-pro", plan_id: "pro", kind: "upgrade", replaces_subscription_id: "starter-row" })
+  beforeEach(() => {
+    vi.mocked(listSubscriptions).mockResolvedValue({ ok: true, data: [paystackSub({ subscriptionCode: "SUB_pro", planCode: "PLN_p" })] })
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ subscriptionCode: "SUB_pro", planCode: "PLN_p", invoiceReferences: ["twnhall-sub-pro"] }) })
+  })
+
+  it("an abandoned or declined checkout changes nothing: no RPC, Starter as it was", async () => {
+    const db = world({ paystack_checkouts: [upgradeCheckout()], subscriptions: [STARTER] })
+    expect(await settleCharge(proCharge({ status: "abandoned" }))).toBe("mismatch")
+    expect(await settleCharge(proCharge({ status: "failed" }))).toBe("mismatch")
+    expect(db.rpcCalls).toEqual([])
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(db.tables.subscriptions[0]).toMatchObject({ status: "active", plan_id: "starter" })
+  })
+
+  it("a verified charge settles in one call: Pro, Starter's disable, the refund from paid_at", async () => {
+    const db = world({ paystack_checkouts: [upgradeCheckout()], subscriptions: [STARTER] }, { settle_upgrade: () => ({ result: "ok", refund_ngn: 9500 }) })
+    expect(await settleCharge(proCharge())).toBe("settled")
+    expect(db.rpcCalls).toHaveLength(1)
+    expect(db.rpcCalls[0]).toMatchObject({
+      name: "settle_upgrade",
+      args: {
+        p_user_id: ME,
+        p_pro_reference: "twnhall-sub-pro",
+        p_amount_ngn: 30000,
+        p_paid_at: "2026-11-13T23:30:00.000Z",
+        p_starter_subscription_id: "starter-row",
+        p_provider_subscription_id: "SUB_pro",
+        p_actions: [{ kind: "disable_subscription", subscription_code: "SUB_1", email_token: "tok", idempotency_key: "disable:SUB_1" }],
+      },
+    })
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(later).toHaveBeenCalledTimes(2)
+    expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-upgraded", expect.objectContaining({ body: expect.stringContaining("refunding ₦9,500") }))
+    expect(JSON.stringify(db.rpcCalls)).not.toContain("AUTH_secret")
+  })
+
+  it("delivered twice, or the return page racing the webhook: the second is a duplicate and sends nothing", async () => {
+    let n = 0
+    const db = world({ paystack_checkouts: [upgradeCheckout()], subscriptions: [STARTER] }, { settle_upgrade: () => (n++ ? { result: "duplicate", refund_ngn: 0 } : { result: "ok", refund_ngn: 9500 }) })
+    expect(await settleCharge(proCharge())).toBe("settled")
+    db.tables.paystack_checkouts[0].completed_at = null
+    expect(await settleCharge(proCharge())).toBe("duplicate")
+    expect(emailBuilder).toHaveBeenCalledTimes(1)
+  })
+
+  it("a second, different Pro payment never reaches settle_upgrade", async () => {
+    const pro = activeRow({ id: "pro-row", plan_id: "pro", payment_reference: "twnhall-sub-pro" })
+    const second = checkout({ reference: "twnhall-sub-pro-2", plan_id: "pro", kind: "upgrade", replaces_subscription_id: "starter-row" })
+    const db = world({ paystack_checkouts: [second], subscriptions: [pro] }, { record_unwanted_charge: () => "ok" })
+    expect(await settleCharge(proCharge({ reference: "twnhall-sub-pro-2" }))).toBe("duplicate_charge")
+    expect(db.rpcCalls.map((c) => c.name)).not.toContain("settle_upgrade")
+  })
+
+  it("an upgrade with no refund says so in its email", async () => {
+    world({ paystack_checkouts: [upgradeCheckout()], subscriptions: [STARTER] }, { settle_upgrade: () => ({ result: "ok", refund_ngn: 0 }) })
+    expect(await settleCharge(proCharge())).toBe("settled")
+    expect(later).toHaveBeenCalledTimes(1)
+    expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-upgraded", expect.objectContaining({ body: expect.not.stringContaining("refunding") }))
+  })
+})
+
+describe("which subscription a first charge belongs to", () => {
+  it("only one whose own invoices name the charge: an older live one is never attached", async () => {
+    world({ paystack_checkouts: [checkout()] })
+    vi.mocked(listSubscriptions).mockResolvedValue({ ok: true, data: [paystackSub({ subscriptionCode: "SUB_old" })] })
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ subscriptionCode: "SUB_old", invoiceReferences: ["twnhall-sub-0"] }) })
+    expect(await settleCharge(charge())).toBe("settled")
+    expect(applied()[0].providerSubscriptionId).toBeNull()
   })
 })

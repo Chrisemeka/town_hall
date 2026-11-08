@@ -46,6 +46,40 @@ function SubscribeDialog({ plan, now }: { plan: Plan; now: Date }) {
   )
 }
 
+/**
+ * Starter → Pro, now (SPEC-paystack-plan-changes §2.2). The refund is an
+ * estimate ("about"): the database works out the real one from the moment
+ * Paystack takes the Pro payment, and nothing is refunded until it has.
+ */
+function UpgradeDialog({ now, estimate, attention }: { now: Date; estimate: { refundNgn: number; days: number } | null; attention: boolean }) {
+  const pro = planFor("pro")
+  const amount = pro.price!.naira
+  const refund = attention
+    ? "There's no refund, because your last Starter payment didn't go through."
+    : estimate && estimate.refundNgn > 0
+      ? `Once your Pro payment has gone through, we refund about ${formatNgn(estimate.refundNgn)}, for the ${estimate.days} days of Starter you won't use, to the card you paid with. We'll email you when the refund starts and when it's done; your bank may take up to 10 business days to show it.`
+      : "There are no unused Starter days to refund."
+  return (
+    <BillingDialog
+      label="Upgrade to Pro"
+      title={`Upgrade to Pro — ${amount} a month.`}
+      confirm="Continue to payment"
+      dismiss="Not now"
+      action={startSubscription.bind(null, "pro", "upgrade")}
+    >
+      <p>
+        You pay {amount} now and Pro starts as soon as the payment goes through. Your reports for this month go up to Pro&apos;s{" "}
+        {pro.monthlyReports}, counting any you&apos;ve already used.
+      </p>
+      <p>{refund}</p>
+      <p>Pro renews on the {billingDay(now)} of every month until you cancel.</p>
+      <p>
+        If the payment doesn&apos;t go through, nothing changes: you stay on Starter. <PolicyLink />
+      </p>
+    </BillingDialog>
+  )
+}
+
 function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | null }) {
   return (
     <BillingDialog
@@ -66,7 +100,10 @@ function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | nul
 }
 
 /** The account's state and its controls, exactly the ones the state allows (SPEC-paystack-subscriptions §12). */
-function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling }) {
+function CurrentBilling({ plan, billing, now, upgrade }: { plan: Plan; billing: PlanBilling; now: Date; upgrade: { refundNgn: number; days: number } | null }) {
+  // Starter on a Paystack subscription can move up now, whether renewing, cancelled or failed.
+  const canUpgrade = plan.id === "starter" && billing.configured
+  const upgradeButton = canUpgrade ? <UpgradeDialog now={now} estimate={upgrade} attention={billing.kind === "attention"} /> : null
   const line = "font-mono text-[14px] leading-6 text-ink"
   const until = billing.periodEnd ? lagosDate(billing.periodEnd) : null
   const card = billing.cardLast4 ? ` · card ending ${billing.cardLast4}` : ""
@@ -75,7 +112,12 @@ function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling })
     return <p className={line}>{plan.name} — arranged directly{until ? `, ends on ${until}` : ""}.</p>
   }
   if (billing.kind === "cancelled") {
-    return <p className={line}>{plan.name}{until ? ` until ${until}` : ""}. You won&apos;t be charged again.</p>
+    return (
+      <div className="flex flex-col gap-4">
+        <p className={line}>{plan.name}{until ? ` until ${until}` : ""}. You won&apos;t be charged again.</p>
+        {upgradeButton && <div>{upgradeButton}</div>}
+      </div>
+    )
   }
   if (billing.kind === "attention") {
     return (
@@ -98,6 +140,7 @@ function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling })
               card, through Paystack. <PolicyLink />
             </p>
           </BillingDialog>
+          {upgradeButton}
           <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
         </div>
       </div>
@@ -109,7 +152,8 @@ function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling })
         <p className={line}>
           {plan.name} — renews{until ? ` on ${until}` : " monthly"} · {formatNgn(billing.amountNgn ?? plan.amountNgn ?? 0)}{card}
         </p>
-        <div>
+        <div className="flex flex-col medium:flex-row gap-4">
+          {upgradeButton}
           <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
         </div>
       </div>
@@ -128,7 +172,21 @@ function CurrentBilling({ plan, billing }: { plan: Plan; billing: PlanBilling })
  * shown where it is spent, beside the publish button
  * (components/missions/AllowanceNotice.tsx). No tier is "best value".
  */
-export function PlanSection({ planId, billing, now, notice }: { planId: PlanId; billing: PlanBilling; now: Date; notice?: string }) {
+export function PlanSection({
+  planId,
+  billing,
+  now,
+  notice,
+  upgrade = null,
+  refunds = [],
+}: {
+  planId: PlanId
+  billing: PlanBilling
+  now: Date
+  notice?: string
+  upgrade?: { refundNgn: number; days: number } | null
+  refunds?: string[]
+}) {
   const current = planFor(planId)
   const others = otherPlans(planId)
   const canSubscribe = billing.kind === "none" && billing.configured
@@ -143,6 +201,13 @@ export function PlanSection({ planId, billing, now, notice }: { planId: PlanId; 
         <p className="inline-block mb-4 rounded-[4px] border border-ink-muted px-2 py-1 font-mono text-[12px] text-ink">
           Test mode — no real money moves
         </p>
+      )}
+      {refunds.length > 0 && (
+        <ul className="mb-6 flex flex-col gap-2 rounded-[8px] border border-line p-4 font-sans text-[14px] leading-6 text-ink">
+          {refunds.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
       )}
       {message && (
         <p role="status" className="mb-6 rounded-[8px] border border-line p-4 font-sans text-[14px] leading-6 text-ink">
@@ -167,7 +232,7 @@ export function PlanSection({ planId, billing, now, notice }: { planId: PlanId; 
           <p className="font-mono text-[14px] text-ink mt-1">{priceLine(current)}</p>
           {billing.kind !== "none" && (
             <div className="mt-4">
-              <CurrentBilling plan={current} billing={billing} />
+              <CurrentBilling plan={current} billing={billing} now={now} upgrade={upgrade} />
             </div>
           )}
           <p className="font-sans text-[14px] leading-6 text-ink mt-3">

@@ -9,6 +9,7 @@ import { fetchSubscription, listSubscriptions, type PaystackSubscription, type P
 import { planIdForCode } from "@/lib/paystack/config"
 import { emailBuilder, later, site } from "@/lib/paystack/notify"
 import { runBillingActions } from "@/lib/paystack/actions"
+import { runRefunds } from "@/lib/paystack/refunds"
 
 // settleCharge(): the ONE place a charge becomes a plan. The return page and the
 // webhook both call it, and whichever lands second gets 'duplicate' from
@@ -42,11 +43,22 @@ function periodEndFrom(next: string | null, paidAt: string | null): string {
   return next && Date.parse(next) > Date.parse(paid) ? next : provisionalPeriodEnd(paid)
 }
 
-/** Newest active subscription for this customer and plan, if Paystack has made it yet. */
-async function findSubscription(customer: string | null, planCode: string | null): Promise<PaystackSubscription | null> {
-  if (!customer || !planCode) return null
+/**
+ * The subscription that made this charge, if Paystack has made it yet: one
+ * whose own invoices list the charge's reference. Newest first, and never just
+ * "the newest active one", which could be an older subscription whose disable
+ * hasn't landed. Null leaves it to subscription.create or the cron's reconcile.
+ */
+export async function findSubscription(customer: string | null, planCode: string | null, reference: string | null): Promise<PaystackSubscription | null> {
+  if (!customer || !planCode || !reference) return null
   const res = await listSubscriptions({ customer, plan: planCode })
-  return res.ok ? (res.data.find((s) => s.status === "active" && s.subscriptionCode) ?? null) : null
+  if (!res.ok) return null
+  // ponytail: the three newest; a customer with more live subscriptions on one plan is an alert already.
+  for (const s of res.data.filter((x) => x.subscriptionCode).slice(0, 3)) {
+    const full = await fetchSubscription(s.subscriptionCode!)
+    if (full.ok && full.data.invoiceReferences.includes(reference)) return full.data
+  }
+  return null
 }
 
 export async function settleCharge(tx: PaystackTransaction): Promise<SettleOutcome> {
@@ -106,8 +118,10 @@ async function settleFirstCharge(
     return "duplicate_charge"
   }
 
-  const sub = await findSubscription(tx.customerCode, tx.planCode)
+  const sub = await findSubscription(tx.customerCode, tx.planCode, tx.reference)
   const periodEnd = periodEndFrom(sub?.nextPaymentDate ?? null, tx.paidAt)
+
+  if (checkout.kind === "upgrade") return settleUpgrade(tx, checkout, sub, periodEnd, active?.plan_id ?? null)
 
   // The failed subscription would otherwise be retried a month from now. Queued
   // with the payment or not at all.
@@ -143,6 +157,60 @@ async function settleFirstCharge(
   if (actions.length) later(() => runBillingActions())
   await recordEvent({ name: "plan.changed", profileId: checkout.profile_id, accountType: "builder", props: { from: active?.plan_id ?? "community", to: planId, source: "paystack" } })
   emailBuilder(checkout.profile_id, "subscription-started", billingNotice("started", planId, { periodEnd, cardLast4: tx.card.last4, site: site() }))
+  return "settled"
+}
+
+/**
+ * Starter → Pro (SPEC-paystack-plan-changes §2.2). The charge is verified and
+ * validated by now; settle_upgrade does the rest in one transaction: Pro starts,
+ * Starter ends and its disable is queued, and the unused Starter days are queued
+ * as a refund, computed by the database from Paystack's paid_at. A second
+ * delivery is 'duplicate' there and creates nothing. Nothing touched Starter
+ * before this point.
+ */
+async function settleUpgrade(
+  tx: PaystackTransaction,
+  checkout: { reference: string; profile_id: string; replaces_subscription_id: string | null },
+  sub: PaystackSubscription | null,
+  periodEnd: string,
+  fromPlan: string | null,
+): Promise<SettleOutcome> {
+  const admin = createAdminClient()
+  const complete = () => admin.from("paystack_checkouts").update({ completed_at: new Date().toISOString() }).eq("reference", checkout.reference)
+  const { data: starter, error: starterError } = checkout.replaces_subscription_id
+    ? await admin.from("subscriptions").select("provider_subscription_id, provider_email_token").eq("id", checkout.replaces_subscription_id).maybeSingle()
+    : { data: null, error: null }
+  if (starterError) throw new Error(starterError.message)
+
+  const { data, error } = await admin.rpc("settle_upgrade", {
+    p_user_id: checkout.profile_id,
+    p_pro_reference: checkout.reference,
+    p_amount_ngn: tx.amountNgn,
+    p_paid_at: tx.paidAt ?? new Date().toISOString(),
+    p_period_end: periodEnd,
+    p_starter_subscription_id: checkout.replaces_subscription_id,
+    p_provider_customer_id: tx.customerCode,
+    p_provider_subscription_id: sub?.subscriptionCode ?? tx.subscriptionCode,
+    p_provider_email_token: sub?.emailToken ?? null,
+    p_provider_plan_code: tx.planCode,
+    p_provider_status: sub?.status ?? "active",
+    p_card_last4: tx.card.last4,
+    p_card_brand: tx.card.brand,
+    p_actions: starter ? disableActionFor(starter) : [],
+  })
+  if (error) throw new Error(error.message)
+  const { result, refund_ngn: refundNgn } = (data ?? {}) as { result?: string; refund_ngn?: number }
+  if (result === "duplicate") {
+    await complete()
+    return "duplicate"
+  }
+  if (result !== "ok") return "unmatched"
+
+  await complete()
+  later(() => runBillingActions())
+  if (refundNgn) later(() => runRefunds())
+  await recordEvent({ name: "plan.changed", profileId: checkout.profile_id, accountType: "builder", props: { from: fromPlan ?? "starter", to: "pro", source: "paystack" } })
+  emailBuilder(checkout.profile_id, "subscription-upgraded", billingNotice("upgraded", "pro", { periodEnd, cardLast4: tx.card.last4, refundNgn: refundNgn ?? 0, site: site() }))
   return "settled"
 }
 

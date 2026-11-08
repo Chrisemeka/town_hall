@@ -24,7 +24,7 @@ export type BillingActionResult = { ok: true } | { ok: false; error: string }
 
 const OPEN_MINUTES = 30
 
-const startSchema = z.object({ planId: z.enum(["starter", "pro"]), kind: z.enum(["new", "resubscribe"]) })
+const startSchema = z.object({ planId: z.enum(["starter", "pro"]), kind: z.enum(["new", "resubscribe", "upgrade"]) })
 
 type Admin = ReturnType<typeof createAdminClient>
 
@@ -55,7 +55,7 @@ async function openCheckout(admin: Admin, userId: string, planId: string, kind: 
 
 const STILL_STARTING = "Your checkout is still starting. Try again in a moment."
 
-export async function startSubscription(planId: "starter" | "pro", kind: "new" | "resubscribe" = "new"): Promise<BillingActionResult> {
+export async function startSubscription(planId: "starter" | "pro", kind: "new" | "resubscribe" | "upgrade" = "new"): Promise<BillingActionResult> {
   const { userId } = await requireAccount("builder")
   const parsed = startSchema.safeParse({ planId, kind })
   if (!parsed.success) return fail("Choose a plan.")
@@ -81,7 +81,11 @@ export async function startSubscription(planId: "starter" | "pro", kind: "new" |
           : "Your plan was arranged directly. Get in touch to change it.",
       )
     }
-    if (active.provider_status !== "attention" || active.plan_id !== plan.id || effectiveKind !== "resubscribe") {
+    // Pay now on a failed renewal, or Starter → Pro. Nothing about the current
+    // row changes here: an abandoned checkout leaves it exactly as it was.
+    const payingNow = effectiveKind === "resubscribe" && active.provider_status === "attention" && active.plan_id === plan.id
+    const upgrading = effectiveKind === "upgrade" && active.plan_id === "starter" && plan.id === "pro"
+    if (!payingNow && !upgrading) {
       return fail(`You're already subscribed. Your ${PLANS[planIdFor(active.plan_id)].name} plan is in Settings → Plan.`)
     }
     replaces = active.id

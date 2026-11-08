@@ -266,6 +266,7 @@ export function mrr(payments: readonly PaymentLine[], refunds: readonly RefundLi
 
 type BillingNoticeKind =
   | "started"
+  | "upgraded"
   | "renewed"
   | "renews_soon"
   | "cancelled_ending"
@@ -278,7 +279,7 @@ type BillingNoticeKind =
 export function billingNotice(
   kind: BillingNoticeKind,
   planId: PlanId,
-  opts: { periodEnd?: string | null; periodStart?: string | null; cardLast4?: string | null; site: string },
+  opts: { periodEnd?: string | null; periodStart?: string | null; cardLast4?: string | null; refundNgn?: number; site: string },
 ): { subject: string; body: string } {
   const plan = planFor(planId)
   const name = plan.name
@@ -291,6 +292,10 @@ export function billingNotice(
     started: [
       `You're on ${name}`,
       `Your ${name} plan has started: ${plan.monthlyReports} reports a month and ${plan.activeMissions} active test cases at once. We charged ${amount} to ${card}. Your next charge is ${amount} on ${on}, and it renews every month until you cancel. Cancel any time in Settings → Plan.`,
+    ],
+    upgraded: [
+      `You're on ${name}`,
+      `Your ${name} plan has started: ${plan.monthlyReports} reports a month, counting any you've used this month, and ${plan.activeMissions} active test cases at once. We charged ${amount} to ${card}.${opts.refundNgn ? ` We're refunding ${formatNgn(opts.refundNgn)} for the unused days of Starter to the card you paid with, and we'll email you when the refund starts.` : ""} Your next charge is ${amount} on ${on}, and it renews every month until you cancel. Cancel any time in Settings → Plan.`,
     ],
     renewed: [
       `Payment received for ${name}`,

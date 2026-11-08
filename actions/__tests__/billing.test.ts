@@ -87,7 +87,7 @@ describe("startSubscription", () => {
   it("refuses a made-up plan or kind", async () => {
     world()
     expect(await startSubscription("community" as never)).toMatchObject({ ok: false })
-    expect(await startSubscription("starter", "upgrade" as never)).toMatchObject({ ok: false })
+    expect(await startSubscription("starter", "downgrade" as never)).toMatchObject({ ok: false })
   })
 
   it("is rate limited, in words that say when, not how many", async () => {
@@ -185,6 +185,30 @@ describe("startSubscription", () => {
     const db = world()
     await expect(startSubscription("starter", "resubscribe")).rejects.toThrow("REDIRECT")
     expect(db.tables.paystack_checkouts[0]).toMatchObject({ kind: "new", replaces_subscription_id: null })
+  })
+
+  it.each(["active", "attention"])("Starter → Pro from a Paystack Starter (%s) names the Starter row, and changes nothing else", async (status) => {
+    const db = world({ subscriptions: [active({ provider_status: status })] })
+    await expect(startSubscription("pro", "upgrade")).rejects.toThrow(`REDIRECT ${PAGE}`)
+    expect(db.tables.paystack_checkouts[0]).toMatchObject({ plan_id: "pro", kind: "upgrade", replaces_subscription_id: "row-1" })
+    expect(vi.mocked(initializeTransaction).mock.calls[0][0]).toMatchObject({ amountNgn: 30000, planCode: "PLN_p" })
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(disableSubscription).not.toHaveBeenCalled()
+    expect(db.tables.subscriptions[0]).toMatchObject({ status: "active", plan_id: "starter" })
+  })
+
+  it("no upgrade from a manual plan", async () => {
+    world({ subscriptions: [active({ source: "manual" })] })
+    expect(await startSubscription("pro", "upgrade")).toMatchObject({ ok: false })
+    expect(initializeTransaction).not.toHaveBeenCalled()
+  })
+
+  it("no upgrade from Pro, and no 'upgrade' to Starter", async () => {
+    world({ subscriptions: [active({ plan_id: "pro" })] })
+    expect(await startSubscription("pro", "upgrade")).toMatchObject({ ok: false })
+    world({ subscriptions: [active()] })
+    expect(await startSubscription("starter", "upgrade")).toMatchObject({ ok: false })
+    expect(initializeTransaction).not.toHaveBeenCalled()
   })
 })
 

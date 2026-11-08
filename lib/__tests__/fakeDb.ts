@@ -15,7 +15,15 @@ function term(expr: string): Check {
   throw new Error(`fakeDb: ${expr}`)
 }
 
-export function fakeDb(tables: Record<string, Row[]>, opts: { unique?: Record<string, (row: Row, rows: Row[]) => boolean> } = {}) {
+export function fakeDb(
+  tables: Record<string, Row[]>,
+  opts: {
+    unique?: Record<string, (row: Row, rows: Row[]) => boolean>
+    /** What each RPC answers; every call is kept in rpcCalls. */
+    rpc?: Record<string, (args: Row) => unknown>
+  } = {},
+) {
+  const rpcCalls: { name: string; args: Row }[] = []
   const from = (table: string) => {
     const rows = (tables[table] ??= [])
     const checks: Check[] = []
@@ -38,6 +46,9 @@ export function fakeDb(tables: Record<string, Row[]>, opts: { unique?: Record<st
       is: (c: string, v: unknown) => (checks.push((r) => (r[c] ?? null) === v), q),
       in: (c: string, v: unknown[]) => (checks.push((r) => v.includes(r[c])), q),
       lt: (c: string, v: string) => (checks.push((r) => String(r[c]) < v), q),
+      neq: (c: string, v: unknown) => (checks.push((r) => r[c] !== v), q),
+      not: (c: string, op: string, v: unknown) => (checks.push((r) => !(op === "is" ? (r[c] ?? null) === v : r[c] === v)), q),
+      order: () => q,
       or: (expr: string) => {
         const terms = expr.split(",").map(term)
         checks.push((r) => terms.some((t) => t(r)))
@@ -63,6 +74,11 @@ export function fakeDb(tables: Record<string, Row[]>, opts: { unique?: Record<st
   return {
     from,
     tables,
+    rpcCalls,
+    rpc: async (name: string, args: Row) => {
+      rpcCalls.push({ name, args })
+      return { data: opts.rpc?.[name]?.(args) ?? null, error: null }
+    },
     auth: { admin: { getUserById: async (id: string) => ({ data: { user: { id, email: "ada@example.ng" } }, error: null }) } },
   }
 }
