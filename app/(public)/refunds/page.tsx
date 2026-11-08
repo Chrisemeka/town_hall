@@ -37,7 +37,7 @@ export default function RefundsPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 4, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 8, 2026</p>
         </Reveal>
 
         <Reveal step={2}>
@@ -119,7 +119,10 @@ export default function RefundsPage() {
               <span className="text-ink font-medium">Cancel any time in Settings → Plan.</span> You keep your plan until the end of the period you&apos;ve paid for, and you won&apos;t be charged again. We confirm by email.
             </p>
             <p>
-              We don&apos;t refund the rest of a period you cancel part-way through, except as described under Refunds. To stop a plan we arranged with you directly, or to move to a smaller plan, email <Email /> from your account&apos;s email address.
+              We don&apos;t refund the rest of a period you cancel part-way through, except as described under Refunds. To stop a plan we arranged with you directly, email <Email /> from your account&apos;s email address.
+            </p>
+            <p>
+              To move to a smaller plan, use Switch to Starter in Settings → Plan. It takes effect when your current period ends, and the new price starts then.
             </p>
           </Section>
 
@@ -133,6 +136,12 @@ export default function RefundsPage() {
                 <Link href="/terms" className={LINK}>Terms</Link>, or stop offering your plan.
               </li>
             </ul>
+            <p>
+              If you move from Starter to Pro, we refund Starter for the whole days left in your billing period after the day you upgrade, at the daily rate you paid, rounded down to the naira. Days are counted in Lagos time. A billing period runs from the day you paid up to the day before your next billing date. For example, a period paid on 4 November covers 4 November to 3 December, so upgrading on 14 November refunds 19 of its 30 days. It&apos;s automatic and goes back to the card you paid with. It only starts once your Pro payment has gone through. We email you when it starts and when it&apos;s done.
+            </p>
+            <p>
+              <span className="text-ink font-medium">We only tell you a refund is done when Paystack confirms it.</span> If one can&apos;t be sent automatically, we pay it back another way within two business days.
+            </p>
             <p>
               To ask, email <Email /> from your account&apos;s email address with the payment&apos;s date and amount. We reply within one business day. Once a refund is agreed, we start it within two business days, to the card or account you paid from. How long it then takes to reach you depends on your bank. We refund the full amount you paid.
             </p>

@@ -110,6 +110,10 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     a: "Subscribe from Settings → Plan and pay by card through Paystack. It renews every month until you cancel. Prices include any tax we're required to charge, and no card fee is added.",
   },
   {
+    q: "Can I switch plans?",
+    a: `Move up to Pro any time. It starts as soon as your payment goes through, your reports for the month go up to Pro's ${PRO.monthlyReports}, and we refund the unused days of Starter. Moving down to Starter takes effect at your next billing date.`,
+  },
+  {
     q: "Can I cancel, or get a refund?",
     a: (
       <>

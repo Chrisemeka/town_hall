@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("@/actions/billing", () => ({
   startSubscription: () => undefined,
   cancelSubscription: () => undefined,
+  scheduleDowngrade: () => undefined,
 }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => undefined }) }))
 import { createElement } from "react"
@@ -63,6 +64,19 @@ describe("/refunds", () => {
   it("states the grace and the charge date", () => {
     expect(html).toContain("your plan stays for 3 more days")
     expect(html).toContain("the 28th if you subscribe on the 29th–31st")
+  })
+
+  it("states the upgrade refund rule, and that a refund is done only when Paystack confirms it", () => {
+    expect(html).toContain("we refund Starter for the whole days left in your billing period after the day you upgrade, at the daily rate you paid, rounded down to the naira")
+    expect(html).toContain("Days are counted in Lagos time.")
+    expect(html).toContain("upgrading on 14 November refunds 19 of its 30 days")
+    expect(html).toContain("It only starts once your Pro payment has gone through.")
+    expect(html).toContain("We only tell you a refund is done when Paystack confirms it.")
+    expect(html).toContain("we pay it back another way within two business days")
+  })
+
+  it("says how to move to a smaller plan", () => {
+    expect(html).toContain("To move to a smaller plan, use Switch to Starter in Settings → Plan. It takes effect when your current period ends, and the new price starts then.")
   })
 
   it("still promises a refund for a charge after cancelling (B4)", () => {
