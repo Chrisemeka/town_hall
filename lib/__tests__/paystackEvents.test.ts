@@ -173,3 +173,22 @@ describe("a late subscription.create for an unwanted charge's own subscription",
     expect(db.tables.billing_actions).toEqual([])
   })
 })
+
+describe("subscription.expiring_cards", () => {
+  it("emails each renewing builder named, linking the card page, and no one else", async () => {
+    world([row({ card_last4: "4081" })])
+    const out = await handlePaystackEvent({
+      event: "subscription.expiring_cards",
+      data: [{ expiry_date: "11/2026", subscription: { subscription_code: "SUB_1" } }, { subscription: { subscription_code: "SUB_unknown" } }],
+    })
+    expect(out).toBe("settled")
+    expect(emailBuilder).toHaveBeenCalledTimes(1)
+    expect(emailBuilder).toHaveBeenCalledWith(ME, "card-expiring", expect.objectContaining({ body: expect.stringContaining("https://twnhall.com/settings/billing/card") }))
+    expect(vi.mocked(emailBuilder).mock.calls[0][2].body).toContain("card ending 4081")
+  })
+
+  it("an empty list is ignored", async () => {
+    world([])
+    expect(await handlePaystackEvent({ event: "subscription.expiring_cards", data: [] })).toBe("ignored")
+  })
+})

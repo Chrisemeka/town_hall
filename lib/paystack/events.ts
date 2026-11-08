@@ -149,6 +149,30 @@ async function subscriptionStopped(data: unknown): Promise<PaystackOutcome> {
   return "settled"
 }
 
+/**
+ * subscription.expiring_cards: each of our renewing subscriptions named gets one
+ * email asking for a new card, linking the page that fetches a fresh Paystack link.
+ * ponytail: a redelivery emails again; Paystack sends this monthly, so a second
+ * copy is the worst case. Key it on app_events if that ever matters.
+ */
+async function cardsExpiring(data: unknown): Promise<PaystackOutcome> {
+  const codes = (Array.isArray(data) ? data : [])
+    .map((d) => mapSubscription(obj(d).subscription).subscriptionCode)
+    .filter((c): c is string => !!c)
+  if (!codes.length) return "ignored"
+  const { data: rows, error } = await createAdminClient()
+    .from("subscriptions")
+    .select("profile_id, plan_id, provider_status, card_last4")
+    .eq("status", "active")
+    .eq("source", "paystack")
+    .in("provider_subscription_id", codes)
+  if (error) throw new Error(error.message)
+  for (const r of rows ?? []) {
+    emailBuilder(r.profile_id, "card-expiring", billingNotice("card_expiring", planIdFor(r.plan_id), { cardLast4: r.card_last4, site: site() }))
+  }
+  return rows?.length ? "settled" : "unmatched"
+}
+
 export async function handlePaystackEvent(event: unknown): Promise<PaystackOutcome> {
   const root = obj(event)
   switch (root.event) {
@@ -161,6 +185,8 @@ export async function handlePaystackEvent(event: unknown): Promise<PaystackOutco
     case "subscription.not_renew":
     case "subscription.disable":
       return subscriptionStopped(root.data)
+    case "subscription.expiring_cards":
+      return cardsExpiring(root.data)
     case "refund.pending":
     case "refund.processing":
     case "refund.needs-attention":

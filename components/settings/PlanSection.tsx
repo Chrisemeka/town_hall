@@ -17,8 +17,19 @@ const RETURN_NOTICES: Record<string, string> = {
   not_completed: "No payment was taken.",
   failed: "We couldn't reach Paystack, and no payment was taken. Try again in a minute.",
   review: "Your payment arrived, but we need to check it before it changes your plan. We'll email you.",
+  card_failed: "We couldn't open Paystack's card page just now. Try again in a minute.",
   refunding: "You already had this plan, so nothing changed and we're refunding that payment in full. We'll email you when the refund starts.",
 }
+
+/** Paystack's own page, fetched fresh on every click (SPEC-paystack-plan-changes §5). A link, not a form: nothing is sent from here. */
+const UpdateCard = () => (
+  <a
+    href="/settings/billing/card"
+    className="inline-flex h-12 lg:h-11 w-full medium:w-auto items-center justify-center px-6 rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
+  >
+    Update card
+  </a>
+)
 
 const PolicyLink = () => (
   <Link href="/refunds" className={LINK}>
@@ -156,6 +167,7 @@ function CurrentBilling({ plan, billing, now, upgrade }: { plan: Plan; billing: 
             </p>
           </BillingDialog>
           {upgradeButton}
+          <UpdateCard />
           <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
         </div>
       </div>
@@ -170,6 +182,7 @@ function CurrentBilling({ plan, billing, now, upgrade }: { plan: Plan; billing: 
         <div className="flex flex-col medium:flex-row gap-4">
           {upgradeButton}
           {plan.id === "pro" && billing.configured && <SwitchDialog periodEnd={billing.periodEnd} cardLast4={billing.cardLast4} now={now} />}
+          <UpdateCard />
           <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
         </div>
       </div>

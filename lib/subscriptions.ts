@@ -279,6 +279,7 @@ type BillingNoticeKind =
   | "downgrade_scheduled"
   | "switching"
   | "downgrade_failed"
+  | "card_expiring"
 
 /** Every email about a Paystack subscription: it names the amount and says where to stop it. Never the admin or a reason. */
 export function billingNotice(
@@ -331,6 +332,10 @@ export function billingNotice(
     downgrade_failed: [
       "Starter didn't start",
       `Starter didn't start because the payment didn't go through. Your account is on Community, and there will be no further charges. Subscribe again from Settings → Plan.`,
+    ],
+    card_expiring: [
+      "Your card expires this month",
+      `The ${opts.cardLast4 ? `card ending ${opts.cardLast4}` : "card you pay with"} expires this month. Update it so ${name} keeps renewing: ${opts.site}/settings/billing/card`,
     ],
     lapsed: [`Your ${name} plan has ended`, `Your ${name} plan (${amount} a month) has ended because the payment didn't go through. There will be no further charges. Your account is on Community, and you can subscribe again from Settings → Plan.`],
   }
