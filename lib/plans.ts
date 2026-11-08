@@ -29,6 +29,8 @@ export type Plan = {
   name: string
   /** Per month, as written — there is no checkout. null on Community, which is free. */
   price: { naira: string; dollars: string } | null
+  /** What a Paystack charge must equal. Written by hand beside price.naira, never computed from it. null on Community. */
+  amountNgn: number | null
   summary: string
   /** Reports that arrive each calendar month. 0 on Community. */
   monthlyReports: number
@@ -46,6 +48,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "community",
     name: "Community",
     price: null,
+    amountNgn: null,
     summary:
       "For builders who test as well as ship. Everything you need, paid for by taking part.",
     monthlyReports: 0,
@@ -69,6 +72,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "starter",
     name: "Starter",
     price: { naira: "₦15,000", dollars: "~$11" },
+    amountNgn: 15_000,
     summary:
       "For a solo founder or a small team shipping steadily. One proper round of testing a month, five people on what you built.",
     monthlyReports: 5,
@@ -88,6 +92,7 @@ export const PLANS: Record<PlanId, Plan> = {
     id: "pro",
     name: "Pro",
     price: { naira: "₦30,000", dollars: "~$22" },
+    amountNgn: 30_000,
     summary:
       "For teams shipping every week, usually an agency. Two full rounds a month: test, fix, then test the fix.",
     monthlyReports: 10,

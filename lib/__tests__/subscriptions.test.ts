@@ -39,12 +39,39 @@ describe("allowanceEffect", () => {
 })
 
 describe("mrr", () => {
-  it("is what was paid, spread over the months it covers; comped is zero", () => {
-    const month = { amount_ngn: 30000, period_start: "2026-10-01T00:00:00Z", period_end: "2026-11-01T00:00:00Z" }
-    const quarter = { amount_ngn: 45000, period_start: "2026-10-01T00:00:00Z", period_end: "2027-01-01T00:00:00Z" }
-    const comped = { amount_ngn: null, period_start: "2026-10-01T00:00:00Z", period_end: null }
-    expect(monthlyAmount(month)).toBe(30000)
-    expect(monthlyAmount(quarter)).toBe(15000)
-    expect(mrr([month, quarter, comped])).toBe(45000)
+  const NOW = new Date("2026-10-15T00:00:00Z")
+  const pay = (id: string, amount_ngn: number, period_start: string, period_end: string | null) => ({ id, amount_ngn, period_start, period_end })
+
+  it("is what was paid, spread over the months each payment covers", () => {
+    const month = pay("a", 30000, "2026-10-01T00:00:00Z", "2026-11-01T00:00:00Z")
+    const quarter = pay("b", 45000, "2026-10-01T00:00:00Z", "2027-01-01T00:00:00Z")
+    expect(monthlyAmount(month, [])).toBe(30000)
+    expect(monthlyAmount(quarter, [])).toBe(15000)
+    expect(mrr([month, quarter], [], NOW)).toBe(45000)
+  })
+
+  it("reads ₦15,000 after a ₦15,000 period is renewed once, not ₦7,500", () => {
+    const first = pay("a", 15000, "2026-09-20T00:00:00Z", "2026-10-20T00:00:00Z")
+    const renewal = pay("b", 15000, "2026-10-20T00:00:00Z", "2026-11-20T00:00:00Z")
+    expect(mrr([first, renewal], [], NOW)).toBe(15000)
+    expect(mrr([first, renewal], [], new Date("2026-10-25T00:00:00Z"))).toBe(15000)
+  })
+
+  it("leaves out a period that hasn't started, has ended, or never ends", () => {
+    expect(mrr([pay("a", 15000, "2026-11-01T00:00:00Z", "2026-12-01T00:00:00Z")], [], NOW)).toBe(0)
+    expect(mrr([pay("a", 15000, "2026-08-01T00:00:00Z", "2026-09-01T00:00:00Z")], [], NOW)).toBe(0)
+    expect(mrr([pay("a", 15000, "2026-10-01T00:00:00Z", null)], [], NOW)).toBe(0)
+    // The end is excluded: on the renewal instant the old payment no longer counts.
+    expect(mrr([pay("a", 15000, "2026-09-15T00:00:00Z", "2026-10-15T00:00:00Z")], [], NOW)).toBe(0)
+  })
+
+  it("counts a refund only once the money has actually gone back", () => {
+    const p = pay("a", 15000, "2026-10-01T00:00:00Z", "2026-11-01T00:00:00Z")
+    const refund = (status: string) => [{ payment_id: "a", amount_ngn: 9500, status }]
+    for (const status of ["processed", "settled_outside"]) expect(mrr([p], refund(status), NOW)).toBe(5500)
+    for (const status of ["queued", "sending", "unknown", "pending", "processing", "needs_attention", "failed"]) {
+      expect(mrr([p], refund(status), NOW)).toBe(15000)
+    }
+    expect(mrr([p], [{ payment_id: "other", amount_ngn: 9500, status: "processed" }], NOW)).toBe(15000)
   })
 })

@@ -7,16 +7,17 @@ import { monthOf } from "@/lib/allowance"
 import { monthStart } from "@/lib/metrics"
 import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
-import { formatNgn, monthlyAmount } from "@/lib/subscriptions"
+import { formatNgn, monthlyAmount, mrr } from "@/lib/subscriptions"
+import { currentPayments, refundsInFlight } from "@/lib/subscriptionPaymentsDb"
 import { CASH_ON_HAND, FX, INFRA_USD_MONTHLY, usdToNgn } from "@/lib/costs"
 
 export const metadata = { title: "Money — Admin · Twnhall" }
 
-// Admin Metrics §5, this Lagos month. Money in is subscriptions.amount_ngn —
+// Admin Metrics §5, this Lagos month. Money in is subscription_payments —
 // what builders actually paid — never list price. Money out is the cohort
 // (the payout sheet), AI (ai_usage_events) and infra (lib/costs.ts).
 
-type Sub = { profile_id: string; plan_id: string; amount_ngn: number | null; period_start: string; period_end: string | null }
+type Sub = { id: string; profile_id: string; plan_id: string }
 
 const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : "—")
 
@@ -26,17 +27,23 @@ export default async function AdminMoneyPage() {
   const month = monthOf(now)
   const from = monthStart(now).toISOString()
 
-  const [subsRes, aiRes, sheet, payable, deliveredRes] = await Promise.all([
-    admin.from("subscriptions").select("profile_id, plan_id, amount_ngn, period_start, period_end").eq("status", "active"),
+  const [subsRes, aiRes, sheet, payable, deliveredRes, current, inFlight] = await Promise.all([
+    admin.from("subscriptions").select("id, profile_id, plan_id").eq("status", "active"),
     admin.from("ai_usage_events").select("profile_id, estimated_cost_usd").gte("created_at", from),
     payoutSheet(month),
     payableIn(month),
     admin.from("test_results").select("id", { count: "exact", head: true }).gte("created_at", from),
+    currentPayments(now),
+    refundsInFlight(),
   ])
 
   const subs = (subsRes.data ?? []) as Sub[]
   const ai = (aiRes.data ?? []) as { profile_id: string | null; estimated_cost_usd: number | string | null }[]
-  const revenue = subs.reduce((n, s) => n + monthlyAmount(s), 0)
+  const revenue = mrr(current.payments, current.refunds, now)
+  const paidBy = new Map<string, number>()
+  for (const p of current.payments) {
+    if (p.subscription_id) paidBy.set(p.subscription_id, (paidBy.get(p.subscription_id) ?? 0) + monthlyAmount(p, current.refunds))
+  }
   const aiUsd = ai.reduce((n, r) => n + Number(r.estimated_cost_usd ?? 0), 0)
   const cohort = sheet.totalNgn
   const infra = usdToNgn(INFRA_USD_MONTHLY)
@@ -69,7 +76,7 @@ export default async function AdminMoneyPage() {
   const infraShare = subs.length ? infra / subs.length : 0
   const rows = subs
     .map((s) => {
-      const paid = monthlyAmount(s)
+      const paid = paidBy.get(s.id) ?? 0
       const cost = (cohortBy.get(s.profile_id) ?? 0) + (aiBy.get(s.profile_id) ?? 0) + infraShare
       return { id: s.profile_id, plan: planFor(planIdFor(s.plan_id)).name, paid, cost, margin: paid - cost }
     })
@@ -103,6 +110,7 @@ export default async function AdminMoneyPage() {
           value={delivered ? formatNgn(cohort / delivered) : "—"}
           decision={`Cohort cost ÷ ${delivered} reports delivered, reciprocity included — below the ₦${PAYOUT_RATES.perReportNgn.toLocaleString("en-NG")} rate when testing pays for itself.`}
         />
+        <Stat label="Refunds in flight" value={formatNgn(inFlight.totalNgn)} decision={`${inFlight.count} promised back that hasn't gone yet. Not taken off MRR until it has.`} />
         <Stat label="Burn" value={burn > 0 ? formatNgn(burn) : "None"} decision="Costs minus MRR, this month." />
         <Stat
           label="Runway"

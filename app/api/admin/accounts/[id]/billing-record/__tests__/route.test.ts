@@ -33,7 +33,8 @@ describe("GET /api/admin/accounts/[id]/billing-record", () => {
     vi.mocked(requireAdmin).mockResolvedValue({} as never)
     vi.mocked(loadBillingInput).mockResolvedValue({
       firstName: "Ada/../",
-      subscriptions: [],
+      payments: [],
+      refunds: [],
       planChanges: [],
       ledger: [{ kind: "reserved", bucket: "monthly", slots: -5, mission_id: "m1", created_at: "2026-10-25T10:00:00Z" }],
       reports: [],

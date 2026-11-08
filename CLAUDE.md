@@ -61,6 +61,8 @@ lib/
   events.ts           EVENT_NAMES and recordEvent() — app_events, never throws
   billing.ts          applySubscription() — the one plan writer; applyProviderEvent()
   subscriptions.ts    Plan-change kinds, allowance-effect copy, MRR (pure)
+  subscriptionPaymentsDb.ts  The payments covering today and refunds in flight — admin reads
+  paystack/           The only way to Paystack: client, config, signature, webhook events
   alerts/rules.ts     What fires each alert rule, and open/bump/resolve (pure)
   alerts/run.ts       runAlerts() — measures, writes alerts, emails admins
   metrics.ts          Overview arithmetic — fill time, capacity, break-even (pure)
@@ -95,6 +97,10 @@ ai_usage_events   one row per AI analysis — a cost record, linked loosely
 report_ledger     the report allowance, append-only — per profile
 admin_account_changes   every plan and cohort change — changed_by null for the system
 subscriptions     builder billing — why plan_id holds what it holds
+subscription_payments  one row per charge — the record of money in, reference unique
+subscription_refunds   one row per refund, each with its own status
+billing_actions   work owed to Paystack that may fail and must be retried
+paystack_events   what arrived at the webhook, never the payload — 13 months
 alert_rules       the alarms and their thresholds — editable on /admin/alerts
 alerts            one live alert per rule; open → acknowledged → resolved
 rate_limits       fixed-window abuse counters — service role only, garbage
@@ -258,6 +264,32 @@ the not-yet-wired entry a Paystack/Flutterwave webhook will call. Never write
   shows before anything is written.
 - **A reason is required** on every start and downgrade; `notify` (default
   on) sends `sendNotice()` with copy from `planNotice()`.
+
+**Paystack is reached through `lib/paystack/` only**
+(`docs/specs/SPEC-paystack-foundation.md`).
+
+- **Kobo never leaves it.** Amounts cross the boundary in kobo in
+  `lib/paystack/client.ts`; everything above is naira, and nothing above touches
+  a raw Paystack object. Plan codes come from env, because test and live differ.
+- **The webhook verifies the raw body first.** `/api/webhooks/paystack`
+  checks the HMAC before parsing, keeps only the event name, reference,
+  subscription code and outcome (`paystack_events`, never the payload), and
+  answers 500 when a handler throws, so every handler must be safe to run twice.
+- **`subscription_payments` is the record of money in**, one row per charge,
+  written by `apply_subscription` in the same transaction as the plan, with the
+  reference unique. Under the account lock a reference already recorded returns
+  `'duplicate'` and changes nothing: that is what makes a redelivery safe. MRR
+  and the billing record read this table, never the subscription row's amount.
+- **A refund is a `subscription_refunds` row with its own status**, queued in
+  the same transaction as the payment that causes it, and never counted as
+  returned until `processed` or `settled_outside`: MRR doesn't move and the
+  billing record says "requested" until then. The table's check and partial
+  unique indexes refuse a wrong or duplicate one, whatever code calls it.
+- **`p_actions` are queued with the payment or not at all**: inserted only when
+  `apply_subscription` answers `'ok'`. It never creates a refund itself.
+- **Never store an authorization code**, in any table, log, event or payload.
+- **The `payments-wip` git tag is never merged or cherry-picked.** It carries
+  credit packs, tester transfers and Stripe. Copy from it by reading.
 
 **The report allowance is a ledger, spent at publish, never at submission.**
 `submitTestResult` is a one-shot post — nothing represents a report in
@@ -1020,7 +1052,8 @@ Canonical reference: `Test.md`. Every feature ships with:
   product (the cohort is paid by bank transfer from `/admin/payouts`' CSV).
   Never reintroduce a payout field, money balance, wallet, tester-facing
   earnings or `paid` state. (`report_ledger` is a balance of *reports*, not
-  money.) When Paystack is wired in, the Merchant Services Agreement binds the
+  money, and `subscription_payments` records money in. It is not a balance.)
+  When Paystack is wired in, the Merchant Services Agreement binds the
   code (`docs/Twnhall_Paystack_MSA_Review.md`):
   - **No payment aggregation.** No split payments, subaccounts or "pay a
     tester" flows through Twnhall's Paystack account. MSA Section B makes

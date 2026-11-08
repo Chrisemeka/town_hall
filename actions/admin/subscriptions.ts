@@ -52,6 +52,7 @@ const FAILED: Record<Exclude<ApplyResult, "ok" | "unchanged">, string> = {
   no_account: "That user has no builder account.",
   no_active: "There is no active subscription to change.",
   not_due: "That change is not due yet.",
+  duplicate: "That payment reference is already recorded.",
 }
 
 function done(
