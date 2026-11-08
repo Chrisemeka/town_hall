@@ -17,6 +17,7 @@ const RETURN_NOTICES: Record<string, string> = {
   not_completed: "No payment was taken.",
   failed: "We couldn't reach Paystack, and no payment was taken. Try again in a minute.",
   review: "Your payment arrived, but we need to check it before it changes your plan. We'll email you.",
+  refunding: "You already had this plan, so nothing changed and we're refunding that payment in full. We'll email you when the refund starts.",
 }
 
 const PolicyLink = () => (

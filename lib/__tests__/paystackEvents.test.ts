@@ -5,11 +5,17 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/billing", () => ({ applySubscription: vi.fn(async () => "ok") }))
 vi.mock("@/lib/paystack/notify", () => ({ emailBuilder: vi.fn(), later: vi.fn(), site: () => "https://twnhall.com" }))
 vi.mock("@/lib/paystack/charges", () => ({ settleCharge: vi.fn(async () => "settled") }))
+vi.mock("@/lib/paystack/actions", () => ({ runBillingActionsLater: vi.fn() }))
+vi.mock("@/lib/paystack/client", async (original) => {
+  const real = await original<typeof import("@/lib/paystack/client")>()
+  return { ...real, fetchSubscription: vi.fn(), fetchRefund: vi.fn(), listRefunds: vi.fn() }
+})
 
 import { applySubscription } from "@/lib/billing"
 import { settleCharge } from "@/lib/paystack/charges"
 import { eventFields, handlePaystackEvent } from "@/lib/paystack/events"
 import { emailBuilder } from "@/lib/paystack/notify"
+import { fetchSubscription } from "@/lib/paystack/client"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { fakeDb } from "./fakeDb"
 
@@ -27,12 +33,14 @@ const row = (over: Record<string, unknown> = {}) => ({
 })
 const world = (subscriptions: Record<string, unknown>[] = []) => vi.mocked(createAdminClient).mockReturnValue(fakeDb({ subscriptions }) as never)
 const applied = () => vi.mocked(applySubscription).mock.calls.map(([a]) => a)
+const ROW_FOR_LATE = row({ profile_id: "p-late", provider_customer_id: "CUS_late" })
 
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv("PAYSTACK_PLAN_STARTER", "PLN_s")
   vi.stubEnv("PAYSTACK_PLAN_PRO", "PLN_p")
   vi.mocked(applySubscription).mockResolvedValue("ok")
+  vi.mocked(fetchSubscription).mockResolvedValue({ ok: false, message: "not found", permanent: true })
 })
 
 describe("charge.success", () => {
@@ -141,5 +149,27 @@ describe("everything else", () => {
   it("survives a payload that isn't one", async () => {
     expect(await handlePaystackEvent(null)).toBe("ignored")
     expect(eventFields(null)).toEqual({ event: "unknown", reference: null, subscription_code: null })
+  })
+})
+
+describe("a late subscription.create for an unwanted charge's own subscription", () => {
+  it("is switched off once its own invoices show a charge we recorded as a duplicate", async () => {
+    const db = fakeDb({
+      subscriptions: [{ ...ROW_FOR_LATE, provider_subscription_id: "SUB_first" }],
+      subscription_payments: [{ reference: "twnhall-sub-2", kind: "duplicate", profile_id: "p-late" }],
+      billing_actions: [],
+    })
+    vi.mocked(createAdminClient).mockReturnValue(db as never)
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: { subscriptionCode: "SUB_dup", emailToken: "t", invoiceReferences: ["twnhall-sub-2"] } } as never)
+    expect(await handlePaystackEvent({ event: "subscription.create", data: { subscription_code: "SUB_dup", email_token: "t", plan: { plan_code: "PLN_s" }, customer: { customer_code: "CUS_late" } } })).toBe("unmatched")
+    expect(db.tables.billing_actions).toEqual([expect.objectContaining({ kind: "disable_subscription", subscription_code: "SUB_dup", idempotency_key: "disable:SUB_dup", profile_id: "p-late" })])
+  })
+
+  it("anything else is left alone", async () => {
+    const db = fakeDb({ subscriptions: [{ ...ROW_FOR_LATE, provider_subscription_id: "SUB_first" }], subscription_payments: [], billing_actions: [] })
+    vi.mocked(createAdminClient).mockReturnValue(db as never)
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: { subscriptionCode: "SUB_other", invoiceReferences: ["x"] } } as never)
+    await handlePaystackEvent({ event: "subscription.create", data: { subscription_code: "SUB_other", plan: { plan_code: "PLN_s" }, customer: { customer_code: "CUS_late" } } })
+    expect(db.tables.billing_actions).toEqual([])
   })
 })

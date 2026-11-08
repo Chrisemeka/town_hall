@@ -3,7 +3,8 @@ import "server-only"
 import { applySubscription } from "@/lib/billing"
 import { billingNotice } from "@/lib/subscriptions"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { mapSubscription, mapTransaction } from "@/lib/paystack/client"
+import { fetchSubscription, mapSubscription, mapTransaction } from "@/lib/paystack/client"
+import { runBillingActionsLater } from "@/lib/paystack/actions"
 import { planIdForCode } from "@/lib/paystack/config"
 import { settleCharge } from "@/lib/paystack/charges"
 import { handleRefundEvent } from "@/lib/paystack/refunds"
@@ -60,8 +61,12 @@ async function subscriptionCreated(data: unknown): Promise<PaystackOutcome> {
   if (error) throw new Error(error.message)
   const active = row as Row | null
   // No row yet: this routinely beats the charge, whose own fetch fills it.
-  // A different code on the row: a late event for an older subscription.
-  if (!active || (active.provider_subscription_id && active.provider_subscription_id !== sub.subscriptionCode)) return "unmatched"
+  // A different code on the row: a late event for an older subscription, or the
+  // subscription a duplicate charge made before Paystack had sent its code.
+  if (!active || (active.provider_subscription_id && active.provider_subscription_id !== sub.subscriptionCode)) {
+    await switchOffUnwanted(sub.subscriptionCode, sub.emailToken)
+    return "unmatched"
+  }
 
   const result = await applySubscription({
     action: "attach",
@@ -76,6 +81,30 @@ async function subscriptionCreated(data: unknown): Promise<PaystackOutcome> {
     cardBrand: sub.card.brand,
   })
   return result === "ok" ? "settled" : "unmatched"
+}
+
+/**
+ * A subscription whose own charge we recorded as a duplicate or stray (§7) is
+ * switched off, even when its code arrived only now. Anything else is left
+ * alone: nothing here guesses which subscription to stop.
+ */
+async function switchOffUnwanted(code: string, token: string | null): Promise<void> {
+  const full = await fetchSubscription(code)
+  const refs = full.ok ? full.data.invoiceReferences : []
+  if (!refs.length) return
+  const admin = createAdminClient()
+  const { data: unwanted, error } = await admin.from("subscription_payments").select("profile_id").in("reference", refs).in("kind", ["duplicate", "stray"]).limit(1)
+  if (error) throw new Error(error.message)
+  const profileId = unwanted?.[0]?.profile_id
+  if (!profileId) return
+  // ponytail: written here rather than through apply_subscription, because no plan changes; the key keeps it to one.
+  await admin
+    .from("billing_actions")
+    .upsert(
+      { kind: "disable_subscription", profile_id: profileId, subscription_code: code, email_token: token ?? (full.ok ? full.data.emailToken : null), idempotency_key: `disable:${code}` },
+      { onConflict: "idempotency_key", ignoreDuplicates: true },
+    )
+  runBillingActionsLater()
 }
 
 async function paymentFailed(data: unknown): Promise<PaystackOutcome> {

@@ -63,6 +63,11 @@ export function fakeDb(
         else rows.push({ ...row })
         return q
       },
+      upsert: (row: Row, o: { onConflict: string; ignoreDuplicates?: boolean }) => {
+        mode = "insert"
+        if (!rows.some((r) => r[o.onConflict] === row[o.onConflict])) rows.push({ ...row })
+        return q
+      },
       maybeSingle: async () => {
         const { data, error } = run()
         return { data: (data as Row[] | null)?.[0] ?? null, error }

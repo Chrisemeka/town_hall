@@ -16,10 +16,10 @@ import { runRefunds } from "@/lib/paystack/refunds"
 // webhook both call it, and whichever lands second gets 'duplicate' from
 // apply_subscription, under the account lock.
 
-export type SettleOutcome = "settled" | "duplicate" | "unmatched" | "mismatch" | "duplicate_charge"
+export type SettleOutcome = "settled" | "duplicate" | "unmatched" | "mismatch" | "duplicate_charge" | "stray"
 
 /** Outcomes that mean money arrived and no plan came of it: billing_mismatch. */
-export const BILLING_PROBLEMS: readonly string[] = ["unmatched", "mismatch", "duplicate_charge"]
+export const BILLING_PROBLEMS: readonly string[] = ["unmatched", "mismatch", "duplicate_charge", "stray"]
 
 type ActiveRow = {
   id: string
@@ -105,18 +105,21 @@ async function settleFirstCharge(
   if (error) throw new Error(error.message)
   const active = data as ActiveRow | null
 
-  // Two tabs both paid, or a superseded page was paid. Never a plan change: the
-  // money stays on the alert until a person refunds it (PR 3 makes that
-  // automatic). Its own reference on the row is a race with the other path, not
-  // a second payment, and a replaced row is what a resubscribe is for.
+  // Two tabs both paid, or a superseded page was paid (§7). Never a plan change,
+  // and never a second Starter refund: refunded in full, its own subscription
+  // switched off, and an alert. Its own reference on the row is a race with the
+  // other path, not a second payment, and a replaced row is what a resubscribe
+  // and an upgrade are for.
   if (
     active?.source === "paystack" &&
     active.payment_reference !== checkout.reference &&
     active.id !== checkout.replaces_subscription_id
   ) {
     console.error("[paystack/settle] duplicate charge:", checkout.reference)
+    const own = await findSubscription(tx.customerCode, tx.planCode, tx.reference)
+    const recorded = await recordUnwanted("duplicate_charge", tx, checkout.profile_id, own)
     await complete()
-    return "duplicate_charge"
+    return recorded === "duplicate" ? "duplicate" : "duplicate_charge"
   }
 
   const sub = await findSubscription(tx.customerCode, tx.planCode, tx.reference)
@@ -342,9 +345,41 @@ async function applyScheduled(tx: PaystackTransaction, scheduled: PaystackRow, s
   return "settled"
 }
 
-/** A charge nobody meant: a person looks at it until §7's automatic refund lands. */
-async function unwanted(_tx: PaystackTransaction, _row: PaystackRow, _sub: PaystackSubscription | null): Promise<SettleOutcome> {
-  return "unmatched"
+/**
+ * Records a charge nobody meant (§7) through record_unwanted_charge: the payment,
+ * a full refund and the disable of the subscription that made it, in one
+ * transaction, then sends both. A redelivery is 'duplicate' and sends nothing.
+ */
+async function recordUnwanted(
+  reason: "stray_charge" | "duplicate_charge",
+  tx: PaystackTransaction,
+  profileId: string,
+  sub: PaystackSubscription | null,
+): Promise<"ok" | "duplicate"> {
+  const { data, error } = await createAdminClient().rpc("record_unwanted_charge", {
+    p_reason: reason,
+    p_reference: tx.reference,
+    p_profile_id: profileId,
+    p_amount_ngn: tx.amountNgn,
+    p_subscription_code: sub?.subscriptionCode ?? tx.subscriptionCode,
+    p_email_token: sub?.emailToken ?? null,
+  })
+  if (error) throw new Error(error.message)
+  if (data === "duplicate") return "duplicate"
+  if (data !== "ok") throw new Error(`record_unwanted_charge answered ${String(data)}`)
+  later(() => runRefunds())
+  later(() => runBillingActions())
+  return "ok"
+}
+
+/**
+ * A charge from a subscription Twnhall ended, or one that should have stopped
+ * renewing (P7): refunded in full, switched off again, and billing_mismatch.
+ * Only once the subscription that made it is known; a guess refunds nothing.
+ */
+async function unwanted(tx: PaystackTransaction, row: PaystackRow, sub: PaystackSubscription | null): Promise<SettleOutcome> {
+  console.error("[paystack/settle] stray charge:", tx.reference, sub?.subscriptionCode)
+  return (await recordUnwanted("stray_charge", tx, row.profile_id, sub)) === "duplicate" ? "duplicate" : "stray"
 }
 
 /**

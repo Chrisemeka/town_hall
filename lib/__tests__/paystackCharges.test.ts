@@ -80,7 +80,7 @@ function world(
   tables: { paystack_checkouts?: Record<string, unknown>[]; subscriptions?: Record<string, unknown>[] },
   rpc: Record<string, (args: Record<string, unknown>) => unknown> = {},
 ) {
-  const db = fakeDb({ paystack_checkouts: [], subscriptions: [], ...tables }, { rpc })
+  const db = fakeDb({ paystack_checkouts: [], subscriptions: [], ...tables }, { rpc: { record_unwanted_charge: () => "ok", ...rpc } })
   vi.mocked(createAdminClient).mockReturnValue(db as never)
   return db
 }
@@ -193,12 +193,26 @@ describe("a first charge", () => {
 })
 
 describe("a duplicate charge", () => {
-  it("a second paid checkout for a plan already held changes nothing and is flagged", async () => {
-    const db = world({ paystack_checkouts: [checkout()], subscriptions: [activeRow()] })
+  it("a second paid checkout for a plan already held changes nothing, is refunded in full and switched off", async () => {
+    const db = world({ paystack_checkouts: [checkout()], subscriptions: [activeRow({ payment_reference: "twnhall-sub-0" })] })
+    vi.mocked(fetchSubscription).mockResolvedValue({ ok: true, data: paystackSub({ subscriptionCode: "SUB_dup", emailToken: "tdup", invoiceReferences: ["twnhall-sub-1"] }) })
     expect(await settleCharge(charge())).toBe("duplicate_charge")
     expect(applySubscription).not.toHaveBeenCalled()
+    expect(db.rpcCalls).toEqual([
+      {
+        name: "record_unwanted_charge",
+        args: { p_reason: "duplicate_charge", p_reference: "twnhall-sub-1", p_profile_id: ME, p_amount_ngn: 15000, p_subscription_code: "SUB_dup", p_email_token: "tdup" },
+      },
+    ])
+    expect(later).toHaveBeenCalledTimes(2)
     expect(db.tables.paystack_checkouts[0].completed_at).toBeTruthy()
     expect(emailBuilder).not.toHaveBeenCalled()
+  })
+
+  it("a duplicate charge already recorded by the other path is just a duplicate", async () => {
+    world({ paystack_checkouts: [checkout()], subscriptions: [activeRow({ payment_reference: "twnhall-sub-0" })] }, { record_unwanted_charge: () => "duplicate" })
+    expect(await settleCharge(charge())).toBe("duplicate")
+    expect(later).not.toHaveBeenCalled()
   })
 
   it("a stale page for the other tier doesn't move the plan either", async () => {
@@ -278,11 +292,24 @@ describe("a renewal", () => {
     expect(applySubscription).not.toHaveBeenCalled()
   })
 
-  it("a charge from a subscription we already ended renews nothing", async () => {
-    world({ subscriptions: [activeRow(), activeRow({ id: "old", status: "expired", provider_subscription_id: "SUB_old" })] })
+  it("a stray: a charge from a subscription we already ended is refunded in full and switched off, and renews nothing", async () => {
+    const db = world({ subscriptions: [activeRow(), activeRow({ id: "old", status: "expired", provider_subscription_id: "SUB_old" })] })
+    vi.mocked(fetchSubscription).mockImplementation(async (code) => ({ ok: true, data: paystackSub({ subscriptionCode: code, emailToken: "t-old", invoiceReferences: code === "SUB_old" ? ["ps-renewal-1"] : [] }) }))
+    expect(await settleCharge(renewal())).toBe("stray")
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(db.rpcCalls[0]).toMatchObject({ name: "record_unwanted_charge", args: { p_reason: "stray_charge", p_reference: "ps-renewal-1", p_subscription_code: "SUB_old", p_amount_ngn: 15000 } })
+  })
+
+  it("a stray delivered twice records once", async () => {
+    world({ subscriptions: [activeRow(), activeRow({ id: "old", status: "expired", provider_subscription_id: "SUB_old" })] }, { record_unwanted_charge: () => "duplicate" })
     vi.mocked(fetchSubscription).mockImplementation(async (code) => ({ ok: true, data: paystackSub({ subscriptionCode: code, invoiceReferences: code === "SUB_old" ? ["ps-renewal-1"] : [] }) }))
-    expect(await settleCharge(renewal())).not.toBe("settled")
-    expect(applied().filter((a) => a.action === "extend")).toEqual([])
+    expect(await settleCharge(renewal())).toBe("duplicate")
+  })
+
+  it("a charge Paystack's invoices don't tie to any subscription of ours is never refunded on a guess", async () => {
+    const db = world({ subscriptions: [activeRow({ status: "expired" })] })
+    expect(await settleCharge(renewal())).toBe("unmatched")
+    expect(db.rpcCalls).toEqual([])
   })
 
   it("a charge on a cancelled plan renews nothing and reaches a person", async () => {
