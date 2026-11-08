@@ -55,6 +55,7 @@ const paystackSub = (over: Partial<PaystackSubscription> = {}): PaystackSubscrip
   customerCode: "CUS_1",
   customerId: 7,
   card: { last4: "4081", brand: "visa", reusable: true },
+  invoiceReferences: ["twnhall-sub-1"],
   ...over,
 })
 
