@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { mapSubscription, mapTransaction } from "@/lib/paystack/client"
 import { planIdForCode } from "@/lib/paystack/config"
 import { settleCharge } from "@/lib/paystack/charges"
+import { handleRefundEvent } from "@/lib/paystack/refunds"
 import { emailBuilder, site } from "@/lib/paystack/notify"
 import { planIdFor } from "@/lib/vocabulary"
 import { eventFields, type PaystackOutcome } from "@/lib/paystack/eventFields"
@@ -131,6 +132,12 @@ export async function handlePaystackEvent(event: unknown): Promise<PaystackOutco
     case "subscription.not_renew":
     case "subscription.disable":
       return subscriptionStopped(root.data)
+    case "refund.pending":
+    case "refund.processing":
+    case "refund.needs-attention":
+    case "refund.processed":
+    case "refund.failed":
+      return handleRefundEvent(root.event, root.data)
     default:
       return "ignored"
   }

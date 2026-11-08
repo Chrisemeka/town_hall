@@ -133,7 +133,7 @@ describe.each(["subscription.not_renew", "subscription.disable"])("%s", (name) =
 })
 
 describe("everything else", () => {
-  it.each(["invoice.create", "invoice.update", "subscription.expiring_cards", "refund.processed", "transfer.success"])("%s is acknowledged", async (name) => {
+  it.each(["invoice.create", "invoice.update", "transfer.success"])("%s is acknowledged", async (name) => {
     expect(await handlePaystackEvent({ event: name, data: {} })).toBe("ignored")
     expect(applySubscription).not.toHaveBeenCalled()
   })

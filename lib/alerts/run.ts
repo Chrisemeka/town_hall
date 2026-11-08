@@ -214,6 +214,33 @@ const MEASURES: Record<AlertRuleKey, (admin: Admin, now: Date, t: number, w: num
     return { value: data?.length ?? 0, detail: { subscription_codes: (data ?? []).slice(0, 20).map((a) => a.subscription_code) } }
   },
 
+  // A failed refund stays failed; it stops counting once "Try again" or "Mark
+  // paid outside Paystack" has made a live row under its key.
+  async refund_failed(admin) {
+    const { data, error } = await admin.from("subscription_refunds").select("id, payment_id, idempotency_key, status").in("status", ["failed", "needs_attention"])
+    if (error) throw new Error(error.message)
+    const rows = data ?? []
+    const failed = rows.filter((r) => r.status === "failed")
+    const { data: others, error: othersError } = failed.length
+      ? await admin.from("subscription_refunds").select("idempotency_key, status").in("payment_id", failed.map((r) => r.payment_id)).neq("status", "failed")
+      : { data: [], error: null }
+    if (othersError) throw new Error(othersError.message)
+    const open = rows.filter((r) => r.status === "needs_attention" || !(others ?? []).some((o) => o.idempotency_key.startsWith(`${r.idempotency_key}:`)))
+    return { value: open.length, detail: { refund_ids: open.slice(0, 20).map((r) => r.id) } }
+  },
+
+  async refund_stuck(admin, now) {
+    const { data, error } = await admin
+      .from("subscription_refunds")
+      .select("id")
+      .or(
+        `and(status.in.(queued,sending,unknown),updated_at.lt.${since(now, 60 * 60 * 1000)}),` +
+          `and(status.in.(pending,processing),updated_at.lt.${since(now, 14 * DAY)})`,
+      )
+    if (error) throw new Error(error.message)
+    return { value: data?.length ?? 0, detail: { refund_ids: (data ?? []).slice(0, 20).map((r) => r.id) } }
+  },
+
   async flagged_projects(admin) {
     const { data, count, error } = await admin.from("projects").select("id", { count: "exact" }).not("flagged_at", "is", null).limit(20)
     if (error) throw new Error(error.message)

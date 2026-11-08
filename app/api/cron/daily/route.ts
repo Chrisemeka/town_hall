@@ -7,6 +7,7 @@ import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { billingNotice, disableActionFor, graceEnd, lagosDate } from "@/lib/subscriptions"
 import { runBillingActions } from "@/lib/paystack/actions"
+import { runRefunds } from "@/lib/paystack/refunds"
 import { listSubscriptions } from "@/lib/paystack/client"
 import { paystackConfigured } from "@/lib/paystack/config"
 import { runAlerts } from "@/lib/alerts/run"
@@ -225,6 +226,10 @@ export async function GET(request: Request) {
   })
 
   await step("billing_actions", () => runBillingActions())
+
+  // Unknown refunds looked up, queued ones sent, and accepted ones no webhook
+  // has moved for a day asked about.
+  await step("refunds", () => runRefunds({ stale: true }))
 
   await step("tester_digest", () => runTesterDigest(now, site()))
 

@@ -21,6 +21,8 @@ export const ALERT_RULE_KEYS = [
   "flagged_projects",
   "billing_mismatch",
   "billing_actions_failing",
+  "refund_failed",
+  "refund_stuck",
 ] as const
 export type AlertRuleKey = (typeof ALERT_RULE_KEYS)[number]
 
@@ -60,6 +62,8 @@ const FIRES: Record<AlertRuleKey, (m: Measure, threshold: number) => boolean> = 
   flagged_projects: over,
   billing_mismatch: any,
   billing_actions_failing: any,
+  refund_failed: any,
+  refund_stuck: any,
 }
 
 export function fires(key: AlertRuleKey, m: Measure, threshold: number): boolean {
@@ -109,6 +113,8 @@ export const RULE_LINKS: Record<AlertRuleKey, string> = {
   flagged_projects: "/admin/content?tab=projects&flagged=1",
   billing_mismatch: "/admin/money",
   billing_actions_failing: "/admin/money",
+  refund_failed: "/admin/money",
+  refund_stuck: "/admin/money",
 }
 
 export function isRuleKey(key: string): key is AlertRuleKey {

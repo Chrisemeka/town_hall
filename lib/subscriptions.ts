@@ -168,6 +168,80 @@ export const REFUND_RETURNED: readonly string[] = ["processed", "settled_outside
 export const REFUND_FINISHED: readonly string[] = [...REFUND_RETURNED, "failed"]
 
 /**
+ * A refund's life (SPEC-paystack-plan-changes §3.1). Statuses only move forward;
+ * pending → processing ⇄ needs_attention are Paystack's own steps, and a
+ * finished one never moves again.
+ */
+const REFUND_RANK: Record<string, number> = {
+  queued: 0,
+  sending: 1,
+  unknown: 2,
+  pending: 3,
+  processing: 4,
+  needs_attention: 4,
+  processed: 6,
+  failed: 6,
+  settled_outside: 6,
+}
+export const REFUND_STATUSES = Object.keys(REFUND_RANK)
+
+export function canMoveRefund(from: string, to: string): boolean {
+  const a = REFUND_RANK[from]
+  const b = REFUND_RANK[to]
+  if (a === undefined || b === undefined || from === to || a === 6) return false
+  return b > a || (a === 4 && b === 4)
+}
+
+/** Every status a refund may be in to move to `to`: the guard on each conditional update. */
+export const refundPredecessors = (to: string): string[] => REFUND_STATUSES.filter((s) => canMoveRefund(s, to))
+
+/** Paystack's refund status, or the event's suffix, in ours. */
+export function refundStatusFrom(paystack: string | null | undefined): string | null {
+  if (!paystack) return null
+  const s = paystack.replace("-", "_")
+  return ["pending", "processing", "needs_attention", "processed", "failed"].includes(s) ? s : null
+}
+
+/** Which builder email a status earns (§3.5). Queued, sending, unknown and needs_attention are ours to fix, not theirs. */
+export function refundStage(status: string): "started" | "processed" | "failed" | "settled" | null {
+  if (status === "pending" || status === "processing") return "started"
+  if (status === "processed") return "processed"
+  if (status === "failed") return "failed"
+  if (status === "settled_outside") return "settled"
+  return null
+}
+
+const REFUND_FOR: Record<string, string> = {
+  upgrade: "the unused days of Starter after you moved to Pro",
+  admin: "your plan payment",
+  stray_charge: "a payment you didn't need to make",
+  duplicate_charge: "a payment you didn't need to make",
+}
+
+/** The builder's email for a refund stage. Never "refunded" before Paystack says it is. */
+export function refundNotice(stage: "started" | "processed" | "failed" | "settled", amountNgn: number, reason: string, site: string): { subject: string; body: string } {
+  const amount = formatNgn(amountNgn)
+  const what = REFUND_FOR[reason] ?? REFUND_FOR.admin
+  const policy = `\n\nBilling, cancelling and refunds: ${site}/refunds`
+  const copy = {
+    started: [`Your refund of ${amount} has started`, `Your refund of ${amount} has started. It's for ${what}. Your bank may take up to 10 business days to show it after it's processed. We'll email you again then.`],
+    processed: [`Your refund of ${amount} has been processed`, `Your refund of ${amount} has been processed. It's on its way to the card you paid with.`],
+    failed: [`We couldn't send your refund of ${amount}`, `We couldn't send your refund of ${amount} automatically. We'll pay it back another way within two business days and email you when it's done.`],
+    settled: [`We've paid back ${amount}`, `We've paid back ${amount} by bank transfer. It's for ${what}.`],
+  }[stage]
+  return { subject: copy[0], body: copy[1] + policy }
+}
+
+/** Settings → Plan's line for a refund that isn't finished, or finished in the last 30 days. */
+export function refundLine(r: { amount_ngn: number; status: string; created_at: string; reason: string }): string {
+  const what = `Refund of ${formatNgn(r.amount_ngn)}${r.reason === "upgrade" ? " for Starter" : ""}`
+  if (r.status === "processed") return `${what}: processed. Your bank may take up to 10 business days to show it.`
+  if (r.status === "settled_outside") return `${what}: paid back by bank transfer.`
+  if (r.status === "failed" || r.status === "needs_attention") return `${what}: we're sorting this out.`
+  return `${what}: on its way (started ${lagosDate(r.created_at)}).`
+}
+
+/**
  * What one payment brings in a month: its own amount, less what has really
  * been returned, over its own period. A refund still in flight hasn't left the
  * account, so it doesn't reduce this. An open-ended period is 0. MRR is money,
