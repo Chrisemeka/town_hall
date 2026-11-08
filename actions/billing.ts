@@ -256,7 +256,16 @@ export async function scheduleDowngrade(): Promise<BillingActionResult> {
   const startDate = pro.data.nextPaymentDate ?? active.period_end
   if (!startDate) return fail(NOT_NOW)
 
-  if (!(await switchOff(code, active.provider_email_token ?? pro.data.emailToken))) return fail(NOT_NOW)
+  // Pro's own not_renew webhook can land before Starter is scheduled. This marks
+  // the stop as ours, so subscriptionStopped() doesn't read it as a cancel and
+  // schedule Community over the downgrade.
+  // ponytail: if the restore below fails, a later stop on Paystack's own page is
+  // ignored too; Pro still lapses at period end, it just isn't emailed.
+  await applySubscription({ action: "attach", userId, source: "paystack", providerStatus: "switching" })
+  if (!(await switchOff(code, active.provider_email_token ?? pro.data.emailToken))) {
+    await applySubscription({ action: "attach", userId, source: "paystack", providerStatus: active.provider_status ?? "active" })
+    return fail(NOT_NOW)
+  }
 
   const starterCode = planCodeFor("starter")
   const created = await createSubscriptionFrom({ fromCode: code, planCode: starterCode, startDate })

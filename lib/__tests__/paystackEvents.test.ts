@@ -133,6 +133,13 @@ describe.each(["subscription.not_renew", "subscription.disable"])("%s", (name) =
     expect(emailBuilder).not.toHaveBeenCalled()
   })
 
+  it("arriving mid Switch to Starter, before Starter is scheduled, cancels nothing", async () => {
+    world([row({ provider_status: "switching" })])
+    expect(await handlePaystackEvent(event)).toBe("duplicate")
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(emailBuilder).not.toHaveBeenCalled()
+  })
+
   it("for a subscription a newer one replaced ends nothing", async () => {
     world([row({ provider_subscription_id: "SUB_new" })])
     expect(await handlePaystackEvent(event)).toBe("duplicate")

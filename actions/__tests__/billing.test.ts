@@ -304,6 +304,9 @@ describe("scheduleDowngrade, Pro to Starter", () => {
     expect(await scheduleDowngrade()).toEqual({ ok: true })
     expect(vi.mocked(disableSubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(createSubscriptionFrom).mock.invocationCallOrder[0])
     expect(createSubscriptionFrom).toHaveBeenCalledWith({ fromCode: "SUB_1", planCode: "PLN_s", startDate: "2026-12-04T09:00:00Z" })
+    // Marked as ours before Paystack's not_renew can arrive for it.
+    expect(vi.mocked(applySubscription).mock.calls[0][0]).toEqual({ action: "attach", userId: ME, source: "paystack", providerStatus: "switching" })
+    expect(vi.mocked(applySubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(disableSubscription).mock.invocationCallOrder[0])
     expect(applySubscription).toHaveBeenCalledWith(
       expect.objectContaining({ action: "schedule", planId: "starter", source: "paystack", providerSubscriptionId: "SUB_starter", providerEmailToken: "tok2" }),
     )
@@ -323,14 +326,18 @@ describe("scheduleDowngrade, Pro to Starter", () => {
     vi.mocked(disableSubscription).mockResolvedValue({ ok: false, message: "down", permanent: false })
     expect(await scheduleDowngrade()).toMatchObject({ ok: false })
     expect(createSubscriptionFrom).not.toHaveBeenCalled()
-    expect(applySubscription).not.toHaveBeenCalled()
+    // The mark is taken back; nothing is scheduled.
+    expect(vi.mocked(applySubscription).mock.calls.map((c) => c[0])).toEqual([
+      expect.objectContaining({ action: "attach", providerStatus: "switching" }),
+      expect.objectContaining({ action: "attach", providerStatus: "active" }),
+    ])
   })
 
   it("Starter refused now is still scheduled, with its creation queued: the Pro code, never a card", async () => {
     world({ subscriptions: [pro()] })
     vi.mocked(createSubscriptionFrom).mockResolvedValue({ ok: false, message: "down", permanent: false })
     expect(await scheduleDowngrade()).toEqual({ ok: true })
-    const call = vi.mocked(applySubscription).mock.calls[0][0]
+    const call = vi.mocked(applySubscription).mock.calls[1][0]
     expect(call).toMatchObject({ action: "schedule", planId: "starter" })
     expect(call.actions).toEqual([
       { kind: "create_subscription", subscription_code: "SUB_1", payload: { plan: "starter", start_date: "2026-12-04T09:00:00Z", customer: "CUS_1" }, idempotency_key: "create:SUB_1" },
