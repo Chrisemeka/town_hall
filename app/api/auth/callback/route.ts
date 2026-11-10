@@ -1,7 +1,18 @@
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { CHOOSE_ACCOUNT_PATH, RESET_PASSWORD_PATH, homeFor, returnTarget, type AccountType } from '@/lib/access'
+import {
+  ACCOUNT_COOKIE,
+  ACCOUNT_COOKIE_OPTIONS,
+  CHOOSE_ACCOUNT_PATH,
+  PLAN_PATH,
+  RESET_PASSWORD_PATH,
+  RETURN_COOKIE,
+  homeFor,
+  returnTarget,
+  type AccountType,
+} from '@/lib/access'
 import { checkRateLimit, clientIp } from '@/lib/rateLimitDb'
 import { recordEventLater } from '@/lib/events'
 
@@ -9,6 +20,8 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next')
+  // Where a Google sign-in started from, if it was a listed path (signInWithGoogle).
+  const back = returnTarget(next) ?? returnTarget((await cookies()).get(RETURN_COOKIE)?.value)
 
   // Code-exchange attempts, per IP, degrading to in-memory if the store is
   // down. A redirect rather than a 429: this is a top-level navigation and
@@ -127,10 +140,14 @@ export async function GET(request: Request) {
         // middleware would bounce it otherwise, so resolve it here instead.
         const active: AccountType = types.includes('builder') ? 'builder' : types[0]
         // Only a listed path: `${origin}${next}` with next = '@evil.com' is another host.
-        return NextResponse.redirect(`${origin}${returnTarget(next) ?? homeFor(active)}`)
+        const res = NextResponse.redirect(`${origin}${back ?? homeFor(active)}`)
+        res.cookies.set(RETURN_COOKIE, '', { path: '/api/auth/callback', maxAge: 0 })
+        // Plan is the builder's: acting as a tester, Settings has no Plan tab.
+        if (back === PLAN_PATH && types.includes('builder')) res.cookies.set(ACCOUNT_COOKIE, 'builder', ACCOUNT_COOKIE_OPTIONS)
+        return res
       }
 
-      return NextResponse.redirect(`${origin}${returnTarget(next) ?? '/'}`)
+      return NextResponse.redirect(`${origin}${back ?? '/'}`)
     }
   }
 

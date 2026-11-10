@@ -6,20 +6,14 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { accountRowsFor } from "@/lib/auth"
 import { grantSignup } from "@/lib/allowanceDb"
-import { ACCOUNT_COOKIE, landingFor, type AccountType } from "@/lib/access"
+import { ACCOUNT_COOKIE, ACCOUNT_COOKIE_OPTIONS, landingFor, type AccountType } from "@/lib/access"
 import { recordEventLater } from "@/lib/events"
 
 const VALID: AccountType[] = ["builder", "tester"]
 
 async function setActive(type: AccountType) {
   const store = await cookies()
-  store.set(ACCOUNT_COOKIE, type, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  })
+  store.set(ACCOUNT_COOKIE, type, ACCOUNT_COOKIE_OPTIONS)
 }
 
 /**

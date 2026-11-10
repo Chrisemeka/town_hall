@@ -1,11 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkRateLimit, clientIp } from "@/lib/rateLimitDb";
 import { normaliseEmail, tooManyMessage, type RateLimitName } from "@/lib/rateLimit";
-import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH, returnTarget } from "@/lib/access";
+import { ACCOUNT_COOKIE, ACCOUNT_COOKIE_OPTIONS, CONFIRM_EMAIL_PATH, PLAN_PATH, RESET_PASSWORD_PATH, RETURN_COOKIE, returnTarget } from "@/lib/access";
 import { recordEventLater } from "@/lib/events";
 import {
   emailCaptchaSchema,
@@ -26,12 +26,17 @@ export async function signInWithGoogle(formData?: FormData) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null) ||
     "http://localhost:3000";
-  // Only a listed path rides through Google and back (returnTarget()).
+  // Only a listed path rides through Google and back (returnTarget()), in a
+  // cookie the callback reads: a query on redirectTo depends on Supabase's
+  // allowlist matching it, and in production it didn't.
   const next = returnTarget(formData?.get("next"));
+  const store = await cookies();
+  if (next) store.set(RETURN_COOKIE, next, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/api/auth/callback", maxAge: 10 * 60 });
+  else store.delete({ name: RETURN_COOKIE, path: "/api/auth/callback" });
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${siteUrl}/api/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      redirectTo: `${siteUrl}/api/auth/callback`,
     },
   });
 
@@ -224,8 +229,12 @@ export async function signInWithEmail(
   recordEventLater({ name: "auth.login", profileId: data?.user?.id, props: { method: "password" } })
   // Where they land is the gate chain's business, not this action's: the
   // callback route and middleware own terms, account choice and verification.
-  // A listed return target (/pricing's Settings → Plan) passes through the same gates.
-  redirect(returnTarget(formData.get("next")) ?? "/")
+  // A listed return target (/pricing's Settings → Plan) passes through the same
+  // gates. Plan is the builder's: acting as a tester, Settings has no Plan tab.
+  // The cookie is a preference; middleware intersects it with real accounts.
+  const next = returnTarget(formData.get("next"))
+  if (next === PLAN_PATH) (await cookies()).set(ACCOUNT_COOKIE, "builder", ACCOUNT_COOKIE_OPTIONS)
+  redirect(next ?? "/")
 }
 
 /**
