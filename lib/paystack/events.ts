@@ -126,8 +126,8 @@ async function paymentFailed(data: unknown): Promise<PaystackOutcome> {
 async function subscriptionStopped(data: unknown): Promise<PaystackOutcome> {
   const row = await activeByCode(mapSubscription(data).subscriptionCode)
   if (!row) return "duplicate"
-  // Our own Switch to Starter turned it off; scheduleDowngrade() schedules Starter.
-  if (row.provider_status === "switching") return "duplicate"
+  // Our own Switch to Starter or Cancel turned it off, and records it itself.
+  if (row.provider_status === "switching" || row.provider_status === "cancelling") return "duplicate"
 
   const { data: scheduled, error } = await createAdminClient()
     .from("subscriptions")

@@ -106,7 +106,8 @@ function SwitchDialog({ periodEnd, cardLast4, now }: { periodEnd: string | null;
   )
 }
 
-function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | null }) {
+/** `ended`: a failed payment, so the paid period is already over and Cancel ends the plan now. */
+function CancelDialog({ plan, periodEnd, ended = false }: { plan: Plan; periodEnd: string | null; ended?: boolean }) {
   return (
     <BillingDialog
       label="Cancel plan"
@@ -117,9 +118,16 @@ function CancelDialog({ plan, periodEnd }: { plan: Plan; periodEnd: string | nul
       action={cancelSubscription}
     >
       <p>
-        You won&apos;t be charged again. You keep {plan.name}
-        {periodEnd ? ` until ${lagosDate(periodEnd)}` : ""}, then your account moves to Community. Test cases already live keep
-        their testers, and reports you&apos;ve earned stay yours.
+        You won&apos;t be charged again.{" "}
+        {ended ? (
+          <>Your last payment didn&apos;t go through, so {plan.name} ends now and your account moves to Community.</>
+        ) : (
+          <>
+            You keep {plan.name}
+            {periodEnd ? ` until ${lagosDate(periodEnd)}` : ""}, then your account moves to Community.
+          </>
+        )}{" "}
+        Test cases already live keep their testers, and reports you&apos;ve earned stay yours.
       </p>
     </BillingDialog>
   )
@@ -168,7 +176,7 @@ function CurrentBilling({ plan, billing, now, upgrade }: { plan: Plan; billing: 
           </BillingDialog>
           {upgradeButton}
           <UpdateCard />
-          <CancelDialog plan={plan} periodEnd={billing.periodEnd} />
+          <CancelDialog plan={plan} periodEnd={billing.periodEnd} ended={!!billing.periodEnd && Date.parse(billing.periodEnd) <= now.getTime()} />
         </div>
       </div>
     )

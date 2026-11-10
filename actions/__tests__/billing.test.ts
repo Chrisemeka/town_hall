@@ -213,13 +213,31 @@ describe("startSubscription", () => {
 })
 
 describe("cancelSubscription", () => {
-  it("disables at Paystack, then schedules Community, then confirms", async () => {
-    world({ subscriptions: [active()] })
+  // Still inside the paid period, whatever day the suite runs.
+  const paidUp = () => active({ period_end: "2099-01-01T00:00:00Z" })
+
+  it("marks the row, disables at Paystack, then schedules Community, then confirms", async () => {
+    world({ subscriptions: [paidUp()] })
     expect(await cancelSubscription()).toEqual({ ok: true })
     expect(disableSubscription).toHaveBeenCalledWith({ code: "SUB_1", token: "tok" })
-    expect(vi.mocked(disableSubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(applySubscription).mock.invocationCallOrder[0])
-    expect(applySubscription).toHaveBeenCalledWith(expect.objectContaining({ action: "schedule", userId: ME, planId: "community", reason: "Cancelled by the builder" }))
-    expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-cancelled", expect.objectContaining({ subject: "Starter cancelled" }))
+    const calls = vi.mocked(applySubscription).mock.calls.map((c) => c[0])
+    // Marked before Paystack's not_renew can arrive for it, so the webhook sends no second email.
+    expect(calls[0]).toEqual({ action: "attach", userId: ME, source: "paystack", providerStatus: "cancelling" })
+    expect(vi.mocked(applySubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(disableSubscription).mock.invocationCallOrder[0])
+    expect(vi.mocked(disableSubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(applySubscription).mock.invocationCallOrder[1])
+    expect(calls[1]).toMatchObject({ action: "schedule", userId: ME, planId: "community", reason: "Cancelled by the builder" })
+    expect(emailBuilder).toHaveBeenCalledTimes(1)
+    expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-cancelled", expect.objectContaining({ subject: "Starter cancelled", body: expect.stringContaining("You keep Starter until") }))
+  })
+
+  it("after a failed payment, ends the plan now and never names a date already past", async () => {
+    world({ subscriptions: [active({ provider_status: "attention", period_end: "2026-11-01T09:00:00Z" })] })
+    expect(await cancelSubscription()).toEqual({ ok: true })
+    expect(applySubscription).toHaveBeenCalledWith({ action: "end", userId: ME, endStatus: "cancelled", reason: "Cancelled by the builder" })
+    expect(applySubscription).not.toHaveBeenCalledWith(expect.objectContaining({ action: "schedule" }))
+    const body = vi.mocked(emailBuilder).mock.calls[0][2].body
+    expect(body).toContain("your account is on Community")
+    expect(body).not.toMatch(/until|November 1/)
   })
 
   it("is never rate limited: it's the off switch", async () => {
@@ -234,7 +252,11 @@ describe("cancelSubscription", () => {
     vi.mocked(disableSubscription).mockResolvedValue({ ok: false, message: "down", permanent: false })
     const res = await cancelSubscription()
     expect(res).toEqual({ ok: false, error: "We couldn't cancel just now, so nothing has changed. Try again in a minute." })
-    expect(applySubscription).not.toHaveBeenCalled()
+    // The mark is taken back; nothing is scheduled.
+    expect(vi.mocked(applySubscription).mock.calls.map((c) => c[0])).toEqual([
+      expect.objectContaining({ action: "attach", providerStatus: "cancelling" }),
+      expect.objectContaining({ action: "attach", providerStatus: "active" }),
+    ])
     expect(emailBuilder).not.toHaveBeenCalled()
   })
 
@@ -282,11 +304,27 @@ describe("cancelSubscription", () => {
     expect(applySubscription).not.toHaveBeenCalled()
   })
 
-  it("a failed write after Paystack accepted still answers ok: the webhook schedules it", async () => {
-    world({ subscriptions: [active()] })
-    vi.mocked(applySubscription).mockRejectedValue(new Error("db down"))
-    expect(await cancelSubscription()).toEqual({ ok: true })
+  it("a failed write after Paystack accepted says so, sends nothing, and pressing Cancel again finishes it", async () => {
+    world({ subscriptions: [paidUp()] })
+    vi.mocked(applySubscription).mockImplementation(async (a) => {
+      if (a.action === "schedule") throw new Error("db down")
+      return "ok"
+    })
+    expect(await cancelSubscription()).toEqual({ ok: false, error: expect.stringContaining("press Cancel again") })
     expect(console.error).toHaveBeenCalled()
+    expect(emailBuilder).not.toHaveBeenCalled()
+
+    vi.mocked(applySubscription).mockResolvedValue("ok")
+    vi.mocked(disableSubscription).mockResolvedValue({ ok: false, message: "Subscription already inactive", permanent: true })
+    expect(await cancelSubscription()).toEqual({ ok: true })
+    expect(emailBuilder).toHaveBeenCalledTimes(1)
+  })
+
+  it("an answer other than ok is never reported as cancelled", async () => {
+    world({ subscriptions: [paidUp()] })
+    vi.mocked(applySubscription).mockImplementation(async (a) => (a.action === "schedule" ? "no_active" : "ok"))
+    expect(await cancelSubscription()).toMatchObject({ ok: false })
+    expect(emailBuilder).not.toHaveBeenCalled()
   })
 })
 

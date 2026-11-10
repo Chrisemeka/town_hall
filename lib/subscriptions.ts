@@ -274,6 +274,7 @@ type BillingNoticeKind =
   | "cancelled_ending"
   | "manual_ending"
   | "cancelled"
+  | "cancelled_now"
   | "payment_failed"
   | "lapsed"
   | "downgrade_scheduled"
@@ -317,6 +318,10 @@ export function billingNotice(
       `Your ${name} plan ends on ${on}. To keep it, subscribe in Settings → Plan for ${amount} a month. It renews monthly until you cancel.`,
     ],
     cancelled: [`${name} cancelled`, `You keep ${name} until ${on}, then your account moves to Community. You won't be charged the ${amount} again.`],
+    cancelled_now: [
+      `${name} cancelled`,
+      `${name} has ended and your account is on Community: its last payment didn't go through, so there was no paid time left to keep. You won't be charged the ${amount} again.`,
+    ],
     payment_failed: [
       `Your ${name} payment didn't go through`,
       `We couldn't charge ${amount} for ${name}. Pay by ${opts.periodEnd ? lagosDate(graceEnd(opts.periodEnd)) : on} or the plan ends. Use Pay now in Settings → Plan.`,
