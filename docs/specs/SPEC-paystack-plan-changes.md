@@ -117,8 +117,12 @@ When it merges, the prompt's go-live checklist moves Production to live keys.
   **Confirmed in test mode, 8–10 Nov 2026** (§11 runs):
   - **Webhooks can be very late, or never arrive.** One day's events landed
     about 35 minutes after the charges, and one stray charge's
-    `charge.success` was never delivered and had to be replayed. A stray is
-    noticed only through its webhook or the reconcile.
+    `charge.success` was never delivered and had to be replayed. A lost
+    renewal or scheduled-Starter charge is recovered by the cron
+    (`recoverLostCharges()`), but **a stray whose webhook is lost is not**: the
+    cron never looks at a subscription we've already switched off. With the
+    `switching` fix a stray needs Paystack itself to misbehave. If one is ever
+    seen, the fix is a sweep of the codes we disabled. Not built.
   - **A second paid checkout on the same plan makes no second subscription.**
     Paystack charged it, but the customer kept the one subscription whose
     invoices list only the first reference. So the duplicate's refund is the
@@ -162,8 +166,7 @@ When it merges, the prompt's go-live checklist moves Production to live keys.
   not made twice.
 - **`subscription.expiring_cards` may email twice on a redelivery.** Paystack
   sends it monthly; a second copy is the worst case.
-- **`/refunds` says "Last updated: November 8, 2026".** Change it to the merge
-  date if it merges later.
+- **`/refunds` says "Last updated: November 10, 2026"**, the merge date.
 
 ## §1 — Decisions
 

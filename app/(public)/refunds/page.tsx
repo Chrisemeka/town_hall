@@ -37,7 +37,7 @@ export default function RefundsPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 8, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 10, 2026</p>
         </Reveal>
 
         <Reveal step={2}>
