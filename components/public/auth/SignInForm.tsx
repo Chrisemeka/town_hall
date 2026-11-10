@@ -19,7 +19,8 @@ import {
   type SignInInput,
 } from "@/lib/validation/schemas"
 
-export function SignInForm() {
+/** `next` is already checked by returnTarget(); the actions check it again. */
+export function SignInForm({ next = null }: { next?: string | null } = {}) {
   const [state, formAction, pending] = useActionState(signInWithEmail, null)
   const [clientErrors, setClientErrors] = useState<FieldErrors<SignInInput>>({})
   const banner = useRef<HTMLDivElement>(null)
@@ -54,11 +55,12 @@ export function SignInForm() {
 
   return (
     <>
-      <GoogleBlock label="Continue with Google" />
+      <GoogleBlock label="Continue with Google" next={next} />
       <div ref={banner}>
         <AuthBanner message={formError} />
       </div>
       <form action={formAction} onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+        {next && <input type="hidden" name="next" value={next} />}
         <AuthField
           name="email"
           label="Email"

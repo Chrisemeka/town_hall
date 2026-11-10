@@ -29,6 +29,16 @@ export const RESET_PASSWORD_PATH = "/reset-password"
 /** The digest's unsubscribe page. Public, and exempt from the email gate — see below. */
 export const UNSUBSCRIBE_PATH = "/unsubscribe"
 
+/** /pricing's paid calls to action. A signed-out visitor signs in and comes back here. */
+export const PLAN_PATH = "/settings?tab=plan"
+
+/**
+ * Where a sign-in may send someone afterwards: a listed path or nothing. A free
+ * `?next=` is an open redirect, so it's never passed through as typed.
+ */
+export function returnTarget(next: unknown): string | null {
+  return next === PLAN_PATH ? PLAN_PATH : null
+}
 
 /** Where an account that has not cleared the verification gate has to go. */
 export function verifyPathFor(account: AccountType): string {

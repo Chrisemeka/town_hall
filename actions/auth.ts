@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkRateLimit, clientIp } from "@/lib/rateLimitDb";
 import { normaliseEmail, tooManyMessage, type RateLimitName } from "@/lib/rateLimit";
-import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH } from "@/lib/access";
+import { CONFIRM_EMAIL_PATH, RESET_PASSWORD_PATH, returnTarget } from "@/lib/access";
 import { recordEventLater } from "@/lib/events";
 import {
   emailCaptchaSchema,
@@ -20,16 +20,18 @@ import {
   type ValidationFailure,
 } from "@/lib/validation/schemas";
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData?: FormData) {
   const supabase = await createClient();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ||
     (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : null) ||
     "http://localhost:3000";
+  // Only a listed path rides through Google and back (returnTarget()).
+  const next = returnTarget(formData?.get("next"));
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${siteUrl}/api/auth/callback`,
+      redirectTo: `${siteUrl}/api/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
     },
   });
 
@@ -222,7 +224,8 @@ export async function signInWithEmail(
   recordEventLater({ name: "auth.login", profileId: data?.user?.id, props: { method: "password" } })
   // Where they land is the gate chain's business, not this action's: the
   // callback route and middleware own terms, account choice and verification.
-  redirect("/")
+  // A listed return target (/pricing's Settings → Plan) passes through the same gates.
+  redirect(returnTarget(formData.get("next")) ?? "/")
 }
 
 /**

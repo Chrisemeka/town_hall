@@ -15,6 +15,8 @@ import {
   isVerifyPath,
   verifyPathFor,
   landingFor,
+  PLAN_PATH,
+  returnTarget,
   type AccountType,
 } from "../lib/access.ts"
 import { searchHref, type SearchTarget } from "../lib/searchHref.ts"
@@ -396,3 +398,11 @@ assert.equal(landingFor("tester", false), "/verify/tester")
 assert.equal(landingFor("builder", true), "/dashboard")
 
 console.log("landingFor: all assertions passed")
+
+// A sign-in's return target is a listed path or nothing: anything else is an
+// open redirect (`${origin}${next}` with next = "@evil.com" is another host).
+assert.equal(returnTarget(PLAN_PATH), "/settings?tab=plan")
+for (const bad of ["@evil.com", "//evil.com", "https://evil.com", "/settings", "/settings?tab=plan&x=1", "/dashboard", "", null, undefined, 1]) {
+  assert.equal(returnTarget(bad), null, `returnTarget refuses ${String(bad)}`)
+}
+console.log("returnTarget: all assertions passed")

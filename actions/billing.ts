@@ -213,19 +213,43 @@ export async function cancelSubscription(): Promise<BillingActionResult> {
   }
   if (!code) return fail(NOT_NOW)
 
+  // A failed payment has nothing paid left to keep: the period is already over
+  // and only the grace is running. That cancel ends the plan now.
+  const ended = !!active.period_end && Date.parse(active.period_end) <= Date.now()
+  const restore = () => applySubscription({ action: "attach", userId, source: "paystack", providerStatus: active.provider_status ?? "active" })
+
+  // Paystack's not_renew for this switch-off can land before the write below.
+  // Marked ours, subscriptionStopped() leaves it, so the builder hears once.
+  await applySubscription({ action: "attach", userId, source: "paystack", providerStatus: "cancelling" })
+
   // Paystack first. Never schedule the end while Paystack can still charge.
   // Already off (its hosted page, or a downgrade, got there first) is what we were asking for.
-  if (!(await switchOff(code, token))) return fail(NOT_NOW)
-
-  // "Cancelled" is this scheduled community row, not provider_status. If this
-  // write fails, Paystack has already stopped and its webhook schedules it.
-  try {
-    await applySubscription({ action: "schedule", userId, planId: "community", source: "paystack", reason: "Cancelled by the builder" })
-  } catch (err) {
-    console.error("[billing] CANCELLED AT PAYSTACK BUT NOT RECORDED, the webhook should schedule it:", userId, err)
+  if (!(await switchOff(code, token))) {
+    await restore()
+    return fail(NOT_NOW)
   }
 
-  emailBuilder(userId, "subscription-cancelled", billingNotice("cancelled", planIdFor(active.plan_id), { periodEnd: active.period_end, site: site() }))
+  // "Cancelled" is the scheduled community row (or, after a failed payment, the
+  // ended plan), never provider_status.
+  // ponytail: if this write fails and the builder never presses Cancel again,
+  // Paystack is already off, and the cron lapses the plan after its grace.
+  let result: string
+  try {
+    result = await applySubscription(
+      ended
+        ? { action: "end", userId, endStatus: "cancelled", reason: "Cancelled by the builder" }
+        : { action: "schedule", userId, planId: "community", source: "paystack", reason: "Cancelled by the builder" },
+    )
+  } catch (err) {
+    result = err instanceof Error ? err.message : "error"
+  }
+  if (result !== "ok") {
+    console.error("[billing] cancelled at Paystack but not recorded:", userId, result)
+    return fail("Your plan won't renew: Paystack has stopped it. We couldn't record that just now, so press Cancel again in a minute.")
+  }
+
+  const planId = planIdFor(active.plan_id)
+  emailBuilder(userId, "subscription-cancelled", billingNotice(ended ? "cancelled_now" : "cancelled", planId, { periodEnd: active.period_end, site: site() }))
   revalidatePath("/settings")
   return { ok: true }
 }

@@ -97,9 +97,9 @@ prompt's go-live checklist).
 - **A renewal from a subscription that should be off extends the plan silently.** The different-code guard needs `tx.subscriptionCode`, and real renewals carry none. Fix: compare the charge's subscription, through `fetchSubscription` or the invoice, with the row's code.
 - **`findSubscription` can attach an older subscription that is still live** when its disable is failing; the alert covers it, but the new code is then lost.
 - **The return page says "started" after a `duplicate_charge`** that the webhook settled first.
-- **Cancelling in `attention` promises "You keep {Plan} until" a date already past.**
-- **A signed-out visitor from /pricing lands on the dashboard after login,** not Settings → Plan: login takes no return target.
-- **Cancel's own write racing its webhook can send two emails,** and Cancel doesn't check `apply_subscription`'s answer.
+- **Cancelling in `attention` promises "You keep {Plan} until" a date already past.** *Fixed 10 Nov 2026 (`fix/billing-review-items`):* the paid period is already over, so Cancel ends the plan now (`end`, not `schedule`), and the dialog and email say so with no date.
+- **A signed-out visitor from /pricing lands on the dashboard after login,** not Settings → Plan: login takes no return target. *Fixed 10 Nov 2026:* middleware sends them to `/login?next=/settings?tab=plan`; the password action and Google (through the callback) return there. `next` is honoured only through `returnTarget()` in `lib/access.ts`, which lists exactly that path. The callback used to pass any `next` through, which was an open redirect.
+- **Cancel's own write racing its webhook can send two emails,** and Cancel doesn't check `apply_subscription`'s answer. *Fixed 10 Nov 2026:* Cancel marks the row `provider_status = 'cancelling'` before switching Paystack off (taken back if Paystack refuses), and the webhook leaves a marked row alone, the same as `switching`. An answer other than `ok` is reported, and pressing Cancel again finishes it.
 - Smaller: reconcile reads 50 rows unordered; the subscription lookup and `site()` are written more than once.
 
 ## §1 — Decisions

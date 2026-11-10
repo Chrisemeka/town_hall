@@ -306,7 +306,10 @@ transaction. The admin's plan dialog (`components/admin/PlanDialog.tsx` →
   `duplicate_charge`: no plan change, and an alert.
 - **Cancel switches Paystack off first.** If Paystack refuses, nothing changes.
   "Cancelled" is the scheduled `community` row, never `provider_status`, which
-  only mirrors Paystack.
+  only mirrors Paystack. After a failed payment the paid period is over, so
+  Cancel ends the plan now. Cancel and Switch to Starter mark the row
+  `cancelling` / `switching` before Paystack's instant `not_renew` can arrive,
+  and the webhook leaves a marked row alone: the builder hears once.
 - **`GRACE_DAYS` (3):** a manual row ends on the day, a Paystack row after the
   grace, and a cancelled one through `scheduled` with no grace.
 - **A lapse switches the subscription off at Paystack**, through
@@ -780,6 +783,12 @@ from a tester, whose account has no plan. The same applies inside the tabs:
 the feedback export renders for a builder only, and `GiveAndTake` shows a
 tester their record (written, approved, rating) without the builder-side
 received count and ratio.
+
+**A sign-in returns only to a listed path: `returnTarget()`** in
+`lib/access.ts`. `/pricing`'s paid calls to action reach `/login?next=/settings?tab=plan`
+for a signed-out visitor, and the password action, Google and the auth callback
+all pass `next` through it. Never redirect to a `next` as typed:
+`${origin}${next}` with `@evil.com` is another host.
 
 **Code that sends someone to a role goes to `landingFor()`**, in
 `lib/access.ts`: home when verified, `/verify/[role]` when not. Redirecting to

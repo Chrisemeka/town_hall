@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { AuthBanner, AuthCard } from "@/components/public/AuthCard"
 import { SignInForm } from "@/components/public/auth/SignInForm"
+import { returnTarget } from "@/lib/access"
 import { tooManyMessage } from "@/lib/rateLimit"
 
 export const metadata: Metadata = {
@@ -11,17 +12,17 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; retry?: string }>
+  searchParams: Promise<{ error?: string; retry?: string; next?: string }>
 }) {
   // Set by app/api/auth/callback when it hit the rate limit. Rendered only
   // through tooManyMessage(), which states no parameters.
-  const { error, retry } = await searchParams
+  const { error, retry, next } = await searchParams
   const limited = error === "rate_limited" ? tooManyMessage(Number(retry) || 60) : null
 
   return (
     <AuthCard title="Welcome back" lede="Sign in to pick up where you left off.">
       <AuthBanner message={limited} />
-      <SignInForm />
+      <SignInForm next={returnTarget(next)} />
     </AuthCard>
   )
 }
