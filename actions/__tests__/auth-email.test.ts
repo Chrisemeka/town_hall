@@ -8,7 +8,8 @@ vi.mock("next/navigation", () => ({
 }))
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }))
 vi.mock("@/lib/events", () => ({ recordEvent: vi.fn(), recordEventLater: vi.fn() }))
-vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()) }))
+const cookieStore = { set: vi.fn(), delete: vi.fn(), get: vi.fn() }
+vi.mock("next/headers", () => ({ headers: vi.fn(async () => new Headers()), cookies: vi.fn(async () => cookieStore) }))
 // The limiter's own behaviour is lib/__tests__/rateLimitDb.test.ts. Here it
 // passes unless a test says otherwise, and never reaches the admin client.
 vi.mock("@/lib/rateLimitDb", () => ({
@@ -139,6 +140,20 @@ describe("signInWithEmail", () => {
     ).rejects.toThrow("NEXT_REDIRECT:/")
     // One login event, against the profile — never the address.
     expect(recordEventLater).toHaveBeenCalledWith({ name: "auth.login", profileId: "u1", props: { method: "password" } })
+  })
+
+  it("from /pricing, returns to Settings → Plan as the builder; an unlisted next goes home", async () => {
+    given({ signInWithPassword: vi.fn().mockResolvedValue({ data: { user: { id: "u1" } }, error: null }) })
+    cookieStore.set.mockClear()
+    await expect(
+      signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "correcthorse", next: "/settings?tab=plan" })),
+    ).rejects.toThrow("NEXT_REDIRECT:/settings?tab=plan")
+    expect(cookieStore.set).toHaveBeenCalledWith("th_account", "builder", expect.objectContaining({ httpOnly: true }))
+
+    cookieStore.set.mockClear()
+    const err = await signInWithEmail(null, fd({ email: "ada@twnhall.com", password: "correcthorse", next: "@evil.com" })).catch((e: Error) => e)
+    expect((err as Error).message).toBe("NEXT_REDIRECT:/")
+    expect(cookieStore.set).not.toHaveBeenCalled()
   })
 
   it("records no login for a failed sign-in", async () => {
@@ -404,5 +419,22 @@ describe("the Turnstile token", () => {
     })
     await expect(signInWithGoogle()).rejects.toThrow("NEXT_REDIRECT:https://accounts.google.com/x")
     expect(JSON.stringify(auth.signInWithOAuth!.mock.calls)).not.toMatch(/captcha/i)
+  })
+
+  it("carries a listed return target in a cookie, never on redirectTo", async () => {
+    const auth = given({
+      signInWithOAuth: vi.fn(async () => ({ data: { url: "https://accounts.google.com/x" }, error: null })),
+    })
+    cookieStore.set.mockClear()
+    const form = new FormData()
+    form.set("next", "/settings?tab=plan")
+    await expect(signInWithGoogle(form)).rejects.toThrow("NEXT_REDIRECT")
+    expect(cookieStore.set).toHaveBeenCalledWith("th_return", "/settings?tab=plan", expect.objectContaining({ path: "/api/auth/callback", httpOnly: true }))
+    expect(auth.signInWithOAuth!.mock.calls[0][0].options.redirectTo).toMatch(/\/api\/auth\/callback$/)
+
+    cookieStore.set.mockClear()
+    form.set("next", "https://evil.com")
+    await expect(signInWithGoogle(form)).rejects.toThrow("NEXT_REDIRECT")
+    expect(cookieStore.set).not.toHaveBeenCalled()
   })
 })

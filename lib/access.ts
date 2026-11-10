@@ -9,6 +9,22 @@ export type AccountType = "builder" | "tester"
 
 export const CHOOSE_ACCOUNT_PATH = "/choose-account"
 export const ACCOUNT_COOKIE = "th_account"
+
+/** How th_account is written, wherever it is: a preference, never authority. */
+export const ACCOUNT_COOKIE_OPTIONS = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  maxAge: 60 * 60 * 24 * 365,
+} as const
+
+/**
+ * A sign-in's return target while the person is at Google. Carried in a
+ * cookie, not in redirectTo, so it never depends on Supabase's redirect
+ * allowlist matching a query string. Read only through returnTarget().
+ */
+export const RETURN_COOKIE = "th_return"
 export const VERIFY_PREFIX = "/verify"
 
 /**

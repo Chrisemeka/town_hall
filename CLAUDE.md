@@ -788,7 +788,11 @@ received count and ratio.
 `lib/access.ts`. `/pricing`'s paid calls to action reach `/login?next=/settings?tab=plan`
 for a signed-out visitor, and the password action, Google and the auth callback
 all pass `next` through it. Never redirect to a `next` as typed:
-`${origin}${next}` with `@evil.com` is another host.
+`${origin}${next}` with `@evil.com` is another host. Google carries it in the
+`th_return` cookie (path `/api/auth/callback`, 10 minutes), never on
+`redirectTo`: a query there depends on Supabase's redirect allowlist, and in
+production it was dropped. Returning to Plan also sets `th_account=builder`,
+because acting as a tester, Settings has no Plan tab.
 
 **Code that sends someone to a role goes to `landingFor()`**, in
 `lib/access.ts`: home when verified, `/verify/[role]` when not. Redirecting to
