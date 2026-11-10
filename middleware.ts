@@ -10,6 +10,7 @@ import {
   ACCOUNT_COOKIE,
   CHOOSE_ACCOUNT_PATH,
   CONFIRM_EMAIL_PATH,
+  PLAN_PATH,
   VERIFY_PREFIX,
   accessFor,
   isEmailGateExempt,
@@ -85,7 +86,7 @@ export async function middleware(request: NextRequest) {
   // Except /pricing's paid calls to action: someone choosing a plan signs in.
   if (!user && isProtected) {
     const toPlan = pathname === '/settings' && request.nextUrl.searchParams.get('tab') === 'plan'
-    return noStore(NextResponse.redirect(new URL(toPlan ? '/login' : '/', request.url)))
+    return noStore(NextResponse.redirect(new URL(toPlan ? `/login?next=${encodeURIComponent(PLAN_PATH)}` : '/', request.url)))
   }
 
   // Showing a signed-in user a login form is a bug report waiting to happen, so

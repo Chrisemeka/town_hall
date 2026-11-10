@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { CHOOSE_ACCOUNT_PATH, RESET_PASSWORD_PATH, homeFor, type AccountType } from '@/lib/access'
+import { CHOOSE_ACCOUNT_PATH, RESET_PASSWORD_PATH, homeFor, returnTarget, type AccountType } from '@/lib/access'
 import { checkRateLimit, clientIp } from '@/lib/rateLimitDb'
 import { recordEventLater } from '@/lib/events'
 
@@ -126,10 +126,11 @@ export async function GET(request: Request) {
         // `next` is only honoured when it's reachable from the resolved account;
         // middleware would bounce it otherwise, so resolve it here instead.
         const active: AccountType = types.includes('builder') ? 'builder' : types[0]
-        return NextResponse.redirect(`${origin}${next ?? homeFor(active)}`)
+        // Only a listed path: `${origin}${next}` with next = '@evil.com' is another host.
+        return NextResponse.redirect(`${origin}${returnTarget(next) ?? homeFor(active)}`)
       }
 
-      return NextResponse.redirect(`${origin}${next ?? '/'}`)
+      return NextResponse.redirect(`${origin}${returnTarget(next) ?? '/'}`)
     }
   }
 

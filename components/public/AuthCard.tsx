@@ -157,10 +157,11 @@ export function AuthBanner({ message }: { message?: string | null }) {
 
 /** Google, then the divider. Both auth pages lead with it — it is how every
  *  existing user got here, so it goes above the email fields, not below. */
-export function GoogleBlock({ label }: { label: string }) {
+export function GoogleBlock({ label, next = null }: { label: string; next?: string | null }) {
   return (
     <>
       <form action={signInWithGoogle}>
+        {next && <input type="hidden" name="next" value={next} />}
         <button
           type="submit"
           className="h-12 lg:h-11 w-full inline-flex items-center justify-center rounded-[8px] border border-ink-muted text-ink font-mono font-medium text-[14px] hover:bg-ink/[0.06] transition-colors duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
