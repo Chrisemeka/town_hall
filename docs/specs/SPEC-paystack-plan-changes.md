@@ -113,6 +113,20 @@ When it merges, the prompt's go-live checklist moves Production to live keys.
     subscription that made it: renewal, a scheduled Starter's first charge
     (§4), or a stray (§7). PR 2's review found that the code-based guard never
     ran, because renewals carry no code.
+
+  **Confirmed in test mode, 8–10 Nov 2026** (§11 runs):
+  - **Webhooks can be very late, or never arrive.** One day's events landed
+    about 35 minutes after the charges, and one stray charge's
+    `charge.success` was never delivered and had to be replayed. A stray is
+    noticed only through its webhook or the reconcile.
+  - **A second paid checkout on the same plan makes no second subscription.**
+    Paystack charged it, but the customer kept the one subscription whose
+    invoices list only the first reference. So the duplicate's refund is the
+    whole fix; `switchOffUnwanted()` stays for the case where Paystack does
+    create one.
+  - **Disabling a subscription sends `subscription.not_renew` at once**, often
+    before the caller's next write. That is why Switch to Starter marks Pro
+    `switching` first.
 - **Allowance** (`lib/allowance.ts`, unchanged):
   - the monthly pool is per **calendar month**;
   - `monthly = plan.monthlyReports + this month's reservations`;
