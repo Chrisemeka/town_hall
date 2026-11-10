@@ -134,6 +134,15 @@ describe("look up before resending", () => {
     expect(row(db)).toMatchObject({ status: "pending", attempts: 2 })
   })
 
+  it("a sender that stopped mid-send is unknown once its lease ends, and looked up, not resent", async () => {
+    const db = world([refund({ status: "sending", attempts: 1, claimed_until: ago(1 * MIN) }), refund({ id: "r2", status: "sending", attempts: 1, claimed_until: ago(-4 * MIN), idempotency_key: "k2" })])
+    vi.mocked(listRefunds).mockResolvedValue({ ok: true, data: [paystack()] })
+    await runRefunds()
+    expect(row(db)).toMatchObject({ status: "pending", paystack_refund_id: "190" })
+    expect(row(db, "r2").status).toBe("sending")
+    expect(createRefund).not.toHaveBeenCalled()
+  })
+
   it("nothing found under 10 minutes: wait", async () => {
     const db = world([refund({ status: "unknown", attempts: 1, updated_at: ago(2 * MIN) })])
     vi.mocked(listRefunds).mockResolvedValue({ ok: true, data: [] })

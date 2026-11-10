@@ -179,6 +179,12 @@ export async function runRefunds(opts: { stale?: boolean } = {}): Promise<number
     }
   }
   try {
+    // A runner that stopped mid-send (a timeout, a crash) left 'sending' past its
+    // lease. Paystack may have the refund, so it's unknown: looked up below, never resent blind.
+    const lost = await db().select(COLUMNS).eq("status", "sending").lt("claimed_until", new Date().toISOString()).limit(BATCH)
+    await each(lost.data as Row[] | null, async (r) => {
+      await moveRefund(r.id, "unknown", { last_error: "The sender stopped before Paystack answered" })
+    })
     const unknown = await db().select(COLUMNS).eq("status", "unknown").limit(BATCH)
     await each(unknown.data as Row[] | null, resolveUnknown)
     const queued = await db().select(COLUMNS).eq("status", "queued").limit(BATCH)
