@@ -9,6 +9,7 @@ import { PlanSection } from "@/components/settings/PlanSection";
 import { planIdFor } from "@/lib/vocabulary";
 import { paystackConfigured, paystackTestMode } from "@/lib/paystack/config";
 import { planBillingFor } from "@/lib/subscriptions";
+import { refundLines, upgradeEstimate } from "@/lib/planBillingDb";
 import { tabFromParam, tabsFor } from "@/lib/settingsTabs";
 import { reciprocityFrom } from "@/lib/reciprocity";
 import { cookies } from "next/headers";
@@ -115,7 +116,7 @@ export default async function SettingsPage({
     // The subscription behind the plan, for the Plan tab's state and controls.
     admin
       .from("subscriptions")
-      .select("status, plan_id, source, period_end, amount_ngn, provider_status, card_last4")
+      .select("id, status, plan_id, source, period_end, amount_ngn, provider_status, card_last4")
       .eq("profile_id", user.id)
       .in("status", ["active", "scheduled"]),
   ]);
@@ -135,6 +136,17 @@ export default async function SettingsPage({
     subscriptions?.find((s) => s.status === "scheduled")?.plan_id ?? null,
     { configured: paystackConfigured(), testMode: paystackTestMode() },
   );
+
+  // The upgrade sheet's estimate and the refund lines: builders only, a paid plan only.
+  const activeSub = subscriptions?.find((s) => s.status === "active") ?? null;
+  const now = new Date();
+  const [upgrade, refunds] =
+    active === "builder" && activeSub?.source === "paystack"
+      ? await Promise.all([
+          activeSub.plan_id === "starter" ? upgradeEstimate(user.id, activeSub.id, now) : Promise.resolve(null),
+          refundLines(user.id, now),
+        ])
+      : [null, active === "builder" ? await refundLines(user.id, now) : []];
 
   return (
     <div className="max-w-[640px] mx-auto px-4 medium:px-6 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-10">
@@ -178,7 +190,9 @@ export default async function SettingsPage({
           <PlanSection
             planId={planId}
             billing={billing}
-            now={new Date()}
+            now={now}
+            upgrade={upgrade}
+            refunds={refunds}
             notice={typeof params.billing === "string" ? params.billing : undefined}
           />
         }

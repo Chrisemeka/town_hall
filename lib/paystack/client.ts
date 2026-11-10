@@ -74,6 +74,8 @@ function mapCard(authorization: unknown): PaystackCard {
 }
 
 export type PaystackTransaction = {
+  /** Paystack's numeric id: what List Refunds filters on. */
+  transactionId: number | null
   reference: string | null
   status: string | null
   /** Not rounded: a fractional naira is a mismatch to catch, not to tidy. */
@@ -95,6 +97,7 @@ export function mapTransaction(raw: unknown): PaystackTransaction {
   const subscription = rec(t.subscription)
   const customer = rec(t.customer)
   return {
+    transactionId: num(t.id),
     reference: str(t.reference),
     status: str(t.status),
     amountNgn: Number(t.amount ?? 0) / 100,
@@ -120,6 +123,12 @@ export type PaystackSubscription = {
   customerCode: string | null
   customerId: number | null
   card: PaystackCard
+  /**
+   * The references of the charges this subscription made, from its invoices.
+   * A charge names no subscription, so this is how one is matched to the
+   * subscription that made it. Empty where Paystack sent none (webhooks).
+   */
+  invoiceReferences: string[]
 }
 
 export function mapSubscription(raw: unknown): PaystackSubscription {
@@ -131,10 +140,12 @@ export function mapSubscription(raw: unknown): PaystackSubscription {
     status: str(s.status),
     emailToken: str(s.email_token),
     nextPaymentDate: str(s.next_payment_date),
-    planCode: str(rec(s.plan).plan_code),
+    // A code on a create response, an object on a fetch.
+    planCode: str(s.plan) ?? str(rec(s.plan).plan_code),
     customerCode: str(customer.customer_code),
-    customerId: num(customer.id),
+    customerId: num(customer.id) ?? num(s.customer),
     card: mapCard(s.authorization),
+    invoiceReferences: Array.isArray(s.invoices) ? s.invoices.map((i) => str(rec(i).reference)).filter((r): r is string => !!r) : [],
   }
 }
 
@@ -199,4 +210,89 @@ export const isAlreadyOff = (res: { ok: false; message: string; permanent: boole
 
 export function disableSubscription(input: { code: string; token: string }): Promise<ApiResult<null>> {
   return call("/subscription/disable", post({ code: input.code, token: input.token }), () => null, "disable")
+}
+
+/**
+ * A new subscription on `planCode`, charging the same card and customer as the
+ * subscription `fromCode`, from `startDate`. The authorization code is read and
+ * sent here and never leaves this function: nothing stores one, so a retry
+ * fetches it again.
+ */
+export async function createSubscriptionFrom(input: { fromCode: string; planCode: string; startDate: string }): Promise<ApiResult<PaystackSubscription>> {
+  const from = await call(
+    `/subscription/${encodeURIComponent(input.fromCode)}`,
+    GET,
+    (data) => ({ customer: str(rec(rec(data).customer).customer_code), authorization: str(rec(rec(data).authorization).authorization_code) }),
+    "subscription",
+  )
+  if (!from.ok) return from
+  if (!from.data.customer || !from.data.authorization) return { ok: false, message: "Paystack gave no card to charge", permanent: true }
+  return call(
+    "/subscription",
+    post({ customer: from.data.customer, plan: input.planCode, authorization: from.data.authorization, start_date: input.startDate }),
+    mapSubscription,
+    "create-subscription",
+  )
+}
+
+/** Paystack's own page for a subscription: update the card, or cancel. Expires, so never stored or emailed. */
+export function manageLink(code: string): Promise<ApiResult<string>> {
+  return call(`/subscription/${encodeURIComponent(code)}/manage/link`, GET, (data) => str(rec(data).link) ?? "", "manage-link")
+}
+
+export type PaystackRefund = {
+  id: string
+  /** pending | processing | needs-attention | failed | processed */
+  status: string | null
+  amountNgn: number
+  merchantNote: string | null
+  createdAt: string | null
+}
+
+function mapRefund(raw: unknown): PaystackRefund {
+  const r = rec(raw)
+  return {
+    id: String(r.id ?? ""),
+    status: str(r.status),
+    amountNgn: Number(r.amount ?? 0) / 100,
+    merchantNote: str(r.merchant_note),
+    createdAt: str(r.createdAt) ?? str(r.created_at),
+  }
+}
+
+/**
+ * Asks Paystack to refund `amountNgn` of a charge. The merchant note carries our
+ * idempotency key: Paystack keeps it, and it's what a lookup matches on.
+ *
+ * ponytail: PAYSTACK_TEST_REFUND_TIMEOUT=1 (test keys only) sends the refund and
+ * then reports a timeout, so the look-up-before-resend path can be watched in
+ * test mode (spec §11, step 6).
+ */
+export async function createRefund(input: { reference: string; amountNgn: number; merchantNote: string }): Promise<ApiResult<PaystackRefund>> {
+  const res = await call(
+    "/refund",
+    post({ transaction: input.reference, amount: Math.round(input.amountNgn * 100), currency: "NGN", merchant_note: input.merchantNote }),
+    mapRefund,
+    "refund",
+  )
+  if (process.env.PAYSTACK_TEST_REFUND_TIMEOUT === "1" && paystackKey().startsWith("sk_test_")) {
+    return { ok: false, message: "Timed out (test switch)", permanent: false }
+  }
+  return res
+}
+
+export function fetchRefund(id: string): Promise<ApiResult<PaystackRefund>> {
+  return call(`/refund/${encodeURIComponent(id)}`, GET, mapRefund, "fetch-refund")
+}
+
+/**
+ * Every refund on one charge. List Refunds filters on the transaction's numeric
+ * id and answers a reference with 200 and nothing, which would read as "never
+ * sent": so it resolves the id through verify first.
+ */
+export async function listRefunds(reference: string): Promise<ApiResult<PaystackRefund[]>> {
+  const tx = await verifyTransaction(reference)
+  if (!tx.ok) return tx
+  if (tx.data.transactionId === null) return { ok: false, message: "Paystack gave no transaction id", permanent: false }
+  return call(`/refund?transaction=${tx.data.transactionId}&perPage=100`, GET, (data) => (Array.isArray(data) ? data.map(mapRefund) : []), "list-refunds")
 }

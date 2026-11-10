@@ -2,7 +2,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 vi.mock("server-only", () => ({}))
 
-import { disableSubscription, fetchSubscription, initializeTransaction, listSubscriptions, mapTransaction, verifyTransaction } from "@/lib/paystack/client"
+import {
+  createRefund,
+  createSubscriptionFrom,
+  disableSubscription,
+  fetchSubscription,
+  initializeTransaction,
+  listRefunds,
+  listSubscriptions,
+  manageLink,
+  mapTransaction,
+  verifyTransaction,
+} from "@/lib/paystack/client"
 import { paystackConfigured, planCodeFor, planIdForCode } from "@/lib/paystack/config"
 
 const fetchMock = vi.fn()
@@ -137,6 +148,53 @@ describe("subscriptions", () => {
     fetchMock.mockResolvedValue(reply(200, { status: true }))
     expect((await disableSubscription({ code: "SUB_1", token: "tok" })).ok).toBe(true)
     expect(sent()).toEqual({ code: "SUB_1", token: "tok" })
+  })
+
+  it("names the charges a subscription made, from its invoices", async () => {
+    fetchMock.mockResolvedValue(reply(200, { data: { ...SUB, invoices: [{ reference: "twnhall-sub-1" }, { reference: "df70" }] } }))
+    const res = await fetchSubscription("SUB_1")
+    expect(res.ok && res.data.invoiceReferences).toEqual(["twnhall-sub-1", "df70"])
+  })
+
+  it("creates a subscription on the same card without handing the authorization back", async () => {
+    fetchMock.mockResolvedValueOnce(reply(200, { data: SUB }))
+    fetchMock.mockResolvedValueOnce(reply(200, { data: { subscription_code: "SUB_new", email_token: "tok2", plan: 9, customer: 7, next_payment_date: "2026-12-04T00:00:00Z" } }))
+    const res = await createSubscriptionFrom({ fromCode: "SUB_1", planCode: "PLN_s", startDate: "2026-12-04T00:00:00Z" })
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body as string)).toEqual({ customer: "CUS_1", plan: "PLN_s", authorization: "AUTH_secret", start_date: "2026-12-04T00:00:00Z" })
+    expect(res).toMatchObject({ ok: true, data: { subscriptionCode: "SUB_new", emailToken: "tok2" } })
+    expect(JSON.stringify(res)).not.toContain("AUTH_secret")
+  })
+})
+
+describe("refunds", () => {
+  it("sends kobo, the reference and our key as the merchant note", async () => {
+    fetchMock.mockResolvedValue(reply(200, { data: { id: 19053807, status: "pending", amount: 950_000, merchant_note: "upgrade:p" } }))
+    const res = await createRefund({ reference: "twnhall-sub-1", amountNgn: 9500, merchantNote: "upgrade:p" })
+    expect(sent()).toEqual({ transaction: "twnhall-sub-1", amount: 950_000, currency: "NGN", merchant_note: "upgrade:p" })
+    expect(res).toEqual({ ok: true, data: { id: "19053807", status: "pending", amountNgn: 9500, merchantNote: "upgrade:p", createdAt: null } })
+  })
+
+  it("lists by the transaction's numeric id, which a reference doesn't filter on", async () => {
+    fetchMock.mockResolvedValueOnce(reply(200, { data: { id: 6733575822, reference: "twnhall-sub-1" } }))
+    fetchMock.mockResolvedValueOnce(reply(200, { data: [{ id: 1, status: "processed", amount: 10_000, merchant_note: "k" }] }))
+    const res = await listRefunds("twnhall-sub-1")
+    expect(fetchMock.mock.calls[1][0]).toBe("https://api.paystack.co/refund?transaction=6733575822&perPage=100")
+    expect(res.ok && res.data).toEqual([{ id: "1", status: "processed", amountNgn: 100, merchantNote: "k", createdAt: null }])
+  })
+
+  it("the test-only timeout switch sends, then reports a timeout; never with a live key", async () => {
+    fetchMock.mockImplementation(async () => reply(200, { data: { id: 1, status: "pending", amount: 100 } }))
+    vi.stubEnv("PAYSTACK_TEST_REFUND_TIMEOUT", "1")
+    expect(await createRefund({ reference: "r", amountNgn: 1, merchantNote: "k" })).toMatchObject({ ok: false, permanent: false })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    vi.stubEnv("PAYSTACK_SECRET_KEY", "sk_live_x")
+    expect((await createRefund({ reference: "r", amountNgn: 1, merchantNote: "k" })).ok).toBe(true)
+  })
+
+  it("the manage link is fetched, never built", async () => {
+    fetchMock.mockResolvedValue(reply(200, { data: { link: "https://paystack.com/manage/abc" } }))
+    expect(await manageLink("SUB_1")).toEqual({ ok: true, data: "https://paystack.com/manage/abc" })
+    expect(fetchMock.mock.calls[0][0]).toBe("https://api.paystack.co/subscription/SUB_1/manage/link")
   })
 })
 

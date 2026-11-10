@@ -23,7 +23,13 @@ async function outcome(reference: string): Promise<string> {
     if (BILLING_PROBLEMS.includes(settled)) {
       await createAdminClient().from("paystack_events").insert({ event: "return.verify", reference, outcome: settled })
       runAlertsLater(["billing_mismatch"])
-      return "review"
+      // A second payment for a plan they have is refunded by itself (§7).
+      return settled === "duplicate_charge" ? "refunding" : "review"
+    }
+    // The webhook got there first: say what it decided, not "started" regardless.
+    if (settled === "duplicate") {
+      const { data: pay } = await createAdminClient().from("subscription_payments").select("kind").eq("reference", reference).maybeSingle()
+      if (pay?.kind === "duplicate") return "refunding"
     }
     return "started"
   } catch (err) {

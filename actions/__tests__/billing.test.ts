@@ -14,13 +14,13 @@ vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }))
 vi.mock("@/lib/paystack/notify", () => ({ emailBuilder: vi.fn(), later: vi.fn(), site: () => "https://twnhall.com" }))
 vi.mock("@/lib/paystack/client", async (original) => {
   const real = await original<typeof import("@/lib/paystack/client")>()
-  return { ...real, initializeTransaction: vi.fn(), disableSubscription: vi.fn(), fetchSubscription: vi.fn(), listSubscriptions: vi.fn() }
+  return { ...real, initializeTransaction: vi.fn(), disableSubscription: vi.fn(), fetchSubscription: vi.fn(), listSubscriptions: vi.fn(), createSubscriptionFrom: vi.fn() }
 })
 
-import { cancelSubscription, startSubscription } from "@/actions/billing"
+import { cancelSubscription, scheduleDowngrade, startSubscription } from "@/actions/billing"
 import { requireAccount } from "@/lib/auth"
 import { applySubscription } from "@/lib/billing"
-import { disableSubscription, fetchSubscription, initializeTransaction, listSubscriptions } from "@/lib/paystack/client"
+import { createSubscriptionFrom, disableSubscription, fetchSubscription, initializeTransaction, listSubscriptions } from "@/lib/paystack/client"
 import { emailBuilder } from "@/lib/paystack/notify"
 import { checkRateLimit } from "@/lib/rateLimitDb"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -87,7 +87,7 @@ describe("startSubscription", () => {
   it("refuses a made-up plan or kind", async () => {
     world()
     expect(await startSubscription("community" as never)).toMatchObject({ ok: false })
-    expect(await startSubscription("starter", "upgrade" as never)).toMatchObject({ ok: false })
+    expect(await startSubscription("starter", "downgrade" as never)).toMatchObject({ ok: false })
   })
 
   it("is rate limited, in words that say when, not how many", async () => {
@@ -186,6 +186,30 @@ describe("startSubscription", () => {
     await expect(startSubscription("starter", "resubscribe")).rejects.toThrow("REDIRECT")
     expect(db.tables.paystack_checkouts[0]).toMatchObject({ kind: "new", replaces_subscription_id: null })
   })
+
+  it.each(["active", "attention"])("Starter → Pro from a Paystack Starter (%s) names the Starter row, and changes nothing else", async (status) => {
+    const db = world({ subscriptions: [active({ provider_status: status })] })
+    await expect(startSubscription("pro", "upgrade")).rejects.toThrow(`REDIRECT ${PAGE}`)
+    expect(db.tables.paystack_checkouts[0]).toMatchObject({ plan_id: "pro", kind: "upgrade", replaces_subscription_id: "row-1" })
+    expect(vi.mocked(initializeTransaction).mock.calls[0][0]).toMatchObject({ amountNgn: 30000, planCode: "PLN_p" })
+    expect(applySubscription).not.toHaveBeenCalled()
+    expect(disableSubscription).not.toHaveBeenCalled()
+    expect(db.tables.subscriptions[0]).toMatchObject({ status: "active", plan_id: "starter" })
+  })
+
+  it("no upgrade from a manual plan", async () => {
+    world({ subscriptions: [active({ source: "manual" })] })
+    expect(await startSubscription("pro", "upgrade")).toMatchObject({ ok: false })
+    expect(initializeTransaction).not.toHaveBeenCalled()
+  })
+
+  it("no upgrade from Pro, and no 'upgrade' to Starter", async () => {
+    world({ subscriptions: [active({ plan_id: "pro" })] })
+    expect(await startSubscription("pro", "upgrade")).toMatchObject({ ok: false })
+    world({ subscriptions: [active()] })
+    expect(await startSubscription("starter", "upgrade")).toMatchObject({ ok: false })
+    expect(initializeTransaction).not.toHaveBeenCalled()
+  })
 })
 
 describe("cancelSubscription", () => {
@@ -243,8 +267,10 @@ describe("cancelSubscription", () => {
   })
 
   it("asks Paystack for a code it doesn't have yet", async () => {
-    world({ subscriptions: [active({ provider_subscription_id: null, provider_email_token: null })] })
-    vi.mocked(listSubscriptions).mockResolvedValue({ ok: true, data: [{ status: "active", subscriptionCode: "SUB_9", emailToken: "t9" }] } as never)
+    world({ subscriptions: [active({ provider_subscription_id: null, provider_email_token: null, payment_reference: "twnhall-sub-1" })] })
+    vi.mocked(listSubscriptions).mockResolvedValue({ ok: true, data: [{ status: "active", subscriptionCode: "SUB_old", emailToken: "t0" }, { status: "active", subscriptionCode: "SUB_9", emailToken: "t9" }] } as never)
+    // Only the subscription whose own invoices name this plan's payment: never just the newest.
+    vi.mocked(fetchSubscription).mockImplementation(async (code) => ({ ok: true, data: { subscriptionCode: code, emailToken: code === "SUB_9" ? "t9" : "t0", invoiceReferences: code === "SUB_9" ? ["twnhall-sub-1"] : [] } }) as never)
     expect(await cancelSubscription()).toEqual({ ok: true })
     expect(disableSubscription).toHaveBeenCalledWith({ code: "SUB_9", token: "t9" })
   })
@@ -261,5 +287,97 @@ describe("cancelSubscription", () => {
     vi.mocked(applySubscription).mockRejectedValue(new Error("db down"))
     expect(await cancelSubscription()).toEqual({ ok: true })
     expect(console.error).toHaveBeenCalled()
+  })
+})
+
+describe("scheduleDowngrade, Pro to Starter", () => {
+  const pro = () => active({ plan_id: "pro", provider_plan_code: "PLN_p", card_last4: "4081" })
+  const proSub = (reusable = true) =>
+    ({ ok: true, data: { subscriptionCode: "SUB_1", emailToken: "tok", nextPaymentDate: "2026-12-04T09:00:00Z", card: { last4: "4081", brand: "visa", reusable }, invoiceReferences: [] } }) as never
+  beforeEach(() => {
+    vi.mocked(fetchSubscription).mockResolvedValue(proSub())
+    vi.mocked(createSubscriptionFrom).mockResolvedValue({ ok: true, data: { subscriptionCode: "SUB_starter", emailToken: "tok2" } } as never)
+  })
+
+  it("switches Pro off before it creates Starter on the same card, from Pro's next date, and schedules it", async () => {
+    world({ subscriptions: [pro()] })
+    expect(await scheduleDowngrade()).toEqual({ ok: true })
+    expect(vi.mocked(disableSubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(createSubscriptionFrom).mock.invocationCallOrder[0])
+    expect(createSubscriptionFrom).toHaveBeenCalledWith({ fromCode: "SUB_1", planCode: "PLN_s", startDate: "2026-12-04T09:00:00Z" })
+    // Marked as ours before Paystack's not_renew can arrive for it.
+    expect(vi.mocked(applySubscription).mock.calls[0][0]).toEqual({ action: "attach", userId: ME, source: "paystack", providerStatus: "switching" })
+    expect(vi.mocked(applySubscription).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(disableSubscription).mock.invocationCallOrder[0])
+    expect(applySubscription).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "schedule", planId: "starter", source: "paystack", providerSubscriptionId: "SUB_starter", providerEmailToken: "tok2" }),
+    )
+    expect(emailBuilder).toHaveBeenCalledWith(ME, "subscription-downgrade", expect.objectContaining({ subject: expect.stringMatching(/^Your plan changes to Starter on /) }))
+  })
+
+  it("a card that can't be charged again is refused before anything changes", async () => {
+    world({ subscriptions: [pro()] })
+    vi.mocked(fetchSubscription).mockResolvedValue(proSub(false))
+    expect(await scheduleDowngrade()).toMatchObject({ ok: false, error: expect.stringContaining("Cancel Pro, then subscribe to Starter") })
+    expect(disableSubscription).not.toHaveBeenCalled()
+    expect(applySubscription).not.toHaveBeenCalled()
+  })
+
+  it("Pro refusing to switch off changes nothing", async () => {
+    world({ subscriptions: [pro()] })
+    vi.mocked(disableSubscription).mockResolvedValue({ ok: false, message: "down", permanent: false })
+    expect(await scheduleDowngrade()).toMatchObject({ ok: false })
+    expect(createSubscriptionFrom).not.toHaveBeenCalled()
+    // The mark is taken back; nothing is scheduled.
+    expect(vi.mocked(applySubscription).mock.calls.map((c) => c[0])).toEqual([
+      expect.objectContaining({ action: "attach", providerStatus: "switching" }),
+      expect.objectContaining({ action: "attach", providerStatus: "active" }),
+    ])
+  })
+
+  it("Starter refused now is still scheduled, with its creation queued: the Pro code, never a card", async () => {
+    world({ subscriptions: [pro()] })
+    vi.mocked(createSubscriptionFrom).mockResolvedValue({ ok: false, message: "down", permanent: false })
+    expect(await scheduleDowngrade()).toEqual({ ok: true })
+    const call = vi.mocked(applySubscription).mock.calls[1][0]
+    expect(call).toMatchObject({ action: "schedule", planId: "starter" })
+    expect(call.actions).toEqual([
+      { kind: "create_subscription", subscription_code: "SUB_1", payload: { plan: "starter", start_date: "2026-12-04T09:00:00Z", customer: "CUS_1" }, idempotency_key: "create:SUB_1" },
+    ])
+    expect(JSON.stringify(call)).not.toMatch(/AUTH/)
+  })
+
+  it("only from a renewing Paystack Pro with nothing waiting", async () => {
+    world({ subscriptions: [active()] })
+    expect(await scheduleDowngrade()).toMatchObject({ ok: false })
+    world({ subscriptions: [pro(), { profile_id: ME, status: "scheduled", plan_id: "community" }] })
+    expect(await scheduleDowngrade()).toMatchObject({ ok: false })
+    world({ subscriptions: [active({ plan_id: "pro", source: "manual" })] })
+    expect(await scheduleDowngrade()).toMatchObject({ ok: false })
+    expect(disableSubscription).not.toHaveBeenCalled()
+  })
+})
+
+describe("cancel with a downgrade waiting", () => {
+  const waiting = { id: "w", profile_id: ME, status: "scheduled", plan_id: "starter", provider_subscription_id: "SUB_starter", provider_email_token: "tok2" }
+
+  it("switches the scheduled Starter off first, then Pro, then schedules Community", async () => {
+    world({ subscriptions: [active({ plan_id: "pro" }), waiting] })
+    expect(await cancelSubscription()).toEqual({ ok: true })
+    expect(vi.mocked(disableSubscription).mock.calls.map(([a]) => a.code)).toEqual(["SUB_starter", "SUB_1"])
+    expect(applySubscription).toHaveBeenCalledWith(expect.objectContaining({ action: "schedule", planId: "community" }))
+  })
+
+  it("if Starter can't be switched off, nothing changes", async () => {
+    world({ subscriptions: [active({ plan_id: "pro" }), waiting] })
+    vi.mocked(disableSubscription).mockResolvedValueOnce({ ok: false, message: "down", permanent: false })
+    expect(await cancelSubscription()).toMatchObject({ ok: false })
+    expect(disableSubscription).toHaveBeenCalledTimes(1)
+    expect(applySubscription).not.toHaveBeenCalled()
+  })
+
+  it("a Starter not created yet is stopped from being created", async () => {
+    const db = world({ subscriptions: [active({ plan_id: "pro" }), { ...waiting, provider_subscription_id: null }] })
+    db.tables.billing_actions = [{ id: "a1", profile_id: ME, kind: "create_subscription", done_at: null }]
+    expect(await cancelSubscription()).toEqual({ ok: true })
+    expect(db.tables.billing_actions[0].done_at).toBeTruthy()
   })
 })

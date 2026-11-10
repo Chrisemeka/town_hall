@@ -3,9 +3,11 @@ import "server-only"
 import { applySubscription } from "@/lib/billing"
 import { billingNotice } from "@/lib/subscriptions"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { mapSubscription, mapTransaction } from "@/lib/paystack/client"
+import { fetchSubscription, mapSubscription, mapTransaction } from "@/lib/paystack/client"
+import { runBillingActionsLater } from "@/lib/paystack/actions"
 import { planIdForCode } from "@/lib/paystack/config"
 import { settleCharge } from "@/lib/paystack/charges"
+import { handleRefundEvent } from "@/lib/paystack/refunds"
 import { emailBuilder, site } from "@/lib/paystack/notify"
 import { planIdFor } from "@/lib/vocabulary"
 import { eventFields, type PaystackOutcome } from "@/lib/paystack/eventFields"
@@ -59,8 +61,12 @@ async function subscriptionCreated(data: unknown): Promise<PaystackOutcome> {
   if (error) throw new Error(error.message)
   const active = row as Row | null
   // No row yet: this routinely beats the charge, whose own fetch fills it.
-  // A different code on the row: a late event for an older subscription.
-  if (!active || (active.provider_subscription_id && active.provider_subscription_id !== sub.subscriptionCode)) return "unmatched"
+  // A different code on the row: a late event for an older subscription, or the
+  // subscription a duplicate charge made before Paystack had sent its code.
+  if (!active || (active.provider_subscription_id && active.provider_subscription_id !== sub.subscriptionCode)) {
+    await switchOffUnwanted(sub.subscriptionCode, sub.emailToken)
+    return "unmatched"
+  }
 
   const result = await applySubscription({
     action: "attach",
@@ -75,6 +81,30 @@ async function subscriptionCreated(data: unknown): Promise<PaystackOutcome> {
     cardBrand: sub.card.brand,
   })
   return result === "ok" ? "settled" : "unmatched"
+}
+
+/**
+ * A subscription whose own charge we recorded as a duplicate or stray (§7) is
+ * switched off, even when its code arrived only now. Anything else is left
+ * alone: nothing here guesses which subscription to stop.
+ */
+async function switchOffUnwanted(code: string, token: string | null): Promise<void> {
+  const full = await fetchSubscription(code)
+  const refs = full.ok ? full.data.invoiceReferences : []
+  if (!refs.length) return
+  const admin = createAdminClient()
+  const { data: unwanted, error } = await admin.from("subscription_payments").select("profile_id").in("reference", refs).in("kind", ["duplicate", "stray"]).limit(1)
+  if (error) throw new Error(error.message)
+  const profileId = unwanted?.[0]?.profile_id
+  if (!profileId) return
+  // ponytail: written here rather than through apply_subscription, because no plan changes; the key keeps it to one.
+  await admin
+    .from("billing_actions")
+    .upsert(
+      { kind: "disable_subscription", profile_id: profileId, subscription_code: code, email_token: token ?? (full.ok ? full.data.emailToken : null), idempotency_key: `disable:${code}` },
+      { onConflict: "idempotency_key", ignoreDuplicates: true },
+    )
+  runBillingActionsLater()
 }
 
 async function paymentFailed(data: unknown): Promise<PaystackOutcome> {
@@ -96,6 +126,8 @@ async function paymentFailed(data: unknown): Promise<PaystackOutcome> {
 async function subscriptionStopped(data: unknown): Promise<PaystackOutcome> {
   const row = await activeByCode(mapSubscription(data).subscriptionCode)
   if (!row) return "duplicate"
+  // Our own Switch to Starter turned it off; scheduleDowngrade() schedules Starter.
+  if (row.provider_status === "switching") return "duplicate"
 
   const { data: scheduled, error } = await createAdminClient()
     .from("subscriptions")
@@ -119,6 +151,30 @@ async function subscriptionStopped(data: unknown): Promise<PaystackOutcome> {
   return "settled"
 }
 
+/**
+ * subscription.expiring_cards: each of our renewing subscriptions named gets one
+ * email asking for a new card, linking the page that fetches a fresh Paystack link.
+ * ponytail: a redelivery emails again; Paystack sends this monthly, so a second
+ * copy is the worst case. Key it on app_events if that ever matters.
+ */
+async function cardsExpiring(data: unknown): Promise<PaystackOutcome> {
+  const codes = (Array.isArray(data) ? data : [])
+    .map((d) => mapSubscription(obj(d).subscription).subscriptionCode)
+    .filter((c): c is string => !!c)
+  if (!codes.length) return "ignored"
+  const { data: rows, error } = await createAdminClient()
+    .from("subscriptions")
+    .select("profile_id, plan_id, provider_status, card_last4")
+    .eq("status", "active")
+    .eq("source", "paystack")
+    .in("provider_subscription_id", codes)
+  if (error) throw new Error(error.message)
+  for (const r of rows ?? []) {
+    emailBuilder(r.profile_id, "card-expiring", billingNotice("card_expiring", planIdFor(r.plan_id), { cardLast4: r.card_last4, site: site() }))
+  }
+  return rows?.length ? "settled" : "unmatched"
+}
+
 export async function handlePaystackEvent(event: unknown): Promise<PaystackOutcome> {
   const root = obj(event)
   switch (root.event) {
@@ -131,6 +187,14 @@ export async function handlePaystackEvent(event: unknown): Promise<PaystackOutco
     case "subscription.not_renew":
     case "subscription.disable":
       return subscriptionStopped(root.data)
+    case "subscription.expiring_cards":
+      return cardsExpiring(root.data)
+    case "refund.pending":
+    case "refund.processing":
+    case "refund.needs-attention":
+    case "refund.processed":
+    case "refund.failed":
+      return handleRefundEvent(root.event, root.data)
     default:
       return "ignored"
   }

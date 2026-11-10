@@ -8,7 +8,9 @@ import { monthStart } from "@/lib/metrics"
 import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { formatNgn, monthlyAmount, mrr } from "@/lib/subscriptions"
-import { currentPayments, refundsInFlight } from "@/lib/subscriptionPaymentsDb"
+import { currentPayments, grossPaystackCollections, refundsInFlight } from "@/lib/subscriptionPaymentsDb"
+import { STARTER_BUSINESS_CAP_NGN } from "@/lib/paystack/config"
+import { MERCHANT } from "@/lib/merchant"
 import { CASH_ON_HAND, FX, INFRA_USD_MONTHLY, usdToNgn } from "@/lib/costs"
 
 export const metadata = { title: "Money — Admin · Twnhall" }
@@ -27,7 +29,7 @@ export default async function AdminMoneyPage() {
   const month = monthOf(now)
   const from = monthStart(now).toISOString()
 
-  const [subsRes, aiRes, sheet, payable, deliveredRes, current, inFlight] = await Promise.all([
+  const [subsRes, aiRes, sheet, payable, deliveredRes, current, inFlight, collected] = await Promise.all([
     admin.from("subscriptions").select("id, profile_id, plan_id").eq("status", "active"),
     admin.from("ai_usage_events").select("profile_id, estimated_cost_usd").gte("created_at", from),
     payoutSheet(month),
@@ -35,6 +37,7 @@ export default async function AdminMoneyPage() {
     admin.from("test_results").select("id", { count: "exact", head: true }).gte("created_at", from),
     currentPayments(now),
     refundsInFlight(),
+    grossPaystackCollections(),
   ])
 
   const subs = (subsRes.data ?? []) as Sub[]
@@ -111,6 +114,14 @@ export default async function AdminMoneyPage() {
           decision={`Cohort cost ÷ ${delivered} reports delivered, reciprocity included — below the ₦${PAYOUT_RATES.perReportNgn.toLocaleString("en-NG")} rate when testing pays for itself.`}
         />
         <Stat label="Refunds in flight" value={formatNgn(inFlight.totalNgn)} decision={`${inFlight.count} promised back that hasn't gone yet. Not taken off MRR until it has.`} />
+        {/* Only while unregistered: a registered business has no Starter Business limit. */}
+        {MERCHANT.registration === null && (
+          <Stat
+            label="Paystack collections"
+            value={`${formatNgn(collected)} of ${formatNgn(STARTER_BUSINESS_CAP_NGN)}`}
+            decision="Paystack Starter Business limit, gross of refunds. Register with CAC and upgrade the Paystack account before it: past it, every renewal fails."
+          />
+        )}
         <Stat label="Burn" value={burn > 0 ? formatNgn(burn) : "None"} decision="Costs minus MRR, this month." />
         <Stat
           label="Runway"

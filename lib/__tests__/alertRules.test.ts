@@ -54,7 +54,7 @@ describe("decide", () => {
 
 describe("the seeded rules", () => {
   // Every migration that seeds a rule.
-  const sql = ["20261027_03_alerts.sql", "20261103_02_paid_slots_waiting.sql", "20261104_02_paystack_subscriptions.sql"]
+  const sql = ["20261027_03_alerts.sql", "20261103_02_paid_slots_waiting.sql", "20261104_02_paystack_subscriptions.sql", "20261104_03_paystack_plan_changes.sql"]
     .map((f) => readFileSync(`supabase/migrations/${f}`, "utf8"))
     .join("\n")
   it("seed exactly the keys the code knows, each with a link", () => {

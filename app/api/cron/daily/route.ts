@@ -7,7 +7,8 @@ import { planFor } from "@/lib/plans"
 import { planIdFor } from "@/lib/vocabulary"
 import { billingNotice, disableActionFor, graceEnd, lagosDate } from "@/lib/subscriptions"
 import { runBillingActions } from "@/lib/paystack/actions"
-import { listSubscriptions } from "@/lib/paystack/client"
+import { runRefunds } from "@/lib/paystack/refunds"
+import { findSubscription, recoverLostCharges } from "@/lib/paystack/charges"
 import { paystackConfigured } from "@/lib/paystack/config"
 import { runAlerts } from "@/lib/alerts/run"
 import { runTesterDigest } from "@/lib/digest"
@@ -65,6 +66,9 @@ export async function GET(request: Request) {
       .select("id, profile_id, plan_id")
       .eq("status", "scheduled")
       .lte("period_start", now.toISOString())
+      // A scheduled Paystack plan is applied by its first charge, never the
+      // clock (SPEC-paystack-plan-changes §4). A cancellation is.
+      .or("source.neq.paystack,plan_id.eq.community")
     if (error) throw new Error(error.message)
     let n = 0
     for (const s of data ?? []) {
@@ -88,6 +92,14 @@ export async function GET(request: Request) {
       // A renewal charged today can land after this runs, and a failed one gets
       // its grace. A renewal moves period_end, so this row just stops matching.
       if (paystack && Date.parse(graceEnd(s.period_end)) > now.getTime()) continue
+      // A downgrade whose Starter never charged (§4) ends the same way, and its
+      // Starter is switched off too.
+      const { data: waiting } = paystack
+        ? await admin.from("subscriptions").select("plan_id, provider_subscription_id, provider_email_token").eq("profile_id", s.profile_id).eq("status", "scheduled").neq("plan_id", "community").maybeSingle()
+        : { data: null }
+      // Before a paying builder is lapsed, Paystack is asked whether a charge
+      // landed that its webhook never told us about.
+      if (paystack && (await recoverLostCharges([s.provider_subscription_id, waiting?.provider_subscription_id]))) continue
       // Paystack would charge a failed subscription again next month: a charge
       // after the plan ended is exactly the dispute the MSA warns about.
       const result = await applySubscription({
@@ -95,14 +107,14 @@ export async function GET(request: Request) {
         userId: s.profile_id,
         endStatus: "expired",
         reason: paystack ? "Payment failed" : "Period ended",
-        actions: paystack ? disableActionFor(s) : [],
+        actions: paystack ? [...disableActionFor(s), ...(waiting ? disableActionFor(waiting) : [])] : [],
       })
       if (result !== "ok") continue
       n++
       if (paystack) {
         const { data: who } = await admin.from("profiles").select("full_name, email").eq("id", s.profile_id).maybeSingle()
         if (who?.email) {
-          const notice = billingNotice("lapsed", planIdFor(s.plan_id), { site: site() })
+          const notice = billingNotice(waiting ? "downgrade_failed" : "lapsed", planIdFor(s.plan_id), { site: site() })
           await sendNotice({
             to: who.email,
             template: "subscription-lapsed",
@@ -132,12 +144,13 @@ export async function GET(request: Request) {
     const admins = await adminRecipients()
     const { data: cancelling, error: cancellingError } = await admin
       .from("subscriptions")
-      .select("profile_id")
+      .select("profile_id, plan_id")
       .eq("status", "scheduled")
-      .eq("plan_id", "community")
       .in("profile_id", data.map((s) => s.profile_id))
     if (cancellingError) throw new Error(cancellingError.message)
-    const cancelled = new Set((cancelling ?? []).map((c) => c.profile_id))
+    const cancelled = new Set((cancelling ?? []).filter((c) => c.plan_id === "community").map((c) => c.profile_id))
+    // Pro switched off and Starter starting on the date (§4): it says what will be charged.
+    const switching = new Set((cancelling ?? []).filter((c) => c.plan_id !== "community").map((c) => c.profile_id))
     let n = 0
     for (const s of data) {
       // Marked first: a failed send is not retried tomorrow into a second copy.
@@ -152,7 +165,13 @@ export async function GET(request: Request) {
       const plan = planFor(planIdFor(s.plan_id)).name
       const on = lagosDate(s.period_end)
       const paystack = s.source === "paystack"
-      const reminder = paystack ? (cancelled.has(s.profile_id) ? "cancelled_ending" : "renews_soon") : "manual_ending"
+      const reminder = paystack
+        ? cancelled.has(s.profile_id)
+          ? "cancelled_ending"
+          : switching.has(s.profile_id)
+            ? "switching"
+            : "renews_soon"
+        : "manual_ending"
       if (who?.email) {
         // Until Paystack is switched on here, a manual plan still renews by asking.
         const notice =
@@ -174,6 +193,7 @@ export async function GET(request: Request) {
       }
       const adminLine = {
         renews_soon: `renews by card on ${on}`,
+        switching: `changes to Starter on ${on}`,
         cancelled_ending: `was cancelled and ends on ${on}`,
         manual_ending: `was arranged directly and ends on ${on}`,
       }[reminder]
@@ -198,17 +218,18 @@ export async function GET(request: Request) {
   await step("reconciled", async () => {
     const { data, error } = await admin
       .from("subscriptions")
-      .select("profile_id, provider_customer_id, provider_plan_code")
+      .select("profile_id, provider_customer_id, provider_plan_code, payment_reference")
       .eq("status", "active")
       .eq("source", "paystack")
       .or("provider_subscription_id.is.null,provider_email_token.is.null")
+      .order("created_at", { ascending: false })
       .limit(50)
     if (error) throw new Error(error.message)
     let n = 0
     for (const s of data ?? []) {
       if (!s.provider_customer_id || !s.provider_plan_code) continue
-      const found = await listSubscriptions({ customer: s.provider_customer_id, plan: s.provider_plan_code })
-      const sub = found.ok ? found.data.find((x) => x.status === "active" && x.subscriptionCode) : null
+      // The one whose own invoices name this plan's payment, never just the newest live one.
+      const sub = await findSubscription(s.provider_customer_id, s.provider_plan_code, s.payment_reference)
       if (!sub) continue
       const result = await applySubscription({
         action: "attach",
@@ -225,6 +246,10 @@ export async function GET(request: Request) {
   })
 
   await step("billing_actions", () => runBillingActions())
+
+  // Unknown refunds looked up, queued ones sent, and accepted ones no webhook
+  // has moved for a day asked about.
+  await step("refunds", () => runRefunds({ stale: true }))
 
   await step("tester_digest", () => runTesterDigest(now, site()))
 

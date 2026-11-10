@@ -86,6 +86,17 @@ describe("/settings/billing/return", () => {
     await expect(go()).rejects.toThrow("billing=pending")
   })
 
+  it("a second payment for a plan they have says it's being refunded, both ways round", async () => {
+    paid()
+    vi.mocked(settleCharge).mockResolvedValue("duplicate_charge")
+    await expect(go()).rejects.toThrow("billing=refunding")
+    expect(runAlertsLater).toHaveBeenCalledWith(["billing_mismatch"])
+    // The webhook recorded it first: "duplicate" here, but never "started".
+    vi.mocked(settleCharge).mockResolvedValue("duplicate")
+    db.tables.subscription_payments = [{ reference: REF, kind: "duplicate" }]
+    await expect(go()).rejects.toThrow("billing=refunding")
+  })
+
   it("records a charge that granted nothing, and runs the alert at once", async () => {
     paid()
     vi.mocked(settleCharge).mockResolvedValue("mismatch")

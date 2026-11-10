@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("@/actions/billing", () => ({
   startSubscription: () => undefined,
   cancelSubscription: () => undefined,
+  scheduleDowngrade: () => undefined,
 }))
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => undefined }) }))
 import { createElement } from "react"
@@ -76,8 +77,8 @@ describe("the paid calls to action", () => {
 
 const BILLING: PlanBilling = { kind: "none", periodEnd: null, amountNgn: null, cardLast4: null, configured: true, testMode: false }
 const NOW = new Date("2026-11-04T10:00:00Z")
-const section = (planId: PlanId, over: Partial<PlanBilling> = {}, notice?: string) =>
-  renderToStaticMarkup(createElement(PlanSection, { planId, billing: { ...BILLING, ...over }, now: NOW, notice })).replace(/&#x27;/g, "'")
+const section = (planId: PlanId, over: Partial<PlanBilling> = {}, notice?: string, extra: { upgrade?: { refundNgn: number; days: number } | null; refunds?: string[] } = {}) =>
+  renderToStaticMarkup(createElement(PlanSection, { planId, billing: { ...BILLING, ...over }, now: NOW, notice, ...extra })).replace(/&#x27;/g, "'")
 
 describe("PlanSection, each state renders its controls and no others", () => {
   const END = "2026-12-04T00:00:00Z"
@@ -110,25 +111,61 @@ describe("PlanSection, each state renders its controls and no others", () => {
     expect(html).not.toMatch(/Subscribe —|Cancel plan|Pay now/)
   })
 
-  it("a renewing plan shows the date, amount and card, and Cancel", () => {
+  it("a renewing Starter shows the date, amount and card; Upgrade, Update card and Cancel", () => {
     const html = section("starter", { kind: "renewing", periodEnd: END, amountNgn: 15000, cardLast4: "4081" })
     expect(html).toContain("renews on 4 Dec 2026")
     expect(html).toContain("₦15,000")
     expect(html).toContain("card ending 4081")
+    expect(html).toContain("Upgrade to Pro")
+    expect(html).toContain('href="/settings/billing/card"')
     expect(html).toContain("Cancel plan")
-    expect(html).not.toMatch(/Subscribe —|Pay now/)
+    expect(html).not.toMatch(/Subscribe —|Pay now|Switch to Starter/)
   })
 
-  it("a cancelled plan says until when, with no controls", () => {
+  it("a renewing Pro can switch to Starter at the next date, update its card or cancel; no upgrade", () => {
+    const html = section("pro", { kind: "renewing", periodEnd: END, amountNgn: 30000, cardLast4: "4081" })
+    expect(html).toContain("Switch to Starter")
+    expect(html).toContain("You keep Pro until 4 Dec 2026. From 4 Dec 2026, Starter is ₦15,000 a month on the card ending 4081")
+    expect(html).toContain("There's no refund for the rest of this Pro month")
+    expect(html).toContain('href="/settings/billing/card"')
+    expect(html).not.toContain("Upgrade to Pro")
+  })
+
+  it("Pro with Starter scheduled says so, and offers Cancel only", () => {
+    const html = section("pro", { kind: "downgrading", periodEnd: END })
+    expect(html).toContain("Pro until 4 Dec 2026, then Starter at ₦15,000 a month.")
+    expect(html).toContain("Cancel plan")
+    expect(html).not.toMatch(/Switch to Starter|Upgrade to Pro|Update card|Pay now/)
+  })
+
+  it("the upgrade sheet's three refund lines", () => {
+    const renewing = { kind: "renewing" as const, periodEnd: END }
+    expect(section("starter", renewing, undefined, { upgrade: { refundNgn: 9500, days: 19 } })).toContain(
+      "Once your Pro payment has gone through, we refund about ₦9,500, for the 19 days of Starter you won't use",
+    )
+    expect(section("starter", renewing, undefined, { upgrade: { refundNgn: 0, days: 0 } })).toContain("There are no unused Starter days to refund.")
+    expect(section("starter", { kind: "attention", periodEnd: END })).toContain("There's no refund, because your last Starter payment didn't go through.")
+    expect(section("starter", renewing)).toContain("If the payment doesn't go through, nothing changes: you stay on Starter.")
+  })
+
+  it("a refund on its way is shown, in its own words", () => {
+    const line = "Refund of ₦9,500 for Starter: on its way (started 14 Nov 2026)."
+    expect(section("pro", { kind: "renewing", periodEnd: END }, undefined, { refunds: [line] })).toContain(line)
+  })
+
+  it("a cancelled plan says until when, with no controls but Starter's upgrade", () => {
     const html = section("pro", { kind: "cancelled", periodEnd: END })
     expect(html).toContain("Pro until 4 Dec 2026. You won't be charged again.")
-    expect(html).not.toMatch(/Subscribe —|Cancel plan|Pay now/)
+    expect(html).not.toMatch(/Subscribe —|Cancel plan|Pay now|Upgrade to Pro|Update card/)
+    expect(section("starter", { kind: "cancelled", periodEnd: END })).toContain("Upgrade to Pro")
   })
 
   it("a failed payment shows the deadline and Pay now", () => {
     const html = section("starter", { kind: "attention", periodEnd: END })
     expect(html).toContain("Pay by 7 Dec 2026 to keep Starter.")
     expect(html).toContain("Pay now")
+    expect(html).toContain("Upgrade to Pro")
+    expect(html).toContain('href="/settings/billing/card"')
     expect(html).not.toContain("Subscribe —")
   })
 
@@ -141,6 +178,7 @@ describe("PlanSection, each state renders its controls and no others", () => {
     expect(section("community", {}, "pending")).toContain("We're confirming your payment")
     expect(section("community", {}, "not_completed")).toContain("No payment was taken.")
     expect(section("community", {}, "<script>")).not.toContain("<script>")
+    expect(section("starter", { kind: "renewing" }, "refunding")).toContain("we're refunding that payment in full")
   })
 
   it("never shows a meter or calls a tier best value", () => {
@@ -158,5 +196,14 @@ describe("PlanSection", () => {
     for (const other of PLAN_IDS.filter((p) => p !== id)) {
       expect(html.indexOf(`>${PLANS[other].name}</h3>`)).toBeGreaterThan(yours)
     }
+  })
+})
+
+describe("/pricing, switching plans", () => {
+  it("up now with the unused Starter days refunded; down at the next billing date", () => {
+    const html = renderToStaticMarkup(createElement(PricingPage)).replace(/&#x27;/g, "'")
+    const answer = html.slice(html.indexOf("Can I switch plans?"))
+    expect(answer).toContain("Move up to Pro any time. It starts as soon as your payment goes through, your reports for the month go up to Pro's 10, and we refund the unused days of Starter.")
+    expect(answer).toContain("Moving down to Starter takes effect at your next billing date.")
   })
 })
