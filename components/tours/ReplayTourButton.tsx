@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useOnborda } from "onborda"
+import { useOnborda } from "onborda/dist/OnbordaContext"
 import { HelpCircle } from "lucide-react"
 import { tourForPath } from "./tours"
 import { cn } from "@/lib/utils"
