@@ -5,7 +5,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getActiveAccount } from "@/lib/auth";
 import { CHOOSE_ACCOUNT_PATH, homeFor } from "@/lib/access";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 export async function acceptTerms() {
   const supabase = await createClient();
@@ -72,6 +71,9 @@ export async function markTourSeen(tourName: string): Promise<{ ok: true } | { o
     return { ok: false, error: "Could not save your progress." };
   }
 
-  revalidatePath("/", "layout");
+  // No revalidatePath: TourProvider already holds the tour as seen for the
+  // session, and the next full load reads seen_tours fresh. A "/" layout
+  // revalidation threw away every page the browser had cached
+  // (docs/perf/DIAGNOSIS-2026-11.md F7).
   return { ok: true };
 }
