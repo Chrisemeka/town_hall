@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
-import { Onborda, OnbordaProvider, useOnborda } from "onborda"
+// The context alone, never the "onborda" entry: that re-exports the overlay,
+// and the overlay pulls framer-motion (~39 kB gz) into every app page.
+import { OnbordaProvider, useOnborda } from "onborda/dist/OnbordaContext"
 import { getTours, tourForPath } from "./tours"
 import { OnbordaCard } from "./OnbordaCard"
 import { markTourSeen } from "@/actions/onboarding"
-import { useHydrated } from "@/lib/hooks/useHydrated"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 
 // The expanded size class: below it the labelled New Project button is
@@ -17,7 +19,11 @@ const MOBILE_BREAKPOINT = 840
 // has time to mount target elements and Onborda can find the selectors.
 const AUTO_START_DELAY = 600
 
-function TourOrchestrator({ initialSeenTours }: { initialSeenTours: string[] }) {
+// Loaded only once a tour is about to show (docs/perf/DIAGNOSIS-2026-11.md F6).
+// Client-only, which also replaces the old mounted check.
+const Onborda = dynamic(() => import("onborda/dist/Onborda"), { ssr: false })
+
+function TourOrchestrator({ initialSeenTours, onWant }: { initialSeenTours: string[]; onWant: () => void }) {
   const pathname = usePathname()
   const { startOnborda, isOnbordaVisible, currentTour } = useOnborda()
 
@@ -32,6 +38,8 @@ function TourOrchestrator({ initialSeenTours }: { initialSeenTours: string[] }) 
     const tourName = tourForPath(pathname)
     if (!tourName) return
     if (seenRef.current.has(tourName)) return
+    // Start fetching the overlay now; the delay below covers most of it.
+    onWant()
 
     const timer = window.setTimeout(() => {
       if (!seenRef.current.has(tourName)) {
@@ -40,7 +48,7 @@ function TourOrchestrator({ initialSeenTours }: { initialSeenTours: string[] }) 
     }, AUTO_START_DELAY)
 
     return () => window.clearTimeout(timer)
-  }, [pathname, startOnborda])
+  }, [pathname, startOnborda, onWant])
 
   // Track active tour name while visible so we know which one to mark seen on close.
   useEffect(() => {
@@ -79,16 +87,33 @@ export function TourProvider({
   seenTours: string[]
 }) {
   // OnbordaProvider must wrap everything (server + client) so descendant components
-  // can safely call useOnborda. The Onborda visual layer is mounted client-only to
-  // avoid SSR + framer-motion hydration noise.
-  const mounted = useHydrated()
-  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+  // can safely call useOnborda. The overlay sits beside the page, not around it:
+  // it draws through a portal and finds its targets by selector, and wrapping
+  // the page in it remounted the whole tree once it loaded.
+  return (
+    <OnbordaProvider>
+      {children}
+      <TourLayer seenTours={seenTours} />
+    </OnbordaProvider>
+  )
+}
 
+/**
+ * Mounts the overlay only when a tour wants it: an unseen tour for this page,
+ * or the replay button. A returning user who has seen every tour never
+ * downloads it.
+ */
+function TourLayer({ seenTours }: { seenTours: string[] }) {
+  const { isOnbordaVisible } = useOnborda()
+  const [wanted, setWanted] = useState(false)
+  const want = useCallback(() => setWanted(true), [])
+  const isMobile = useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
   const steps = useMemo(() => getTours(isMobile), [isMobile])
 
   return (
-    <OnbordaProvider>
-      {mounted ? (
+    <>
+      <TourOrchestrator initialSeenTours={seenTours} onWant={want} />
+      {(wanted || isOnbordaVisible) && (
         <Onborda
           steps={steps}
           showOnborda={true}
@@ -100,12 +125,9 @@ export function TourProvider({
           cardComponent={OnbordaCard}
           cardTransition={{ duration: 0.25, type: "tween" }}
         >
-          <TourOrchestrator initialSeenTours={seenTours} />
-          {children}
+          {null}
         </Onborda>
-      ) : (
-        children
       )}
-    </OnbordaProvider>
+    </>
   )
 }

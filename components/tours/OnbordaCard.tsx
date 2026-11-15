@@ -2,7 +2,7 @@
 
 import type { CardComponentProps } from "onborda/dist/types"
 import { useEffect, useRef, useState } from "react"
-import { useOnborda } from "onborda"
+import { useOnborda } from "onborda/dist/OnbordaContext"
 import { X, ArrowLeft, ArrowRight } from "lucide-react"
 
 export function OnbordaCard({
