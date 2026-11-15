@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Every app page is dynamic, and since Next.js 15 the client Router Cache
+    // keeps dynamic pages 0 seconds, so a revisit by link re-ran the whole
+    // server render (1.1-3.4 s measured, docs/perf/DIAGNOSIS-2026-11.md F2).
+    // 30 s is the agreed freshness. The cache is per browser, never shared
+    // between users; a Server Action that revalidates or sets a cookie
+    // (every write, sign-out, account switch) clears it at once.
+    staleTimes: {
+      dynamic: 30,
+    },
     serverActions: {
       // Screenshots are validated at 5 MB (MAX_SCREENSHOT_BYTES). The default
       // Server Action body limit is 1 MB, which would reject valid uploads
