@@ -44,7 +44,8 @@ function given(opts: { isActive?: boolean | null; testersNeeded?: number; receiv
 
   vi.mocked(createAdminClient).mockReturnValue({
     from: (table: string) => {
-      if (table === "projects") {
+      // The owner check: a head count on missions joined to their project.
+      if (table === "missions") {
         const q = { select: () => q, eq: () => q, then: (ok: (v: unknown) => unknown) => Promise.resolve({ count: opts.owner ? 1 : 0 }).then(ok) }
         return q
       }
