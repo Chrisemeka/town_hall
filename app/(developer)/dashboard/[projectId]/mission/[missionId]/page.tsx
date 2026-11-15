@@ -34,7 +34,10 @@ export default async function DeveloperMissionDetailPage({
   // rendered through tooManyMessage(), which states no parameters.
   const limited = Number((await searchParams).limited) || 0;
 
-  const [missionRes, resultsRes] = await Promise.all([
+  // One round of reads: the balance does not depend on the mission, and the
+  // entries ride on the reports (docs/perf/DIAGNOSIS-2026-11.md F4). Nothing
+  // here is rendered before the ownership check below.
+  const [missionRes, resultsRes, allowance] = await Promise.all([
     admin
       .from("missions")
       .select(
@@ -48,10 +51,14 @@ export default async function DeveloperMissionDetailPage({
     admin
       .from("test_results")
       .select(
-        "id, mission_id, created_at, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, status, rating, review_note",
+        "id, mission_id, created_at, screenshot_url, screenshot_urls, tester_comment, ai_summary, ai_sentiment, status, rating, review_note, test_result_entries(id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls)",
       )
       .eq("mission_id", missionId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .order("step_index", { referencedTable: "test_result_entries", ascending: true }),
+    // Drafts say what publishing would spend, which is also why a refused
+    // publish left this a draft. Live missions need only the cap, from the row.
+    reportBalance(userId),
   ]);
 
   if (!missionRes.data) return notFound();
@@ -70,34 +77,20 @@ export default async function DeveloperMissionDetailPage({
   if (missionRes.data.project_id !== projectId) return notFound();
 
   const mission = missionRes.data;
-  const results = (resultsRes.data ?? []) as unknown as MissionResult[];
-  const numbers = testerNumbers(results);
-
-  // Entries are keyed off the ids above, which the ownership check already
-  // scoped, so this cannot widen what the caller sees.
-  const resultIds = results.map((r) => r.id)
-  const { data: entryRows } = resultIds.length
-    ? await admin
-        .from("test_result_entries")
-        .select(
-          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls",
-        )
-        .in("test_result_id", resultIds)
-        .order("step_index", { ascending: true })
-    : { data: [] }
-
+  // The entries come off each report and are split away here, so the row a
+  // client component receives stays the MissionResult it renders.
+  const rows = (resultsRes.data ?? []) as unknown as (MissionResult & {
+    test_result_entries: SubmissionEntry[] | null
+  })[];
   const entriesByResult = new Map<string, SubmissionEntry[]>()
-  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
-    const list = entriesByResult.get(row.test_result_id) ?? []
-    list.push(row)
-    entriesByResult.set(row.test_result_id, list)
-  }
+  const results: MissionResult[] = rows.map(({ test_result_entries, ...result }) => {
+    if (test_result_entries?.length) entriesByResult.set(result.id, test_result_entries)
+    return result
+  })
+  const numbers = testerNumbers(results);
 
   const project = missionProject;
   const isActive = mission.is_active !== false;
-  // Drafts say what publishing would spend, which is also why a refused
-  // publish left this a draft. Live missions need only the cap, from the row.
-  const allowance = await reportBalance(userId);
 
   return (
     <div className="max-w-[1128px] mx-auto px-4 medium:px-6 expanded:px-8 pt-16 pb-6 medium:pt-20 medium:pb-8 expanded:py-8">

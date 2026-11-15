@@ -56,9 +56,12 @@ export default async function ProjectDetailPage({
       .order("created_at", { ascending: true }),
     admin
       .from("test_results")
-      .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id, missions!inner(id, title, project_id)")
+      // Entries ride on the reports: one round trip fewer
+      // (docs/perf/DIAGNOSIS-2026-11.md F4).
+      .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id, missions!inner(id, title, project_id), test_result_entries(id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls)")
       .eq("missions.project_id", projectId)
-      .order("created_at", { ascending: false }),
+      .order("created_at", { ascending: false })
+      .order("step_index", { referencedTable: "test_result_entries", ascending: true }),
   ]);
 
   if (!projectRes.data) return notFound();
@@ -72,36 +75,23 @@ export default async function ProjectDetailPage({
 
   const project  = projectRes.data;
   const missions = (missionsRes.data ?? []) as ProjectMission[];
-  const rawResults = (resultsRes.data ?? []) as ProjectResult[];
+  const rawResults = (resultsRes.data ?? []) as (ProjectResult & {
+    test_result_entries: SubmissionEntry[] | null
+  })[];
 
   // The same two things /dashboard/feedback shows for a report: "Tester N",
   // stable per mission (the number the mission page and the CSV use), and the
   // audit log's entries — a report filed step by step has no comment, and
   // this tab used to render it as a blank paragraph under "Developer #01".
-  // Keyed off the ids above, so this cannot widen the scope.
+  // The entries are embedded on the reports above, so they are scoped by the
+  // same project filter and cannot widen it.
   const numbers = testerNumbers(rawResults);
-  const resultIds = rawResults.map((r) => r.id);
-  const { data: entryRows } = resultIds.length
-    ? await admin
-        .from("test_result_entries")
-        .select(
-          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls",
-        )
-        .in("test_result_id", resultIds)
-        .order("step_index", { ascending: true })
-    : { data: [] };
-  const entriesByResult = new Map<string, SubmissionEntry[]>();
-  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
-    const list = entriesByResult.get(row.test_result_id) ?? [];
-    list.push(row);
-    entriesByResult.set(row.test_result_id, list);
-  }
 
-  const results = rawResults.map((r) => ({
+  const results = rawResults.map(({ test_result_entries, ...r }) => ({
     ...r,
     missions: one(r.missions),
     testerNumber: numbers.get(r.id),
-    entries: entriesByResult.get(r.id) ?? null,
+    entries: test_result_entries?.length ? test_result_entries : null,
   }));
 
   const missionCount  = missions.length;

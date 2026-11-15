@@ -2,10 +2,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAccount } from "@/lib/auth";
 import { testerNumbers } from "@/lib/testerNumbers";
 import type { SubmissionEntry } from "@/components/submissions/SubmissionBody";
-import type { MissionRow, TestResultRow } from "@/lib/types/db";
+import type { Embedded, TestResultRow } from "@/lib/types/db";
+import { one } from "@/lib/utils/project";
 
-/** Exactly what the two selects below ask for. */
-type MissionLite = Pick<MissionRow, "id" | "title" | "project_id">;
+/** Exactly what the select below asks for, beside its embeds. */
 type ResultLite = Pick<
   TestResultRow,
   "id" | "tester_comment" | "screenshot_url" | "screenshot_urls" | "created_at" | "mission_id"
@@ -21,86 +21,42 @@ export default async function FeedbackReceivedPage() {
   const { userId } = await requireAccount("builder");
   // Service role throughout: test_results and projects.owner_id are not
   // readable by a signed-in user (20261006_01). The owner_id filter on the
-  // first read is the scoping, and every later read is keyed off its ids.
-  const admin = createAdminClient();
+  // embedded project is the scoping: one read for reports, their mission and
+  // project, and their entries, where there used to be four in a row
+  // (docs/perf/DIAGNOSIS-2026-11.md F4).
+  const { data } = await createAdminClient()
+    .from("test_results")
+    .select(
+      "id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id, missions!inner(title, project_id, projects!inner(name, owner_id)), test_result_entries(id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls)",
+    )
+    .eq("missions.projects.owner_id", userId)
+    .order("created_at", { ascending: true })
+    .order("step_index", { referencedTable: "test_result_entries", ascending: true });
 
-  /* 1 — user's projects */
-  const { data: projects } = await admin
-    .from("projects")
-    .select("id, name")
-    .eq("owner_id", userId);
-
-  const projectIds = (projects ?? []).map((p) => p.id);
-  const projectMap = Object.fromEntries((projects ?? []).map((p) => [p.id, p.name]));
-
-  /* 2 — missions belonging to those projects */
-  const { data: missions } =
-    projectIds.length > 0
-      ? await admin
-          .from("missions")
-          .select("id, title, project_id")
-          .in("project_id", projectIds)
-      : { data: [] as MissionLite[] };
-
-  const missionIds = (missions ?? []).map((m) => m.id);
-  const missionMeta: Record<string, { title: string; projectId: string; projectName: string }> =
-    Object.fromEntries(
-      (missions ?? []).map((m) => [
-        m.id,
-        {
-          title:       m.title,
-          projectId:   m.project_id,
-          projectName: projectMap[m.project_id] ?? "Unknown Project",
-        },
-      ]),
-    );
-
-  /* 3 — all test_results on those missions */
-  const { data: rawResults } =
-    missionIds.length > 0
-      ? await admin
-          .from("test_results")
-          .select("id, tester_comment, screenshot_url, screenshot_urls, created_at, mission_id")
-          .in("mission_id", missionIds)
-          .order("created_at", { ascending: true })
-      : { data: [] as ResultLite[] };
-
-  /* 3b — entries, keyed off the ids above, so this cannot widen the scope */
-  const resultIds = (rawResults ?? []).map((r) => r.id)
-  const numbers = testerNumbers((rawResults ?? []) as ResultLite[])
-  const { data: entryRows } = resultIds.length
-    ? await admin
-        .from("test_result_entries")
-        .select(
-          "id, test_result_id, step_index, step_action, step_expected, status, issue_summary, steps_to_reproduce, actual_result, expected_result, screenshot_urls",
-        )
-        .in("test_result_id", resultIds)
-        .order("step_index", { ascending: true })
-    : { data: [] }
-
-  const entriesByResult = new Map<string, SubmissionEntry[]>()
-  for (const row of (entryRows ?? []) as (SubmissionEntry & { test_result_id: string })[]) {
-    const list = entriesByResult.get(row.test_result_id) ?? []
-    list.push(row)
-    entriesByResult.set(row.test_result_id, list)
-  }
+  const rawResults = (data ?? []) as unknown as (ResultLite & {
+    missions: Embedded<{ title: string; project_id: string; projects: Embedded<{ name: string }> }>
+    test_result_entries: SubmissionEntry[] | null
+  })[];
+  const numbers = testerNumbers(rawResults);
 
   /* flatten into FeedbackEntry[] with mission context attached */
-  const items: FeedbackEntry[] = (rawResults ?? [])
-    .filter((r) => missionMeta[r.mission_id])
-    .map((r) => ({
+  const items: FeedbackEntry[] = rawResults.flatMap((r) => {
+    const mission = one(r.missions);
+    if (!mission) return [];
+    return [{
       id:            r.id,
       missionId:     r.mission_id,
-      missionTitle:  missionMeta[r.mission_id].title,
-      projectId:     missionMeta[r.mission_id].projectId,
-      projectName:   missionMeta[r.mission_id].projectName,
+      missionTitle:  mission.title,
+      projectId:     mission.project_id,
+      projectName:   one(mission.projects)?.name ?? "Unknown Project",
       tester_comment: r.tester_comment,
       screenshot_url: r.screenshot_url,
       screenshot_urls: r.screenshot_urls,
       created_at:    r.created_at,
       testerNumber:  numbers.get(r.id),
-      entries:       entriesByResult.get(r.id) ?? null,
-    }));
+      entries:       r.test_result_entries?.length ? r.test_result_entries : null,
+    }];
+  });
 
   /* sort by most recent first for display (newest feedback first) */
   const sorted = [...items].sort(
