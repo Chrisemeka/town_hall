@@ -27,6 +27,7 @@ import { requireAccount, requireProjectOwner } from "@/lib/auth"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { checkRateLimit } from "@/lib/rateLimitDb"
+import { revalidatePath } from "next/cache"
 
 const USER_ID = "11111111-1111-4111-8111-111111111111"
 const PROJECT_ID = "22222222-2222-4222-8222-222222222222"
@@ -412,6 +413,14 @@ describe("toggleMissionStatus", () => {
     expect(publishMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
     await toggleMissionStatus(MISSION_ID, PROJECT_ID, false)
     expect(closeMission).toHaveBeenCalledWith(MISSION_ID, USER_ID)
+  })
+
+  // With staleTimes.dynamic set, /dashboard/missions is held in the browser for
+  // 30 s; a status change has to clear it like the project page.
+  it("revalidates the missions list as well as the project", async () => {
+    await toggleMissionStatus(MISSION_ID, PROJECT_ID, false)
+    expect(revalidatePath).toHaveBeenCalledWith(`/dashboard/${PROJECT_ID}`)
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/missions")
   })
 
   it("refuses a project the caller does not own", async () => {

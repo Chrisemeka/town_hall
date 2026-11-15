@@ -106,6 +106,7 @@ export async function createMission(
   if (error) return { error: error.message }
 
   revalidatePath(`/dashboard/${projectId}`)
+  revalidatePath("/dashboard/missions")
   if (intent !== "publish") redirect(`/dashboard/${projectId}`)
 
   // Anything short of a full publish lands on the mission page, which says why
@@ -183,6 +184,7 @@ export async function updateMission(
   if (intent === "publish") await publishMission(missionId, user.id)
 
   revalidatePath(`/dashboard/${projectId}`)
+  revalidatePath("/dashboard/missions")
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
   revalidatePath("/explore")
   redirect(`/dashboard/${projectId}/mission/${missionId}`)
@@ -219,6 +221,7 @@ export async function deleteMission(missionId: string, projectId: string) {
   if (error) throw new Error(error.message)
 
   revalidatePath(`/dashboard/${projectId}`)
+  revalidatePath("/dashboard/missions")
   // Redirect server-side so the now-deleted mission page never re-renders
   // (which would otherwise flash the 404/not-found UI before the client navigates).
   redirect(`/dashboard/${projectId}`)
@@ -244,6 +247,7 @@ export async function toggleMissionStatus(missionId: string, projectId: string, 
   } else await closeMission(missionId, user.id)
 
   revalidatePath(`/dashboard/${projectId}`)
+  revalidatePath("/dashboard/missions")
   revalidatePath(`/dashboard/${projectId}/mission/${missionId}`)
   revalidatePath(`/explore`)
 }
