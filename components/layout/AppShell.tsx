@@ -3,7 +3,7 @@
 import { TopNav } from "./TopNav"
 import { Sidebar } from "./Sidebar"
 import { BottomNav } from "./BottomNav"
-import { useState } from "react"
+import { Suspense, use, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { TourProvider } from "@/components/tours/TourProvider"
 import type { AccountType } from "@/lib/access"
@@ -15,27 +15,33 @@ export function AppShell({
   displayName,
   seenTours,
   account = "builder",
-  newMissions = 0,
+  newMissions,
 }: {
   children: React.ReactNode
   avatarUrl?: string | null
   displayName?: string | null
   seenTours?: string[]
   account?: AccountType
-  /** Test cases published since the tester last opened Available Test Cases. */
-  newMissions?: number
+  /**
+   * Test cases published since the tester last opened Available Test Cases.
+   * A promise, so the count streams in after the shell instead of holding
+   * every tester page until its reads finish (docs/perf/DIAGNOSIS-2026-11.md
+   * F5). newMissionCount() never rejects.
+   */
+  newMissions?: Promise<number>
 }) {
   // The layout computed the count on its last full render and does not
   // re-render on a soft navigation, so opening the page would leave the badge
   // on screen. Hidden from the moment the pathname arrives there, until a full
   // render brings a fresh count. (React's adjust-state-during-render pattern.)
   const pathname = usePathname()
-  const [seen, setSeen] = useState({ count: newMissions, hidden: false })
-  if (seen.count !== newMissions) setSeen({ count: newMissions, hidden: false })
-  else if (!seen.hidden && newMissions > 0 && navIsActive(pathname, "/explore/missions")) {
-    setSeen({ count: newMissions, hidden: true })
+  const [count, setCount] = useState(0)
+  const [seen, setSeen] = useState({ count, hidden: false })
+  if (seen.count !== count) setSeen({ count, hidden: false })
+  else if (!seen.hidden && count > 0 && navIsActive(pathname, "/explore/missions")) {
+    setSeen({ count, hidden: true })
   }
-  const badges: NavBadges = { newMissions: seen.hidden ? 0 : newMissions }
+  const badges: NavBadges = { newMissions: seen.hidden ? 0 : count }
 
   return (
     <TourProvider seenTours={seenTours ?? []}>
@@ -54,7 +60,19 @@ export function AppShell({
         </main>
 
         <BottomNav account={account} badges={badges} />
+        {newMissions && (
+          <Suspense fallback={null}>
+            <CountFrom promise={newMissions} onCount={setCount} />
+          </Suspense>
+        )}
       </div>
     </TourProvider>
   )
+}
+
+/** Resolves the streamed badge count into the shell's state. Renders nothing. */
+function CountFrom({ promise, onCount }: { promise: Promise<number>; onCount: (n: number) => void }) {
+  const n = use(promise)
+  useEffect(() => onCount(n), [n, onCount])
+  return null
 }

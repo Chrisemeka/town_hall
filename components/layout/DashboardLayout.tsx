@@ -13,7 +13,7 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
   let displayName: string | null = null
   let seenTours: string[] = []
   let account: AccountType = "builder"
-  let newMissions = 0
+  let newMissions: Promise<number> | undefined
 
   if (user) {
     const admin = createAdminClient()
@@ -43,8 +43,9 @@ export async function DashboardLayout({ children }: { children: React.ReactNode 
     const resolved = await getActiveAccount()
     account = resolved?.active ?? "builder"
     // Only an active tester pays for the count; builders cost nothing. Never
-    // throws — a broken count costs the badge, not the page.
-    if (account === "tester") newMissions = await newMissionCount(user.id)
+    // throws — a broken count costs the badge, not the page. Not awaited: the
+    // promise streams to AppShell, so the shell does not wait on its reads.
+    if (account === "tester") newMissions = newMissionCount(user.id)
   }
 
   return (
