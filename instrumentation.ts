@@ -4,7 +4,9 @@ import type { Instrumentation } from "next"
 // Vercel's logs. One app_events row per error: path, digest, a capped message.
 // Never the request body, headers or cookies.
 export const onRequestError: Instrumentation.onRequestError = async (error, request) => {
-  // Middleware runs on the edge; the Supabase admin client wants Node.
+  // The Supabase admin client wants Node. Middleware runs on Node too since
+  // perf/middleware-node, so its errors are recorded as well; anything left on
+  // the edge is skipped.
   if (process.env.NEXT_RUNTIME !== "nodejs") return
   const { recordEvent } = await import("@/lib/events")
   const { normalisePath } = await import("@/lib/track")
