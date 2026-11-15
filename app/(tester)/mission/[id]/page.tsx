@@ -23,13 +23,48 @@ export default async function MissionDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Only what the page renders. The builder's owner_id is never read here: a
-  // tester is not told whose project this is (CLAUDE.md, Tester anonymity).
-  const { data: mission } = await supabase
-    .from("missions")
-    .select("id, title, task_description, category, device_target, test_steps, is_active, testers_needed, projects(id, name, app_url, description, flagged_at)")
-    .eq("id", id)
-    .single();
+  // Every read keys off the mission id and the user alone, so they run as one
+  // round rather than five in a row (docs/perf/DIAGNOSIS-2026-11.md F4). Each
+  // result is used under exactly the conditions it was before.
+  //
+  // Owner and earlier-report checks run server-side through service role and
+  // reach the page only as booleans: owner_id and test_results are not
+  // readable by a signed-in user (20261006_01).
+  const admin = createAdminClient();
+  const [{ data: mission }, { count: owned }, { data: ownRows }, { count: received }, cohort] =
+    await Promise.all([
+      // Only what the page renders. The builder's owner_id is never read here: a
+      // tester is not told whose project this is (CLAUDE.md, Tester anonymity).
+      supabase
+        .from("missions")
+        .select("id, title, task_description, category, device_target, test_steps, is_active, testers_needed, projects(id, name, app_url, description, flagged_at)")
+        .eq("id", id)
+        .single(),
+      // A count, never the column: owner_id stays on the server.
+      user
+        ? admin
+            .from("missions")
+            .select("id, projects!inner(owner_id)", { count: "exact", head: true })
+            .eq("id", id)
+            .eq("projects.owner_id", user.id)
+        : Promise.resolve({ count: 0 }),
+      // One report per tester per mission (20260930_02).
+      // Read whole rather than counted: once reviewed, the builder's rating and
+      // note are shown here. Newest first and limited, not maybeSingle — rows from
+      // before 20260930_02 can hold a duplicate, which maybeSingle would throw on.
+      user
+        ? admin
+            .from("test_results")
+            .select("status, rating, review_note")
+            .eq("mission_id", id)
+            .eq("tester_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+        : Promise.resolve({ data: [] }),
+      // Only read below for a closed test case: whether it filled.
+      admin.from("test_results").select("id", { count: "exact", head: true }).eq("mission_id", id),
+      user ? isCohortTester(user.id) : Promise.resolve(false),
+    ]);
 
   if (!mission) return notFound();
 
@@ -43,33 +78,9 @@ export default async function MissionDetailPage({
   const parsedSteps = storedTestStepsSchema.safeParse(mission.test_steps);
   const steps = parsedSteps.success ? parsedSteps.data : [];
   if (project?.flagged_at) return notFound();
-  // Owner and earlier-report checks run server-side through service role and
-  // reach the page only as booleans: owner_id and test_results are not
-  // readable by a signed-in user (20261006_01).
-  const admin = createAdminClient();
-  const { count: owned } = user && project
-    ? await admin
-        .from("projects")
-        .select("id", { count: "exact", head: true })
-        .eq("id", project.id)
-        .eq("owner_id", user.id)
-    : { count: 0 };
-  const isOwner = !!owned;
+  const isOwner = !!project && !!owned;
 
-  // One report per tester per mission (20260930_02).
-  // Read whole rather than counted: once reviewed, the builder's rating and
-  // note are shown here. Newest first and limited, not maybeSingle — rows from
-  // before 20260930_02 can hold a duplicate, which maybeSingle would throw on.
-  const { data: ownRows } = user && !isOwner
-    ? await admin
-        .from("test_results")
-        .select("status, rating, review_note")
-        .eq("mission_id", id)
-        .eq("tester_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-    : { data: [] };
-  const ownReport = (ownRows ?? [])[0] as
+  const ownReport = (isOwner ? [] : (ownRows ?? []))[0] as
     | { status: string | null; rating: number | null; review_note: string | null }
     | undefined;
   const ownReports = !!ownReport;
@@ -84,10 +95,8 @@ export default async function MissionDetailPage({
   // says; never which builder or why. The count goes through service role:
   // test_results is not readable by a signed-in user.
   const live = mission.is_active !== false;
-  const { count: received } = !live && !isOwner && !ownReports
-    ? await admin.from("test_results").select("id", { count: "exact", head: true }).eq("mission_id", id)
-    : { count: 0 };
-  const full = !!mission.testers_needed && (received ?? 0) >= mission.testers_needed;
+  const counted = !live && !isOwner && !ownReports ? (received ?? 0) : 0;
+  const full = !!mission.testers_needed && counted >= mission.testers_needed;
 
   // Proof this tester was shown the form while the test case was live, so a
   // report started now still lands if the last slot fills mid-test
@@ -103,7 +112,7 @@ export default async function MissionDetailPage({
   }
 
   const unpaidForCohort =
-    live && !!user && !isOwner && !ownReports && (await isCohortTester(user.id)) &&
+    live && !!user && !isOwner && !ownReports && cohort &&
     !(await missionsForTester(user.id, [id])).has(id);
 
   return (
