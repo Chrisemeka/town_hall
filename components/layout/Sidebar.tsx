@@ -8,6 +8,7 @@ import { signOutAction } from "@/actions/auth"
 import { ReplayTourButton } from "@/components/tours/ReplayTourButton"
 import { NAV, activeNavHref, navCurrent, navIsActive, type NavBadges } from "@/lib/appNav"
 import { NavBadge } from "./NavBadge"
+import { NavIcon } from "./NavIcon"
 import type { AccountType } from "@/lib/access"
 
 function NavItem({
@@ -43,7 +44,7 @@ function NavItem({
         className,
       )}
     >
-      <Icon className="w-4 h-4 shrink-0" />
+      <NavIcon icon={Icon} className="w-4 h-4 shrink-0" />
       {name}
       <NavBadge count={badge} />
     </Link>

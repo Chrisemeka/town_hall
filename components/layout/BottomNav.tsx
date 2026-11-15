@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { NAV, activeNavHref, navCurrent, type NavBadges } from "@/lib/appNav"
 import { NavBadge } from "./NavBadge"
+import { NavIcon } from "./NavIcon"
 import type { AccountType } from "@/lib/access"
 
 /**
@@ -45,7 +46,7 @@ export function BottomNav({ account, badges = {} }: { account: AccountType; badg
                     active ? "bg-accent-ink/[0.12] text-accent-ink" : "text-ink-muted group-hover:text-ink"
                   }`}
                 >
-                  <Icon size={20} aria-hidden="true" />
+                  <NavIcon icon={Icon} className="size-5" />
                   {/* On the icon's corner, off the label; the 48px target is the cell. */}
                   <NavBadge count={badge && badges[badge]} corner />
                 </span>
