@@ -211,6 +211,13 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Node, not the edge default. Middleware makes two Supabase calls on every
+  // request (getUser, then the gate read). On the edge it ran wherever the
+  // visitor was, far from eu-west-1; on Node it runs in the functions'
+  // region, dub1, beside the database. getUser() stays: it is the check that
+  // sees a ban and email_confirmed_at, which a local JWT check cannot
+  // (docs/perf/DIAGNOSIS-2026-11.md F3).
+  runtime: 'nodejs',
   matcher: [
     '/((?!_next/static|_next/image|api|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
