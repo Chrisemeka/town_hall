@@ -17,14 +17,14 @@ export default function PrivacyPolicyPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: November 3, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-10 medium:mb-12">Last updated: November 23, 2026</p>
         </Reveal>
 
         <div className="flex flex-col gap-8 medium:gap-10">
 
           <Reveal step={2}>
           <p className="font-sans text-[16px] leading-7 text-ink lg:text-[14px]">
-            At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services. Twnhall&apos;s operator, {MERCHANT.legalName}, is responsible for your personal data. Under the Nigeria Data Protection Act 2023, that makes us its data controller.
+            At <span className="text-ink">Twnhall</span>, we are committed to protecting your privacy and safeguarding your personal information. This Privacy Policy explains how we collect, use, and disclose your information when you use our services. Twnhall&apos;s operators, {MERCHANT.legalName}, are responsible for your personal data. Under the Nigeria Data Protection Act 2023, that makes us the data controller.
           </p>
           </Reveal>
 
