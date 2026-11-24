@@ -18,7 +18,7 @@ export default function TermsPage() {
           </h1>
         </Reveal>
         <Reveal step={1}>
-          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 3, 2026</p>
+          <p className="font-mono text-[13px] text-ink-muted mb-6">Last updated: November 23, 2026</p>
         </Reveal>
 
         <Reveal step={2}>
@@ -30,7 +30,7 @@ export default function TermsPage() {
         <div className="flex flex-col gap-8 medium:gap-10">
 
           <Section {...docSection("terms", "agreement")}>
-            <p>By using Twnhall, you agree to comply with all applicable laws and regulations.</p>
+            <p>By using Twnhall, you agree to comply with all relevant and applicable laws and regulations.</p>
           </Section>
 
           <Section {...docSection("terms", "accounts")}>
@@ -41,7 +41,7 @@ export default function TermsPage() {
               One sign-in can hold both a Builder and a Tester account. You choose your first account type after you sign up and can add the other later; each has its own dashboard, history, and profile, which you complete before using it, and you switch between them while signed in.
             </p>
             <p>
-              While you act as a Builder you see Builder views, and while you act as a Tester you see Tester views. You may not use a Tester account to submit a report on a project you own, and you may not create additional accounts to work around this.
+              While you act as a Builder you see Builder views, and while you act as a Tester you see Tester views. You shall not use a Tester account to submit a report on a project you own, and you shall not create additional accounts to work around this.
             </p>
             <p>
               You are responsible for activity that occurs under any account you hold, and for keeping your password, or the Google account you sign in with, secure.
@@ -63,7 +63,7 @@ export default function TermsPage() {
               <Link href="/pricing" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Pricing</Link> page. You must be 18 or older to buy one. A paid plan adds a monthly allowance of tester reports, as Pricing describes. We don&apos;t promise how quickly reports arrive.
             </p>
             <p>
-              Paid plans are subscriptions that renew monthly and charge the card you subscribed with until you cancel. By subscribing you authorise those charges. You can cancel at any time in Settings; cancelling stops future charges and you keep the plan until the end of the period you&apos;ve paid for.
+              Paid plans are subscriptions that renew monthly and charge the card you subscribed with until you cancel. By subscribing you authorise those charges on the designated subscribed card. You can cancel at any time in Settings; cancelling stops future charges and you keep the plan until the end of the period you&apos;ve paid for.
             </p>
             <p>
               Our{" "}
@@ -89,17 +89,17 @@ export default function TermsPage() {
 
           <Section {...docSection("terms", "content")}>
             <p>
-              You keep ownership of what you submit — your project details, test cases, reports, and screenshots.
+              You reserve the intellectual property rights to what you submit — your project details, test cases, reports, and screenshots.
             </p>
             <p>
-              By submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process it for the purpose of operating the service. This includes showing your report and screenshots to the Builder whose test case you submitted against, and processing submissions through automated analysis as described in our{" "}
+              However, by submitting content you grant Twnhall a non-exclusive licence to host, store, display, and process such content for the purpose of operating the service. This includes showing your report and screenshots to the Builder whose test case you submitted against, and processing submissions through automated analysis as described in our{" "}
               <Link href="/privacy" className="text-accent-ink underline hover:overline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface">Privacy Policy</Link>.
             </p>
             <p>
-              Screenshots you capture while testing may show another developer&apos;s unreleased product. Do not publish, share, or reuse them outside Twnhall. Treat anything you see while testing as confidential.
+              Screenshots you capture while testing may show another developer&apos;s unreleased product. You are under a legal obligation not to publish, share, or reuse them outside Twnhall. Treat anything you see while testing as confidential.
             </p>
             <p>
-              Do not submit content you do not have the right to submit, and do not include personal data, credentials, or payment details of other people in a screenshot or report.
+              Do not submit any content you do not have the intellectual property right to submit, and do not include personal data, credentials, or payment details of other people in a screenshot or report, as you shall bear sole liability for any breach of a third party&apos;s data rights in what you submit on Twnhall.
             </p>
           </Section>
 
@@ -146,7 +146,7 @@ export default function TermsPage() {
           </Section>
 
           <Section {...docSection("terms", "jurisdiction")}>
-            <p>These terms and conditions are governed by the laws of Nigeria. Any disputes shall be resolved in the courts of Nigeria.</p>
+            <p>These terms and conditions are governed by the laws of Nigeria. Any disputes shall first be subject to mediation and negotiation within a reasonable period. Where mediation or negotiation fails, the dispute can be resolved in the courts of Nigeria.</p>
           </Section>
 
           <Section {...docSection("terms", "contact")}>
